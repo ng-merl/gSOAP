@@ -33,7 +33,7 @@ engelen@genivia.com / engelen@acm.org
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.1.0"
+#define VERSION "1.1.2"
 
 #include <utility>
 #include <iterator>

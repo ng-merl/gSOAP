@@ -5,17 +5,18 @@ INSTRUCTIONS
 The gSOAP WSDL parser converts WSDL into a gSOAP header file for processing
 with the gSOAP compiler to generate the stubs and skeletons.
 
-For examle:
+For example:
 
 $ wsdl2h -o Amazon.h http://soap.amazon.com/schemas/AmazonWebServices.wsdl
 
 $ soapcpp2 Amazon.h
 
-See Amazon.h for the types and service functions. A C++ client application may
-use the generated 'soapAmazonSearchBindingProxy.h' class and
+The generated Amazon.h includes the definitions of data types and service
+operations of the Amazon Web service. To develop a C++ client application, you
+can use the generated 'soapAmazonSearchBindingProxy.h' class and
 'AmazonSearchBinding.nsmap' XML namespace table to access the Amazon Web
-service. Both need to be '#include'-d in your source. Then compile and link
-the soapC.cpp, soapClient.cpp, and stdsoap2.cpp sources to complete the build.
+service. Both need to be '#include'-d in your source. Then compile and link the
+soapC.cpp, soapClient.cpp, and stdsoap2.cpp sources to complete the build.
 More information can be found in the gSOAP documentation.
 
 When parsing a WSDL, the output file name is the WSDL input file name with

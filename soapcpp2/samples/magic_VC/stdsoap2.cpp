@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.c[pp] 2.6.1
+stdsoap2.c[pp] 2.6.2
 
 Runtime environment.
 
@@ -58,10 +58,15 @@ tab (the project file needs to be selected in the file view) and add
 #include "stdsoap2.h"
 
 #ifdef __cplusplus
-SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.6.1 2004-04-10 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.6.2 2004-06-12 12:00:00 GMT")
 extern "C" {
 #else
-SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.6.1 2004-04-10 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.6.2 2004-06-12 12:00:00 GMT")
+#endif
+
+/* 8bit character representing unknown/nonrepresentable character data (not supported by current locale) */
+#ifndef SOAP_UNKNOWN_CHAR
+#define SOAP_UNKNOWN_CHAR (127)
 #endif
 
 /*      EOF=-1 */
@@ -1036,7 +1041,7 @@ soap_char(struct soap *soap)
 #ifndef WITH_LEAN
   return (wchar)soap_int_code(html_entity_codes, tmp, 127);
 #else
-  return 127; /* use this to represent unknown code */
+  return SOAP_UNKNOWN_CHAR; /* use this to represent unknown code */
 #endif
 }
 #endif
@@ -2053,23 +2058,9 @@ soap_push_namespace(struct soap *soap, const char *id, const char *ns)
   if (p)
   { register short i = 0;
     if (!strcmp(ns, soap_env1))
-    { soap->version = 1; /* make sure we use SOAP 1.1 */
-      if (p->ns && strcmp(ns, p->ns))
-      { if (p->out)
-          SOAP_FREE(p->out);
-        if ((p->out = (char*)SOAP_MALLOC(strlen(ns) + 1)))
-          strcpy(p->out, ns);
-      }
-    }
+      soap->version = 1; /* make sure we use SOAP 1.1 */
     else if (!strcmp(ns, soap_env2))
-    { soap->version = 2; /* make sure we use SOAP 1.2 */
-      if (p->ns && strcmp(ns, p->ns))
-      { if (p->out)
-          SOAP_FREE(p->out);
-        if ((p->out = (char*)SOAP_MALLOC(strlen(ns) + 1)))
-          strcpy(p->out, ns);
-      }
-    }
+      soap->version = 2; /* make sure we use SOAP 1.2 */
     else
     { for (; p->id; p++, i++)
       { if (p->ns)
@@ -2081,11 +2072,23 @@ soap_push_namespace(struct soap *soap, const char *id, const char *ns)
               SOAP_FREE(p->out);
             if ((p->out = (char*)SOAP_MALLOC(strlen(ns) + 1)))
               strcpy(p->out, ns);
-	    if (i == 0)
-	      soap->version = 2;	/* bit of a stretch, but it seems that SOAP is intended by the sender */
             break;
           }
       }
+    }
+    if (i == 0 && (!p->ns || strcmp(ns, p->ns)))
+    { if (p[0].out)
+        SOAP_FREE(p[0].out);
+      if ((p[0].out = (char*)SOAP_MALLOC(strlen(ns) + 1)))
+        strcpy(p[0].out, ns);
+      if (p[1].out)
+          SOAP_FREE(p[1].out);
+      if (soap->version == 1)
+      { if ((p[1].out = (char*)SOAP_MALLOC(sizeof(soap_enc1))))
+          strcpy(p[1].out, soap_enc1);
+      }
+      else if ((p[1].out = (char*)SOAP_MALLOC(sizeof(soap_enc2))))
+        strcpy(p[1].out, soap_enc2);
     }
     if (p && p->id)
     { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Push OK ('%s' matches '%s' in namespace table)\n", id, p->id));
@@ -2425,7 +2428,7 @@ ssl_auth_init(struct soap *soap)
   { if (!RAND_load_file(soap->randfile, -1))
       return soap_set_receiver_error(soap, "SSL error", "Can't load randomness", SOAP_SSL_ERROR);
   }
-  else if (!RAND_load_file("/dev/random", 1024))
+  else if (!RAND_load_file("/dev/urandom", 1024))
   { int r;
 #ifdef HAVE_RAND_R
     unsigned int s = (unsigned int)time(NULL);
@@ -2585,12 +2588,11 @@ tcp_init(struct soap *soap)
 #ifdef WIN32
   if (tcp_done)
     return 0;
-  tcp_done = 1;
+  else
   { WSADATA w;
     if (WSAStartup(MAKEWORD(1, 1), &w))
-    { tcp_done = 0;
       return -1;
-    }
+    tcp_done = 1;
   }
 #endif
 #ifdef PALM
@@ -6452,11 +6454,12 @@ soap_string_out(struct soap *soap, const char *s, int flag)
 #ifdef HAVE_MBTOWC
       if (soap->mode & SOAP_C_MBSTRING)
       { wchar_t wc;
-        register int n = mbtowc(&wc, t - 1, MB_CUR_MAX);
-        if (n > 0 && wc != c)
+        register int m = mbtowc(&wc, t - 1, MB_CUR_MAX);
+        if (m > 0 && wc != c)
         { if (soap_send_raw(soap, s, t - s - 1) || soap_pututf8(soap, wc))
             return soap->error;
-	  s = t + n - 1;
+	  s = t + m - 1;
+	  continue;
         }
       }
 #endif
@@ -6512,7 +6515,7 @@ soap_string_in(struct soap *soap, int flag)
         return NULL;
 #endif
       for (i = 0; i < k; i++)
-      { if (m)
+      { if (m > 0)
         { *s++ = *t++;	/* copy multibyte characters */
 	  m--;
           continue;
@@ -6554,19 +6557,6 @@ soap_string_in(struct soap *soap, int flag)
               *s++ = *t++;
               continue;
 	    }
-#ifdef HAVE_WCTOMB
-	    else if (soap->mode & SOAP_C_MBSTRING)
-	    { m = wctomb(buf, c);
-	      if (m > 1)
-              { t = buf;
-                *s++ = *t++;
-	        m--;
-                continue;
-	      }
-	      else
-	        m = 0;
-	    }
-#endif
           }
         }
 	switch (state)
@@ -6681,7 +6671,20 @@ soap_string_in(struct soap *soap, int flag)
           *s++ = '"';
           break;
         default:
-          *s++ = (char)(c & 0xFF);
+#ifdef HAVE_WCTOMB
+          if (soap->mode & SOAP_C_MBSTRING)
+          { m = wctomb(buf, c & 0x7FFFFFFF);
+            if (m >= 1)
+            { t = buf;
+              *s++ = *t++;
+              m--;
+            }
+            else
+              *s++ = SOAP_UNKNOWN_CHAR;
+          }
+          else
+#endif
+            *s++ = (char)(c & 0xFF);
         }
       }
     }
@@ -6708,7 +6711,7 @@ soap_string_in(struct soap *soap, int flag)
       return NULL;
 #endif
     for (i = 0; i < k; i++)
-    { if (m)
+    { if (m > 0)
       { *s++ = *t++;	/* copy multibyte characters */
         m--;
         continue;
@@ -6748,21 +6751,7 @@ soap_string_in(struct soap *soap, int flag)
       else if (soap->mode & SOAP_C_LATIN)
         c = soap_get(soap);
       else
-      { c = soap_getutf8(soap);
-#ifdef HAVE_WCTOMB
-        if (soap->mode & SOAP_C_MBSTRING)
-        { m = wctomb(buf, c);
-          if (m > 1)
-          { t = buf;
-            *s++ = *t++;
-            m--;
-            continue;
-          }
-          else
-            m = 0;
-        }
-#endif
-      }
+        c = soap_getutf8(soap);
       switch (c)
       {
       case TT:
@@ -6821,7 +6810,20 @@ soap_string_in(struct soap *soap, int flag)
       default:
         if ((int)c == EOF)
           goto end;
-        *s++ = (char)(c & 0xFF);
+#ifdef HAVE_WCTOMB
+        if (soap->mode & SOAP_C_MBSTRING)
+        { m = wctomb(buf, c & 0x7FFFFFFF);
+          if (m >= 1)
+          { t = buf;
+            *s++ = *t++;
+            m--;
+          }
+          else
+            *s++ = SOAP_UNKNOWN_CHAR;
+        }
+        else
+#endif
+          *s++ = (char)(c & 0xFF);
       }
     }
   }
@@ -8002,9 +8004,9 @@ soap_s2QName(struct soap *soap, const char *s, char **t)
       DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Namespace prefix of '%s' not defined (index=%d, URI=%s)\n", s, np->index, np->ns?np->ns:""));
       return soap->error = SOAP_NAMESPACE; 
     }
-    if (soap->mode & SOAP_XML_STRICT)
-      return soap->error = SOAP_NAMESPACE;
-    *t = soap_strdup(soap, s);
+    DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Namespace prefix of '%s' not defined, assuming empty namespace\n", s));
+    if ((*t = (char*)soap_malloc(soap, strlen(p) + 4)))
+      sprintf(*t, "\"\":%s", p);
   }
   return SOAP_OK;
 }
@@ -8018,12 +8020,12 @@ SOAP_FMAC2
 soap_QName2s(struct soap *soap, const char *s)
 { struct Namespace *p;
   char *t;
-  int i;
+  int n;
   if (!s || *s != '"')
     return s;
   s++;
   if ((p = soap->local_namespaces))
-  { for (i = 0; p->id; p++, i++)
+  { for (; p->id; p++)
     { if (p->ns)
         if (!soap_tag_cmp(s, p->ns))
           break;
@@ -8043,11 +8045,11 @@ soap_QName2s(struct soap *soap, const char *s)
   }
   t = (char*)strchr(s, '"');
   if (t)
-    i = t - s;
+    n = t - s;
   else
-    i = 0;
+    n = 0;
   t = soap_strdup(soap, s);
-  t[i] = '\0';
+  t[n] = '\0';
   sprintf(soap->tmpbuf, "xmlns:_%lu", soap->idnum++);
   soap_set_attr(soap, soap->tmpbuf, t);
   s = strchr(s, '"');
@@ -8248,7 +8250,8 @@ soap_timegm(struct tm *T)
   return timegm(T);
 #elif defined(HAVE_GETTIMEOFDAY)
   struct timezone t;
-  gettimeofday(NULL, &t); /* doesn't work properly on Solaris */
+  struct timeval tv;
+  gettimeofday(&tv, &t); /* doesn't work properly on Solaris */
   T->tm_min -= t.tz_minuteswest;
   T->tm_isdst = (t.tz_dsttime != 0);
   return mktime(T);
@@ -8329,13 +8332,15 @@ soap_dateTime2s(struct soap *soap, time_t n)
   struct timezone t;
 #if defined(HAVE_LOCALTIME_R)
   if (localtime_r(&n, pT))
-  { gettimeofday(NULL, &t);
+  { struct timeval tv;
+    gettimeofday(&tv, &t);
     strftime(soap->tmpbuf, sizeof(soap->tmpbuf), "%Y-%m-%dT%H:%M:%S", pT);
     sprintf(soap->tmpbuf + strlen(soap->tmpbuf), "%+03d:%02d", -t.tz_minuteswest/60-(t.tz_dsttime!=0), abs(t.tz_minuteswest)%60);
   }
 #else
   if ((pT = localtime(&n)))
-  { gettimeofday(NULL, &t);
+  { struct timeval tv;
+    gettimeofday(&tv, &t);
     strftime(soap->tmpbuf, sizeof(soap->tmpbuf), "%Y-%m-%dT%H:%M:%S", pT);
     sprintf(soap->tmpbuf + strlen(soap->tmpbuf), "%+03d:%02d", -t.tz_minuteswest/60-(t.tz_dsttime!=0), abs(t.tz_minuteswest)%60);
   }

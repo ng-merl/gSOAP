@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.6.1
+stdsoap2.h 2.6.2
 
 Runtime environment.
 
@@ -398,6 +398,7 @@ engelen@genivia.com / engelen@acm.org
 #include <limits.h>
 
 #if defined(__cplusplus) && !defined(UNDER_CE)
+# include <string>
 # include <iostream>
   using namespace std;
 #endif
@@ -785,7 +786,7 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_REQUIRED			30
 #define SOAP_OCCURS			31
 
-#define soap_xml_error_check(e) ((e) == SOAP_TAG_MISMATCH || (e) == SOAP_SYNTAX_ERROR || (e) == SOAP_NAMESPACE || (e) == SOAP_MULTI_ID || (e) == SOAP_MISSING_ID || (e) == SOAP_REQIRED || (e) == SOAP_OCCURS)
+#define soap_xml_error_check(e) ((e) == SOAP_TAG_MISMATCH || (e) == SOAP_SYNTAX_ERROR || (e) == SOAP_NAMESPACE || (e) == SOAP_MULTI_ID || (e) == SOAP_MISSING_ID || (e) == SOAP_REQUIRED || (e) == SOAP_OCCURS)
 #define soap_soap_error_check(e) ((e) == SOAP_CLI_FAULT || (e) == SOAP_SVR_FAULT || (e) == SOAP_VERSIONMISMATCH || (e) == SOAP_MUSTUNDERSTAND || (e) == SOAP_FAULT || (e) == SOAP_NO_METHOD || (e) == SOAP_OBJ_MISMATCH || (e) == SOAP_NULL)
 #define soap_tcp_error_check(e) ((e) == SOAP_EOF || (e) == SOAP_TCP_ERROR)
 #define soap_ssl_error_check(e) ((e) == SOAP_SSL_ERROR)

@@ -15,13 +15,13 @@
 
 
 
-<title> gSOAP 2.6.0 User Guide</title>
+<title> gSOAP 2.6.2 User Guide</title>
     
-<h1 align="center">gSOAP 2.6.0 User Guide </h1>
+<h1 align="center">gSOAP 2.6.2 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Genivia, Inc., <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Jun  6, 2004
+<h3 align="center">Jun 13, 2004
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -3432,7 +3432,7 @@ The compiler supports the following options:
 <tr><td><i>-h</i>	</td><td>Print a brief usage message </td></tr>
 <tr><td><i>-c</i>	</td><td>Save files using extension <i>.c</i> instead of <i>.cpp</i> and produce pure C </td></tr>
 <tr><td><i>-w</i>	</td><td>Do not generate WSDL and schema files </td></tr>
-<tr><td><i>-m</i>	</td><td>Generate code that requires array/binary classes to explicitly free malloced array </td></tr>
+<tr><td><i>-m</i>	</td><td>Generate Matlab<sup><span class="roman">tm</span></sup> code for MEX compiler </td></tr>
 <tr><td></td><td>(to be deprecated since <i>soap_unlink</i> should be used to keep specific data) </td></tr>
 <tr><td><i>-I  &lt; path &gt; </i>	</td><td>Use <i> &lt; path &gt; </i> (and current dir) for <i>#import</i> </td></tr>
 <tr><td><i>-d  &lt; path &gt; </i>	</td><td>Save sources in directory specified by <i> &lt; path &gt; </i> </td></tr>
@@ -4018,15 +4018,8 @@ destructors SHOULD mark their own deallocation and mark the deallocation of any 
 by calling the <i>soap_unlink</i> function. This allows
 <i>soap_destroy</i> and <i>soap_end</i> to remove the remaining instances and data without causing duplicate deallocations.</li>
 </ol>
-With the <i>-m</i> option of <i>soapcpp2</i> enabled (to be deprecated), there is one exception which requires explicit deallocation of <i>malloc</i>ed data in
-the destructors of classes for array binary types:
-
-<ul><p>
-<li> A dynamic array class with non-class elements SHOULD delete the contents of the array it points to as part of its destructor's operations (this includes classes for <i>hexBinary</i> and
-<i>base64Binary</i> schema types.</li>
-</ul>
 It is advised to use pointers to class instances that are used within other structs and classes to avoid the creation of temporary
-class instances. The problem with temporary class instances is that the destructor of the temporary may affect data used by
+class instances during deserialization. The problem with temporary class instances is that the destructor of the temporary may affect data used by
 other instances through the sharing of data parts accessed with pointers. Temporaries and even whole copies of class instances
 can be created when deserializing SOAP multi-referenced objects.
 A dynamic array of class instances is similar: temporaries may be created to fill the array upon deserialization. To avoid
@@ -10827,5 +10820,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On  6 Jun 2004, 15:18.</small>
+version 3.00.<br />On 13 Jun 2004, 10:40.</small>
 </html>

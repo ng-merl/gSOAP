@@ -42,7 +42,8 @@ static const char *utf8(char *t, const char *s);
 ////////////////////////////////////////////////////////////////////////////////
 
 static const char *keywords[] =
-{ "auto",
+{ "and",
+  "auto",
   "bool",
   "break",
   "case",
@@ -59,6 +60,7 @@ static const char *keywords[] =
   "explicit",
   "extern",
   "false",
+  "FILE",
   "float",
   "for",
   "friend",
@@ -68,9 +70,13 @@ static const char *keywords[] =
   "int",
   "long",
   "LONG64",
+  "max",
+  "min",
   "mustUnderstand",
   "namespace",
+  "not",
   "operator",
+  "or",
   "private",
   "protected",
   "public",
@@ -99,6 +105,7 @@ static const char *keywords[] =
   "while",
   "XML",
   "_XML",
+  "xor",
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -222,7 +229,7 @@ void Types::init()
   }
   else
   { deftypemap["xsd__string"] = "";
-    usetypemap["xsd__string"] = "std::string*";
+    usetypemap["xsd__string"] = "std::string";
   }
   deftypemap["xsd__unsignedByte"] = "";
   usetypemap["xsd__unsignedByte"] = "unsigned char";
@@ -280,7 +287,7 @@ void Types::init()
   }
   else
   { deftypemap["SOAP_ENC__string"] = "";
-    usetypemap["SOAP_ENC__string"] = "std::string*";
+    usetypemap["SOAP_ENC__string"] = "std::string";
   }
   deftypemap["SOAP_ENC__string"] = "";
   usetypemap["SOAP_ENC__string"] = "char*";
@@ -566,7 +573,8 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
   else
     prefix = "_";
   if (simpleType.restriction)
-  { if (!simpleType.restriction->enumeration.empty())
+  { fprintf(stream, "// simpleType restriction of %s\n", simpleType.restriction->base);
+    if (!simpleType.restriction->enumeration.empty())
     { const char *t;
       if (name)
       { t = deftname(ENUM, NULL, prefix, URI, name);
@@ -574,8 +582,8 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
       }
       else
       { t = "";
-        fprintf(stream, elementformat, "enum {", "");
-        fprintf(stream, "\n");
+        fprintf(stream, elementformat, "enum { ", "");
+        fprintf(stream, "\n    ");
       }
       for (vector<xs__enumeration>::const_iterator enumeration = simpleType.restriction->enumeration.begin(); enumeration != simpleType.restriction->enumeration.end(); ++enumeration)
       { if ((*enumeration).value)
@@ -597,13 +605,51 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
         fprintf(stream, "}\n");
     }
     else
-    { const char *a = NULL, *b = NULL;
-      if (simpleType.restriction->minLength)
-        a = simpleType.restriction->minLength->value;
-      if (simpleType.restriction->maxLength)
-        b = simpleType.restriction->maxLength->value;
-      if (a || b)
-        fprintf(stream, "// length of string %s is within [%s..%s]\n", name?name:"", a?a:"0", b?b:"");
+    { if (simpleType.restriction->length && simpleType.restriction->length->value)
+        fprintf(stream, "// length of string is %s\n", simpleType.restriction->length->value);
+      else
+      { const char *a = NULL, *b = NULL;
+        if (simpleType.restriction->minLength)
+          a = simpleType.restriction->minLength->value;
+        if (simpleType.restriction->maxLength)
+          b = simpleType.restriction->maxLength->value;
+        if (a || b)
+          fprintf(stream, "// length of string is within [%s..%s]\n", a?a:"0", b?b:"");
+      }
+      if (simpleType.restriction->precision && simpleType.restriction->precision->value)
+        fprintf(stream, "// %sprecision is %s\n", simpleType.restriction->precision->fixed?"fixed ":"", simpleType.restriction->precision->value);
+      if (simpleType.restriction->scale && simpleType.restriction->scale->value)
+        fprintf(stream, "// %sscale is %s\n", simpleType.restriction->scale->fixed?"fixed ":"", simpleType.restriction->scale->value);
+      if (simpleType.restriction->totalDigits && simpleType.restriction->totalDigits->value)
+        fprintf(stream, "// %snumber of total digits is %s\n", simpleType.restriction->totalDigits->fixed?"fixed ":"", simpleType.restriction->totalDigits->value);
+      if (simpleType.restriction->fractionDigits && simpleType.restriction->fractionDigits->value)
+        fprintf(stream, "// %snumber of fraction digits is %s\n", simpleType.restriction->fractionDigits->fixed?"fixed ":"", simpleType.restriction->fractionDigits->value);
+      for (vector<xs__pattern>::const_iterator pattern1 = simpleType.restriction->pattern.begin(); pattern1 != simpleType.restriction->pattern.end(); ++pattern1)
+        fprintf(stream, "// content pattern is \"%s\"\n", (*pattern1).value);
+      const char *ai = NULL, *ae = NULL, *bi = NULL, *be = NULL;
+      if (simpleType.restriction->minInclusive)
+        ai = simpleType.restriction->minInclusive->value;
+      else if (simpleType.restriction->minExclusive)
+        ae = simpleType.restriction->minExclusive->value;
+      if (simpleType.restriction->maxInclusive)
+        bi = simpleType.restriction->maxInclusive->value;
+      else if (simpleType.restriction->maxExclusive)
+        be = simpleType.restriction->maxExclusive->value;
+      if (ai || ae || bi || be)
+      { fprintf(stream, "// value range is ");
+        if (ai)
+	  fprintf(stream, "[%s..", ai);
+        else if (ae)
+	  fprintf(stream, "(%s..", ae);
+        else
+	  fprintf(stream, "[-INF..");
+        if (bi)
+	  fprintf(stream, "%s]\n", bi);
+        else if (be)
+	  fprintf(stream, "%s)\n", be);
+        else
+	  fprintf(stream, "INF]\n");
+      }
       const char *t;
       if (name)
       { t = deftname(TYPEDEF, NULL, prefix, URI, name);
@@ -614,12 +660,12 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
         fprintf(stream, elementformat, tname(NULL, NULL, simpleType.restriction->base), "");
         fprintf(stream, "\n");
       }
-      if (!simpleType.restriction->pattern.empty())
+      if (name && !simpleType.restriction->pattern.empty())
       { fprintf(stream, " \"");
-        for (vector<xs__pattern>::const_iterator pattern = simpleType.restriction->pattern.begin(); pattern != simpleType.restriction->pattern.end(); ++pattern)
-        { if (pattern != simpleType.restriction->pattern.begin())
+        for (vector<xs__pattern>::const_iterator pattern2 = simpleType.restriction->pattern.begin(); pattern2 != simpleType.restriction->pattern.end(); ++pattern2)
+        { if (pattern2 != simpleType.restriction->pattern.begin())
             fprintf(stream, "|");
-          fprintf(stream, "%s", (*pattern).value);
+          fprintf(stream, "%s", (*pattern2).value);
         }
         fprintf(stream, "\"");
       }
@@ -668,36 +714,47 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
 	  fprintf(stream, "}\n");
       }
     }
-    else if (name && simpleType.list->itemType)
+    else if (simpleType.list->itemType)
     { // TODO: list of a type, should handle more intelligently
-      const char *t = deftname(TYPEDEF, NULL, prefix, URI, name);
+      const char *t = NULL;
+      if (name)
+        t = deftname(TYPEDEF, NULL, prefix, URI, name);
+      fprintf(stream, "// string containing a whitespace separated list of %s\n", simpleType.list->itemType);
       if (t)
-        fprintf(stream, "typedef %s %s;\n", tname(NULL, NULL, simpleType.list->itemType), t);
-    }
-    else if (name)
-    { // TODO: simpleType vector in list: use string???
-      const char *t = deftname(TYPEDEF, NULL, prefix, URI, name);
-      if (t)
-        fprintf(stream, "typedef char *%s;\n", t);
+        fprintf(stream, "typedef %s %s;\n", tname(NULL, NULL, "xsd:string"), t);
+      else
+      { fprintf(stream, elementformat, tname(NULL, NULL, "xsd:string"), "");
+        fprintf(stream, "\n");
+      }
     }
     else
-    { // TODO: handle the two cases above for local simpleTypes (name==NULL)
-      fprintf(stream, "// TODO: handle local simpleType\n");
-    }
+      fprintf(stream, "//\tunrecognized\n");
   }
-  else if (name && simpleType.union_)
-  { if (simpleType.union_->memberTypes)
-    { const char *t = deftname(TYPEDEF, NULL, prefix, URI, name);
+  else if (simpleType.union_)
+  { const char *t = NULL;
+    if (name)
+      t = deftname(TYPEDEF, NULL, prefix, URI, name);
+    if (simpleType.union_->memberTypes)
+    { fprintf(stream, "// union of values from %s\n", simpleType.union_->memberTypes);
       if (t)
-      { fprintf(stream, "// %s contains values from %s\n", t, simpleType.union_->memberTypes);
-        fprintf(stream, "typedef char *%s;\n", t);
+        fprintf(stream, "typedef %s %s;\n", tname(NULL, NULL, "xsd:string"), t);
+      else
+      { fprintf(stream, elementformat, tname(NULL, NULL, "xsd:string"), "");
+        fprintf(stream, "\n");
       }
     }
     else if (!simpleType.union_->simpleType.empty())
-    { // TODO: need to list types in vector simpleType
-      const char *t = deftname(TYPEDEF, NULL, prefix, URI, name);
+    { for (vector<xs__simpleType>::const_iterator simpleType1 = simpleType.union_->simpleType.begin(); simpleType1 != simpleType.union_->simpleType.end(); ++simpleType1)
+        if ((*simpleType1).restriction)
+	{ fprintf(stream, "// union of values from %s\n", (*simpleType1).restriction->base);
+          // TODO: are there any other types we should report here?
+        }
       if (t)
-        fprintf(stream, "typedef char *%s;\n", t);
+        fprintf(stream, "typedef %s %s;\n", tname(NULL, NULL, "xsd:string"), t);
+      else
+      { fprintf(stream, elementformat, tname(NULL, NULL, "xsd:string"), "");
+        fprintf(stream, "\n");
+      }
     }
     else
       fprintf(stream, "//\tunrecognized\n");
@@ -716,6 +773,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
   { t = cname(NULL, URI, name);
     if (deftypemap[t])
       return;
+    fprintf(stream, "\n");
   }
   else
     t = "";
@@ -1147,7 +1205,8 @@ void Types::gen(const char *URI, const xs__element& element)
         fprintf(stream, " = \"%s\"", element.default_);
       else if (!strncmp(t, "enum ", 5))
         fprintf(stream, " = %s", sname(t + 5, element.default_));
-      else if (!strcmp(t, "std::string*"))
+      else if (!strcmp(t, "std::string")
+            || !strcmp(t, "std::string*"))
         fprintf(stream, " = \"%s\"", element.default_);
       else
         fprintf(stream, " /* default value = %s */", element.default_);

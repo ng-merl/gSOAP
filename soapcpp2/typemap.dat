@@ -22,7 +22,10 @@ s	= "http://www.soapinterop.org/xsd"
 #		that has a prefix definition given as above).
 #	declaration is an optional C/C++ type declaration
 #	use is how the type is referred to in code
-#	pointer-use is how the type should be referred to as a pointer (opt)
+#	pointer-use is how the type should be referred to as a pointer to
+#		implement nillable XML elements/attributes (not required if
+#		type is already pointer-based)
+
 #	Example XML schema and C/C++ type bindings:
 
 xsd__int	= | int

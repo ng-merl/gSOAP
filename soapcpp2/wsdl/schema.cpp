@@ -84,15 +84,16 @@ int xs__schema::traverse()
 { if (vflag)
     cerr << "schema " << (targetNamespace?targetNamespace:"") << endl;
   if (!targetNamespace)
-    fprintf(stderr, "Warning: Schema has no targetNamespace\n");
+  { if (vflag)
+      fprintf(stderr, "Warning: Schema has no targetNamespace\n");
+    targetNamespace = "";
+  }
   // process include, but should check if not already included!
   for (vector<xs__include>::iterator in = include.begin(); in != include.end(); ++in)
   { (*in).traverse(*this);
     const xs__schema *s = (*in).schemaPtr();
     if (s)
-    { include.insert(include.end(), s->include.begin(), s->include.end());
-      include.insert(include.end(), s->include.begin(), s->include.end());
-      import.insert(import.end(), s->import.begin(), s->import.end());
+    { import.insert(import.end(), s->import.begin(), s->import.end());
       attribute.insert(attribute.end(), s->attribute.begin(), s->attribute.end());
       element.insert(element.end(), s->element.begin(), s->element.end());
       group.insert(group.end(), s->group.begin(), s->group.end());
@@ -210,6 +211,14 @@ const SetOfString& xs__schema::builtinElements() const
 const SetOfString& xs__schema::builtinAttributes() const
 { return builtinAttributeSet;
 }
+
+xs__include::xs__include()
+{ schemaLocation = NULL;
+  schemaRef = NULL;
+}
+
+xs__include::~xs__include()
+{ }
 
 int xs__include::traverse(xs__schema &schema)
 { if (vflag)

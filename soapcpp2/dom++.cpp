@@ -61,8 +61,8 @@ engelen@genivia.com / engelen@acm.org
 	           *atts	optional element attributes
 	const char *nstr	element namespace name (URI)
 	      char *name	element name with optional ns: prefix
-	      char *data	optional element data
-           wchar_t *wide	optional element data
+	      char *data	optional element data (see comment below)
+           wchar_t *wide	optional element data (see comment below)
 	       int  type	optional type (SOAP_TYPE_X as defined in soapH.h)
 	      void *node	and optional element pointer to C/C++ data type
 
@@ -74,10 +74,12 @@ engelen@genivia.com / engelen@acm.org
 	Otherwise, the names are dynamically allocated. This enables quick
 	pointer-based checks on the DOM node's namespace names by comparing the
 	pointer to the namespace table entries 'namespaces[i].ns'.
+
+	Character data parsing:
 	The parser fills the 'wide' string fields of the DOM nodes only (the
 	'wide' fields contain Unicode XML cdata), unless the input-mode flag
-	SOAP_C_UTFSTRING is set. In that case the 'data' fields are set with
-	UTF8 contents.
+	SOAP_C_UTFSTRING is set using soap_init2() or soap_set_imode().
+	In that case the 'data' fields are set with UTF8 contents.
 
 	The following input-mode flags (set with soap_set_imode()) control the
 	parsing of C/C++ data types (stored in node and type fields):
@@ -566,7 +568,7 @@ soap_enter_ns(struct soap *soap, const char *prefix, const char *nstr)
     strcpy((char*)ip->ptr, nstr);
     ip->next = soap->iht[h];
     soap->iht[h] = ip;
-    ip->clist = NULL;
+    ip->flist = NULL;
     ip->level = 1;
     return ip;
   }

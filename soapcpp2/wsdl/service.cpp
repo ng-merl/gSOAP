@@ -48,6 +48,8 @@ Definitions::Definitions()
 
 void Definitions::collect(const wsdl__definitions &definitions)
 { // Collect information: analyze WSDL definitions and imported definitions
+  if (definitions.service.empty())
+    fprintf(stderr, "Error: no wsdl:definitions/service in definitions %s targetNamespace %s\n", definitions.name?definitions.name:"", definitions.targetNamespace);
   analyze(definitions);
   for (vector<wsdl__import>::const_iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
     if ((*import).definitionsPtr())
@@ -56,8 +58,6 @@ void Definitions::collect(const wsdl__definitions &definitions)
 
 void Definitions::analyze(const wsdl__definitions &definitions)
 { // Analyze WSDL and build Service information
-  if (definitions.service.empty())
-    fprintf(stderr, "Error: no wsdl:definitions/service in definitions %s\n", definitions.name?definitions.name:"");
   for (vector<wsdl__service>::const_iterator service = definitions.service.begin(); service != definitions.service.end(); ++service)
   { // /definitions/service/@name
     const char *service_name = (*service).name;
@@ -308,7 +308,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
         }
       }
       else
-	fprintf(stderr, "Error: no wsdl:definitions/binding in definitions %s\n", definitions.name?definitions.name:"");
+	fprintf(stderr, "Error: no wsdl:definitions/binding in definitions %s service/port %s\n", definitions.name?definitions.name:"", (*port).name?(*port).name:"");
     }
   }
 }
@@ -467,6 +467,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
     for (vector<xs__schema*>::const_iterator schema2 = definitions.types->xs__schema_.begin(); schema2 != definitions.types->xs__schema_.end(); ++schema2)
       fprintf(stream, schemaformat, types.nsprefix(NULL, (*schema2)->targetNamespace), "namespace", (*schema2)->targetNamespace);
     // define class/struct types first
+    fprintf(stream, "\n// forward declarations\n");
     for (vector<xs__schema*>::const_iterator schema3 = definitions.types->xs__schema_.begin(); schema3 != definitions.types->xs__schema_.end(); ++schema3)
     { for (vector<xs__complexType>::const_iterator complexType = (*schema3)->complexType.begin(); complexType != (*schema3)->complexType.end(); ++complexType)
         types.define((*schema3)->targetNamespace, NULL, *complexType);
@@ -474,6 +475,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
         if (!(*element).type && (*element).complexTypePtr())
           types.define((*schema3)->targetNamespace, (*element).name, *(*element).complexTypePtr());
     }  
+    fprintf(stream, "\n");
     // visit types with lowest base level first
     int baseLevel = 1;
     bool found;
@@ -544,6 +546,7 @@ void Definitions::generate()
         faults[(*fault).first] = (*fault).second;
     }
   }
+  // Generate SOAP Header definition
   if (!headers.empty())
   { fprintf(stream, "// SOAP Header\n");
     //if (cflag) always use structs to avoid compilation warnings
@@ -566,13 +569,9 @@ void Definitions::generate()
       else
         fprintf(stderr, "Error in SOAP Header part\n");
     }
-    //if (!cflag)
-    //{ fprintf(stream, "\n");
-      //fprintf(stream, pointerformat, "struct soap", "soap");
-      //fprintf(stream, ";");
-    //}
     fprintf(stream, "\n};\n");
   }
+  // Generate Failt detail element definitions
   for (MapOfStringToMessage::const_iterator fault = faults.begin(); fault != faults.end(); ++fault)
   { fprintf(stream, "// SOAP Fault Detail element\n");
     if ((*fault).second->URI && !types.uris[(*fault).second->URI])

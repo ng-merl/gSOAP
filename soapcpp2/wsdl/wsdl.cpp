@@ -39,6 +39,8 @@ const char *qname_token(const char *QName, const char *URI)
     if (!strncmp(QName + 1, URI, n) && QName[n + 1] == '"')
       return QName + n + 3;
   }
+  else if (QName && (!URI || !*URI) && *QName != '"' && !strchr(QName, ':')) // Empty namespace
+    return QName;
   return NULL;
 }
 
@@ -169,6 +171,11 @@ int wsdl__definitions::read(const char *location)
 int wsdl__definitions::traverse()
 { if (vflag)
     cerr << "wsdl definitions " << (name?name:"") << endl;
+  if (!targetNamespace)
+  { if (vflag)
+      fprintf(stderr, "Warning: WSDL %s has no targetNamespace\n", name?name:"");
+    targetNamespace = "";
+  }
   // process import first
   for (vector<wsdl__import>::iterator im = import.begin(); im != import.end(); ++im)
     (*im).traverse(*this);
@@ -904,7 +911,9 @@ istream &operator>>(istream &i, wsdl__definitions &e)
 ////////////////////////////////////////////////////////////////////////////////
 
 int warn_ignore(struct soap *soap, const char *tag)
-{ fprintf(stderr, "Warning: element '%s' at level %d was not recognized and will be ignored\n", tag, soap->level);
+{ // We don't warn if the omitted element was an annotation or a documentation in an unexpected place
+  if (soap_match_tag(soap, tag, "xs:annotation") && soap_match_tag(soap, tag, "xs:documentation"))
+    fprintf(stderr, "Warning: element '%s' at level %d was not recognized and will be ignored\n", tag, soap->level);
   return SOAP_OK;
 }
 

@@ -472,6 +472,19 @@ encoding defaults (helpful when migrating gSOAP projects to 2.5).</li>
 <li>Fixed STL container multi-ref deserialization problem with missing data.</li>
 <li>Fixed doc/lit server code generation from doc/lit WSDL definitions.</li>
 </ul>
+<li>Version 2.6.2 (06/12/2004)</li>
+<ul>
+<li>Added Matlab(tm) code output (documentation is not availabel yet).</li>
+<li>Improved wsdl2h output for schema facets.</li>
+<li>Updated dom.cpp.</li>
+<li>Changed wsdl2h std::string* --&gt; std::string generation (to avoid double
+pointers std::string**). To obtain old behavior, add entry "xsd:string =
+| std::string* | std::string*" to typemap.dat.</li>
+<li>Fixed wsdl2h handling of &lt;xs:include&gt;.</li>
+<li>Fixed wsdl2h handling of empty namespaces and absent targetNamespace
+schema attributes.</li>
+<li>Fixed MB char handling.</li>
+</ul>
 </ul>
 
 </body>

@@ -54,7 +54,7 @@ static	Tnode *Tptr[TYPES];
 
 Service *services = NULL;
 
-FILE *fout, *fhead, *fclient, *fserver, *fheader, *flib;
+FILE *fout, *fhead, *fclient, *fserver, *fheader, *flib, *fmatlab, *fmheader;
 
 int typeNO = 1;	/* unique no. assigned to all types */
 
@@ -250,6 +250,7 @@ enumentry(Symbol *sym)
   return NULL;
 }
 
+char *get_mxClassID(Tnode*);
 char *c_ident(Tnode*);
 char *c_storage(Storage);
 char *c_init(Entry*);
@@ -298,6 +299,7 @@ int is_literal(const char*);
 char *xsi_type_Tarray(Tnode*);    
 char *xsi_type_Darray(Tnode*);    
 
+void matlab_def_table(Table *,Tnode *);
 void def_table(Table *,Tnode *);
 void out_generate(Tnode *);
 int no_of_var(Tnode*);
@@ -451,6 +453,10 @@ compile(Table *table)
 	char pathsoapServer[1024];
 	char pathsoapClientLib[1024];
 	char pathsoapServerLib[1024];
+      	char soapMatlab[1024];
+      	char pathsoapMatlab[1024];
+  	char soapMatlabHdr[1024];
+      	char pathsoapMatlabHdr[1024];
     
 	DBGLOG(fprintf(stderr,"\n IN dumptable."));
 	if (*dirpath)
@@ -465,6 +471,17 @@ compile(Table *table)
 		s = ".c";
 	else
 		s = ".cpp";
+
+  	strcpy(soapMatlab, base);
+  	strcat(soapMatlab, "Matlab.c");
+  	strcpy(pathsoapMatlab, dirpath);
+  	strcat(pathsoapMatlab, soapMatlab );
+  
+  	strcpy(soapMatlabHdr, base);
+  	strcat(soapMatlabHdr, "Matlab.h");
+  	strcpy(pathsoapMatlabHdr, dirpath);
+  	strcat(pathsoapMatlabHdr, soapMatlabHdr);
+
 	strcpy(soapStub, base);
 	strcat(soapStub, "Stub.h");
 	strcpy(pathsoapStub, dirpath);
@@ -498,6 +515,22 @@ compile(Table *table)
 	strcat(soapServerLib, s);
 	strcpy(pathsoapServerLib, dirpath);
 	strcat(pathsoapServerLib, soapServerLib);
+
+	if (mflag)
+ 	{ fprintf(stderr, "Saving %s\n", pathsoapMatlab);
+ 	  fmatlab=fopen(pathsoapMatlab, "w");
+ 	  if (!fmatlab)
+ 		execerror("Cannot write to file");
+ 	  copyrightnote(fmatlab, soapMatlab);
+ 	  fprintf(fmatlab,"\n#include \"%s\"\n", soapMatlabHdr);
+ 	  fprintf(stderr, "Saving %s\n", pathsoapMatlabHdr);
+ 	  fmheader=fopen(pathsoapMatlabHdr, "w");
+ 	  if (!fmheader)
+		execerror("Cannot write to file");
+ 	  copyrightnote(fmheader, soapMatlabHdr);
+ 	  fprintf(fmheader,"\n#include \"mex.h\"\n#include \"%s\"\n", soapStub);
+	}
+
 	fprintf(stderr, "Saving %s\n", pathsoapStub);
 	fheader=fopen(pathsoapStub, "w");
 	if (!fheader)
@@ -830,7 +863,7 @@ compile(Table *table)
       	fprintf(fout, "\n\t\t\t\tfp->level = k;");
       	fprintf(fout, "\n\t\t\t\tfp->finsert = soap_container_insert;");
       	fprintf(fout, "\n\t\t\t\tip->flist = fp;");
-	fprintf(fout, "\n\t\t\t}\n\t\t\tDBGLOG(TEST, SOAP_MESSAGE(fdebug, \"Container forwarding type=%%d location=%%p level=%%p\\n\", t, p, k));");
+	fprintf(fout, "\n\t\t\t}\n\t\t\tDBGLOG(TEST, SOAP_MESSAGE(fdebug, \"Container forwarding type=%%d location=%%p level=%%d\\n\", t, p, k));");
     	fprintf(fout, "\n\t\t}");
   	fprintf(fout, "\n\t}");
 	fprintf(fout, "\n}");
@@ -875,6 +908,13 @@ compile(Table *table)
 	DBGLOG(fprintf(stderr,"\n Calling def_table( )."));
         def_table(table,0);
 	DBGLOG(fprintf(stderr,"\n Completed def_table( )."));
+	if (mflag)
+ 	{ DBGLOG(fprintf(stderr,"\n Calling matlab_def_table( )."));
+	  matlab_def_table(table,0);
+ 	  DBGLOG(fprintf(stderr,"\n Completed matlab_def_table( )."));
+ 	  fclose(fmatlab);
+ 	  fclose(fmheader);
+	}
 	fprintf(fout,"\n\nSOAP_END_NAMESPACE(%s)", prefix);
 	if (cflag)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\n}\n#endif");
@@ -3224,7 +3264,7 @@ generate_call(Table *table, Entry *param)
   { /* fprintf(fclient,"\n\tsoap_default_%s(soap, &%s);", c_ident(pout->info.typ->ref), pout->sym->name); */
     fprintf(fclient,"\n\tsoap_get_%s(soap, &%s, \"%s\", \"%s\");", c_ident(pout->info.typ->ref), pout->sym->name, xml_tag(pout->info.typ), xsi_type(pout->info.typ));
   }
-  else if (pout->info.typ->type == Tpointer && ((Tnode *) pout->info.typ->ref)->type == Tstruct && !is_external(pout->info.typ->ref) && !is_volatile(pout->info.typ->ref) && !is_dynamic_array(pout->info.typ->ref))
+  else if (pout->info.typ->type == Tpointer && ((Tnode *) pout->info.typ->ref)->type == Tstruct && !is_dynamic_array(pout->info.typ->ref))
   { 
     fprintf(fclient,"\n\tsoap_get_%s(soap, %s, \"%s\", \"%s\");", c_ident(pout->info.typ->ref), pout->sym->name, xml_tag(pout->info.typ), xsi_type(pout->info.typ));
   }
@@ -4879,7 +4919,588 @@ Tnode *typ;
 }
 
 void
-def_table(table,typ)  
+matlab_gen_sparseStruct(void)
+{
+  fprintf(fmheader,"\nstruct soapSparseArray{\n");
+  fprintf(fmheader,"  int *ir;\n");
+  fprintf(fmheader,"  int *jc;\n");
+  fprintf(fmheader,"  double *pr;\n");
+  fprintf(fmheader,"  int num_columns;\n");
+  fprintf(fmheader,"  int num_rows;\n");
+  fprintf(fmheader,"  int nzmax;\n");
+  fprintf(fmheader,"};\n");
+}
+
+void
+matlab_c_to_mx_sparse(void)
+{
+  fprintf(fmheader,"\nmxArray* c_to_mx_soapSparseArray(struct soapSparseArray);\n");
+  fprintf(fmatlab,"\nmxArray* c_to_mx_soapSparseArray(struct soapSparseArray a)\n");
+  fprintf(fmatlab,"{\n");
+  fprintf(fmatlab,"  mxArray *b;\n");
+  fprintf(fmatlab,"  b = mxCreateSparse(a.num_rows, a.num_columns, a.nzmax, mxREAL);\n");
+  fprintf(fmatlab,"  mxSetIr(b,a.ir);\n");
+  fprintf(fmatlab,"  mxSetJc(b,a.jc);\n");
+  fprintf(fmatlab,"  mxSetPr(b,a.pr);\n");
+  fprintf(fmatlab,"  return b;\n");
+  fprintf(fmatlab,"}\n");
+}
+
+void 
+matlab_mx_to_c_sparse(void)
+{
+  fprintf(fmheader,"\nmxArray* mx_to_c_soapSparseArray(const mxArray *, struct soapSparseArray *);\n");
+  fprintf(fmatlab,"\nmxArray* mx_to_c_soapSparseArray(const mxArray *a, struct soapSparseArray *b)\n");
+  fprintf(fmatlab,"{\n");
+  fprintf(fmatlab,"  if(!mxIsSparse(a))\n");
+  fprintf(fmatlab,"    {\n");
+  fprintf(fmatlab,"      mexErrMsgTxt(\"Input should be a sparse array.\");\n");
+  fprintf(fmatlab,"    }\n");
+  
+  fprintf(fmatlab,"  /* Get the starting positions of the data in the sparse array. */  \n");
+  fprintf(fmatlab,"  b->pr = mxGetPr(a);\n");
+  fprintf(fmatlab,"  b->ir = mxGetIr(a);\n");
+  fprintf(fmatlab,"  b->jc = mxGetJc(a);\n");
+  fprintf(fmatlab,"  b->num_columns = mxGetN(a);\n");
+  fprintf(fmatlab,"  b->num_rows = mxGetM(a);\n");
+  fprintf(fmatlab,"  b->nzmax = mxGetNzmax(a);\n");
+  fprintf(fmatlab,"}\n");
+}
+
+void
+matlab_mx_to_c_dynamicArray(typ)
+Tnode* typ;
+{  
+  int d,i;
+  Entry *p;
+
+  p = is_dynamic_array(typ);
+
+  fprintf(fmatlab,"{\n");  
+  fprintf(fmatlab,"\tint i, numdims;\n");
+  fprintf(fmatlab,"\tconst int *dims;\n");
+  fprintf(fmatlab,"\tdouble *temp;\n");
+  fprintf(fmatlab,"\tint size = 1;\n");
+  fprintf(fmatlab,"\tint ret;\n");
+  fprintf(fmatlab,"\tnumdims = mxGetNumberOfDimensions(a);\n");
+  fprintf(fmatlab,"\tdims = mxGetDimensions(a);\n");
+
+  d = get_Darraydims(typ);
+  fprintf(fmatlab,"\tif (numdims != %d)\n", d);
+  fprintf(fmatlab,"\t\tmexErrMsgTxt(\"Incompatible array specifications in C and mx.\");\n");
+  
+  /*
+  fprintf(fmatlab,"\tfor(i=0;i<numdims; i++) {\n");
+  fprintf(fmatlab,"\t  b->__size[i] = dims[i];\n");
+  fprintf(fmatlab,"\t}\n");
+  */
+
+  if((((Tnode *)p->info.typ->ref)->type != Tchar) && (((Tnode *)p->info.typ->ref)->type != Tuchar))
+    {
+      fprintf(fmatlab,"\ttemp = (double*)mxGetPr(a);\n");
+      fprintf(fmatlab,"\tif (!temp)\n\t\tmexErrMsgTxt(\"mx_to_c_ArrayOfdouble: Pointer to data is NULL\");\n");
+    }
+
+  fprintf(fmatlab,"\tfor (i = 0; i < numdims; i++) {\n");
+  fprintf(fmatlab,"\t\tif (b->__size[i] < dims[i])\n");
+  fprintf(fmatlab,"\t\t\tmexErrMsgTxt(\"Incompatible array dimensions in C and mx.\");\n");
+  fprintf(fmatlab,"\t\tsize *= dims[i];\n");
+  fprintf(fmatlab,"\t}\n");
+
+  if((((Tnode *)p->info.typ->ref)->type != Tchar) && (((Tnode *)p->info.typ->ref)->type != Tuchar))
+    { 
+      fprintf(fmatlab,"\tfor (i = 0; i < size; i++)\n");
+      fprintf(fmatlab,"\t\tb->__ptr[i] = (%s)*temp++;\n", c_type(p->info.typ->ref));
+    }
+  else
+    {
+      fprintf(fmatlab,"\tret = mxGetString(a, b->__ptr, size + 1);\n");
+      fprintf(fmatlab,"\tmexPrintf(\"ret = %%d, b->__ptr = %%s, size = %%d\", ret, b->__ptr, size);\n");
+    }
+  fprintf(fmatlab,"\n}\n");
+
+  fflush(fmatlab);
+}
+
+
+void
+matlab_c_to_mx_dynamicArray(typ)
+Tnode* typ;
+{  
+  int d,i;
+  Entry *p;
+
+  p = is_dynamic_array(typ);
+
+  fprintf(fmatlab,"{\n");  
+  fprintf(fmatlab,"\tmxArray *out;\n");
+  fprintf(fmatlab,"\t%s;\n",c_type_id(p->info.typ->ref,"*temp"));
+  d = get_Darraydims(typ);
+  fprintf(fmatlab,"\tint i;\n");
+
+  fprintf(fmatlab,"\tint ndim = %d, dims[%d] = {", d, d);
+  for (i = 0; i < d; i++)
+    { 
+      if(i==0)
+	fprintf(fmatlab,"a.__size[%d]",i);
+      else
+	fprintf(fmatlab,", a.__size[%d]",i);
+    }
+  fprintf(fmatlab,"};\n");
+
+  fprintf(fmatlab,"\tint size = ");
+   for (i = 0; i < d; i++)
+    { 
+      if(i==0)
+	fprintf(fmatlab,"dims[%d]",i);
+      else
+	fprintf(fmatlab,"*dims[%d]",i);
+    }
+   fprintf(fmatlab,";\n");
+   if((((Tnode *)p->info.typ->ref)->type != Tchar) && (((Tnode *)p->info.typ->ref)->type != Tuchar))
+     {
+       fprintf(fmatlab,"\tout = mxCreateNumericArray(ndim, dims, %s, mxREAL);\n",get_mxClassID(p->info.typ->ref));
+       fprintf(fmatlab,"\tif (!out)\n\t\tmexErrMsgTxt(\"Could not create mxArray.\");\n");
+       fprintf(fmatlab,"\ttemp = (%s) mxGetPr(out);\n",c_type_id(p->info.typ->ref,"*"));
+       fprintf(fmatlab,"\tif (!temp)\n\t\tmexErrMsgTxt(\"matlab_array_c_to_mx: Pointer to data is NULL\");\n");
+
+       fprintf(fmatlab,"\tfor (i = 0; i < size; i++)\n");
+       fprintf(fmatlab,"\t\t*temp++ = a.__ptr[i];\n");
+     }
+   else
+     {
+       fprintf(fmatlab,"\tout = mxCreateString(a.__ptr);\n");
+       fprintf(fmatlab,"\tif (!out)\n\t\tmexErrMsgTxt(\"Could not create mxArray.\");\n");
+     }
+  fprintf(fmatlab,"\treturn out;\n}\n");
+  fflush(fmatlab);
+}
+
+char* 
+get_mxClassID(Tnode* typ)
+{
+  
+  switch(typ->type)
+    {
+    case Tdouble: 
+      return "mxDOUBLE_CLASS";
+    case Tfloat:
+      return "mxSINGLE_CLASS";
+    case Tshort:
+      return "mxINT16_CLASS";
+    case Tushort:
+      return "mxUINT16_CLASS";
+    case Tint:
+      return "mxINT32_CLASS";
+    case Tuint:
+      return "mxUINT32_CLASS";
+    case Tlong:
+      return "mxINT32_CLASS";
+    case Tulong:
+      return "mxUINT32_CLASS";
+    case Tllong:
+      return "mxINT64_CLASS";
+    case Tullong:
+      return "mxUINT64_CLASS";
+    case Tchar:
+      return "mxCHAR_CLASS";
+    case Tuchar:
+      return "mxCHAR_CLASS";
+    default:
+      return "";
+    };
+}
+
+/*Function not in use.*/
+void 
+matlab_array_c_to_mx(typ)
+Tnode* typ;
+{
+  Tnode* temp;
+  int cardinality;
+  int d,i;
+  
+  fprintf(fmatlab,"{\n\tint rows, r, cols, c;\n");
+  fprintf(fmatlab,"\tmxArray* out;\n");
+  fprintf(fmatlab,"\tdouble* temp;\n");
+  d = get_dimension(typ);
+  fprintf(fmatlab,"\tint ndim = %d, dims[%d] = {",d,d);
+  temp=typ;
+  for(i=0;i<d; i++)
+    {
+      if(i==0)
+	fprintf(fmatlab,"%d",temp->width / ((Tnode*) temp->ref)->width);
+      else
+	fprintf(fmatlab,",%d",temp->width / ((Tnode*) temp->ref)->width);
+      temp=typ->ref;
+    }
+  fprintf(fmatlab,"};\n");
+
+  fprintf(fmatlab,"\tout = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);\n");
+  fprintf(fmatlab,"\ttemp = (double *) mxGetPr(out);\n");
+  fprintf(fmatlab,"\tif (!out)\n\t\tmexErrMsgTxt(\"Could not create mxArray.\");\n");
+  fprintf(fmatlab,"\tif (!temp)\n\t\tmexErrMsgTxt(\"matlab_array_c_to_mx: Pointer to data is NULL\");\n");
+  fprintf(fmatlab,"\trows = mxGetM(out);\n");
+  fprintf(fmatlab,"\tif (!rows)\n\t\tmexErrMsgTxt(\"matlab_array_c_to_mx: Data has zero rows\");\n");
+  fprintf(fmatlab,"\tcols = mxGetN(out);\n");
+  fprintf(fmatlab,"\tif (!cols)\n\t\tmexErrMsgTxt(\"matlab_array_c_to_mx: Data has zero columns\");\n");
+  fprintf(fmatlab,"\tfor (c = 0; c < cols; c++)\n");
+  fprintf(fmatlab,"\t\tfor (r = 0; r < rows; r++)\n");
+  fprintf(fmatlab,"\t\t\t*temp++ = z->a[r][c];\n");
+  fprintf(fmatlab,"\treturn out;\n}\n");
+  fflush(fmatlab);
+}
+
+
+void matlab_c_to_mx_pointer(typ)
+Tnode* typ;
+{
+  if (!typ->ref)
+    return;
+
+  /*  if(((Tnode*)typ->ref)->type == Tstruct)
+    {
+      fprintf(fmheader,"\nmxArray* c_to_mx_%s(%s);\n",c_ident(typ),c_type_id(typ, "*"));
+      fprintf(fmatlab,"\nmxArray* c_to_mx_%s(%s)\n",c_ident(typ),c_type_id(typ, "*a"));
+    }
+  else
+  {*/
+  fprintf(fmheader,"\nmxArray* c_to_mx_%s(%s);\n",c_ident(typ),c_type_id(typ, ""));
+  fprintf(fmatlab,"\nmxArray* c_to_mx_%s(%s)\n",c_ident(typ),c_type_id(typ, "a"));
+      /*  }*/
+  fprintf(fmatlab,"{\n");
+  fprintf(fmatlab,"\tmxArray  *fout;\n");
+  fprintf(fmatlab,"\tfout = c_to_mx_%s(*a);\n",c_ident(typ->ref));
+  fprintf(fmatlab,"\treturn fout;\n");
+  fprintf(fmatlab,"}\n");
+}
+
+void matlab_mx_to_c_pointer(typ)
+Tnode* typ;
+{
+  if (!typ->ref)
+    return;
+  fprintf(fmheader,"\nvoid mx_to_c_%s(const mxArray*,%s);\n",c_ident(typ),c_type_id(typ, "*"));
+  fprintf(fmatlab,"\nvoid mx_to_c_%s(const mxArray* a,%s)\n",c_ident(typ),c_type_id(typ, "*b"));
+  fprintf(fmatlab,"{\n\tmx_to_c_%s(a,*b);\n",c_ident(typ->ref));
+  fprintf(fmatlab,"\n}\n");
+}
+
+void func2(typ)
+Tnode* typ;
+{
+  Table *table,*t;
+  Entry *p;
+
+  fprintf(fmatlab,"\tif(!mxIsStruct(a))\n\t\tmexErrMsgTxt(\"Input must be a structure.\");\n");
+
+  table=(Table*)typ->ref;
+  for (t = table; t != (Table *) 0; t = t->prev) { 
+    for (p = t->list; p != (Entry*) 0; p = p->next) {
+      if (p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_XML(p->info.typ))
+	{
+	  fprintf(fmatlab,"\t{mxArray *tmp = mxGetField(a,0,\"%s\");\n",p->sym->name);
+	  fprintf(fmatlab,"\tif (!tmp) {\n");
+	  fprintf(fmatlab,"\t\tmexErrMsgTxt(\"Above field is empty!\");\n\t}\n");   
+	  fprintf(fmatlab,"\tmx_to_c_%s(tmp,&(b->%s));}\n",c_ident(p->info.typ),p->sym->name);
+	}
+    }
+  }
+}
+
+void 
+matlab_mx_to_c_struct(typ)
+Tnode* typ;
+{
+  if (!typ->ref)
+    return;
+
+  
+  if (is_dynamic_array(typ))
+    {
+      fprintf(fmheader,"\nvoid mx_to_c_%s(const mxArray*, %s);\n",c_ident(typ),c_type_id(typ, "*"));
+      fprintf(fmatlab,"\nvoid mx_to_c_%s(const mxArray* a, %s)\n",c_ident(typ),c_type_id(typ, "*b"));
+      matlab_mx_to_c_dynamicArray(typ);
+      return;
+    }
+  else if(strstr(c_type_id(typ, ""),"soapSparseArray"))
+    {
+      return;
+    }
+
+  fprintf(fmheader,"\nvoid mx_to_c_%s(const mxArray*, %s);\n",c_ident(typ),c_type_id(typ, "*"));
+  fprintf(fmatlab,"\nvoid mx_to_c_%s(const mxArray* a, %s)\n",c_ident(typ),c_type_id(typ, "*b"));
+  fprintf(fmatlab,"{\n");
+  
+  func2(typ);
+  fprintf(fmatlab,"\n}\n");
+  
+  return;
+}
+
+
+
+void
+matlab_c_to_mx_struct(typ)
+Tnode* typ;
+{
+  Table *table,*t;
+  Entry *p;
+  int number_of_fields=0;
+
+  if (!typ->ref)
+    return;
+
+  if (is_dynamic_array(typ))
+    {
+      fprintf(fmheader,"\nmxArray* c_to_mx_%s(%s);\n",c_ident(typ),c_type_id(typ, ""));
+      fprintf(fmatlab,"\nmxArray* c_to_mx_%s(%s)\n",c_ident(typ),c_type_id(typ, "a"));
+      matlab_c_to_mx_dynamicArray(typ);
+      return;
+    }
+  else if(strstr(c_type_id(typ, ""),"soapSparseArray"))
+    {
+      return;
+    }
+  
+  fprintf(fmheader,"\nmxArray* c_to_mx_%s(%s);\n",c_ident(typ),c_type_id(typ, ""));
+  fprintf(fmatlab,"\nmxArray* c_to_mx_%s(%s)\n",c_ident(typ),c_type_id(typ, "a"));
+  table=(Table*)typ->ref;	
+  fprintf(fmatlab,"{\n\tconst char* fnames[] = {"); 
+  for (t = table; t != (Table *) 0; t = t->prev) { 
+    for (p = t->list; p != (Entry*) 0; p = p->next) {
+      if (p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_XML(p->info.typ))
+	{
+	  if(number_of_fields)
+	    fprintf(fmatlab,",\"%s\"",p->sym->name);
+	  else 
+	    fprintf(fmatlab,"\"%s\"",p->sym->name);
+	  number_of_fields++;
+	}
+    }
+  }	
+  fprintf(fmatlab,"}; /* pointers to field names*/\n"); 
+  
+  fprintf(fmatlab,"\tint rows = 1, cols = 1;\n\tint index = 0;\n\tint number_of_fields = %d;\n\tmxArray *struct_array_ptr;\n",number_of_fields);
+  fprintf(fmatlab,"\t/* Create a 1x1 struct matrix for output  */\n");
+  fprintf(fmatlab,"\tstruct_array_ptr = mxCreateStructMatrix(rows, cols, number_of_fields, fnames);\n\tmexPrintf(\"6\");\n\tif(struct_array_ptr == NULL) {\n\t\tmexPrintf(\"COULDNT CREATE A MATRIX\");}\n\tmexPrintf(\"7\");\n");
+  
+  
+  for (t = table; t != (Table *) 0; t = t->prev) { 
+    for (p = t->list; p != (Entry*) 0; p = p->next) {
+      if (p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_XML(p->info.typ))
+	{
+	  fprintf(fmatlab,"\t{mxArray *fout = c_to_mx_%s(a.%s);\n",c_ident(p->info.typ),p->sym->name);
+	  fprintf(fmatlab,"\tmxSetField(struct_array_ptr, index,\"%s\" , fout);}\n",p->sym->name);
+	}
+    }
+  }
+  fprintf(fmatlab,"\treturn struct_array_ptr;\n}\n");
+  return;
+}
+/*
+char*
+matlab_c_to_mx(typ)
+Tnode* typ;
+{
+
+  switch(typ->type)
+    {
+    case Tstruct:
+      break;
+    case Tarray:
+      matlab_array_c_to_mx(typ);break;
+    case Tpointer:
+      fprintf(fmheader,"\npointer in matlab_c_to_mx\n");break;
+    default:break;
+    }
+  
+  return NULL;
+}
+*/
+
+void
+matlab_c_to_mx_primitive(typ)
+Tnode *typ;
+{
+  fprintf(fmheader,"\nmxArray* c_to_mx_%s(%s);",c_ident(typ),c_type_id(typ, ""));
+  fprintf(fmatlab,"\nmxArray* c_to_mx_%s(%s)\n",c_ident(typ),c_type_id(typ, "a"));
+
+  fprintf(fmatlab,"{\n\tmxArray  *fout;\n");
+  if((typ->type == Tchar) || (typ->type == Tuchar))
+    {
+      fprintf(fmatlab,"\tchar buf[2];\n");
+      fprintf(fmatlab,"\tbuf[0] = a;\n");
+      fprintf(fmatlab,"\tbuf[1] = \'\\0\';\n");
+      fprintf(fmatlab,"\tfout = mxCreateString(buf);\n");
+      fprintf(fmatlab,"\tif (!fout)\n");
+      fprintf(fmatlab,"\t\tmexErrMsgTxt(\"Could not create mxArray.\");\n");
+    }
+  else
+    {
+      fprintf(fmatlab,"\tint ndim = 1, dims[1] = {1};\n");
+      fprintf(fmatlab,"\tfout = mxCreateNumericArray(ndim, dims, %s, mxREAL);\n",get_mxClassID(typ));
+      fprintf(fmatlab,"\t%s = (%s)mxGetPr(fout);\n",c_type_id(typ,"*temp"),c_type_id(typ,"*"));
+      fprintf(fmatlab,"\tif (!fout)\n");
+      fprintf(fmatlab,"\t\tmexErrMsgTxt(\"Could not create mxArray.\");\n");
+      fprintf(fmatlab,"\tif (!temp) \n");
+      fprintf(fmatlab,"\t\tmexErrMsgTxt(\"matlab_array_c_to_mx: Pointer to data is NULL\");\n");
+      fprintf(fmatlab,"\t*temp++= a;\n");
+    }
+  fprintf(fmatlab,"\treturn fout;\n}\n");
+}
+
+void
+matlab_mx_to_c_primitive(typ)
+Tnode *typ;
+{
+  fprintf(fmheader, "\nvoid mx_to_c_%s(const mxArray *, %s);\n",c_ident(typ),c_type_id(typ, "*"));
+  fprintf(fmatlab, "\nvoid mx_to_c_%s(const mxArray *a, %s)\n",c_ident(typ),c_type_id(typ, "*b"));
+  if((typ->type == Tchar) || (typ->type == Tuchar))
+    {
+      fprintf(fmatlab,"{\n\tint ret;\n");
+      fprintf(fmatlab,"\tchar buf[2];\n");
+      fprintf(fmatlab,"\tret = mxGetString(a, buf, 2);\n");
+      fprintf(fmatlab,"\tmexPrintf(\"ret = %%d, buf = %%s\", ret, buf);\n");
+      fprintf(fmatlab,"\t*b = buf[0];\n");
+    }
+  else
+    {
+      fprintf(fmatlab,"{\n\tdouble* data = (double*)mxGetData(a);\n");
+      fprintf(fmatlab,"\t*b = (%s)*data;\n",c_type(typ));
+    }
+      fprintf(fmatlab,"\n}\n");
+}
+
+void
+matlab_out_generate(typ)
+Tnode *typ;
+{
+
+  if (is_transient(typ) || typ->type == Twchar || is_XML(typ))
+    return;
+
+  /*
+  typeNO++;
+  if (typeNO>=1024)
+    execerror("Too many user-defined data types");
+    */
+
+  if(is_primitive(typ))
+    {
+      matlab_c_to_mx_primitive(typ);
+      matlab_mx_to_c_primitive(typ);
+      return;
+    }
+
+  switch(typ->type)
+    {
+    case Tstruct:
+      matlab_c_to_mx_struct(typ);
+      matlab_mx_to_c_struct(typ);
+      break;
+    case Tpointer:
+      matlab_c_to_mx_pointer(typ);
+      matlab_mx_to_c_pointer(typ);
+      break;
+    case Tarray:
+      break;
+    default:break;
+    }
+}
+
+/*his function is called first it first generates all routines
+  and then in the second pass calls all routines to generate
+  matlab_out for the table*/
+
+void
+func1(Table *table, Entry *param)
+{ 
+
+  Service *sp;
+  Entry *pin,*q,*pout,*response=NULL;
+  Tnode *temp;
+  Table *output,*t;
+  int cardinality, element_width, i, flag = 0;
+  q=entry(table, param->sym);
+  if (q)
+    pout = (Entry*)q->info.typ->ref;
+  else	fprintf(stderr, "Internal error: no table entry\n");
+  q=entry(classtable, param->sym);
+  output=(Table*) q->info.typ->ref;
+
+  if (!is_response(pout->info.typ))
+  { response = get_response(param->info.typ);
+  }
+  
+  fprintf(fmheader,"\n\toutside loop struct %s soap_tmp_%s;",param->sym->name,param->sym->name);
+  if (!is_response(pout->info.typ) && response)
+  { fprintf(fmheader,"\n\tif..inside loop struct %s *soap_tmp_%s;",c_ident(response->info.typ), c_ident(response->info.typ));
+  } 
+
+  fflush(fmheader);
+}
+
+void
+matlab_def_table(table,typ)
+     Table *table;
+     Tnode *typ;
+{
+  Entry *q1,*q,*pout,*e,*response;
+  int i;
+  Tnode *p;
+  char temp[100];
+
+  /*  for (q1 = table->list; q1 != (Entry*) 0; q1 = q1->next)
+    if (q1->info.typ->type==Tfun)
+      func1(table, q1);
+  */
+
+  /* Sparse matrix code will be present by default */
+  matlab_gen_sparseStruct();
+  matlab_c_to_mx_sparse();
+  matlab_mx_to_c_sparse();  
+
+  for(i=0;i<TYPES;i++)
+    for(p=Tptr[i];p!=(Tnode*) 0;p=p->next)
+      {
+	/* This is generated for everything declared in the ".h" file. To make
+	   sure that it doesnt get generated for functions do a comparison with
+	   p->sym->name, so that its not generated for functions.
+	*/
+	if(is_XML(p))
+	  continue;
+	if(strstr(c_ident(p),"SOAP_ENV_") != NULL)
+	  continue;
+	
+	for(q = table->list; q != (Entry*) 0; q = q->next)
+	  {
+	    if(strcmp(c_ident(p),q->sym->name) == 0)
+	      break;
+	    
+
+	    e=entry(table, q->sym);
+	    if (e)
+	      pout = (Entry*)e->info.typ->ref;
+	    else	fprintf(stderr, "Internal error: no table entry\n");
+	    
+	    if (!is_response(pout->info.typ))
+	    { response = get_response(q->info.typ);
+	    }
+	    if (!is_response(pout->info.typ) && response)
+	    {
+	      if(strcmp(c_ident(p),c_ident(response->info.typ)) == 0)
+		 break;
+	    }
+	  }
+
+	if(q == (Entry*) 0)
+	  matlab_out_generate(p);	  
+      }
+}
+
+void
+def_table(table,typ)
 Table *table;  
 Tnode *typ; 
 { 
@@ -7737,8 +8358,6 @@ soap_in_Darray(Tnode *typ)
   if (is_binary(typ))
   { if (is_hexBinary(typ))
       fprintf(fout,"\n\t\ta->__ptr = soap_gethex(soap, &a->__size);");
-    else if (mflag && typ->type == Tclass)
-      fprintf(fout,"\n\t\ta->__ptr = soap_getbase64(soap, &a->__size, 1);");
     else
       fprintf(fout,"\n\t\ta->__ptr = soap_getbase64(soap, &a->__size, 0);");
     fprintf(fout,"\n\t\tif ((!a->__ptr && soap->error) || soap_element_end_in(soap, tag))\n\t\t\treturn NULL;");
@@ -7803,11 +8422,7 @@ soap_in_Darray(Tnode *typ)
         fprintf(fout, "\n\t\t\tfor (i = 0; i < a->__size; i++)\n\t\t\t\tsoap_default_%s(soap, a->%s+i);", c_ident(p->info.typ->ref), p->sym->name);
       }
       else
-        {
-	if (mflag && typ->type == Tclass)
-          fprintf(fout,"\n\t\t{\ta->%s = (%s)SOAP_MALLOC(sizeof(%s) * a->__size);", p->sym->name, c_type_id(p->info.typ->ref, "*"),  c_type(p->info.typ->ref));
-        else
-          fprintf(fout,"\n\t\t{\ta->%s = (%s)soap_malloc(soap, sizeof(%s) * a->__size);", p->sym->name, c_type_id(p->info.typ->ref, "*"),  c_type(p->info.typ->ref));
+      { fprintf(fout,"\n\t\t{\ta->%s = (%s)soap_malloc(soap, sizeof(%s) * a->__size);", p->sym->name, c_type_id(p->info.typ->ref, "*"),  c_type(p->info.typ->ref));
 	if (!is_XML(p->info.typ->ref))
           fprintf(fout, "\n\t\t\tfor (i = 0; i < a->__size; i++)\n\t\t\t\tsoap_default_%s(soap, a->%s+i);", c_ident(p->info.typ->ref), p->sym->name);
       }
@@ -7854,9 +8469,6 @@ soap_in_Darray(Tnode *typ)
     fprintf(fout,"\n\t\t\tsoap_pop_block(soap);");
     if (((Tnode*)p->info.typ->ref)->type == Tclass || has_class(p->info.typ->ref))
       fprintf(fout,"\n\t\t\tif (soap->blist->size)\n\t\t\t\ta->%s = soap_new_%s(soap, soap->blist->size/sizeof(%s));\n\t\t\telse\n\t\t\t\ta->%s = NULL;", p->sym->name, c_ident(p->info.typ->ref), c_type(p->info.typ->ref), p->sym->name);
-    else
-    if (mflag && typ->type == Tclass)
-      fprintf(fout,"\n\t\t\tif (soap->blist->size)\n\t\t\t\ta->%s = (%s)SOAP_MALLOC(soap->blist->size);\n\t\t\telse\n\t\t\t\ta->%s = NULL;", p->sym->name, c_type(p->info.typ), p->sym->name);
     else
       fprintf(fout,"\n\t\t\ta->%s = (%s)soap_malloc(soap, soap->blist->size);", p->sym->name, c_type(p->info.typ));
     fprintf(fout,"\n\t\t\tsoap_store_block(soap, (char*)a->%s);", p->sym->name);

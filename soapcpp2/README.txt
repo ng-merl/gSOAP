@@ -7,12 +7,13 @@ client, and peer Web service applications in C and C++.
 * The gSOAP 'soapcpp2' compiler and 'stdsoap2' runtime are stable since
   version release 2.1.3.
 
-* The gSOAP 'wsdl2h' WSDL parser is stable beta 1.0.3. The WSDL parser 
-  fully supports WSDL 1.1 and XML schemas. See also 'PROJECT STATUS' below.
+* The gSOAP 'wsdl2h' WSDL parser is stable since wsdl2h version release 1.1.0.
+  The WSDL parser fully supports WSDL 1.1 and XML schemas. See also
+  'PROJECT STATUS' below.
 
 The software is provided "as is", without any warranty.  However, gSOAP
 has received a lot of support from users and has been extensively tested
-in the real world.  We also continue to improve gSOAP and add new features.
+in the "real world".  We also continue to improve gSOAP and add new features.
 
 WHAT'S COOL?
 
@@ -44,7 +45,7 @@ applications.  You can use the WSDL parser to translate WSDL and/or XML schemas
 into C or C++ data structures and XML parsers. You can also use the gSOAP
 compiler separately to create XML serialization routines for application data.
 
-For examle:
+For example:
 
 $ wsdl2h -o Amazon.h http://soap.amazon.com/schemas/AmazonWebServices.wsdl
 
@@ -59,10 +60,10 @@ soapClient.cpp		client-side stub routines for service invocation
 soapServer.cpp		server-side skeleton routines for server development
 soapC.cpp		C/C++ parameter marshalling code
 
-A C++ client application may also use the generated
+To develop a C++ client application, you can also use the generated
 'soapAmazonSearchBindingProxy.h' class and 'AmazonSearchBinding.nsmap' XML
-namespace table to access the Amazon Web service.  Both need to be '#include'-d
-in your source.  Compile and link the soapC.cpp, soapClient.cpp, and
+namespace table to access the Amazon Web service. Both need to be '#include'-d
+in your source. Then compile and link the soapC.cpp, soapClient.cpp, and
 stdsoap2.cpp sources to complete the build.  More information can be found in
 the gSOAP documentation and the Quick How-To page on the gSOAP Web site.
 
@@ -76,9 +77,6 @@ PROJECT STATUS
 There are always new things to be desired. Here is a short list of things
 we are currently working on:
 
-* wsdl2h is a new tool and will be further tested in the field before
-  stable status can be established. Notably the SOAP header and fault parts may
-  cause issues.
 * WSDL 2.0 support
 * WS-Security support
 * HTTP/MIME attachment handling

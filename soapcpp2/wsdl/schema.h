@@ -253,6 +253,7 @@ class xs__extension
 class xs__length
 { public:
 	@xsd__string			value;
+	@xsd__boolean			fixed;
 };
 
 class xs__whiteSpace
@@ -270,9 +271,18 @@ class xs__restriction
 	std::vector<xs__attribute>	attribute;	// not used in <simpleType><restriction>
 	std::vector<xs__enumeration>	enumeration;
 	std::vector<xs__pattern>	pattern;
+	xs__whiteSpace			*whiteSpace;
+	xs__length			*length;
 	xs__length			*minLength;
 	xs__length			*maxLength;
-	xs__whiteSpace			*whiteSpace;
+	xs__length			*precision;		// 2000 schema
+	xs__length			*scale;			// 2000 schema
+	xs__length			*totalDigits;		// 2001 schema
+	xs__length			*fractionDigits;	// 2001 schema
+	xs__length			*minInclusive;
+	xs__length			*maxInclusive;
+	xs__length			*minExclusive;
+	xs__length			*maxExclusive;
   private:
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type
   	xs__complexType			*complexTypeRef;	// traverse() finds type
@@ -359,6 +369,8 @@ class xs__include
   private:
   	xs__schema			*schemaRef;		// set by WSDL parser or via schemaLocation
   public:
+					xs__include();
+					~xs__include();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	xs__schema			*schemaPtr() const;
