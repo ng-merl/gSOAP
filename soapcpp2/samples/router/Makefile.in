@@ -127,7 +127,7 @@ BUILT_SOURCES = $(SOAP_C_SRC)
 CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
 router_SOURCES = router.c $(SOAPHEADER) $(SOAP_C_CLIENT)
-router_LDADD = $(SOAP_C_LIB) -lpthread
+router_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread
 subdir = soapcpp2/samples/router
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h

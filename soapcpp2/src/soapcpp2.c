@@ -12,7 +12,7 @@ for the specific language governing rights and limitations under the License.
 The Original Code is ''gSOAP compiler'' consisting of:
 error2.c, error2.h, init2.c, soapcpp2.c, soapcpp2.h, soapcpp2_lex.l, soapcpp2_yacc.y, symbol2.c.
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
+Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 
 */
 
@@ -43,7 +43,7 @@ main(int argc, char **argv)
 {	int i, g;
 	char *a;
 	strcpy(filename, "<stdin>");
-	fprintf(stderr, "\n** The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n** Copyright (C) 2001-2002 Robert A. van Engelen, FSU\n** This product is provided \"as is\", without any warranty\n\n");
+	fprintf(stderr, "\n** The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n** Copyright (C) 2001-2003 Genivia inc. & FSU. All Rights Reserved.\n** This product is provided \"as is\", without any warranty\n\n");
 	for (i = 1; i < argc; i++)
 	{	a = argv[i];
 		if (*a == '-'

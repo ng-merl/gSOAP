@@ -14,4 +14,4 @@ include ../Makefile.cpp_rules
 magic_SOURCES=magic.cpp $(SOAPHEADER) $(SOAP_CPP_CLIENT)
 magicserver_cgi_SOURCES=magicserver.cpp $(SOAPHEADER) $(SOAP_CPP_SERVER)
 mtmagicserver_cgi_SOURCES=mtmagicserver.cpp $(SOAPHEADER) $(SOAP_CPP_SERVER)
-mtmagicserver_cgi_LDADD=$(SOAP_CPP_LIB) -lpthread
+mtmagicserver_cgi_LDADD=$(SOAP_CPP_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread

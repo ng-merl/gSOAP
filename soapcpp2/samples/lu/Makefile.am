@@ -12,10 +12,10 @@ include ../Makefile.cpp_rules
 
 luclient_CXXFLAGS=-DWITH_COOKIES -D$(platform)
 luclient_SOURCES=luclient.cpp lumat.cpp $(SOAPHEADER) $(SOAP_CPP_CLIENT)
-luclient_LDADD=$(SOAP_CPP_LIB_CK)
+luclient_LDADD=$(SOAP_CPP_LIB_CK) $(SAMPLE_EXTRA_LIBS)
 
 luserver_cgi_CXXFLAGS=-DWITH_COOKIES -D$(platform)
 luserver_cgi_SOURCES=luserver.cpp lumat.cpp $(SOAPHEADER) $(SOAP_CPP_SERVER)
-luserver_cgi_LDADD=$(SOAP_CPP_LIB_CK)
+luserver_cgi_LDADD=$(SOAP_CPP_LIB_CK) $(SAMPLE_EXTRA_LIBS)
 
 

@@ -128,11 +128,11 @@ CLEANFILES = $(SOAP_CPP_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h 
 
 luclient_CXXFLAGS = -DWITH_COOKIES -D$(platform)
 luclient_SOURCES = luclient.cpp lumat.cpp $(SOAPHEADER) $(SOAP_CPP_CLIENT)
-luclient_LDADD = $(SOAP_CPP_LIB_CK)
+luclient_LDADD = $(SOAP_CPP_LIB_CK) $(SAMPLE_EXTRA_LIBS)
 
 luserver_cgi_CXXFLAGS = -DWITH_COOKIES -D$(platform)
 luserver_cgi_SOURCES = luserver.cpp lumat.cpp $(SOAPHEADER) $(SOAP_CPP_SERVER)
-luserver_cgi_LDADD = $(SOAP_CPP_LIB_CK)
+luserver_cgi_LDADD = $(SOAP_CPP_LIB_CK) $(SAMPLE_EXTRA_LIBS)
 subdir = soapcpp2/samples/lu
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h

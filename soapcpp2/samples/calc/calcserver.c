@@ -19,7 +19,7 @@ int main(int argc, char **argv)
       fprintf(stderr, "Socket connection successful: slave socket = %d\n", s);
       if (s < 0)
       { soap_print_fault(&soap, stderr);
-        exit(-1);
+        exit(1);
       } 
       soap_serve(&soap);
       soap_end(&soap);

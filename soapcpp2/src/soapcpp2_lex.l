@@ -11,16 +11,16 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Original Code is ''gSOAP compiler'' consisting of:
-error2.c, error2.h, init2.c, soapcpp2.c, soapcpp2.h, soapcpp2.l, soapcpp2.y, symbol2.c.
+error2.c, error2.h, init2.c, soapcpp2.c, soapcpp2.h, soapcpp2_lex.l, soapcpp2_yacc.y, symbol2.c.
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
+Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 
 */
 
 %{
 #include "soapcpp2.h"
-#ifdef WITH_BISON
 #include "soapcpp2_yacc.h"
+#ifdef WITH_BISON
 YYSTYPE soapcpp2lval;
 #undef YY_INPUT
 #define YY_INPUT(buf, result, max_size) \
@@ -28,8 +28,6 @@ YYSTYPE soapcpp2lval;
 	int c = getc(yyin); \
 	result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 	}
-#else
-#include "y.tab.h"
 #endif
 #define MAX_IMPORT_DEPTH 16
 static char fnstk[MAX_IMPORT_DEPTH][1024];
@@ -62,6 +60,7 @@ num		{int}(\.{int}([Ee][+-]?{int})?|(\.{int})?[Ee][+-]?{int})
 chr		'(\\'|[^'\n])*'
 str		\"(\\\"|\\\n|.)*\"
 import		#import[ \t]*{str}.*\n
+eof		<<EOF>>
 %%
 [ \t\v\n\f\r\x1A\xA0]	{ /* skip white space (\x1A is ^Z and \xA0 is HTML non-breakable space) */ }
 "/*"		{ comment(); }
@@ -106,7 +105,7 @@ import		#import[ \t]*{str}.*\n
 '[^'\n]*/\n	{ return error_chr(); }
 \"[^"\n]*/\n	{ return error_str(); }
 .		{ lexerror("Skipping unknown symbol"); }
-<<EOF>>		{
+{eof}		{
 #ifndef WITH_LEX
 		  if (--insp < 0)
 		    yyterminate();
@@ -219,9 +218,9 @@ install_pragma()
 static void comment()
 {	char c, c1;
 loop:
-        while ((c = input()) != '*' && c != 0)
+        while ((c = input()) != '*' && c != 0 && c != EOF)
                 ;
-        if ((c1 = input()) != '/' && c != 0)
+        if ((c1 = input()) != '/' && c != 0 && c != EOF)
                 goto loop;
 }
 

@@ -1,4 +1,4 @@
-gSOAP WSDL Importer tool 0.10
+gSOAP WSDL Importer tool 0.11
 =============================
 
 INSTALLATION
@@ -48,16 +48,3 @@ The creation of proxies (stubs) from WSDL is a two step process.
 
    Compile the client program as explained in the gSOAP documentation, e.g.
    g++ <file>.c stdoap2.cpp soapC.cpp soapClient.cpp
-
-LIMITATIONS
-===========
-
-The following limitations are specific to the WSDL importer tool. The
-limitations are not general limitations of the gSOAP toolkit and the gSOAP
-stub and skeleton compiler. Future releases of the WSDL import tool will
-address these limitations.
-
-1. No <import> (WSDL must be self-contained)
-2. No support for SOAP Header and Fault messages
-   If Header processing is required, this will need to be added by hand to
-   the generated header file.

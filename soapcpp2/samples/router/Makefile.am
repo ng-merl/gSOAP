@@ -11,5 +11,5 @@ SOAP_NS=$(SOAP_NS_DEF)
 include ../Makefile.c_rules
 
 router_SOURCES = router.c $(SOAPHEADER) $(SOAP_C_CLIENT)
-router_LDADD = $(SOAP_C_LIB) -lpthread
+router_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread
 

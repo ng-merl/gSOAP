@@ -8,7 +8,7 @@ int main(int argc, char **argv)
     sym = argv[1];
   else
   { fprintf(stderr, "Usage: quote <ticker>\n");
-    return -1;
+    exit(1);
   }
   soap_init(&soap);
   if (soap_call_ns__getQuote(&soap, "http://services.xmethods.net/soap", NULL, sym, &q) == 0)

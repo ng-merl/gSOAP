@@ -15,7 +15,7 @@
 
 	Compile:
 	soapcpp2 -c router.h
-	cc -o router router.c stdsoap2.c soapC.c
+	gcc -o router router.c stdsoap2.c soapC.c
 
 	Usage scenarios
 	===============
@@ -23,7 +23,7 @@
 	Forwarding of messages to a service
 	-----------------------------------
 
-	router [-e<endpoint>] [-a<SOAPAction>] [-r<routingfile>] [-t<timeout>] [<msgfile>]
+	router [-e<endpoint> | -g<endpoint>] [-a<SOAPAction>] [-r<routingfile>] [-t<timeout>] [<msgfile>]
 
 	Examples:
 
@@ -52,6 +52,12 @@
 	connection. The http://domain/path endpoint is tried last when all
 	other service endpoints in the table failed. File request.soap MAY
 	contain an HTTP header but MUST of course contain a body.
+
+	To try this, compile the 'quote' client (samples/quote). Edit the
+	'quote.getQuote.req.xml' SOAP/XML request file and replace
+	<symbol></symbol> with <symbol>AOL</symbol>. Then run
+	router -ehttp://services.xmethods.net/soap -a"" quote.getQuote.req.xml
+	The SOAP/XML response is returned.
 
 	3.
 	router -aSOAPAction request.soap
@@ -82,6 +88,10 @@
 	the HTTP content length by buffering the entire request message which
 	allows you to use it as a filter as in this example. (fstat() is
 	generally tried first to determine file length.)
+
+	7.
+	router -ghttp://domain/path/file.html
+	Sends an HTTP GET request to the host and copies the response to stdout.
 
 	CGI-based relay server
 	----------------------
@@ -151,12 +161,12 @@
 	* When an external routing table is once read by a stand-alone router,
 	  it will be cached to optimize speed. But this also means that
 	  changing the contents of the routing table file does not affect the
-	  actual routing as long as the stand-alone service is running.
-	* Request-response (HTTP Post) style of SOAP messaging is supported
-	* Supports any type of messages, including DIME
+	  actual routing while the stand-alone router is running.
+	* HTTP POST and HTTP GET styles of SOAP messaging is supported
+	  (but CGI-based router does not support HTTP GET)
+	* Supports any type of messages (e.g. DIME)
 	* HTTP cookies are not handled and will be deleted from the HTTP header
-	* Keep-alive support has not been tested and might not work under
-	  certain conditions
+	* Keep-alive support has not been tested and might not work
 */
 
 #include "soapH.h"
@@ -195,12 +205,13 @@ static const char *service_endpoint = NULL;
 static const char *service_action = NULL;
 static const char *routing_file = DEFAULT_ROUTINGFILE;
 static int server_timeout = 0;
+static int method = SOAP_POST;
 
 void options(int, char**);
 void *process_request(void*);
 const char *lookup(struct RoutingTable*, const char*);
 int copy_header(struct soap*, struct soap*, const char*, const char*);
-int create_header(struct soap*, const char*, const char*, size_t);
+int create_header(struct soap*, int, const char*, const char*, size_t);
 int buffer_body(struct soap*);
 int copy_body(struct soap*, struct soap*);
 
@@ -212,7 +223,7 @@ main(int argc, char **argv)
     pthread_t tid;
     int m, s, i;
     soap_init(&soap);
-    soap.bind_flags = SO_REUSEADDR; /* don't use this in a in a non-secure environment */
+    soap.bind_flags = SO_REUSEADDR; /* don't use this in a non-secure environment. We keep it here so you can quickly restart the router */
     m = soap_bind(&soap, NULL, port_number, BACKLOG);
     if (m < 0)
     { soap_print_fault(&soap, stderr);
@@ -233,51 +244,64 @@ main(int argc, char **argv)
   else
   { struct soap client;
     struct soap server;
-    struct stat sb;
-    wchar c;
     soap_init(&client);
     soap_init(&server);
     soap_begin(&client);
-    if (input_file)
-    { client.recvfd = open(input_file, O_RDONLY);
-      if (client.recvfd < 0)
-      { fprintf(stderr, "router: cannot open file '%s' for reading\n", input_file);
-        exit(1);
-      }
-    }
-    c = soap_get2(&client);
-    client.bufidx--; /* instead of unget: enables copying buffer */
-    if (c == 'G' || c == 'P') /* simple check to see if HTTP header is present */
-    { if (copy_header(&client, &server, service_endpoint, service_action))
-      { client.error = server.error;
-        soap_send_fault(&client);
-        exit(1);
-      }
-    }
-    else
-    { if (!fstat(client.recvfd, &sb) && sb.st_size > 0)
-        client.length = sb.st_size;
+    if (argc <= 1) /* try CGI env vars */
+    { char *s = getenv("REQUEST_METHOD");
+      if (s && !strcmp(s, "GET"))
+        method = SOAP_GET;
       else
-      { char *s = getenv("Content-Length");
+      { s = getenv("Content-Length");
         if (s)
-          client.length = atoi(s);
+          client.length = strtoul(s, NULL, 10);
+      }
+      service_action = getenv("HTTP_SOAPAction");
+      if (!service_action)
+        service_action = getenv("QUERY_STRING");
+    }
+    if (method == SOAP_POST)
+    { wchar c;
+      if (input_file)
+      { client.recvfd = open(input_file, O_RDONLY);
+        if (client.recvfd < 0)
+        { fprintf(stderr, "router: cannot open file '%s' for reading\n", input_file);
+          exit(1);
+        }
+      }
+      c = soap_getchar(&client);
+      client.bufidx--; /* instead of unget: enables copying buffer */
+      if (c == 'G' || c == 'P') /* simple check to see if HTTP GET/POST header is present */
+      { if (copy_header(&client, &server, service_endpoint, service_action))
+        { client.error = server.error;
+          soap_send_fault(&client);
+          exit(1);
+        }
+      }
+      else
+      { struct stat sb;
+        if (!fstat(client.recvfd, &sb) && sb.st_size > 0)
+          client.length = sb.st_size;
         else
           buffer_body(&client);
+        if (create_header(&server, SOAP_POST, service_endpoint, service_action, client.length))
+        { client.error = server.error;
+          soap_send_fault(&client);
+          exit(1);
+        }
       }
-      if (!service_action)
-      { service_action = getenv("SOAPAction");
-        if (!service_action)
-          service_action = getenv("QUERY_STRING");
-      }
-      if (create_header(&server, service_endpoint, service_action, client.length))
+      copy_body(&client, &server);
+    }
+    else
+    { if (create_header(&server, SOAP_GET, service_endpoint, service_action, 0))
       { client.error = server.error;
         soap_send_fault(&client);
         exit(1);
       }
+      soap_end_send(&server);
     }
-    /* should check these for errors: */
-    copy_body(&client, &server);
     soap_begin(&server);
+    /* should check these for errors: */
     copy_header(&server, &client, NULL, NULL);
     copy_body(&server, &client);
     soap_end(&client);
@@ -299,19 +323,21 @@ options(int argc, char **argv)
       while (flag && *++arg)
         switch (*arg)
         { case 'h':
-            fprintf(stderr, "Usage: router [-p<port>] [-e<endpoint>] [-a<action>] [-r<routingfile>] [<msgfile>]\n");
+            fprintf(stderr, "Usage: router [-p<port>] [-e<endpoint> | -g<endpoint>] [-a<action>] [-r<routingfile>] [<msgfile>]\n");
             exit(0);
           case 'p':
             flag = 0;
             if (*++arg)
-              port_number = atoi(arg);
+              port_number = atol(arg);
             else if (i < argc && argv[++i])
-              port_number = atoi(argv[i]);
+              port_number = atol(argv[i]);
             else
             { fprintf(stderr, "router: -p requires <port>\n");
               exit(1);
             }
             break;
+          case 'g':
+	    method = SOAP_GET;
           case 'e':
             flag = 0;
             if (*++arg)
@@ -319,7 +345,7 @@ options(int argc, char **argv)
             else if (i < argc && argv[++i])
               service_endpoint = argv[i];
             else
-            { fprintf(stderr, "router: -e requires <endpoint>\n");
+            { fprintf(stderr, "router: -e and -g require <endpoint>\n");
               exit(1);
             }
             break;
@@ -348,9 +374,9 @@ options(int argc, char **argv)
           case 't':
             flag = 0;
             if (*++arg)
-              server_timeout = atoi(arg);
+              server_timeout = atol(arg);
             else if (i < argc && argv[++i])
-              server_timeout = atoi(argv[i]);
+              server_timeout = atol(argv[i]);
             else
             { fprintf(stderr, "router: -t requires <timeout>\n");
               exit(1);
@@ -373,15 +399,15 @@ process_request(void *soap)
   client = (struct soap*)soap;
   soap_init(&server);
   soap_begin(client);
-  c = soap_get2(client);
+  c = soap_getchar(client);
   client->bufidx--; /* instead of unget: enables copying buffer */
-  if (c == 'G' || c == 'P') /* simple check to see if HTTP header is present */
+  if (c == 'G' || c == 'P') /* simple check to see if HTTP GET/POST header is present */
   { if (copy_header(client, &server, NULL, NULL))
       client->error = server.error;
   }
   else
   { buffer_body(client);
-    if (create_header(&server, service_endpoint, service_action, client->length))
+    if (create_header(&server, method, service_endpoint, service_action, client->length))
       client->error = server.error;
   }
   if (!server.error)
@@ -461,8 +487,8 @@ make_connect(struct soap *server, const char *endpoint)
   server->connect_timeout = server_timeout;
   server->recv_timeout = server_timeout;
   server->send_timeout = server_timeout;
-  /* server->connect_flags = SO_NOSIGPIPE; */	/* prevents SIGPIPE */
-  /* server->socket_flags = MSG_NOSIGNAL; */	/* prevents SIGPIPE */
+  /* server->connect_flags = SO_NOSIGPIPE; */	/* prevents UNIX SIGPIPE */
+  /* server->socket_flags = MSG_NOSIGNAL; */	/* prevents UNIX SIGPIPE */
   if (*server->host)
   { if (server->socket < 0 || strcmp(server->host, host) || server->port != port)
     { soap_closesock(server);
@@ -515,7 +541,6 @@ int
 copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, const char *action)
 { struct header *h, *p;
   char *s, *t;
-  int n;
   h = (struct header*)malloc(sizeof(struct header));
   for (;;)
   { if (soap_getline(sender, h->line, SOAP_HDRLEN))
@@ -547,12 +572,14 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
       *s = ':';
   }
   s = strstr(h->line, "HTTP/");
-  if (s && !strncmp(h->line, "POST ", 5))
-  { n = strlen(sender->endpoint) + (s-h->line) - 6;
+  if (s && (!strncmp(h->line, "GET ", 4) || !strncmp(h->line, "POST ", 5)))
+  { int m = strlen(sender->endpoint);
+    int n = m + (s - h->line) - 5 - (*h->line == 'P');
     if (n >= (int)sizeof(sender->endpoint))
-      n = sizeof(sender->endpoint)-1;
-    strncat(sender->endpoint, h->line+5, n-strlen(sender->endpoint));
-    sender->endpoint[n] = '\0';
+      n = sizeof(sender->endpoint) - 1;
+    strncpy(sender->path, h->line + 4 + (*h->line == 'P'), n - m);
+    sender->path[n - m] = '\0';
+    strcat(sender->endpoint, sender->path);
   }
   if (!endpoint || !*endpoint)
     endpoint = sender->endpoint;
@@ -577,10 +604,11 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
 }
 
 int
-create_header(struct soap *server, const char *endpoint, const char *action, size_t count)
+create_header(struct soap *server, int method, const char *endpoint, const char *action, size_t count)
 { if (server_connect(server, endpoint, action))
     return server->error;
   soap_begin_send(server);
+  server->status = method;
   return server->error = server->fpost(server, server->endpoint, server->host, server->path, action, count);
 }
 

@@ -11,7 +11,7 @@ for the specific language governing rights and limitations under the License.
 The Original Code is ''gSOAP compiler'' consisting of:
 error2.c, error2.h, init2.c, soapcpp2.c, soapcpp2.h, soapcpp2_lex.l, soapcpp2_yacc.y, symbol2.c.
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
+Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 
 */
 
@@ -24,7 +24,7 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.2.1a" /* Current version */
+#define VERSION "2.2.2" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -63,6 +63,21 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #define LONG64 __int64
 #else
 #define LONG64 long long
+#endif
+
+#if defined(WIN32)
+#define SOAP_LONG_FORMAT "%I64d"
+#define SOAP_ULONG_FORMAT "%I64u"
+#elif defined(TRU64)
+#define SOAP_LONG_FORMAT "%ld"
+#define SOAP_ULONG_FORMAT "%lu"
+#endif
+
+#ifndef SOAP_LONG_FORMAT
+#define SOAP_LONG_FORMAT "%lld"
+#endif
+#ifndef SOAP_ULONG_FORMAT
+#define SOAP_ULONG_FORMAT "%llu"
 #endif
 
 extern int yylineno;

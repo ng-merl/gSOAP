@@ -38,6 +38,8 @@ public class wsdlcpp
 
     Vector processedEnums = new Vector();
 
+    Vector processedTypeDefs = new Vector();
+
     Vector allArrays = new Vector();
     
     Hashtable structureNodes = new Hashtable();
@@ -599,7 +601,8 @@ public class wsdlcpp
 				    case 6://typedef
 					printedClasses.add(dataName);
 					StringTokenizer tabToken = new StringTokenizer((String)lineToken.nextElement(),"\t");
-					String dType =(String)tabToken.nextElement();
+					String dType=(String)tabToken.nextElement();
+
 					pw.println("typedef "+dataType(dType)+"  "+dataType(dataName)+" ;\n");
 					break;
 				    }
@@ -2035,6 +2038,13 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			    processSchema(cComplexNode,null,schemaNS);
 			    processed = true;
 			}
+		    //process for rpc encoding
+		    else if(cnodes.item(j).getNodeName().equalsIgnoreCase(schemaNS+"simpleType"))
+			{
+			    NsNode cComplexNode = new NsNode(cnodes.item(j),schemaNode.getNameSpace());
+			    processSchema(cComplexNode,null,schemaNS);
+			    processed = true;
+			}
 
 		}
 		/*end find a element node just below the schema node*/
@@ -2089,53 +2099,108 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 	for(int i=0;i<simpleType.getTotalMatches();i++)
 	    {
-		String enumEquivalent="";
-		int dataType = 2;
-		
-		Hashtable attrib = new Hashtable();
-		//attrib.put("base", localXSDNS+"string");
-		attrib.put("base", localXSDNS+"string");
+		String enumName = currentNS+getAttrValue(simpleNode,"name");
 
-		NsNodeSearch restriction = new
-		    NsNodeSearch(simpleNode,schemaNS+"restriction",attrib,nsimpleNode.getNameSpace());
-		//NsNodeSearch(simpleNode,schemaNS+"restriction",attrib,nsimpleNode.getNameSpace());
-		NsNode nrestrictionNode = restriction.getNextNode();
-		
-		NsNodeSearch enumeration = new
-		    NsNodeSearch(simpleNode,schemaNS+"enumeration",nsimpleNode.getNameSpace());
-		NsNode nenumerationNode = enumeration.getNextNode();
-		
-		NsNodeSearch list = new
-		    NsNodeSearch(simpleNode,schemaNS+"list",nsimpleNode.getNameSpace());
-		NsNode nlistNode = list.getNextNode();
-
-		if((nrestrictionNode!=null)&&(nenumerationNode!=null))
+		if(enumName!=null)
 		    {
-			if(nlistNode!=null)
-			    dataType = 1;
+			
+			String enumEquivalent="";
+			int dataType = 2;
 
-			//enumEquivalent =dataType("enum "+maskStr+currentNS+getAttrValue(simpleNode,"name"))+" { ";
-			for(int j=0;j<enumeration.getTotalMatches();j++)
-			    {
-				enumEquivalent
-				    +=convertToCpp(getAttrValue(nenumerationNode.getNode(),"value"),true)+", ";
-				nenumerationNode = enumeration.getNextNode();
-			    }
-			if(enumEquivalent.lastIndexOf(',')!=-1)
-			    enumEquivalent = enumEquivalent.substring(0,enumEquivalent.lastIndexOf(','));
-
-			String enumName = currentNS+getAttrValue(simpleNode,"name");
-
-			enumName = getNS(enumName,nnode.getNameSpace())+getName(enumName);
-			addDataType(enumName,dataType,enumEquivalent);
-			processedEnums.add(enumName);
-		    }
+			
+			Hashtable attrib = new Hashtable();
+			//attrib.put("base", localXSDNS+"string");
+			attrib.put("base", localXSDNS+"string");
+			
+			NsNodeSearch restriction = new
+			    NsNodeSearch(simpleNode,schemaNS+"restriction",attrib,nsimpleNode.getNameSpace());
+			//NsNodeSearch(simpleNode,schemaNS+"restriction",attrib,nsimpleNode.getNameSpace());
+			NsNode nrestrictionNode = restriction.getNextNode();
+			
+			NsNodeSearch enumeration = new
+			    NsNodeSearch(simpleNode,schemaNS+"enumeration",nsimpleNode.getNameSpace());
+			NsNode nenumerationNode = enumeration.getNextNode();
+			
+			NsNodeSearch list = new
+			    NsNodeSearch(simpleNode,schemaNS+"list",nsimpleNode.getNameSpace());
+			NsNode nlistNode = list.getNextNode();
+			
 		
-		nsimpleNode = simpleType.getNextNode();
-		if(nsimpleNode!=null)
-		simpleNode = nsimpleNode.getNode();
+			//case for enum and enum mask.
+			if((nrestrictionNode!=null)&&(nenumerationNode!=null))
+			    {
+				if(nlistNode!=null)
+				    dataType = 1;
+				
+				//enumEquivalent =dataType("enum "+maskStr+currentNS+getAttrValue(simpleNode,"name"))+" { ";
+				for(int j=0;j<enumeration.getTotalMatches();j++)
+				    {
+					enumEquivalent
+					    +=convertToCpp(getAttrValue(nenumerationNode.getNode(),"value"),true)+", ";
+					nenumerationNode = enumeration.getNextNode();
+				    }
+				if(enumEquivalent.lastIndexOf(',')!=-1)
+				    enumEquivalent = enumEquivalent.substring(0,enumEquivalent.lastIndexOf(','));
+				
+				enumName = getNS(enumName,nnode.getNameSpace())+getName(enumName);
+				addDataType(enumName,dataType,enumEquivalent);
+				processedEnums.add(enumName);
+			    }
+			else 
+			    {
+				restriction = new NsNodeSearch(simpleNode,schemaNS+"restriction",nsimpleNode.getNameSpace());
+				//NsNodeSearch(simpleNode,schemaNS+"restriction",attrib,nsimpleNode.getNameSpace());
+				nrestrictionNode = restriction.getNextNode();
+				
+				String description;
+				
+				if(nrestrictionNode != null)
+				    {
+					String enumType = getAttrValue(nrestrictionNode.getNode(),"base");
+
+					if(isXsd(enumType,localXSDNS))
+					    {
+						enumType ="xsd:"+getName(enumType);
+						
+						description = enumType+"\t"+0+"\t_var1\t"+0+"\n";
+						processedTypeDefs.add(enumName);
+						addDataType(enumName,6,description);
+					    }
+					else if(isSoapEnc(enumType,localencodingNS))
+					    {
+						enumType = "soap-enc:"+getName(enumType);
+						
+						description = enumType+ "\t"+0+"\t_var1\t"+0+"\n";
+						processedTypeDefs.add(enumName);
+						addDataType(enumName,6,description);
+					    }
+					
+					else
+					    {
+						enumType = getNS(enumType,nrestrictionNode.getNameSpace())+getName(enumType);
+						
+						if(isTypeDef(enumType))
+						    {
+							enumType =  getTypeDefEquivalent(enumType);
+							description = enumType+ "\t"+0+"\t_var1\t"+0+"\n";
+							processedTypeDefs.add(enumName);
+							addDataType(enumName,6,description);
+						    }
+						else
+						    {
+							description = (String)allDataType.get(enumType);
+							if(description!=null)
+							    allDataType.put(enumName,description);
+						    }
+					    }
+				    }
+			    }
+			
+			nsimpleNode = simpleType.getNextNode();
+			if(nsimpleNode!=null)
+			    simpleNode = nsimpleNode.getNode();
+		    }
 	    }
-	
 
 
 
@@ -2312,6 +2377,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 		
 	processPendingArrays();
+
     }
 
 
@@ -2356,6 +2422,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 				    }
 
 				description = type+"\t"+isStruct+"\t_var1\t"+isStruct+"\n";
+				processedTypeDefs.add(dataTypeName);
 				addDataType(dataTypeName,6,description);
 			    }
 			else if(isSoapEnc(type,curlocalencodingNS))
@@ -2368,6 +2435,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 					isStruct=1;
 				    }
 				description = type+ "\t"+isStruct+"\t_var1\t"+isStruct+"\n";
+				processedTypeDefs.add(dataTypeName);
 				addDataType(dataTypeName,6,description);
 			    }
 			
@@ -2612,7 +2680,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 		    }
 		else
 		    {
-			System.out.println("Some Structures are not generated as corresponding base classes were not found"+unProcessedStructures);
+			System.out.println("Some Structures are not generated as corresponding base classes were not found");
 		    }
 	    }
     }
@@ -2639,6 +2707,44 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	    return true;
 	return false;
     }
+    
+    boolean isTypeDef(String name)
+    {
+	if(name==null)
+	    {
+		System.out.println("Error: Name of dataType is found to be NULL. This may be a bug in WSDL importer");
+		System.exit(0);
+	    }
+	//	System.out.println(processedTypeDef);
+	
+	if(processedTypeDefs.contains(name))
+	   return true;
+
+	  return false;
+	    
+    }
+
+    String getTypeDefEquivalent(String name)
+    {
+	if(allDataType.contains(name))
+	    {
+		String description;
+
+		description= (String)allDataType.get(name);
+		
+		StringTokenizer lineToken = new StringTokenizer(description,"\n");
+		
+		int dataType = Integer.parseInt((String)lineToken.nextElement());
+		
+		StringTokenizer tabToken = new StringTokenizer((String)lineToken.nextElement(),"\t");
+		String dType =(String)tabToken.nextElement();
+		return dType;
+	    }
+	else
+	    return new String("char *");
+    }
+    
+    
 
     boolean isEnumType(String name)
     {

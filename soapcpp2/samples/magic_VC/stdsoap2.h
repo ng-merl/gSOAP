@@ -1,4 +1,4 @@
-/*	stdsoap2.h 2.2.1a
+/*	stdsoap2.h 2.2.2
 
 The contents of this file are subject to the gSOAP Public License Version 1.0
 (the "License"); you may not use this file except in compliance with the
@@ -9,7 +9,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
+Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 
 */
 
@@ -72,7 +72,11 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #include "config.h"
 #else
 #if defined(UNDER_CE)
+#define SOAP_LONG_FORMAT "%I64d"
+#define SOAP_ULONG_FORMAT "%I64u"
 #elif defined(WIN32)
+#define SOAP_LONG_FORMAT "%I64d"
+#define SOAP_ULONG_FORMAT "%I64u"
 #define HAVE_SYS_TIMEB_H
 #define HAVE_FTIME
 #elif defined(CYGWIN)
@@ -111,6 +115,21 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #define HAVE_GMTIME_R
 #define HAVE_LOCALTIME_R
 #define HAVE_TIMEGM
+#elif defined(TRU64)
+#define SOAP_LONG_FORMAT "%ld"
+#define SOAP_ULONG_FORMAT "%lu"
+#define HAVE_SYS_TIMEB_H
+#define HAVE_FTIME
+#define HAVE_RAND_R
+#define HAVE_GETHOSTBYNAME_R
+#define HAVE_GMTIME_R
+#define HAVE_LOCALTIME_R
+#elif defined(MAC_CARBON)
+#define HAVE_FTIME
+#define HAVE_RAND_R
+#define HAVE_GETHOSTBYNAME_R
+#define HAVE_GMTIME_R
+#define HAVE_LOCALTIME_R
 #else
 #define HAVE_SYS_TIMEB_H
 #define HAVE_FTIME
@@ -121,6 +140,13 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #endif
 #endif
 
+#ifndef SOAP_LONG_FORMAT
+#define SOAP_LONG_FORMAT "%lld"		/* printf format for 64 bit ints */
+#endif
+#ifndef SOAP_ULONG_FORMAT
+#define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -129,13 +155,23 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 
 #ifndef UNDER_CE
 #include <errno.h>
+#ifndef MAC_CARBON
 #include <sys/types.h>
+#endif
 #ifdef HAVE_SYS_TIMEB_H
 #include <sys/timeb.h>		/* for ftime() */
 #endif
 #include <time.h>
 #endif
 
+#ifdef OPENSERVER
+#include <sys/socket.h>
+#include <sys/stream.h>
+#include <sys/protosw.h>
+extern int h_errno;
+#endif
+
+#ifndef MAC_CARBON
 #ifndef WIN32
 #include <sys/socket.h>
 #include <strings.h>		/* AIX */
@@ -149,6 +185,7 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #include <netinet/in.h>		/* AIX */
 #include <netinet/tcp.h>	/* for TCP_NODELAY */
 #include <arpa/inet.h>
+#endif
 #endif
 
 #ifdef WITH_FASTCGI
@@ -166,6 +203,12 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #endif
 #endif
 
+#ifdef WITH_GZIP
+#ifndef WITH_ZLIB
+#define WITH_ZLIB
+#endif
+#endif
+
 #ifdef WITH_ZLIB
 #include <zlib.h>
 #endif
@@ -180,7 +223,7 @@ extern "C" {
 
 #define soap_get1(soap) (((soap)->bufidx>=(soap)->buflen && soap_recv(soap)) ? EOF : (unsigned char)(soap)->buf[(soap)->bufidx++])
 #define soap_unget(soap, c) ((soap)->ahead1 = c)
-#define soap_unget2(soap, c) ((soap)->ahead2 = c)
+#define soap_ungetchar(soap, c) ((soap)->ahead2 = c)
 #define soap_destroy(soap)	/* redefined in soapH.h when classes are used */
 #define soap_register_plugin(soap, plugin) soap_register_plugin_arg(soap, plugin, NULL)
 #define soap_imode(soap, n) ((soap)->mode = (soap)->imode = (n))
@@ -197,8 +240,10 @@ extern "C" {
 #endif
 #include <winsock.h>
 #else
+#ifndef MAC_CARBON
 #include <netdb.h>
 #include <netinet/in.h>
+#endif
 #include <unistd.h>
 #include <fcntl.h>
 #define closesocket(n) close(n)
@@ -372,11 +417,15 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_DIME_MISMATCH	27
 #define SOAP_PLUGIN_ERROR	28
 
-/* gSOAP status codes */
+/* gSOAP HTTP response status codes */
 
-#define SOAP_POST		100
-#define SOAP_STOP		101
-#define SOAP_HTML		102
+#define SOAP_STOP		100	/* No HTTP response */
+#define SOAP_HTML		101	/* HTML response */
+
+/* gSOAP HTTP request status codes */
+
+#define SOAP_POST		200
+#define SOAP_GET		201
 
 /* gSOAP DIME */
 
@@ -386,6 +435,12 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_DIME_VERSION	0x08 /* DIME version 1 */
 #define SOAP_DIME_MEDIA		0x10
 #define SOAP_DIME_ABSURI	0x20
+
+/* gSOAP ZLIB */
+
+#define SOAP_ZLIB_NONE		0x00
+#define SOAP_ZLIB_DEFLATE	0x01
+#define SOAP_ZLIB_GZIP		0x02
 
 /* gSOAP transport, connection, and content encoding modes */
 
@@ -400,8 +455,8 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 
 #define SOAP_ENC_XML		0x0010	/* plain XML encoding, no HTTP header */
 #define SOAP_ENC_DIME		0x0020
-#define SOAP_ENC_SSL		0x0040
-#define SOAP_ENC_ZLIB		0x0080
+#define SOAP_ENC_ZLIB		0x0040
+#define SOAP_ENC_SSL		0x0080
 
 #define SOAP_XML_STRICT		0x0100
 #define SOAP_XML_TREE		0x0200
@@ -572,11 +627,13 @@ struct soap
   const char *userid;		/* HTTP Basic authorization userid */
   const char *passwd;		/* HTTP Basic authorization passwd */
   int (*fpost)(struct soap*, const char*, const char*, const char*, const char*, size_t);
+  int (*fget)(struct soap*, const char*, const char*, const char*, const char*, size_t);
   int (*fposthdr)(struct soap*, const char*, const char*);
   int (*fresponse)(struct soap*, int, size_t);
   int (*fparse)(struct soap*);
   int (*fparsehdr)(struct soap*, const char*, const char*);
   int (*fopen)(struct soap*, const char*, const char*, int);
+  int (*faccept)(struct soap*, int, struct sockaddr*, int *n);
   int (*fclose)(struct soap*);
   int (*fsend)(struct soap*, const char*, size_t);
   size_t (*frecv)(struct soap*, char*, size_t);
@@ -667,7 +724,7 @@ struct soap
   BIO *bio;
   SSL *ssl;
   short require_server_auth;
-  short rsa;			/* when set, use RSA */
+  short rsa;			/* when set, use RSA instead of DH */
   const char *keyfile;
   const char *password;
   const char *dhfile;
@@ -675,10 +732,12 @@ struct soap
   const char *randfile;
 #endif
 #ifdef WITH_ZLIB
+  short zlib;			/* SOAP_ZLIB_DEFLATE or SOAP_ZLIB_GZIP */
   z_stream d_stream;		/* decompression stream */
-  char d_buf[SOAP_BUFLEN];	/* decompression buffer */
-  size_t d_buflen;
-  int z_level;
+  char z_buf[SOAP_BUFLEN];	/* buffer */
+  size_t z_buflen;
+  unsigned short z_level;	/* compression level (0=none, 1=fast to 9=best) */
+  unsigned long z_crc;		/* gzip crc */
 #endif
 };
 
@@ -722,8 +781,7 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_set_endpoint(struct soap*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_flush_raw(struct soap*, const char*, size_t);
 SOAP_FMAC1 int SOAP_FMAC2 soap_flush(struct soap*);
 SOAP_FMAC1 wchar SOAP_FMAC2 soap_get(struct soap*);
-SOAP_FMAC1 wchar SOAP_FMAC2 soap_get2(struct soap*);
-SOAP_FMAC1 wchar SOAP_FMAC2 soap_char(struct soap*);
+SOAP_FMAC1 wchar SOAP_FMAC2 soap_getchar(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_tag_cmp(const char*, const char*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_set_fault(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_sender_fault(struct soap*, const char*, const char*);

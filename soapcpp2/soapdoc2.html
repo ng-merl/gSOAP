@@ -15,13 +15,13 @@
 
 
 
-<title> The gSOAP Stub and Skeleton Compiler for C and C++ 2.2.1</title>
+<title> gSOAP 2.2.2 User Guide</title>
     
-<h1 align="center">The gSOAP Stub and Skeleton Compiler for C and C++ 2.2.1 </h1>
+<h1 align="center">gSOAP 2.2.2 User Guide </h1>
 
-<h3 align="center">Robert A. van Engelen <br />Department of Computer Science <br />Florida State University <br />engelen@acm.edu </h3>
+<h3 align="center">Robert A. van Engelen <br />Genivia inc. and Florida State University <br />engelen@acm.org </h3>
 
-<h3 align="center">Dec 24, 2002
+<h3 align="center">Jan 27, 2003
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -293,7 +293,7 @@
 >13.24.3&nbsp; <font color="#0000FF">gSOAP Plug-ins</font></a><br />
  
 </td></tr></table><br></span>
-<i>Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.</i>
+<i>Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.</i>
 
 
 <p>
@@ -301,22 +301,32 @@
 1</a>&nbsp;&nbsp;<font color="#0000FF">Introduction</font></h2>
 
 <p>
-The gSOAP toolkit provides a unique SOAP-to-C/C++ language binding for the development of SOAP Web Services and clients.
-Other SOAP C++ implementations adopt a SOAP-centric view and offer SOAP APIs for C++ that require the use of class libraries for
-SOAP-like data structures.  This often forces a user to adapt the application logic to these libraries.  In contrast, gSOAP
-provides a C/C++ transparent SOAP API through the use of compiler technology that hides irrelevant SOAP-specific details from
-the user.  The gSOAP stub and skeleton compiler automatically maps native and user-defined C and C++ data types to semantically
-equivalent SOAP data types and vice-versa.  As a result, full SOAP interoperability is achieved with a simple API relieving the
-user from the burden of SOAP details and enables him or her to concentrate on the application-essential logic.  The compiler
-enables the integration of (legacy) C/C++ and Fortran codes (through a Fortran-to-C interface), embedded systems, and
-real-time software in SOAP applications that share computational resources and information with other SOAP applications,
-possibly across different platforms, language environments, and disparate organizations located behind firewalls.
+The gSOAP toolkit provides a unique SOAP-to-C/C++ language binding for the
+development of SOAP Web Services and clients.  Other SOAP C++ implementations
+adopt a SOAP-centric view and offer SOAP APIs for C++ that require the use of
+class libraries for SOAP-like data structures.  This often forces a user to
+adapt the application logic to these libraries.  In contrast, gSOAP provides a
+C/C++ transparent SOAP API through the use of compiler technology that hides
+irrelevant SOAP-specific details from the user.  The gSOAP stub and skeleton
+compiler automatically maps native and user-defined C and C++ data types to
+semantically equivalent SOAP data types and vice-versa.  As a result, full SOAP
+interoperability is achieved with a simple API relieving the user from the
+burden of SOAP details and enables him or her to concentrate on the
+application-essential logic.  The compiler enables the integration of (legacy)
+C/C++ and Fortran codes (through a Fortran-to-C interface), embedded systems,
+and real-time software in SOAP applications that share computational resources
+and information with other SOAP applications, possibly across different
+platforms, language environments, and disparate organizations located behind
+firewalls.
 
 <p>
-gSOAP minimizes application adaptation for building SOAP clients and Web Services.  The gSOAP compiler generates SOAP marshalling
-routines that (de)serialize application-specific C/C++ data structures.  gSOAP includes a WSDL generator to generate Web service
-descriptions for your Web services.  The gSOAP WSDL importer "closes the circle" in that it enables client development without the need
-for users to analyze Web service details to implement a client.
+gSOAP minimizes application adaptation for building SOAP clients and Web
+Services.  The gSOAP compiler generates SOAP marshalling routines that
+(de)serialize application-specific C/C++ data structures.  gSOAP includes a
+WSDL generator to generate Web service descriptions for your Web services.  The
+gSOAP WSDL importer "closes the circle" in that it enables client development
+without the need for users to analyze Web service details to implement a
+client.
 
 <p>
 Some of the highlights of gSOAP are:
@@ -350,10 +360,10 @@ structures.</li>
 Fully SOAP 1.1 compliant data encoding and decoding. Also SOAP 1.2 compliant, but the SOAP 1.2 specification is in a drafting stage.</li>
 <p>
 <li>
-DIME compliant attachments.</li>
+DIME compliant attachments with streaming capabilities.</li>
 <p>
 <li>
-Zlib compression.</li>
+Zlib deflate and gzip compression.</li>
 <p>
 <li>
 Includes HTTP, TCP/IP, XML, and DIME stacks.</li>
@@ -362,7 +372,7 @@ Includes HTTP, TCP/IP, XML, and DIME stacks.</li>
 Supports one-way messaging, including asynchronous send and receive operations.</li>
 <p>
 <li>
-Supports the saving and loading of XML serialized C/C++ data structures to/from files.</li>
+Supports saving and loading of XML serialized C/C++ data structures to/from files.</li>
 <p>
 <li>
 The schema-specific XML pull parser is fast and efficient and does not require intermediate data storage for
@@ -2515,7 +2525,7 @@ As an example, consider the following data type declarations:
 </td></tr></table><br></i>
 The following program uses these data types to write to standard output a data structure that contains the data of a person named "John" living at Dowling st. 10 in Londen. He has a mother
 "Mary" and a father "Stuart". After initialization, the class instance for "John" is serialized and encoded in XML to the
-standard output stream using Zlib-compression:
+standard output stream using gzip compression (requires the Zlib library, compile sources with -DWITH_GZIP):
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 // Contents of file "person.cpp": <br />
 #include "soapH.h" <br />
@@ -2565,13 +2575,13 @@ standard output stream using Zlib-compression:
 The header file is processed and the application compiled on Linux/Unix with:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 <i>soapcpp2 person.h</i> <br />
-<i>g++ -DWITH_ZLIB -o person person.cpp soapC.cpp stdsoap2.cpp -lsocket -lxnet -lnsl -lzlib</i>
+<i>g++ -DWITH_GZIP -o person person.cpp soapC.cpp stdsoap2.cpp -lsocket -lxnet -lnsl -lz</i>
 </td></tr></table><br></span>
 (Depending on your system configuration, the libraries <i>libsocket.a</i>,
 <i>libxnet.a</i>, <i>libnsl.a</i>
 are required. Compiling on Linux typically does not require the inclusion of those
 libraries.)
-See&nbsp;<a href="#sec:compression">13.19</a> for details in Zlib compression with gSOAP.
+See&nbsp;<a href="#sec:compression">13.19</a> for details on compression with gSOAP.
 
 <p>
 Running the <i>person</i> application results in the compressed XML output:
@@ -2617,7 +2627,7 @@ The following program fragment decodes this content from standard input and reco
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
 &nbsp;&nbsp;&nbsp;ns__Person *mother, *father, *john = NULL; <br />
 &nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;soap_imode(&amp;soap, SOAP_ENC_ZLIB); <br />
+&nbsp;&nbsp;&nbsp;soap_imode(&amp;soap, SOAP_ENC_ZLIB); // optional: gzip is detected automatically <br />
 &nbsp;&nbsp;&nbsp;soap_begin(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;soap_begin_recv(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_get_ns__Person(&amp;soap, john, "johnnie", NULL)) <br />
@@ -2658,7 +2668,7 @@ main() <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
 &nbsp;&nbsp;&nbsp;ns__Person *mother, *father, john; <br />
 &nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;soap_imode(&amp;soap, SOAP_ENC_ZLIB); <br />
+&nbsp;&nbsp;&nbsp;soap_imode(&amp;soap, SOAP_ENC_ZLIB); // optional <br />
 &nbsp;&nbsp;&nbsp;soap_begin(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;soap_begin_recv(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;soap_default_ns__Person(&amp;soap, &amp;john); <br />
@@ -3146,7 +3156,7 @@ messages.  The flags are:
 <tr><td><i>SOAP_ENC_XML</i> </td><td>Use plain XML encoding without HTTP headers </td></tr>
 <tr><td><i>SOAP_ENC_DIME</i> </td><td>Use DIME encoding (automatic when DIME attachments are used) </td></tr>
 <tr><td><i>SOAP_ENC_SSL</i> </td><td>Encrypt encoding with SSL (automatic with "https:" endpoints) </td></tr>
-<tr><td><i>SOAP_ENC_ZLIB</i> </td><td>Compress encoding with Zlib </td></tr>
+<tr><td><i>SOAP_ENC_ZLIB</i> </td><td>Compress encoding with Zlib (deflate or gzip format) </td></tr>
 <tr><td><i>SOAP_XML_STRICT</i> </td><td>XML strict validation (fault on unknown XML elements rather than omitting them) </td></tr>
 <tr><td><i>SOAP_XML_TREE</i> </td><td>Serialize data as XML trees (no multi-ref, duplicate data when necessary) </td></tr>
 <tr><td><i>SOAP_XML_GRAPH</i> </td><td>Serialize data as an XML graph with inline multi-ref (SOAP 1.2 default) </td></tr>
@@ -3189,16 +3199,6 @@ for input and output modes:
 The default setting is <i>SOAP_IO_DEFAULT</i> for both input and output modes.
 
 <p>
-In many cases, setting the input mode will have no effect, especially with HTTP
-transport because gSOAP will determine the optimal input buffering and the
-encoding used for an inbound message. The flags that do have an effect on
-handling inbound messages are <i>SOAP_IO_KEEPALIVE</i>, <i>SOAP_ENC_SSL</i>
-(but automatic when "https:" endpoints are used or <i>soap_ssl_accept</i>),
-<i>SOAP_ENC_ZLIB</i> (but automatic when HTTP transport is used),
-<i>SOAP_XML_NIL</i> will fault on receiving nil elements for non-nillable
-data, <i>SOAP_C_NOIOB</i>, and <i>SOAP_C_UTFSTRING</i>.
-
-<p>
 For example
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>struct</b>&nbsp;soap soap; <br />
@@ -3206,7 +3206,16 @@ soap_init2(&amp;soap, SOAP_IO_KEEPALIVE, SOAP_IO_KEEPALIVE | SOAP_ENC_ZLIB | SOA
 <b>if</b>&nbsp;(soap_call_ns__myMethod(&amp;soap, ...)) <br />
 ...
 </td></tr></table><br></i>
-sends a Zlib compressed client request with keep-alive enabled and all data serialized as XML trees.
+sends a compressed client request with keep-alive enabled and all data serialized as XML trees.
+
+<p>
+In many cases, setting the input mode will have no effect, especially with HTTP
+transport because gSOAP will determine the optimal input buffering and the
+encoding used for an inbound message. The flags that do have an effect on
+handling inbound messages are <i>SOAP_IO_KEEPALIVE</i>, <i>SOAP_ENC_SSL</i>
+(but automatic when "https:" endpoints are used or <i>soap_ssl_accept</i>),
+<i>SOAP_XML_NIL</i> will fault on receiving nil elements for non-nillable
+data, <i>SOAP_C_NOIOB</i>, and <i>SOAP_C_UTFSTRING</i>.
 
 <p>
 <font color="#FF0000"><b>Caution</b></font>: The <i>SOAP_XML_TREE</i> serialization flag can be used to
@@ -4022,46 +4031,29 @@ The default encoding rules for the primitive C and C++ data types are given in t
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
 <table>
-<tr><td><font color="#FF0000"><b>Type</b></font> </td><td><font color="#FF0000"><b>Schema Type</b></font> </td><td><font color="#FF0000"><b>Example Encoding</b></font> </td></tr>
-<tr><td><i><b>bool</b></i> </td><td><tt>boolean</tt> </td><td><tt>&lt;boolean xsi:type="boolean"&#62;...&lt;/boolean&#62;</tt>
-</td></tr>
-<tr><td><i><b>char</b>*</i> (C string) </td><td><tt>string</tt> </td><td><tt>&lt;string xsi:type="string"&#62;...&lt;/string&#62;</tt>
-</td></tr>
-<tr><td><i><b>char</b></i> </td><td><tt>byte</tt> </td><td><tt>&lt;byte xsi:type="byte"&#62;...&lt;/byte&#62;</tt>
-</td></tr>
-<tr><td><i><b>double</b></i> </td><td><tt>double</tt> </td><td><tt>&lt;double xsi:type="double"&#62;...&lt;/double&#62;</tt>
-</td></tr>
-<tr><td><i><b>float</b></i> </td><td><tt>float</tt> </td><td><tt>&lt;float xsi:type="float"&#62;...&lt;/float&#62;</tt>
-</td></tr>
-<tr><td><i><b>int</b></i> </td><td><tt>int</tt> </td><td><tt>&lt;int xsi:type="int"&#62;...&lt;/int&#62;</tt>
-</td></tr>
-<tr><td><i><b>long</b></i> </td><td><tt>long</tt> </td><td><tt>&lt;long xsi:type="long"&#62;...&lt;/long&#62;</tt>
-</td></tr>
-<tr><td><i>LONG64</i> </td><td><tt>long</tt> </td><td><tt>&lt;long xsi:type="long"&#62;...&lt;/long&#62;</tt>
-</td></tr>
-<tr><td><i><b>long</b>&nbsp;<b>long</b></i> </td><td><tt>long</tt> </td><td><tt>&lt;long xsi:type="long"&#62;...&lt;/long&#62;</tt>
-</td></tr>
-<tr><td><i><b>short</b></i> </td><td><tt>short</tt> </td><td><tt>&lt;short xsi:type="short"&#62;...&lt;/short&#62;</tt>
-</td></tr>
-<tr><td><i>time_t</i> </td><td><tt>dateTime</tt> </td><td><tt>&lt;dateTime xsi:type="dateTime"&#62;...&lt;/dateTime&#62;</tt>
-</td></tr>
-<tr><td><i><b>unsigned</b>&nbsp;<b>char</b></i> </td><td><tt>unsignedByte</tt> </td><td><tt>&lt;unsignedByte xsi:type="unsignedByte"&#62;...&lt;/unsignedByte&#62;</tt>
-</td></tr>
-<tr><td><i><b>unsigned</b>&nbsp;<b>int</b></i> </td><td><tt>unsignedInt</tt> </td><td><tt>&lt;unsignedInt xsi:type="unsignedInt"&#62;...&lt;/unsignedInt&#62;</tt>
-</td></tr>
-<tr><td><i><b>unsigned</b>&nbsp;<b>long</b></i> </td><td><tt>unsignedLong</tt> </td><td><tt>&lt;unsignedLong xsi:type="unsignedLong"&#62;...&lt;/unsignedLong&#62;</tt>
-</td></tr>
-<tr><td><i>ULONG64</i> </td><td><tt>unsignedLong</tt> </td><td><tt>&lt;unsignedLong xsi:type="unsignedLong"&#62;...&lt;/unsignedLong&#62;</tt>
-</td></tr>
-<tr><td><i><b>unsigned</b>&nbsp;<b>long</b>&nbsp;<b>long</b></i> </td><td><tt>unsignedLong</tt> </td><td><tt>&lt;unsignedLong xsi:type="unsignedLong"&#62;...&lt;/unsignedLong&#62;</tt>
-</td></tr>
-<tr><td><i><b>unsigned</b>&nbsp;<b>short</b></i> </td><td><tt>unsignedShort</tt> </td><td><tt>&lt;unsignedShort xsi:type="unsignedShort"&#62;...&lt;/unsignedShort&#62;</tt>
-</td></tr>
-<tr><td><i>wchar_t*</i> </td><td><tt>string</tt> </td><td><tt>&lt;string xsi:type="string"&#62;...&lt;/string&#62;</tt>
-</td></tr></table>
+<tr><td><font color="#FF0000"><b>Type</b></font> </td><td><font color="#FF0000"><b>XSD Type</b></font> </td></tr>
+<tr><td><i><b>bool</b></i> </td><td><tt>boolean</tt> </td></tr>
+<tr><td><i><b>char</b>*</i> (C string) </td><td><tt>string</tt> </td></tr>
+<tr><td><i><b>char</b></i> </td><td><tt>byte</tt> </td></tr>
+<tr><td><i><b>double</b></i> </td><td><tt>double</tt> </td></tr>
+<tr><td><i><b>float</b></i> </td><td><tt>float</tt> </td></tr>
+<tr><td><i><b>int</b></i> </td><td><tt>int</tt> </td></tr>
+<tr><td><i><b>long</b></i> </td><td><tt>long</tt> </td></tr>
+<tr><td><i>LONG64</i> </td><td><tt>long</tt> </td></tr>
+<tr><td><i><b>long</b>&nbsp;<b>long</b></i> </td><td><tt>long</tt> </td></tr>
+<tr><td><i><b>short</b></i> </td><td><tt>short</tt> </td></tr>
+<tr><td><i>time_t</i> </td><td><tt>dateTime</tt> </td></tr>
+<tr><td><i><b>unsigned</b>&nbsp;<b>char</b></i> </td><td><tt>unsignedByte</tt> </td></tr>
+<tr><td><i><b>unsigned</b>&nbsp;<b>int</b></i> </td><td><tt>unsignedInt</tt> </td></tr>
+<tr><td><i><b>unsigned</b>&nbsp;<b>long</b></i> </td><td><tt>unsignedLong</tt> </td></tr>
+<tr><td><i>ULONG64</i> </td><td><tt>unsignedLong</tt> </td></tr>
+<tr><td><i><b>unsigned</b>&nbsp;<b>long</b>&nbsp;<b>long</b></i> </td><td><tt>unsignedLong</tt> </td></tr>
+<tr><td><i><b>unsigned</b>&nbsp;<b>short</b></i> </td><td><tt>unsignedShort</tt> </td></tr>
+<tr><td><i>wchar_t*</i> </td><td><tt>string</tt> </td></tr></table>
 
 </td></tr></table><br></span>
 Objects of type <i><b>void</b></i> and <i><b>void</b>*</i> cannot be encoded.
+Enumerations and bit masks are supported as well, see&nbsp;<a href="#sec:enum">9.3</a>.
 
 <p>
 		     <h3><a name="tth_sEc9.2">
@@ -4103,12 +4095,12 @@ to declare an XSD type.
 <p>
 For example, the declaration
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>typedef</b>&nbsp;<b>unsigned</b>&nbsp;<b>int</b>&nbsp;positiveInteger;
+<b>typedef</b>&nbsp;<b>unsigned</b>&nbsp;<b>int</b>&nbsp;xsd__positiveInteger;
 </td></tr></table><br></i>
 creates a named type <i>positiveInteger</i> which is represented by <i><b>unsigned</b>&nbsp;<b>int</b></i> in C++. For example, the encoding of a
 <i>positiveInteger</i> value <i>3</i> is
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0B0D0"><tr><td><tt>
-&lt;positiveInteger xsi:type="positiveInteger"&#62;3&lt;/positiveInteger&#62;
+&lt;positiveInteger xsi:type="xsd:positiveInteger"&#62;3&lt;/positiveInteger&#62;
 </td></tr></table><br></tt>
 The built-in XML schema datatype hierarchy from the XML Schema Part 2 documentation <a href="http://www.w3.org/TR/xmlschema-2"><tt>http://www.w3.org/TR/xmlschema-2</tt></a> is depicted below.
 
@@ -4840,7 +4832,8 @@ You can control the representations as well, which are defined by the macros:
 
 <p>
 	     <h3><a name="tth_sEc9.3">
-9.3</a>&nbsp;&nbsp;<font color="#0000FF">Enumeration Type Encoding and Decoding</font></h3>
+9.3</a>&nbsp;&nbsp;<font color="#0000FF">Enumeration Type Encoding and Decoding</font></h3><a name="sec:enum">
+</a>
 
 <p>
 Enumerations are generally useful for the declaration of named integer-valued constants, also called enumeration constants.
@@ -6733,7 +6726,7 @@ application data resources during transmission.
 <table>
 <tr><td width="602"><font color="#FF0000"><b>Callback (function pointer)</b></font> </td></tr>
 <tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fdimereadopen)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*options)</i> </td></tr>
-<tr><td width="602">Called from the gSOAP run-time DIME attachment sender to start reading from a
+<tr><td width="602">Called by the gSOAP run-time DIME attachment sender to start reading from a
 (binary) data source for outbound transmission. The content will be read from the
 application's data source in chunks using the <i>fdimeread</i> callback and
 streamed into the SOAP/XML/DIME output stream. The <i>handle</i> contains the
@@ -6750,7 +6743,7 @@ NULL (and not set <i>soap</i><tt>-&gt;</tt><i>error</i>) when this particular DI
 attachment is not to be streamed.
 </td></tr>
 <tr><td width="602"><i>size_t (*soap.fdimeread)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>char</b>&nbsp;*buf, size_t len)</i> </td></tr>
-<tr><td width="602">Called from the gSOAP run-time DIME attachment sender to read more data from a
+<tr><td width="602">Called by the gSOAP run-time DIME attachment sender to read more data from a
 (binary) data source for streaming into the output stream.  The <i>handle</i>
 contains the value returned by the <i>fdimereadopen</i> callback.  The <i>buf</i>
 argument is the buffer of length <i>len</i> into which a chunk of data should be
@@ -6762,14 +6755,14 @@ of the content.  The value of <i>__size</i> indicates the total size of the
 content to be transmitted.
 </td></tr>
 <tr><td width="602"><i><b>void</b>(*soap.fdimereadclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
-<tr><td width="602">Called from the gSOAP run-time DIME attachment sender at the end of the
+<tr><td width="602">Called by the gSOAP run-time DIME attachment sender at the end of the
 streaming process to close the data source.  The <i>handle</i> contains the
 value returned by the <i>fdimereadopen</i> callback.  The <i>fdimewriteclose</i>
 callback is called after successfully transmitting the data or when an error
 occurred.
 </td></tr>
 <tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fdimewriteopen)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*options)</i> </td></tr>
-<tr><td width="602">Called from the gSOAP run-time DIME attachment receiver to start writing an
+<tr><td width="602">Called by the gSOAP run-time DIME attachment receiver to start writing an
 inbound DIME attachment to an application's data store. The content is streamed
 into an application data store through multiple <i>fdimewrite</i> calls from the
 gSOAP attachment receiver.  The <i>id</i>, <i>type</i>, and <i>options</i>
@@ -6781,7 +6774,7 @@ to the total size of the attachment after receving the entire content. The size
 is unknown in advance because a DIME attachment may be chunked.
 </td></tr>
 <tr><td width="602"><i><b>int</b>&nbsp;(*soap.fdimewrite)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*buf, size_t len)</i> </td></tr>
-<tr><td width="602">Called from the gSOAP run-time DIME attachment receiver to write part of
+<tr><td width="602">Called by the gSOAP run-time DIME attachment receiver to write part of
 an inbound DIME attachment to an application's data store.
 The <i>handle</i>
 contains the value returned by the <i>fdimewriteopen</i> callback.  The <i>buf</i>
@@ -6789,11 +6782,10 @@ argument contains the data of length <i>len</i>.
 The callback should return a gSOAP error code (e.g.&nbsp;<i>SOAP_OK</i> when no error occurred).
 </td></tr>
 <tr><td width="602"><i><b>void</b>(*soap.fdimewriteclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
-<tr><td width="602">Called from the gSOAP run-time DIME attachment receiver at the end of the
-streaming process to close the data store.  The <i>handle</i> contains the value
-returned by the <i>fdimewriteopen</i> callback.  The <i>fdimewriteclose</i>
-callback is called after successfully receiving the data or when an error
-occurred.
+<tr><td width="602">Called by the gSOAP run-time DIME attachment receiver at the end of the
+streaming process to close the data store.  The <i>fdimewriteclose</i> callback
+is called after successfully receiving the data or when an error occurred.  The
+<i>handle</i> contains the value returned by the <i>fdimewriteopen</i> callback.
 </td></tr></table>
 
 </td></tr></table><br></span>
@@ -7375,6 +7367,11 @@ Built-in gSOAP function: <i>frecv</i>
 <tr><td width="602">Called when an unknown XML element was encountered on the input and <i>tag</i> is the offending XML element tag name.
 Should return SOAP_OK, or a gSOAP error code such as SOAP_MUSTUNDERSTAND to throw an exception.
 Built-in gSOAP function: <i>fignore</i>
+</td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap_faccept)(<b>struct</b>&nbsp;soap *soap, <b>struct</b>&nbsp;sockaddr *a, <b>int</b>&nbsp;*n)</i> </td></tr>
+<tr><td width="602">Called by <i>soap_accept</i>. This is a wrapper routine for <i>accept</i>.
+Should return a valid socket descriptor or -1 and set soap<tt>-&gt;</tt>error to an error code.
+Built-in gSOAP function: <i>tcp_accept</i>
 </td></tr></table>
 
 </td></tr></table><br></span>
@@ -7732,9 +7729,9 @@ may require significant storage space to hold the verbose XML message.
 
 <p>
 Zlib compressed transfers require buffering. The <i>SOAP_IO_STORE</i> flag is
-set when the <i>SOAP_ENC_ZLIB</i> flag is set by the user. The use of chunking
-may speed up the transmission of compressed SOAP/XML messages which is
-accomplished by setting the <i>SOAP_IO_CHUNK</i> flag with
+set when the <i>SOAP_ENC_ZLIB</i> flag is set to send compressed messages. The use of chunking
+significantly reduces memory usage and may speed up the transmission of compressed SOAP/XML messages.
+This is accomplished by setting the <i>SOAP_IO_CHUNK</i> flag with
 <i>SOAP_ENC_ZLIB</i> for the output mode.
 
 <p>
@@ -8043,7 +8040,8 @@ In addition to identification, your certificate is also used for encryption.
 Creating a private CA:
 
 <ul><p>
-<li> Go to the OpenSSL bin directory (<i>/usr/local/ssl/misc</i> by default).</li>
+<li> Go to the OpenSSL bin directory (<i>/usr/local/ssl/misc</i> by default and
+<i>/System/Library/OpenSSL/misc</i> on Mac OS X).</li>
 <p>
 <li> There should be a script called CA.sh (and a CA.pl that does the
 same stuff). This hides all the gruesome details of how this works. Without
@@ -8122,32 +8120,36 @@ the handshake.
 </a>
 
 <p>
-To enable Zlib compression, install Zlib from <tt>http://www.zlib.org</tt> if not
+To enable deflate and gzip compression with Zlib, install Zlib from <tt>http://www.zlib.org</tt> if not
 already installed on your system.  Compile <i>stdsoap2.cpp</i> (and/or
-<i>stdsoap2.c</i>) with compiler option <i>-DWITH_ZLIB</i> and link your code
+<i>stdsoap2.c</i>) with compiler option <i>-DWITH_GZIP</i> and link your code
 with the Zlib library, e.g. <i>-lz</i> on Unix/Linux platforms.
 
 <p>
-The Zlib compression is orthogonal to all transport encodings such as HTTP,
-SSL, and DIME.  You can also save and load compressed XML data to/from files.
+The gzip compression is orthogonal to all transport encodings such as HTTP,
+SSL, DIME, and can be used with other transport layers.
+You can even save and load compressed XML data to/from files.
 
 <p>
-To transmit compressed SOAP/XML data, set the output mode flags to
+gSOAP supports two compression formats: deflate and gzip. The gzip format is used by default. The gzip format has several benefits over deflate. Firstly, gSOAP can automatically detect gzip compressed inbound messages, even without HTTP headers, by checking for the presence of a gzip header in the message content. Secondly, gzip includes a CRC32 checksum to ensure messages have been correctly received. Thirdly, gzip compressed content can be decompressed with other compression software, so you can decompress XML data saved by gSOAP in gzip format.
+
+<p>
+Gzip compression is enabled by compiling the sources with <i>-DWITH_GZIP</i>.
+To transmit gzip compressed SOAP/XML data, set the output mode flags to
 <i>SOAP_ENC_ZLIB</i>. For example:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 soap_init(&amp;soap); <br />
 ... <br />
-soap_set_omode(&amp;soap, SOAP_ENC_ZLIB); <br />
+soap_set_omode(&amp;soap, SOAP_ENC_ZLIB); // enable gzip <br />
 <b>if</b>&nbsp;(soap_call_ns__myMethod(&amp;soap, ...)) <br />
+... <br />
+soap_clr_omode(&amp;soap, SOAP_ENC_ZLIB); // disable gzip <br />
 ...
 </td></tr></table><br></i>
 This will send a compressed SOAP/XML request to a service, privided that Zlib is
-installed and linked with the application.
-
-<p>
-Receiving compressed SOAP/XML over HTTP is automatic and the flag does not have
-to be set. However, reading or receiving plain SOAP/XML requires the flag
-<i>SOAP_ENC_ZLIB</i> to be set for the input mode to decompress the data.
+installed and linked with the application and the <i>-DWITH_GZIP</i> option was used to compile the sources.
+Receiving compressed SOAP/XML over HTTP either in gzip or deflate formats is automatic. The <i>SOAP_ENC_ZLIB</i> flag does not have
+to be set at the server side to accept compressed messages. Reading and receiving gzip compressed SOAP/XML without HTTP headers (e.g. with other transport protocols) is also automatic.
 
 <p>
 To control the level of compression of outbound messages, set the <i>soap.z_level</i> to a value between 1 and 9, where 1 is the best speed and 9 is the best compression (default is 6).  For example
@@ -8156,9 +8158,22 @@ soap_init(&amp;soap); <br />
 ... <br />
 soap_set_omode(&amp;soap, SOAP_ENC_ZLIB); <br />
 soap.z_level = 9; // best compression <br />
-<b>if</b>&nbsp;(soap_call_ns__myMethod(&amp;soap, ...)) <br />
 ...
 </td></tr></table><br></i>
+
+<p>
+To restrict compression to the deflate format, compile the sources with <i>-DWITH_ZLIB</i>. This limits compression and decompression to the deflate format only. Only plain and deflated messages can be exchanged, gzip is not supported with this option.
+Receiving deflate compressed content is not automatic in the absence of HTTP headers and requires the flag
+<i>SOAP_ENC_ZLIB</i> to be set for the input mode to decompress deflated data.
+
+<p>
+Compressed transfers require buffering the entire output message to determine HTTP message length.
+This means that the <i>SOAP_IO_STORE</i> flag is
+automatically set when the <i>SOAP_ENC_ZLIB</i> flag is set to send compressed messages. The use of HTTP chunking
+significantly reduces memory usage and may speed up the transmission of compressed SOAP/XML messages.
+This is accomplished by setting the <i>SOAP_IO_CHUNK</i> flag with
+<i>SOAP_ENC_ZLIB</i> for the output mode.
+However, some Web servers do not accept HTTP chunked request messages (even when they return HTTP chunked messages!). Stand-alone gSOAP services always accept chunked request messages.
 
 <p>
 	     <h3><a name="tth_sEc13.20">
@@ -8561,5 +8576,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 24 Dec 2002, 14:20.</small>
+version 3.00.<br />On 27 Jan 2003, 08:24.</small>
 </html>
