@@ -33,6 +33,7 @@ engelen@genivia.com / engelen@acm.org
 
 static const char *nonblank(const char *s);
 static const char *fill(char *t, int n, const char *s, int e);
+static const char *utf8(char *t, const char *s);
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -97,6 +98,7 @@ static const char *keywords[] =
   "wchar_t",
   "while",
   "XML",
+  "_XML",
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,18 +162,18 @@ void Types::init()
 { knames.insert(keywords, keywords + sizeof(keywords)/sizeof(char*));
   if (cflag)
   { deftypemap["xsd__ur_type"] = "";
-    usetypemap["xsd__ur_type"] = "XML";
+    usetypemap["xsd__ur_type"] = "_XML";
   }
   else
-  { deftypemap["xsd__ur_type"] = "class xsd__ur_type { XML __item; struct soap *soap; };";
+  { deftypemap["xsd__ur_type"] = "class xsd__ur_type { _XML __item; struct soap *soap; };";
     usetypemap["xsd__ur_type"] = "xsd__ur_type";
   }
   if (cflag)
   { deftypemap["xsd__anyType"] = "";
-    usetypemap["xsd__anyType"] = "XML";
+    usetypemap["xsd__anyType"] = "_XML";
   }
   else
-  { deftypemap["xsd__anyType"] = "class xsd__anyType { XML __item; struct soap *soap; };";
+  { deftypemap["xsd__anyType"] = "class xsd__anyType { _XML __item; struct soap *soap; };";
     usetypemap["xsd__anyType"] = "xsd__anyType";
   }
   if (cflag)
@@ -381,13 +383,9 @@ const char * Types::fname(const char *prefix, const char *URI, const char *qname
         { strcpy(t, "_USCORE");
           t += 7;
         }
-        else if (*s == '.')
-        { strcpy(t, "_DOT");
-          t += 4;
-        }
-        else // string s is encoded in UTF8 !!!
-        { sprintf(t, "_x%.4x", *s);
-          t += 7;
+        else
+	{ s = utf8(t, s);
+          t += 6;
         }
       }
       *t++ = '_';
@@ -405,13 +403,9 @@ const char * Types::fname(const char *prefix, const char *URI, const char *qname
     { strcpy(t, "_USCORE");
       t += 7;
     }
-    else if (*s == '.')
-    { strcpy(t, "_DOT");
-      t += 4;
-    }
-    else // string s is encoded in UTF8 !!!
-    { sprintf(t, "_x%.4x", *s);
-      t += 7;
+    else
+    { s = utf8(t, s);
+      t += 6;
     }
   }
   *t = '\0';
@@ -780,7 +774,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
         fprintf(stream, "struct %s\n{\n", t);
       else
         fprintf(stream, "class %s\n{ public:\n", t);
-      fprintf(stream, elementformat, "XML", "__item;");
+      fprintf(stream, elementformat, "_XML", "__item;");
       fprintf(stream, ";\n");
     }
     else if (complexType.complexContent->restriction)
@@ -973,8 +967,7 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
     fprintf(stream, "//\tattribute '%s' has embedded type", name);
   }
   else if (attribute.ref)
-  { fprintf(stream, "//\tattribute ref='%s'", attribute.ref);
-    fprintf(stream, attributeformat, tname(NULL, NULL, attribute.ref), aname(NULL, NULL, attribute.ref));
+  { fprintf(stream, attributeformat, tname(NULL, NULL, attribute.ref), aname(NULL, NULL, attribute.ref));
   }
   else
     fprintf(stream, "//\tunrecognized: attribute '%s' has no type or ref", name?name:"");
@@ -1257,6 +1250,41 @@ static const char *fill(char *t, int n, const char *s, int e)
   while (isspace(*--t) && i--)
     ;
   t[1] = '\0';
+  return s;
+}
+
+static const char *utf8(char *t, const char *s)
+{ unsigned int c = 0;
+  int c1, c2, c3, c4;
+  c = (unsigned char)*s;
+  if (c >= 0x80)
+  { c1 = *++s;
+    if (c1 < 0x80)
+      s--;
+    else
+    { c1 &= 0x3F;
+      if (c < 0xE0)
+        c = ((c & 0x1F) << 6) | c1;
+      else
+      { c2 = *++s & 0x3F;
+        if (c < 0xF0)
+          c = ((c & 0x0F) << 12) | (c1 << 6) | c2;
+        else
+	{ c3 = *++s & 0x3F;
+          if (c < 0xF8)
+            c = ((c & 0x07) << 18) | (c1 << 12) | (c2 << 6) | c3;
+          else
+	  { c4 = *++s & 0x3F;
+            if (c < 0xFC)
+              c = ((c & 0x03) << 24) | (c1 << 18) | (c2 << 12) | (c3 << 6) | c4;
+            else
+              c = ((c & 0x01) << 30) | (c1 << 24) | (c2 << 18) | (c3 << 12) | (c4 << 6) | *++s & 0x3F;
+          }
+        }
+      }
+    }
+  }
+  sprintf(t, "_x%.4x", c);
   return s;
 }
 

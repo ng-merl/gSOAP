@@ -15,13 +15,13 @@
 
 
 
-<title> gSOAP 2.5.2 User Guide</title>
+<title> gSOAP 2.6.0 User Guide</title>
     
-<h1 align="center">gSOAP 2.5.2 User Guide </h1>
+<h1 align="center">gSOAP 2.6.0 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Genivia, Inc., <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Feb 23, 2004
+<h3 align="center">Mar 29, 2004
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -1203,13 +1203,14 @@ generate the proxy class. Similar directives are included in the header file by 
 // Content of file <tt>"getQuote.h"</tt>: <br />
 //gsoap ns1 service name: Quote <br />
 //gsoap ns1 service location: http://services.xmethods.net/soap <br />
-//gsoap ns1 schema namespace: urn:xmethods-delayed-quotes <br />
-//gsoap ns1 service method-encoding: getQuote http://schemas.xmlsoap.org/soap/encoding/ <br />
+//gsoap ns1 service namespace: urn:xmethods-delayed-quotes <br />
+//gsoap ns1 service style: rpc <br />
+//gsoap ns1 service encoding: encoded <br />
 //gsoap ns1 service method-action: getQuote "" <br />
 <b>int</b>&nbsp;ns1__getQuote(<b>char</b>&nbsp;*symbol, <b>float</b>&nbsp;&amp;Result);
 </td></tr></table><br></i>
 The first three directives provide the service name which is used to name the proxy class, the service location (endpoint), and
-the schema. The fourth directive defines the optional SOAPAction, which is a string associated with SOAP 1.1 operations.
+the schema. The forth and fifth directives specify that SOAP RPC encoding is used, which is required by this service. The last directive defines the optional SOAPAction, which is a string associated with SOAP 1.1 operations.
 This directive must be provided for each remote method when the SOAPAction is required.
 Compilation of this header file with the gSOAP compiler <i>soapcpp2</i> creates a new file <i>soapQuoteProxy.h</i> with the
 following contents:
@@ -2151,6 +2152,8 @@ We illustrate the generation of an object class with a calculator example.
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 // Content of file <tt>"calc.h"</tt>: <br />
 //gsoap ns service name: Calculator <br />
+//gsoap ns service style: rpc <br />
+//gsoap ns service encoding: encoded <br />
 //gsoap ns service location: http://www.cs.fsu.edu/~engelen/calc.cgi <br />
 //gsoap ns schema namespace: urn:calc <br />
 //gsoap ns service method-action: add "" <br />
@@ -3245,7 +3248,7 @@ one or more objects and associate them with a gSOAP environment.  The
 <i>array</i> parameter should be -1 to instantiate one object or should be the
 number of objects to instantiate as an array of objects.
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-#include &#223;oapH.h" <br />
+#include "soapH.h" <br />
 #include "ns.nsmap" <br />
 ... <br />
 <b>struct</b>&nbsp;soap *soap = soap_new(); <br />
@@ -7054,7 +7057,7 @@ You need to import <i>stldeque.h</i>, <i>stllist.h</i>, <i>stlset.h</i>, or
 and <i>std::vector</i> (de)serialization.
 Here is an example:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-#import &#223;tlvector.h" <br />
+#import "stlvector.h" <br />
 <b>class</b>&nbsp;ns__myClass <br />
 { <b>public</b>: <br />
 &nbsp;&nbsp;&nbsp;std::vector &lt; int &gt;  *number; <br />
@@ -7086,32 +7089,75 @@ You can specify the minOccurs and maxOccurs values as explained in Section&nbsp;
 
 <p>
 You can also implement your own
-containers similar to STL containers. The containers must be class templates
-with the following members:
-
-<ul><p>
-<li> <i>myContainer &lt; T &gt; ::iterator</i> and <i>myContainer &lt; T &gt; ::const_iterator</i>;</li>
-<p>
-<li> <i>myContainer &lt; T &gt; ::iterator myContainer &lt; T &gt; ::insert(myContainer &lt; T &gt; ::iterator, myContainer &lt; T &gt; ::value_type&amp;)</i>;</li>
-<p>
-<li> <i>myContainer &lt; T &gt; ::const_iterator begin()</i>;</li>
-<p>
-<li> <i>myContainer &lt; T &gt; ::const_iterator end()</i>;</li>
-</ul>
-The <i>myContainer &lt; T &gt; ::iterator</i> should have a dereference operator to
+containers similar to STL containers. The containers must be class templates and should define an iterator type, and <i><b>void</b>&nbsp;clear()</i>, <i>iterator begin()</i>, <i>iterator end()</i>, and <i>iterator insert(iterator pos, const_reference val)</i>.
+The <i>iterator</i> should have a dereference operator to
 access the container's elements.  The dereference operator is used by gSOAP to
 send a sequence of XML element values.  The <i>insert</i> method can be used as
 a setter method.  gSOAP reads a sequence of XML element values and inserts them
-in the container via this method.  To enable your containers, add the following line
-to your gSOAP header file:
+in the container via this method.  
+
+<p>
+Here is in example user-defined container template class:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-#include "myContainer.h" <br />
-<b>template</b>&nbsp; &lt; class T &gt;  <b>class</b>&nbsp;myContainer;
+// simpleVector.h <br />
+<b>template</b>&nbsp; &lt; <b>class</b>&nbsp;T &gt;  <br />
+<b>class</b>&nbsp;simpleVector <br />
+{ <br />
+<b>public</b>: <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;T			  value_type; <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;value_type		* pointer; <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;const value_type	* const_pointer; <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;value_type		&amp; reference; <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;const value_type	&amp; const_reference; <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;pointer		  iterator; <br />
+&nbsp;&nbsp;&nbsp;<b>typedef</b>&nbsp;const_pointer		  const_iterator; <br />
+<b>protected</b>: <br />
+&nbsp;&nbsp;&nbsp;iterator			  start; <br />
+&nbsp;&nbsp;&nbsp;iterator			  finish; <br />
+&nbsp;&nbsp;&nbsp;size_t			  size; <br />
+<b>public</b>: <br />
+&nbsp;&nbsp;&nbsp;simpleVector()	{ clear(); } <br />
+&nbsp;&nbsp;&nbsp;~simpleVector()	{ <b>delete</b>[] start; } <br />
+&nbsp;&nbsp;&nbsp;<b>void</b>\				  clear()		{ start = finish = NULL; } <br />
+&nbsp;&nbsp;&nbsp;iterator			  begin()		{ <b>return</b>&nbsp;start; } <br />
+&nbsp;&nbsp;&nbsp;const_iterator		  begin() <b>const</b>\		{ <b>return</b>&nbsp;start; } <br />
+&nbsp;&nbsp;&nbsp;iterator			  end()			{ <b>return</b>&nbsp;finish; } <br />
+&nbsp;&nbsp;&nbsp;const_iterator		  end() <b>const</b>\		{ <b>return</b>&nbsp;finish; } <br />
+&nbsp;&nbsp;&nbsp;iterator			  insert(iterator pos, const_reference val) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!start) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start = finish = <b>new</b>&nbsp;value_type[size = 4]; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>else</b>&nbsp;<b>if</b>&nbsp;(finish  &gt; = start + size) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iterator i = start; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iterator j = <b>new</b>&nbsp;value_type[2 * size]; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;start = j; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finish = start + size; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;size *= 2; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(pos) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pos = j + (pos - i); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(i != finish) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*j++ = *i++; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(pos &amp;&amp; pos != finish) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ iterator i = finish; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iterator j = i - 1; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(j != pos) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*i- = *j-; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*finish++ = val; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;pos; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+};
 </td></tr></table><br></i>
-where <i>myContainer</i> is the name of your container class. The container class
-should not be defined in the gSOAP header file. You should define it in
-separate sources ("myContainer.h") and link those to your application.  Use
-option <i>-i</i> with the gSOAP compiler to handle <i>#include "myContainer"</i>.
+To enable the container, we add the following two lines to our gSOAP header file:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+#include "simpleVector.h" <br />
+<b>template</b>&nbsp; &lt; class T &gt;  <b>class</b>&nbsp;simpleVector;
+</td></tr></table><br></i>
+The container class
+should not be defined in the gSOAP header file. It must be defined in
+a separate header file (e.g.&nbsp;"simpleVector.h"). The <i><b>template</b>&nbsp; &lt; class T &gt;  <b>class</b>&nbsp;simpleVector</i> declaration ensures that gSOAP will recognize <i>simpleVector</i> as a container class.
 
 <p>
 <font color="#FF0000"><b>Caution</b></font>: when parsing XML content the container elements may not be stored in the same order given in
@@ -8341,6 +8387,8 @@ The <i>quotex.h</i> header file of the <i>quotex</i> example in the gSOAP distri
 <b>int</b>&nbsp;ns2__getRate(<b>char</b>&nbsp;*country1, <b>char</b>&nbsp;*country2, <b>float</b>&nbsp;&amp;result); <br />
  <br />
 //gsoap ns3 service name:	quotex <br />
+//gsoap ns3 service style:	rpc <br />
+//gsoap ns3 service encoding:	encoded <br />
 //gsoap ns3 service location:	http://www.cs.fsu.edu/~engelen <br />
 //gsoap ns3 service namespace:	urn:quotex <br />
 <b>int</b>&nbsp;ns3__getQuote(<b>char</b>&nbsp;*symbol, <b>char</b>&nbsp;*country, <b>float</b>&nbsp;&amp;result);
@@ -10360,6 +10408,8 @@ Second, we create the Delayed Stock Quote header file specification, which may b
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>namespace</b>&nbsp;quote { <br />
 //gsoap ns service name: Service <br />
+//gsoap ns service style: rpc <br />
+//gsoap ns service encoding: encoded <br />
 //gsoap ns service location: http://services.xmethods.net/soap <br />
 //gsoap ns schema namespace: urn:xmethods-delayed-quotes <br />
 //gsoap ns service method-action: getQuote "" <br />
@@ -10380,6 +10430,8 @@ Third, we create the Currency Exchange Rate header file specification:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>namespace</b>&nbsp;rate { <br />
 //gsoap ns service name: Service <br />
+//gsoap ns service style: rpc <br />
+//gsoap ns service encoding: encoded <br />
 //gsoap ns service location: http://services.xmethods.net/soap <br />
 //gsoap ns schema namespace: urn:xmethods-CurrencyExchange <br />
 //gsoap ns service method-action: getRate "" <br />
@@ -10433,6 +10485,8 @@ To compile and link a server object is very similar. For example, assume that we
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>namespace</b>&nbsp;calc { <br />
 //gsoap ns service name: Service <br />
+//gsoap ns service style: rpc <br />
+//gsoap ns service encoding: encoded <br />
 //gsoap ns service location: http://www.cs.fsu.edu/&nbsp;engelen/calc.cgi <br />
 //gsoap ns schema namespace: urn:calc <br />
 <b>int</b>&nbsp;ns__add(<b>double</b>&nbsp;a, <b>double</b>&nbsp;b, <b>double</b>&nbsp;&amp;result); <br />
@@ -10487,6 +10541,8 @@ We also compile <i>stdsoap2.c</i> without namespaces:
 Second, we create the Delayed Stock Quote header file specification, which may be obtained using the WSDL importer.
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap ns service name: Service <br />
+//gsoap ns service style: rpc <br />
+//gsoap ns service encoding: encoded <br />
 //gsoap ns service location: http://services.xmethods.net/soap <br />
 //gsoap ns schema namespace: urn:xmethods-delayed-quotes <br />
 //gsoap ns service method-action: getQuote "" <br />
@@ -10500,6 +10556,8 @@ We compile it as a library and we use options <i>-n</i> and <i>-p</i> to rename 
 Third, we create the Currency Exchange Rate header file specification:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap ns service name: Service <br />
+//gsoap ns service style: rpc <br />
+//gsoap ns service encoding: encoded <br />
 //gsoap ns service location: http://services.xmethods.net/soap <br />
 //gsoap ns schema namespace: urn:xmethods-CurrencyExchange <br />
 //gsoap ns service method-action: getRate "" <br />
@@ -10754,5 +10812,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 23 Feb 2004, 08:59.</small>
+version 3.00.<br />On 29 Mar 2004, 12:08.</small>
 </html>

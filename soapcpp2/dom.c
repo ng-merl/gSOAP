@@ -151,7 +151,7 @@ TODO:	Add wide string support for DOM attribute parsing
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__anyType(struct soap*, struct soap_dom_element const*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_mark_xsd__anyType(struct soap*, const struct soap_dom_element *);
 SOAP_FMAC1 void SOAP_FMAC2 soap_default_xsd__anyType(struct soap*, struct soap_dom_element *);
-SOAP_FMAC3 int SOAP_FMAC4 soap_put_xsd__anyType(struct soap*, struct soap_dom_element *, const char*, const char*);
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_xsd__anyType(struct soap*, const struct soap_dom_element *, const char*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyType(struct soap*, const char*, int, const struct soap_dom_element *, const char*);
 SOAP_FMAC3 struct soap_dom_element * SOAP_FMAC4 soap_get_xsd__anyType(struct soap*, struct soap_dom_element *, const char*, const char*);
 SOAP_FMAC1 struct soap_dom_element * SOAP_FMAC2 soap_in_xsd__anyType(struct soap*, const char*, struct soap_dom_element *, const char*);
@@ -308,7 +308,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
       else
       { for (ns = soap->local_namespaces; ns && ns->id; ns++)
           if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
-          { if (soap->encodingStyle || ns == soap->local_namespaces)
+          { /* if (soap->encodingStyle || ns == soap->local_namespaces) */
               prefix = ns->id;
             if (out_element(soap, node, ns->id, tag + colon, NULL))
               return soap->error;
@@ -861,7 +861,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_DOM_NODE);
     soap_mark_xsd__anyType(&soap, &e);
     soap_begin_send(&soap);
-    soap_out_xsd__anyType(&soap, NULL, 0, &e, NULL);
+    soap_put_xsd__anyType(&soap, &e, NULL, NULL);
     soap_end_send(&soap);
     soap_end(&soap);
     soap_done(&soap);
@@ -873,7 +873,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
     soap_set_omode(e.soap, SOAP_DOM_NODE);
     soap_mark_xsd__anyType(e.soap, &e);
     soap_begin_send(e.soap);
-    soap_out_xsd__anyType(e.soap, NULL, 0, &e, NULL);
+    soap_put_xsd__anyType(e.soap, &e, NULL, NULL);
     soap_end_send(e.soap);
     e.soap->os = os;
     e.soap->omode = omode;

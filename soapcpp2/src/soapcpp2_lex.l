@@ -373,16 +373,13 @@ static void directive()
 			sp->import = s;
 		}
 		else if (!strncmp(yytext+i, "encoding:", 9))
-		{	if (strcmp(s, "encoded"))
-				sp->encoding = s;
-			else
+		{	if (!strcmp(s, "encoded"))
 				sp->encoding = "";
+			else
+				sp->encoding = s;
 		}
 		else if (!strncmp(yytext+i, "style:", 6))
-		{	sp->style = s;
-	        	if (!wflag && strcmp(s, "document"))
-				semwarn("WSDL output for document style operations might be invalid. This issue will be addressed in upcoming releases.");
-		}
+			sp->style = s;
 		else if (!strncmp(yytext+i, "method-style:", 13))
 		{	m = (Method*)emalloc(sizeof(Method));
 			m->name = s;
@@ -402,8 +399,6 @@ static void directive()
 			strncpy(s, yytext+j, k-j);
 			s[k-j] = '\0';
 			m->part = s;
-	        	if (!wflag && strcmp(s, "document"))
-				semwarn("WSDL output for document style operations might be invalid. This issue will be addressed in upcoming releases.");
 		}
 		else if (!strncmp(yytext+i, "method-encoding:", 16))
 		{	m = (Method*)emalloc(sizeof(Method));
@@ -591,6 +586,9 @@ static void option()
 		switch (yytext[i])
 		{	case 'c':
 				cflag = 1;
+				break;
+		 	case 'e':
+				eflag = 1;
 				break;
 		 	case 'n':
 				nflag = 1;

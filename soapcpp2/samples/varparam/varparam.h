@@ -6,11 +6,11 @@
 	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 */
 
-//gsoap ns service name: varparam
-//gsoap ns service namespace: urn:varparam
-//gsoap ns service location: http://websrv.cs.fsu.edu/~engelen
-//gsoap ns service executable: varparam.cgi
-//gsoap ns service encoding: encoded
+//gsoap ns service name:	varparam
+//gsoap ns service style:	rpc
+//gsoap ns service encoding:	encoded
+//gsoap ns service namespace:	urn:varparam
+//gsoap ns service location:	http://websrv.cs.fsu.edu/~engelen/varparam.cgi
 
 #include <iostream>
 extern class std::ostream;	// transient (external) type

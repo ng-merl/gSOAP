@@ -48,7 +48,7 @@ engelen@genivia.com / engelen@acm.org
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.5.2" /* Current version */
+#define VERSION "2.6.0" /* Current version */
 #endif
 
 #if defined(WIN32)

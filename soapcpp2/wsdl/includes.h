@@ -33,7 +33,7 @@ engelen@genivia.com / engelen@acm.org
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.0.4"
+#define VERSION "1.1.0"
 
 #include <utility>
 #include <iterator>
@@ -71,7 +71,9 @@ extern int cflag, fflag, lflag, mflag, pflag, sflag, vflag;
 
 extern FILE *stream;
 
-extern char *infile, *outfile, *mapfile;
+extern char *infile, *outfile, *mapfile, *proxy_host;
+
+extern int proxy_port;
 
 extern const char *prefix_name;
 

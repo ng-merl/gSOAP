@@ -55,7 +55,10 @@ int cflag = 0,
 
 char *infile = NULL,
      *outfile = NULL,
-     *mapfile = "typemap.dat";
+     *mapfile = "typemap.dat",
+     *proxy_host = NULL;
+
+int proxy_port = 8080;
 
 FILE *stream = stdout;
 
@@ -194,6 +197,26 @@ static void options(int argc, char **argv)
 	  case 'p':
 	    pflag = 1;
 	    break;
+	  case 'r':
+            a++;
+            g = 0;
+            if (*a)
+              proxy_host = a;
+            else if (i < argc && argv[++i])
+              proxy_host = argv[i];
+            else
+              fprintf(stderr, "wsdl2h: Option -r requires a proxy host:port argument");
+            if (proxy_host)
+	    { char *s = (char*)emalloc(strlen(proxy_host + 1));
+	      strcpy(s, proxy_host);
+	      proxy_host = s;
+	      s = strchr(proxy_host, ':');
+	      if (s)
+	      { proxy_port = soap_strtol(s + 1, NULL, 10);
+	        *s = '\0';
+	      }
+	    }
+	    break;
 	  case 's':
 	    sflag = 1;
 	    break;
@@ -212,7 +235,7 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-c|-f|-s] [-m] [-n name] [-p] [-v] [-t typemapfile.dat] [-o outfile.h] [-x] [infile.xsd|infile.wsdl|http://...]\n");
+            fprintf(stderr, "Usage: wsdl2h [-c|-f|-s] [-m] [-n name] [-p] [-r host:port] [-v] [-t typemapfile.dat] [-o outfile.h] [-x] [infile.xsd|infile.wsdl|http://...]\n");
             exit(0);
           default:
             fprintf(stderr, "wsdl2h: Unknown option %s\n", a);

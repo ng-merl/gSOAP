@@ -1,8 +1,10 @@
-//gsoap ns service name: dime
-//gsoap ns service namespace: http://websrv.cs.fsu.edu/~engelen/dime.wsdl
-//gsoap ns service location: http://localhost:8085
-//gsoap ns service encoding: encoded
-//gsoap ns schema  namespace: urn:dime
+//gsoap ns service name:	dime
+//gsoap ns service style:	rpc
+//gsoap ns service encoding:	encoded
+//gsoap ns service namespace:	http://websrv.cs.fsu.edu/~engelen/dime.wsdl
+//gsoap ns service location:	http://localhost:8085
+
+//gsoap ns schema  namespace:	urn:dime
 class ns__Data
 { unsigned char *__ptr; /* points to data */
   int __size;		/* size of data */

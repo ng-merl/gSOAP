@@ -292,6 +292,8 @@ int is_stdwstring(Tnode*);
 int is_stdstr(Tnode*);
 int get_dimension(Tnode*);
 char *has_soapref(Tnode*);
+int is_document(const char*);
+int is_literal(const char*);
 
 char *xsi_type_Tarray(Tnode*);    
 char *xsi_type_Darray(Tnode*);    
@@ -326,16 +328,16 @@ void generate_header(Table*);
 void generate_schema(Table*);
 void gen_schema(FILE*,Table*,char*,char*,int,int,char*,char*,char*,char*);
 /* void gen_schema_element_names(FILE *fd, Table *t, Entry *p, char *ns, char *ns1); */
-void gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *encoding);
-void gen_schema_elements(FILE *fd, Entry *p, char *ns, char *ns1);
+void gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *encoding, char *style);
+void gen_schema_elements(FILE *fd, Tnode *p, char *ns, char *ns1);
 void gen_schema_attributes(FILE *fd, Entry *p, char *ns, char *ns1);
 void gen_wsdl(FILE*,Table*,char*,char*,char*,char*,char*,char*,char*);
 void gen_proxy(FILE*,Table*,char*,char*,char*,char*,char*,char*);
 void gen_object(FILE*,Table*,char*,char*,char*,char*,char*,char*);
 void gen_data(char*,Table*,char*,char*,char*,char*,char*,char*);
 FILE *gen_env(char*,char*,int,Table*,char*,char*,char*,char*,char*,char*);
-void gen_field(FILE*,int,Entry*);
-void gen_val(FILE*,int,Tnode*);
+void gen_field(FILE*,int,Entry*,char*);
+void gen_val(FILE*,int,Tnode*,char*);
 void gen_atts(FILE*,Table*);
 
 /*
@@ -663,7 +665,7 @@ compile(Table *table)
 	fprintf(fout,"\n\t\tif (!*soap->id || !soap_getelement(soap, &t))");
 	fprintf(fout,"\n\t\t{\tsoap->peeked = 0;");
 	fprintf(fout,"\n\t\t\tDBGLOG(TEST, SOAP_MESSAGE(fdebug, \"Unknown element '%%s' (level=%%u, %%d)\\n\", soap->tag, soap->level, soap->body));");
-	fprintf(fout,"\n\t\t\tif (soap->fignore)\n\t\t\t\tsoap->error = soap->fignore(soap, soap->tag);\t\t\telse\n\t\t\t\tsoap->error = SOAP_OK;");
+	fprintf(fout,"\n\t\t\tif (soap->fignore)\n\t\t\t\tsoap->error = soap->fignore(soap, soap->tag);\n\t\t\telse\n\t\t\t\tsoap->error = SOAP_OK;");
 	fprintf(fout,"\n\t\t\tDBGLOG(TEST, if (!soap->error) SOAP_MESSAGE(fdebug, \"IGNORING element '%%s'\\n\", soap->tag));");
 	fprintf(fout,"\n\t\t\tif (!soap->error && soap->body)");
 	fprintf(fout,"\n\t\t\t{\tsoap->level++;");
@@ -1274,20 +1276,6 @@ generate_schema(Table *t)
 		style = sp->style;
 		encoding = sp->encoding;
 		import = sp->import;
-		if (name)
-		  fprintf(stderr, "Using %s service name: %s\n", ns->name, name);
-		if (URL)
-		  fprintf(stderr, "Using %s service location: %s\n", ns->name, URL);
-		if (executable)
-		  fprintf(stderr, "Using %s service executable: %s\n", ns->name, executable);
-		if (style)
-		  fprintf(stderr, "Using %s service style: %s\n", ns->name, style);
-		if (encoding)
-		  fprintf(stderr, "Using %s service encoding: %s\n", ns->name, encoding);
-		if (import)
-		  fprintf(stderr, "Using %s schema import: %s\n", ns->name, import);
-		else if (URI)
-		  fprintf(stderr, "Using %s schema namespace: %s\n", ns->name, URI);
 		break;
   	}
     }
@@ -1300,10 +1288,14 @@ generate_schema(Table *t)
       else
         URI = "http://tempuri.org";
     }
+    if (is_document(style) && encoding && !*encoding)
+    {	semwarn("Cannot use document style with SOAP encoding");
+    	encoding = NULL;
+    }
     if (!name)
   	name = "Service";
     if (!URL)
-  	URL = "http://localhost";
+  	URL = "http://localhost:80";
     /*
     if (!executable)
     { executable = emalloc(strlen(name)+5);
@@ -1314,7 +1306,27 @@ generate_schema(Table *t)
     if (t)
       for (p = t->list; p; p = p->next)
       { if (p->info.typ->type == Tfun && !(p->info.sto & Sextern) && has_ns_eq(ns->name, p->sym->name))
-        { if (sp && sp->name)
+	{ if (name)
+	    fprintf(stderr, "Using %s service name: %s\n", ns->name, name);
+	  if (style)
+	    fprintf(stderr, "Using %s service style: %s\n", ns->name, style);
+	  else if (!eflag)
+	    fprintf(stderr, "Using %s service style: document\n", ns->name);
+	  if (encoding && *encoding)
+	    fprintf(stderr, "Using %s service encoding: %s\n", ns->name, encoding);
+	  else if (encoding && !*encoding)
+	    fprintf(stderr, "Using %s service encoding: encoded\n", ns->name);
+	  else if (!eflag)
+	    fprintf(stderr, "Using %s service encoding: literal\n", ns->name);
+	  if (URL)
+	    fprintf(stderr, "Using %s service location: %s\n", ns->name, URL);
+	  if (executable)
+	    fprintf(stderr, "Using %s service executable: %s\n", ns->name, executable);
+	  if (import)
+	    fprintf(stderr, "Using %s schema import: %s\n", ns->name, import);
+	  else if (URI)
+	    fprintf(stderr, "Using %s schema namespace: %s\n", ns->name, URI);
+          if (sp && sp->name)
 	    sprintf(buf, "%s%s.wsdl", dirpath, name);
 	  else
 	    sprintf(buf, "%s%s.wsdl", dirpath, ns_convert(ns->name));
@@ -1424,7 +1436,7 @@ generate_schema(Table *t)
       }
     if (!wflag && !import)
     { sprintf(buf, "%s%s.xsd", dirpath, ns_convert(ns->name));
-      fprintf(stderr, "Saving %s XML schema description\n", buf);
+      fprintf(stderr, "Saving %s XML schema %s\n", buf, URI);
       fd = fopen(buf, "w");
       if (!fd)
         execerror("Cannot write schema file");
@@ -1464,7 +1476,7 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
   Method *m;
   char *action, *comment, *method_style = NULL, *method_encoding = NULL, *method_response_encoding = NULL;
   fprintf(fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  fprintf(fd, "<definitions name=\"%s\"\n xmlns=\"http://schemas.xmlsoap.org/wsdl/\"\n", name);
+  fprintf(fd, "<definitions name=\"%s\"\n", name);
   for (sp = services; sp; sp = sp->next)
     if (!strcmp(sp->ns, ns))
       break;
@@ -1489,15 +1501,18 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
       fprintf(fd, "\n xmlns:xsi=\"%s\"", xsiURI);
     else if (!strcmp(s->name, "xsd"))
       fprintf(fd, "\n xmlns:xsd=\"%s\"", xsdURI);
+    /*
     else if (!strcmp(s->name, ns))
       fprintf(fd, "\n xmlns:%s=\"%s\"", ns_convert(s->name), URI);
+    */
     else
       fprintf(fd, "\n xmlns:%s=\"%s/%s.xsd\"", ns_convert(s->name), URI, ns_convert(s->name));
   }
   if (vflag == 1)
-    fprintf(fd, "\n xmlns:SOAP=\"http://schemas.xmlsoap.org/wsdl/soap/\"\n xmlns:WSDL=\"http://schemas.xmlsoap.org/wsdl/\">\n\n", name);
+    fprintf(fd, "\n xmlns:SOAP=\"http://schemas.xmlsoap.org/wsdl/soap/\"\n xmlns:WSDL=\"http://schemas.xmlsoap.org/wsdl/\"", name);
   else
-    fprintf(fd, "\n xmlns:SOAP=\"http://schemas.xmlsoap.org/wsdl/soap12/\"\n xmlns:WSDL=\"http://schemas.xmlsoap.org/wsdl/\">\n\n", name);
+    fprintf(fd, "\n xmlns:SOAP=\"http://schemas.xmlsoap.org/wsdl/soap12/\"\n xmlns:WSDL=\"http://schemas.xmlsoap.org/wsdl/\"", name);
+  fprintf(fd, "\n xmlns=\"http://schemas.xmlsoap.org/wsdl/\">\n\n");
   fprintf(fd, "<types>\n\n");
   for (s = nslist; s; s = s->next)
     gen_schema(fd, t, ns, s->name, !strcmp(s->name, ns), 1, URL, URI, style, encoding);
@@ -1507,10 +1522,10 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
   { for (p = t->list; p; p = p->next)
     { if (p->info.typ->type == Tfun && !(p->info.sto & Sextern) && has_ns_eq(ns, p->sym->name))
       { comment = NULL;
-          method_style = NULL;
-	  method_encoding = NULL;
-	  method_response_encoding = NULL;
-	  if (sp)
+        method_style = style;
+	method_encoding = encoding;
+	method_response_encoding = NULL;
+	if (sp)
 	    for (m = sp->list; m; m = m->next)
 	      if (is_eq_nons(m->name, p->sym->name))
                 if (m->mess == ENCODING)
@@ -1525,25 +1540,32 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
           method_response_encoding = method_encoding;
         fprintf(fd, "<message name=\"%sRequest\">\n", ns_remove(p->sym->name));
         fflush(fd);
-  	q = entry(classtable, p->sym);
-  	if (q)
-	  for (q = ((Table*)q->info.typ->ref)->list; q; q = q->next)
-	  { if (!is_transient(q->info.typ) && !(q->info.sto & Sattribute) && q->info.typ->type != Tfun)
-  	    { if (!eflag && !encoding && !method_encoding || encoding && !strcmp(encoding, "literal") || method_encoding && !strcmp(method_encoding, "literal"))
-	        fprintf(fd, " <part name=\"%s\" element=\"%s\"/>\n", ns_remove(q->sym->name), ns_add(q->sym->name, ns));
-	      else if (is_XML(q->info.typ))
-	        fprintf(fd, " <part name=\"body\" type=\"xsd:anyType\"/>\n");
-	      else
-	        fprintf(fd, " <part name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns));
+	if (is_document(method_style))
+	{ fprintf(fd, " <part name=\"body\" element=\"%s\"/>\n", ns_add(p->sym->name, ns));
+	}
+	else
+  	{ q = entry(classtable, p->sym);
+  	  if (q)
+	    for (q = ((Table*)q->info.typ->ref)->list; q; q = q->next)
+	    { if (!is_transient(q->info.typ) && !(q->info.sto & Sattribute) && q->info.typ->type != Tfun)
+  	      { if (is_literal(method_encoding))
+	          fprintf(fd, " <part name=\"%s\" element=\"%s\"/>\n", ns_remove(q->sym->name), ns_add(q->sym->name, ns));
+	        else if (is_XML(q->info.typ))
+	          fprintf(fd, " <part name=\"body\" type=\"xsd:anyType\"/>\n");
+	        else
+	          fprintf(fd, " <part name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns));
+	      }
 	    }
-	  }
+	}
         fprintf(fd, "</message>\n\n");
         fflush(fd);
 	q = (Entry*)p->info.typ->ref;
 	if (q && is_transient(q->info.typ))
 	  ;
 	else if (q && !is_response(q->info.typ))
-  	{ if (!eflag && !encoding && !method_response_encoding || encoding && !strcmp(encoding, "literal") || method_response_encoding && !strcmp(method_response_encoding, "literal"))
+	{ if (is_document(method_style))
+	    fprintf(fd, "<message name=\"%sResponse\">\n <part name=\"body\" element=\"%sResponse\"/>\n</message>\n\n", ns_remove(p->sym->name), ns_add(p->sym->name, ns));
+  	  else if (is_literal(method_response_encoding))
 	    fprintf(fd, "<message name=\"%sResponse\">\n <part name=\"%s\" element=\"%s\"/>\n</message>\n\n", ns_remove(p->sym->name), ns_remove(q->sym->name), ns_add(q->sym->name, ns));
 	  else if (is_XML(q->info.typ->ref))
 	    fprintf(fd, "<message name=\"%sResponse\">\n <part name=\"body\" type=\"xsd:anyType\"/>\n</message>\n\n", ns_remove(p->sym->name));
@@ -1553,15 +1575,20 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
         else if (q && q->info.typ->wsdl == False)
 	{ q->info.typ->wsdl = True;
 	  fprintf(fd, "<message name=\"%s\">\n", ns_remove(((Tnode*)q->info.typ->ref)->id->name));
-	  if (((Tnode*)q->info.typ->ref)->ref)
-	  { for (q = ((Table*)((Tnode*)q->info.typ->ref)->ref)->list; q; q = q->next)
-	    { if (!is_transient(q->info.typ) && !(q->info.sto & Sattribute) && q->info.typ->type != Tfun)
-  	        if (!eflag && !encoding && !method_response_encoding || encoding && !strcmp(encoding, "literal") || method_response_encoding && !strcmp(method_response_encoding, "literal"))
-	          fprintf(fd, " <part name=\"%s\" element=\"%s\"/>\n", ns_remove(q->sym->name), ns_add(q->sym->name, ns));
-	        else if (is_XML(q->info.typ))
-	          fprintf(fd, " <part name=\"body\" type=\"xsd:anyType\"/>\n");
-	        else
-	          fprintf(fd, " <part name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns));
+	  if (is_document(method_style))
+	  { fprintf(fd, " <part name=\"body\" element=\"%s\"/>\n", ns_convert(((Tnode*)q->info.typ->ref)->id->name));
+	  }
+	  else
+	  { if (((Tnode*)q->info.typ->ref)->ref)
+	    { for (q = ((Table*)((Tnode*)q->info.typ->ref)->ref)->list; q; q = q->next)
+	      { if (!is_transient(q->info.typ) && !(q->info.sto & Sattribute) && q->info.typ->type != Tfun)
+  	          if (is_literal(method_response_encoding))
+	            fprintf(fd, " <part name=\"%s\" element=\"%s\"/>\n", ns_remove(q->sym->name), ns_add(q->sym->name, ns));
+	          else if (is_XML(q->info.typ))
+	            fprintf(fd, " <part name=\"body\" type=\"xsd:anyType\"/>\n");
+	          else
+	            fprintf(fd, " <part name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns));
+	      }
 	    }
 	  }
           fprintf(fd, "</message>\n\n");
@@ -1614,7 +1641,7 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
       }
     }
     fprintf(fd, "</portType>\n\n");
-    if (style && !strcmp(style, "document"))
+    if (is_document(style))
       if (sp && sp->port)
         fprintf(fd, "<binding name=\"%s\" type=\"tns:%s\">\n <SOAP:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, sp->port);
       else
@@ -1628,8 +1655,8 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
     for (p = t->list; p; p = p->next)
     { if (p->info.typ->type == Tfun && !(p->info.sto & Sextern) && has_ns_eq(ns, p->sym->name))
       { action = "";
-          method_style = NULL;
-	  method_encoding = NULL;
+          method_style = style;
+	  method_encoding = encoding;
 	  method_response_encoding = NULL;
 	  if (sp)
 	    for (m = sp->list; m; m = m->next)
@@ -1645,22 +1672,22 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
 	if (!method_response_encoding)
 	  method_response_encoding = method_encoding;
         fprintf(fd, " <operation name=\"%s\">\n", ns_remove(p->sym->name));
-        if (style && !strcmp(style, "document") || method_style && !strcmp(method_style, "document"))
+        if (is_document(method_style))
           if (vflag == 2)
 	    fprintf(fd, "  <SOAP:operation style=\"document\"/>\n");
 	  else if (*action == '"')
-	    fprintf(fd, "  <SOAP:operation soapAction=%s style=\"document\"/>\n", action);
+	    fprintf(fd, "  <SOAP:operation style=\"document\" soapAction=%s/>\n", action);
           else
-	    fprintf(fd, "  <SOAP:operation soapAction=\"%s\" style=\"document\"/>\n", action);
+	    fprintf(fd, "  <SOAP:operation style=\"document\" soapAction=\"%s\"/>\n", action);
 	else if (vflag == 2)
           fprintf(fd, "  <SOAP:operation/>\n");
 	else if (*action == '"')
-          fprintf(fd, "  <SOAP:operation soapAction=%s/>\n", action);
+          fprintf(fd, "  <SOAP:operation style=\"rpc\" soapAction=%s/>\n", action);
         else
-          fprintf(fd, "  <SOAP:operation soapAction=\"%s\"/>\n", action);
+          fprintf(fd, "  <SOAP:operation style=\"rpc\" soapAction=\"%s\"/>\n", action);
   	q = entry(classtable, p->sym);
-  	if (!eflag && !encoding && !method_encoding || encoding && !strcmp(encoding, "literal") || method_encoding && !strcmp(method_encoding, "literal") || q && (q = (((Table*)q->info.typ->ref)->list)) && q && is_XML(q->info.typ))
-	{ if (style && !strcmp(style, "document") || method_style && !strcmp(method_style, "document"))
+  	if (is_literal(method_encoding) || q && (q = (((Table*)q->info.typ->ref)->list)) && q && is_XML(q->info.typ))
+	{ if (is_document(method_style))
 	    fprintf(fd, "  <input>\n   <SOAP:body use=\"literal\"/>\n");
           else
 	    fprintf(fd, "  <input>\n   <SOAP:body use=\"literal\" namespace=\"%s\"/>\n", URI);
@@ -1695,8 +1722,8 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
 	{ fprintf(fd, " </operation>\n");
 	  continue;
 	}
-	if (!eflag && !encoding && !method_response_encoding || encoding && !strcmp(encoding, "literal") || method_response_encoding && !strcmp(method_response_encoding, "literal") || is_XML(q->info.typ->ref))
-	{ if (style && !strcmp(style, "document") || method_style && !strcmp(method_style, "document"))
+	if (is_literal(method_response_encoding) || is_XML(q->info.typ->ref))
+	{ if (is_document(method_style))
 	    fprintf(fd, "  <output>\n   <SOAP:body use=\"literal\"/>\n");
           else
 	    fprintf(fd, "  <output>\n   <SOAP:body use=\"literal\" namespace=\"%s\"/>\n", URI);
@@ -1784,7 +1811,7 @@ void
 gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL, char *URI, char *style, char *encoding)
 { int i, d;
   char cbuf[4];
-  Entry *p, *q;
+  Entry *p, *q, *r;
   Tnode *n;
   Symbol *s;
   Service *sp;
@@ -1799,8 +1826,10 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
   fprintf(fd, " <schema ");
   if (sp)
     fprintf(fd, "targetNamespace=\"%s\"", sp->URI);
+  /*
   else if (all)
     fprintf(fd, "targetNamespace=\"%s\"", URI);
+  */
   else
     fprintf(fd, "targetNamespace=\"%s/%s.xsd\"", URI, ns_convert(ns));
   for (s = nslist; s; s = s->next)
@@ -1817,8 +1846,10 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
       fprintf(fd, "\n  xmlns:xsi=\"%s\"", xsiURI);
     else if (!strcmp(s->name, "xsd"))
       fprintf(fd, "\n  xmlns:xsd=\"%s\"", xsdURI);
+    /*
     else if (!strcmp(s->name, ns1))
       fprintf(fd, "\n  xmlns:%s=\"%s\"", ns_convert(s->name), URI);
+    */
     else
       fprintf(fd, "\n  xmlns:%s=\"%s/%s.xsd\"", ns_convert(s->name), URI, ns_convert(s->name));
   }
@@ -1887,6 +1918,14 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
     { for (q = t->list; q; q = q->next)
         if (q->info.typ->type == Tfun && !(q->info.sto & Sextern) && p == get_response(q->info.typ))
 	  break;
+      /* omit the user-defined response struct/class */
+      if (!q && is_response(p->info.typ))
+        for (q = t->list; q; q = q->next)
+          if (q->info.typ->type == Tfun && !(q->info.sto & Sextern))
+          { r = entry(t, q->sym);
+            if (r && r->info.typ->ref && p->info.typ == ((Entry*)r->info.typ->ref)->info.typ->ref)
+              break;
+	  }
       if (q)
         continue;
       if (p->info.typ->ref && is_binary(p->info.typ))
@@ -1976,7 +2015,7 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
         { if (p->info.typ->ref)
 	  { /* gen_schema_element_names(fd, t, p, ns, ns1); */
             fprintf(fd, "  <complexType name=\"%s\">\n   <sequence>\n", ns_remove(p->sym->name));
-	    gen_schema_elements(fd, p, ns, ns1);
+	    gen_schema_elements(fd, p->info.typ, ns, ns1);
             fprintf(fd, "   </sequence>\n");
 	    gen_schema_attributes(fd, p, ns, ns1);
             fprintf(fd, "  </complexType>\n");
@@ -1987,7 +2026,7 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
             if (((Table*)p->info.typ->ref)->prev && !is_transient(entry(classtable, ((Table*)p->info.typ->ref)->prev->sym)->info.typ) && strncmp(((Table*)p->info.typ->ref)->prev->sym->name, "xsd__anyType", 12))
 	    { /* gen_schema_element_names(fd, t, p, ns, ns1); */
               fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <extension base=\"%s\">\n     <sequence>\n", ns_remove(p->sym->name), ns_convert(((Table*)p->info.typ->ref)->prev->sym->name));
-	      gen_schema_elements(fd, p, ns, ns1);
+	      gen_schema_elements(fd, p->info.typ, ns, ns1);
               fprintf(fd, "     </sequence>\n    </extension>\n   </complexContent>\n");
 	      gen_schema_attributes(fd, p, ns, ns1);
               fprintf(fd, "  </complexType>\n");
@@ -1995,7 +2034,7 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
 	    else
 	    { /* gen_schema_element_names(fd, t, p, ns, ns1); */
               fprintf(fd, "  <complexType name=\"%s\">\n   <sequence>\n", ns_remove(p->sym->name));
-	      gen_schema_elements(fd, p, ns, ns1);
+	      gen_schema_elements(fd, p->info.typ, ns, ns1);
               fprintf(fd, "   </sequence>\n");
 	      gen_schema_attributes(fd, p, ns, ns1);
               fprintf(fd, "  </complexType>\n");
@@ -2013,15 +2052,15 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
       fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"item\" type=\"%s\" maxOccurs=\"unbounded\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n", c_ident(n), xsi_type(n->ref));
     fflush(fd);
   }
-  gen_schema_elements_attributes(fd, t, ns, ns1, encoding);
+  gen_schema_elements_attributes(fd, t, ns, ns1, style, encoding);
   fprintf(fd, " </schema>\n\n");
 }
 
 void
-gen_schema_elements(FILE *fd, Entry *p, char *ns, char *ns1)
+gen_schema_elements(FILE *fd, Tnode *p, char *ns, char *ns1)
 { Entry *q;
   char *s, *t;
-  for (q = ((Table*)p->info.typ->ref)->list; q; q = q->next)
+  for (q = ((Table*)p->ref)->list; q; q = q->next)
     { if (is_transient(q->info.typ) || (q->info.sto & Sattribute) || q->info.typ->type == Tfun)
         continue;
       else if (is_repetition(q))
@@ -2106,12 +2145,12 @@ gen_schema_elements(FILE *fd, Entry *p, char *ns, char *ns1)
 }
 
 void
-gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *encoding)
+gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *style, char *encoding)
 { Entry *p, *q, *e;
   Table *r;
   Service *sp;
   Method *m;
-  char *method_encoding, *method_response_encoding;
+  char *method_style, *method_encoding, *method_response_encoding;
   int all = !strcmp(ns, ns1);
   r = mktable(NULL);
   for (p = classtable->list; p; p = p->next)
@@ -2140,8 +2179,9 @@ gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *en
   if (t && all)
   { for (p = t->list; p; p = p->next)
     { if (p->info.typ->type == Tfun && !(p->info.sto & Sextern) && has_ns_eq(ns, p->sym->name))
-      { method_encoding = NULL;
+      { method_encoding = encoding;
 	method_response_encoding = NULL;
+	method_style = style;
 	for (sp = services; sp; sp = sp->next)
 	  if (!strcmp(sp->ns, ns))
 	    for (m = sp->list; m; m = m->next)
@@ -2150,50 +2190,51 @@ gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *en
 	          method_encoding = m->part;
                 else if (m->mess == RESPONSE_ENCODING)
 	          method_response_encoding = m->part;
-        if (!method_response_encoding)
-          method_response_encoding = method_encoding;
-        q = entry(classtable, p->sym);
-        if (q)
-	  for (q = ((Table*)q->info.typ->ref)->list; q; q = q->next)
-          { if (!is_repetition(q) && !is_anytype(q) && !has_ns_eq(NULL, q->sym->name) && !is_transient(q->info.typ) && q->info.typ->type != Tfun && !(q->info.sto & Sattribute))
-	    { if (!eflag && !encoding && !method_encoding || encoding && !strcmp(encoding, "literal") || method_encoding && !strcmp(method_encoding, "literal"))
-              { e = entry(r, q->sym);
-                if (e)
-	        { if ((e->info.sto & Sattribute) != (q->info.sto & Sattribute)|| reftype(e->info.typ) != reftype(q->info.typ))
-                  { sprintf(errbuf, "Parameter '%s' of type '%s' at line %d has a type that does not correspond to the required unique type '%s' defined for elements '<%s>' in the WSDL namespace based on literal encoding: use SOAP RPC encoding or rename or use a namespace qualifier", q->sym->name, c_type(q->info.typ), q->lineno, c_type(e->info.typ), ns_convert(q->sym->name));
-                    semwarn(errbuf);
+                else if (m->mess == STYLE)
+	          method_style = m->part;
+	if (!eflag)
+	{ if (!method_response_encoding)
+            method_response_encoding = method_encoding;
+          q = entry(classtable, p->sym);
+          if (q)
+	  { if (is_document(method_style))
+	    { fprintf(fd, "  <element name=\"%s\">\n   <complexType>\n    <sequence>\n", ns_remove(p->sym->name));
+	      gen_schema_elements(fd, q->info.typ, ns, ns1);
+	      /*
+	      for (q = ((Table*)q->info.typ->ref)->list; q; q = q->next)
+              { if (!is_repetition(q) && !is_anytype(q) && !has_ns_eq(NULL, q->sym->name) && !is_transient(q->info.typ) && q->info.typ->type != Tfun && !(q->info.sto & Sattribute))
+	          fprintf(fd, "     <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
+	      }
+	      */
+	      fprintf(fd, "    </sequence>\n   </complexType>\n  </element>\n");
+	    }
+	    else if (is_literal(method_encoding))
+	    { for (q = ((Table*)q->info.typ->ref)->list; q; q = q->next)
+              { if (!is_repetition(q) && !is_anytype(q) && !has_ns_eq(NULL, q->sym->name) && !is_transient(q->info.typ) && q->info.typ->type != Tfun && !(q->info.sto & Sattribute))
+                { e = entry(r, q->sym);
+                  if (e)
+	          { if ((e->info.sto & Sattribute) != (q->info.sto & Sattribute)|| reftype(e->info.typ) != reftype(q->info.typ))
+                    { sprintf(errbuf, "Parameter '%s' of type '%s' at line %d has a type that does not correspond to the required unique type '%s' defined for elements '<%s>' in the WSDL namespace based on literal encoding: use SOAP RPC encoding or rename or use a namespace qualifier", q->sym->name, c_type(q->info.typ), q->lineno, c_type(e->info.typ), ns_convert(q->sym->name));
+                      semwarn(errbuf);
+	            }
+	          }
+                  else
+	          { fprintf(fd, "  <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
+	            e = enter(r, q->sym);
+		    e->info = q->info;
 	          }
 	        }
-                else
-	        { fprintf(fd, "  <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
-	          e = enter(r, q->sym);
-		  e->info = q->info;
-	        }
 	      }
 	    }
-	  }
-        q = (Entry*)p->info.typ->ref;
-        if (q && !is_transient(q->info.typ))
-        { if (!is_response(q->info.typ))
-  	  { if (!eflag && !encoding && !method_response_encoding || encoding && !strcmp(encoding, "literal") || method_response_encoding && !strcmp(method_response_encoding, "literal"))
-            { e = entry(r, q->sym);
-              if (e)
-	      { if ((e->info.sto & Sattribute) != (q->info.sto & Sattribute)|| reftype(e->info.typ) != reftype(q->info.typ))
-                { sprintf(errbuf, "Qualified field '%s' has a type that does not correspond to the unique type '%s' defined for elements '<%s>'", q->sym->name, c_type(q->info.typ), ns_convert(q->sym->name));
-                  semwarn(errbuf);
-	        }
-	      }
-              else
-	      { fprintf(fd, "  <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
-	        e = enter(r, q->sym);
-		e->info = q->info;
-	      }
-	    }
-	  }
-          else if (((Tnode*)q->info.typ->ref)->ref)
-	  { for (q = ((Table*)((Tnode*)q->info.typ->ref)->ref)->list; q; q = q->next)
-  	    { if (!is_repetition(q) && !is_anytype(q) && !has_ns_eq(NULL, q->sym->name) && !is_transient(q->info.typ) && q->info.typ->type != Tfun && !(q->info.sto & Sattribute))
-  	      { if (!eflag && !encoding && !method_response_encoding || encoding && !strcmp(encoding, "literal") || method_response_encoding && !strcmp(method_response_encoding, "literal"))
+            q = (Entry*)p->info.typ->ref;
+            if (q && !is_transient(q->info.typ))
+            { if (!is_response(q->info.typ))
+	      { if (is_document(method_style))
+	        { fprintf(fd, "  <element name=\"%sResponse\">\n   <complexType>\n    <sequence>\n", ns_remove(p->sym->name));
+	          fprintf(fd, "     <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
+	          fprintf(fd, "    </sequence>\n   </complexType>\n  </element>\n");
+		}
+  	        else if (is_literal(method_response_encoding))
                 { e = entry(r, q->sym);
                   if (e)
 	          { if ((e->info.sto & Sattribute) != (q->info.sto & Sattribute)|| reftype(e->info.typ) != reftype(q->info.typ))
@@ -2208,8 +2249,38 @@ gen_schema_elements_attributes(FILE *fd, Table *t, char *ns, char *ns1, char *en
 	          }
 	        }
 	      }
-	    }
-	  }
+              else if (((Tnode*)q->info.typ->ref)->ref)
+	      { if (is_document(method_style))
+	        { fprintf(fd, "  <element name=\"%s\">\n   <complexType>\n    <sequence>\n", ns_remove(((Tnode*)q->info.typ->ref)->id->name));
+	          gen_schema_elements(fd, q->info.typ->ref, ns, ns1);
+		  /*
+	          for (q = ((Table*)((Tnode*)q->info.typ->ref)->ref)->list; q; q = q->next)
+  	            if (!is_repetition(q) && !is_anytype(q) && !has_ns_eq(NULL, q->sym->name) && !is_transient(q->info.typ) && q->info.typ->type != Tfun && !(q->info.sto & Sattribute))
+	              fprintf(fd, "     <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
+		  */
+	          fprintf(fd, "    </sequence>\n   </complexType>\n  </element>\n");
+		}
+		else if (is_literal(method_response_encoding))
+	        { for (q = ((Table*)((Tnode*)q->info.typ->ref)->ref)->list; q; q = q->next)
+  	          { if (!is_repetition(q) && !is_anytype(q) && !has_ns_eq(NULL, q->sym->name) && !is_transient(q->info.typ) && q->info.typ->type != Tfun && !(q->info.sto & Sattribute))
+                    { e = entry(r, q->sym);
+                      if (e)
+	              { if ((e->info.sto & Sattribute) != (q->info.sto & Sattribute)|| reftype(e->info.typ) != reftype(q->info.typ))
+                        { sprintf(errbuf, "Qualified field '%s' has a type that does not correspond to the unique type '%s' defined for elements '<%s>'", q->sym->name, c_type(q->info.typ), ns_convert(q->sym->name));
+                          semwarn(errbuf);
+	                }
+	              }
+                      else
+	              { fprintf(fd, "  <element name=\"%s\" type=\"%s\"/>\n", ns_remove(q->sym->name), wsdl_type(q->info.typ, ns1));
+	                e = enter(r, q->sym);
+		        e->info = q->info;
+	              }
+	            }
+	          }
+	        }
+	      }
+            }
+          }
         }
       }
     }
@@ -2431,54 +2502,122 @@ gen_object(FILE *fd, Table *table, char *ns, char *name, char *URL, char *execut
 }
 
 void
+gen_xmlns(FILE *fd, char *s)
+{ if (has_ns_eq(NULL, s))
+  { char *t = ns_of(s);
+    if (t)
+      fprintf(fd, " xmlns=\"%s\"", t);
+  }
+}
+
+void
+gen_response_begin(FILE *fd, int n, char *s, char *encoding)
+{ if (!is_invisible(s))
+    if (is_literal(encoding))
+    { fprintf(fd, "%*s<%sResponse", n, "", ns_remove(s));
+      gen_xmlns(fd, s);
+      fprintf(fd, ">\n");
+    }
+    else
+      fprintf(fd, "%*s<%sResponse>\n", n, "", ns_convert(s));
+}
+
+void
+gen_response_end(FILE *fd, int n, char *s, char *encoding)
+{ if (!is_invisible(s))
+    if (is_literal(encoding))
+      fprintf(fd, "%*s</%sResponse>\n", n, "", ns_remove(s));
+    else
+      fprintf(fd, "%*s</%sResponse>\n", n, "", ns_convert(s));
+}
+
+void
+gen_element_begin(FILE *fd, int n, char *s, char *t, char *encoding)
+{ if (!is_invisible(s))
+    if (t && *t)
+      if (is_literal(encoding))
+      { fprintf(fd, "%*s<%s xsi:type=\"%s\"", n, "", ns_remove(s), t);
+        gen_xmlns(fd, s);
+      }
+      else
+        fprintf(fd, "%*s<%s xsi:type=\"%s\"", n, "", ns_convert(s), t);
+    else
+      if (is_literal(encoding))
+      { fprintf(fd, "%*s<%s", n, "", ns_remove(s));
+        gen_xmlns(fd, s);
+      }
+      else
+        fprintf(fd, "%*s<%s", n, "", ns_convert(s));
+}
+
+void
+gen_element_end(FILE *fd, int n, char *s, char *encoding)
+{ if (!is_invisible(s))
+    if (is_literal(encoding))
+      fprintf(fd, "%*s</%s>\n", n, "", ns_remove(s));
+    else
+      fprintf(fd, "%*s</%s>\n", n, "", ns_convert(s));
+}
+
+void
 gen_data(char *buf, Table *t, char *ns, char *name, char *URL, char *executable, char *URI, char *encoding)
 { Entry *p, *q, *r;
   FILE *fd;
+  char *method_encoding = NULL;
+  char *method_response_encoding = NULL;
   if (t)
   { for (p = t->list; p; p = p->next)
       if (p->info.typ->type == Tfun && !(p->info.sto & Sextern) && has_ns_eq(ns, p->sym->name))
-      { fd = gen_env(buf, ns_remove(p->sym->name), 0, t, ns, name, URL, executable, URI, encoding);
+      { Service *sp;
+        Method *m;
+        method_encoding = encoding;
+	method_response_encoding = NULL;
+	for (sp = services; sp; sp = sp->next)
+	  if (!strcmp(sp->ns, ns))
+	    for (m = sp->list; m; m = m->next)
+	      if (is_eq_nons(m->name, p->sym->name))
+                if (m->mess == ENCODING)
+	          method_encoding = m->part;
+                else if (m->mess == RESPONSE_ENCODING)
+	          method_response_encoding = m->part;
+	if (!method_response_encoding)
+	  method_response_encoding = method_encoding;
+        fd = gen_env(buf, ns_remove(p->sym->name), 0, t, ns, name, URL, executable, URI, method_encoding);
 	if (!fd)
 	  return;
   	q = entry(classtable, p->sym);
-        if (!is_invisible(p->sym->name))
-	  fprintf(fd, "  <%s", ns_convert(p->sym->name));
+	gen_element_begin(fd, 2, p->sym->name, NULL, method_encoding);
   	if (q)
 	{ gen_atts(fd, q->info.typ->ref);
           fprintf(fd, "\n");
 	  for (q = ((Table*)q->info.typ->ref)->list; q; q = q->next)
-	    gen_field(fd, 3, q);
+	    gen_field(fd, 3, q, method_encoding);
 	}
-        if (!is_invisible(p->sym->name))
-          fprintf(fd, "  </%s>\n", ns_convert(p->sym->name));
+        gen_element_end(fd, 2, p->sym->name, method_encoding);
         fprintf(fd, " </SOAP-ENV:Body>\n</SOAP-ENV:Envelope>\n", ns_convert(p->sym->name));
         fclose(fd);
 	q = (Entry*)p->info.typ->ref;
 	if (q && !is_transient(q->info.typ))
-        { fd = gen_env(buf, ns_remove(p->sym->name), 1, t, ns, name, URL, executable, URI, encoding);
+        { fd = gen_env(buf, ns_remove(p->sym->name), 1, t, ns, name, URL, executable, URI, method_response_encoding);
 	  if (!fd)
 	    return;
 	  if (q && !is_response(q->info.typ))
 	    if (is_XML(q->info.typ->ref))
-	    { if (!is_invisible(p->sym->name))
-	        fprintf(fd, "  <%sResponse>\n  </%sResponse>\n", ns_convert(p->sym->name), ns_convert(p->sym->name));
+	    { gen_response_begin(fd, 2, p->sym->name, method_response_encoding);
+	      gen_response_end(fd, 2, p->sym->name, method_response_encoding);
 	    }
 	    else
-	    { if (!is_invisible(p->sym->name))
-	        fprintf(fd, "  <%sResponse>\n", ns_convert(p->sym->name));
-	      gen_field(fd, 3, q);
-	      if (!is_invisible(p->sym->name))
-	        fprintf(fd, "  </%sResponse>\n", ns_convert(p->sym->name));
+	    { gen_response_begin(fd, 2, p->sym->name, method_response_encoding);
+	      gen_field(fd, 3, q, method_response_encoding);
+	      gen_response_end(fd, 2, p->sym->name, method_response_encoding);
 	    }
           else if (q && q->info.typ->ref && ((Tnode*)q->info.typ->ref)->ref)
-	  { if (!is_invisible(((Tnode*)q->info.typ->ref)->id->name))
-	      fprintf(fd, "  <%s", ns_convert(((Tnode*)q->info.typ->ref)->id->name));
+	  { gen_element_begin(fd, 2, ((Tnode*)q->info.typ->ref)->id->name, NULL, method_response_encoding);
 	    gen_atts(fd, ((Tnode*)q->info.typ->ref)->ref);
             fprintf(fd, "\n");
 	    for (r = ((Table*)((Tnode*)q->info.typ->ref)->ref)->list; r; r = r->next)
-	      gen_field(fd, 3, r);
-	    if (!is_invisible(((Tnode*)q->info.typ->ref)->id->name))
-	      fprintf(fd, "  </%s>\n", ns_convert(((Tnode*)q->info.typ->ref)->id->name));
+	      gen_field(fd, 3, r, method_response_encoding);
+	    gen_element_end(fd, 2, ((Tnode*)q->info.typ->ref)->id->name, method_response_encoding);
 	  }
           fflush(fd);
           fprintf(fd, " </SOAP-ENV:Body>\n</SOAP-ENV:Envelope>\n", ns_convert(p->sym->name));
@@ -2489,7 +2628,7 @@ gen_data(char *buf, Table *t, char *ns, char *name, char *URL, char *executable,
 }
 
 void
-gen_field(FILE *fd, int n, Entry *p)
+gen_field(FILE *fd, int n, Entry *p, char *encoding)
 { Entry *q;
   char *s, tmp[32];
   int i, d;
@@ -2497,13 +2636,16 @@ gen_field(FILE *fd, int n, Entry *p)
   { if (vflag == 2 && p->info.sto & Sreturn)
       fprintf(fd, "%*s<SOAP-RPC:result xmlns:SOAP-RPC=\"%s\">%s</SOAP-RPC:result>\n", n, "", rpcURI, ns_convert(p->sym->name));
     if (is_XML(p->info.typ))
-    { if (!is_invisible(p->sym->name))
-        fprintf(fd, "%*s<%s/>\n", n, "", ns_convert(p->sym->name));
+    { gen_element_begin(fd, n, p->sym->name, NULL, encoding);
+      fprintf(fd, ">");
+      gen_element_end(fd, n, p->sym->name, encoding);
     }
     else
     { if (!is_string(p->info.typ) && n >= 10 && (p->info.typ->type == Tpointer || p->info.typ->type == Treference))
       { if (!is_invisible(p->sym->name))
-          fprintf(fd, "%*s<%s xsi:nil=\"true\"/>", n, "", ns_convert(p->sym->name));
+        { gen_element_begin(fd, n, p->sym->name, NULL, encoding);
+          fprintf(fd, " xsi:nil=\"true\">");
+        }
       }
       else if (p->info.typ->type == Tarray)
       { i = ((Tnode*) p->info.typ->ref)->width;
@@ -2512,13 +2654,14 @@ gen_field(FILE *fd, int n, Entry *p)
           if (i > 100)
             i = 100;
 	}
-	fprintf(fd, "%*s<%s xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"%s[%d]\">", n, "", ns_convert(p->sym->name), xsi_type_Tarray(p->info.typ), i);
+	gen_element_begin(fd, n, p->sym->name, "SOAP-ENC:Array", encoding);
+	fprintf(fd, " SOAP-ENC:arrayType=\"%s[%d]\">", xsi_type_Tarray(p->info.typ), i);
         fflush(fd);
-	gen_val(fd, n, p->info.typ);
+	gen_val(fd, n, p->info.typ, encoding);
       }
       else if (is_dynamic_array(p->info.typ) && !is_binary(p->info.typ))
       { if (has_ns(p->info.typ) || is_untyped(p->info.typ))
-        { fprintf(fd, "%*s<%s xsi:type=\"%s\">", n, "", ns_convert(p->sym->name), xsi_type(p->info.typ));
+        { gen_element_begin(fd, n, p->sym->name, xsi_type(p->info.typ), encoding);
 	}
         else
 	{ d = get_Darraydims(p->info.typ);
@@ -2531,51 +2674,42 @@ gen_field(FILE *fd, int n, Entry *p)
 	  }
 	  else
 	    *tmp = '\0';
-	  fprintf(fd, "%*s<%s xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"%s[1%s]\">", n, "", ns_convert(p->sym->name), xsi_type_Darray(p->info.typ), tmp);
+	  gen_element_begin(fd, n, p->sym->name, "SOAP-ENC:Array", encoding);
+	  fprintf(fd, " SOAP-ENC:arrayType=\"%s[1%s]\">", xsi_type_Darray(p->info.typ), tmp);
 	}
         fflush(fd);
-        gen_val(fd, n, p->info.typ);
+        gen_val(fd, n, p->info.typ, encoding);
       }
       else if ((p->info.typ->type == Tpointer || p->info.typ->type == Treference) && is_dynamic_array(p->info.typ->ref) && !is_binary(p->info.typ->ref))
       { if (has_ns(p->info.typ->ref) || is_untyped(p->info.typ->ref))
-        { if (!is_invisible(p->sym->name))
-	    fprintf(fd, "%*s<%s xsi:type=\"%s\">", n, "", ns_convert(p->sym->name), xsi_type(p->info.typ->ref));
+        { gen_element_begin(fd, n, p->sym->name, xsi_type(p->info.typ->ref), encoding);
+	  fprintf(fd, ">");
 	}
         else
 	{ if (!is_invisible(p->sym->name))
-	    fprintf(fd, "%*s<%s xsi:type=\"SOAP-ENC:Array\" SOAP-ENC:arrayType=\"%s[1]\">", n, "", ns_convert(p->sym->name), xsi_type_Darray(p->info.typ->ref));
+          { gen_element_begin(fd, n, p->sym->name, "SOAP-ENC:Array", encoding);
+	    fprintf(fd, " SOAP-ENC:arrayType=\"%s[1]\">", xsi_type_Darray(p->info.typ->ref));
+	  }
         }
       }
       else if (p->info.typ->type == Tstruct || p->info.typ->type == Tclass)
-      { if ((s = xsi_type(p->info.typ)) && *s)
-        { if (!is_invisible(p->sym->name))
-	    fprintf(fd, "%*s<%s xsi:type=\"%s\"", n, "", ns_convert(p->sym->name), s);
-	}
-        else
-        { if (!is_invisible(p->sym->name))
-	    fprintf(fd, "%*s<%s", n, "", ns_convert(p->sym->name));
-	}
-        gen_atts(fd, p->info.typ->ref);
+      { if (!is_invisible(p->sym->name))
+        { gen_element_begin(fd, n, p->sym->name, xsi_type(p->info.typ), encoding);
+          gen_atts(fd, p->info.typ->ref);
+        }
       }
       else if ((p->info.typ->type == Tpointer || p->info.typ->type == Treference)
              && (((Tnode*)p->info.typ->ref)->type == Tstruct || ((Tnode*)p->info.typ->ref)->type == Tclass))
-      { if ((s = xsi_type(p->info.typ)) && *s)
-        { if (!is_invisible(p->sym->name))
-	    fprintf(fd, "%*s<%s xsi:type=\"%s\"", n, "", ns_convert(p->sym->name), s);
-	}
-        else
-        { if (!is_invisible(p->sym->name))
-	    fprintf(fd, "%*s<%s", n, "", ns_convert(p->sym->name));
-	}
-        gen_atts(fd, ((Tnode*)p->info.typ->ref)->ref);
-      }
-      else if ((s = xsi_type(p->info.typ)) && *s)
       { if (!is_invisible(p->sym->name))
-	  fprintf(fd, "%*s<%s xsi:type=\"%s\">", n, "", ns_convert(p->sym->name), s);
+        { gen_element_begin(fd, n, p->sym->name, xsi_type(p->info.typ), encoding);
+          gen_atts(fd, ((Tnode*)p->info.typ->ref)->ref);
+        }
       }
       else
       { if (!is_invisible(p->sym->name))
-	  fprintf(fd, "%*s<%s>", n, "", ns_convert(p->sym->name));
+        { gen_element_begin(fd, n, p->sym->name, xsi_type(p->info.typ), encoding);
+	  fprintf(fd, ">");
+        }
       }
       switch (p->info.typ->type)
       { case Tchar:
@@ -2609,7 +2743,7 @@ gen_field(FILE *fd, int n, Entry *p)
 	      }
 	  }
 	  else
-	    gen_val(fd, n+1, p->info.typ);
+	    gen_val(fd, n+1, p->info.typ, encoding);
 	  break;
         case Tpointer:
         case Treference:
@@ -2618,16 +2752,15 @@ gen_field(FILE *fd, int n, Entry *p)
 	      fprintf(fd, "%s", p->info.val.s);
 	  }
 	  else if (n < 10)
-	    gen_val(fd, n, p->info.typ->ref);
+	    gen_val(fd, n, p->info.typ->ref, encoding);
 	  break;
         case Tclass:
         case Tstruct:
 	  if (!is_dynamic_array(p->info.typ))
-	    gen_val(fd, n, p->info.typ);
+	    gen_val(fd, n, p->info.typ, encoding);
 	  break;
         }
-	if (!is_invisible(p->sym))
-	  fprintf(fd, "</%s>\n", ns_convert(p->sym->name));
+	gen_element_end(fd, 0, p->sym->name, encoding);
         fflush(fd);
     }
   }
@@ -2689,7 +2822,7 @@ gen_atts(FILE *fd, Table *p)
 }
 
 void
-gen_val(FILE *fd, int n, Tnode *p)
+gen_val(FILE *fd, int n, Tnode *p, char *encoding)
 { Entry *q;
   int i;
   if (!is_transient(p) && p->type != Tfun && !is_XML(p)) 
@@ -2702,7 +2835,7 @@ gen_val(FILE *fd, int n, Tnode *p)
         fprintf(fd, "\n");
         for (; i > 0; i--)
         { fprintf(fd, "%*s<item>", n+1, "");
-          gen_val(fd, n+1, p->ref);
+          gen_val(fd, n+1, p->ref, encoding);
           fprintf(fd, "</item>\n");
         }
         fprintf(fd, "%*s", n, "");
@@ -2711,7 +2844,7 @@ gen_val(FILE *fd, int n, Tnode *p)
     else if (is_dynamic_array(p))
     { if (!is_binary(p))
       { fprintf(fd, "\n");
-        gen_field(fd, n+1, ((Table*)p->ref)->list);
+        gen_field(fd, n+1, ((Table*)p->ref)->list, encoding);
         fprintf(fd, "%*s", n, "");
       }
     }
@@ -2738,17 +2871,24 @@ gen_val(FILE *fd, int n, Tnode *p)
         else
           fprintf(fd, "0");
         break;
+      case Ttime:
+        { char tmp[256];
+          time_t t = time(NULL), *p = &t;
+          strftime(tmp, 256, "%Y-%m-%dT%H:%M:%SZ", gmtime(p));
+	  fprintf(fd, "%s", tmp);
+	}
+	break;
       case Tpointer:
       case Treference:
 	if (!is_string(p) && !is_wstring(p) && n < 10)
-	  gen_val(fd, n+1, p->ref);
+	  gen_val(fd, n+1, p->ref, encoding);
 	break;
       case Tclass:
       case Tstruct:
 	if (!is_dynamic_array(p) && !is_primclass(p) && p->ref)
 	{ fprintf(fd, "\n");
 	  for (q = ((Table*)p->ref)->list; q; q = q->next)
-	    gen_field(fd, n+1, q);
+	    gen_field(fd, n+1, q, encoding);
 	  fprintf(fd, "%*s", n, "");
         }
         break;
@@ -2756,10 +2896,30 @@ gen_val(FILE *fd, int n, Tnode *p)
   }
 }
 
+void
+gen_header(FILE *fd, char *method, int response, char *encoding)
+{ if (custom_header)
+  { Service *sp;
+    Method *m = NULL;
+    Entry *q;
+    fprintf(fd, " <SOAP-ENV:Header>\n");
+    for (q = ((Table*)entry(classtable, lookup("SOAP_ENV__Header"))->info.typ->ref)->list; q; q = q->next)
+      if (!is_transient(q->info.typ) && !(q->info.sto & Sattribute) && q->info.typ->type != Tfun)
+      { for (sp = services; sp; sp = sp->next)
+          for (m = sp->list; m; m = m->next)
+	    if (is_eq(m->name, method) && (!strcmp(m->part, q->sym->name) || is_eq_nons(m->part, q->sym->name)) && (!response && (m->mess&HDRIN) || response && (m->mess&HDROUT)))
+	    { gen_field(fd, 2, q, encoding);
+	      break;
+            }
+      }
+    fprintf(fd, " </SOAP-ENV:Header>\n");
+  }
+}
+
 FILE *
 gen_env(char *buf, char *method, int response, Table *t, char *ns, char *name, char *URL, char *executable, char *URI, char *encoding)
 { Symbol *s;
-  Service *sp;
+  Service *sp = NULL;
   char tmp[1024];
   FILE *fd;
   strcpy(tmp, buf);
@@ -2791,12 +2951,12 @@ gen_env(char *buf, char *method, int response, Table *t, char *ns, char *name, c
       fprintf(fd, "\n xmlns:xsi=\"%s\"", xsiURI);
     else if (!strcmp(s->name, "xsd"))
       fprintf(fd, "\n xmlns:xsd=\"%s\"", xsdURI);
-    else if (!strcmp(s->name, ns))
-      fprintf(fd, "\n xmlns:%s=\"%s\"", ns_convert(s->name), URI);
     else
       fprintf(fd, "\n xmlns:%s=\"%s/%s.xsd\"", ns_convert(s->name), URI, ns_convert(s->name));
   }
-  fprintf(fd, ">\n <SOAP-ENV:Body id=\"_0\"");
+  fprintf(fd, ">\n");
+  gen_header(fd, method, response, encoding);
+  fprintf(fd, " <SOAP-ENV:Body id=\"_0\"");
   if (eflag && !encoding)
     fprintf(fd, " SOAP-ENV:encodingStyle=\"%s\"", encURI);
   else if (encoding && !*encoding)
@@ -2810,7 +2970,7 @@ gen_env(char *buf, char *method, int response, Table *t, char *ns, char *name, c
 char *
 emalloc(unsigned int n)
 { char	*p;
-  if ((p = (char*)malloc(n)) == (char*)0)
+  if ((p = (char*)malloc(n)) == NULL)
     execerror("out of memory");
   return p;
 }
@@ -2820,36 +2980,35 @@ function_input_output(Table *table)
 {
   int i=1;
   Entry * p;
-  if (nflag)
-    fprintf(fserver,"\n\nSOAP_FMAC5 int SOAP_FMAC6 %s_serve(struct soap *soap)", prefix); 
-  else
-    fprintf(fserver,"\n\nSOAP_FMAC5 int SOAP_FMAC6 soap_serve(struct soap *soap)"); 
-  fprintf(fserver,"\n{\n\tunsigned int n = SOAP_MAXKEEPALIVE;\n\tdo\n\t{\tsoap_begin(soap);");
+  fprintf(fserver,"\n\nSOAP_FMAC5 int SOAP_FMAC6 %s_serve(struct soap *soap)", nflag?prefix:"soap"); 
+  fprintf(fserver,"\n{\n\tunsigned int n = soap->max_keep_alive;\n\tdo\n\t{\tsoap_begin(soap);");
 
   fprintf(fserver,"\n\t\tif (!--n)\n\t\t\tsoap->keep_alive = 0;");
   fprintf(fserver,"\n\t\tif (soap_begin_recv(soap))\n\t\t{\tif (soap->error < SOAP_STOP)\n\t\t\t\treturn soap_send_fault(soap);\n\t\t\tsoap_closesock(soap);\n\t\t\tcontinue;\n\t\t}");
-  fprintf(fserver,"\n\t\tif (soap_envelope_begin_in(soap)\n\t\t || soap_recv_header(soap)\n\t\t || soap_body_begin_in(soap)\n\t\t || soap_peek_element(soap))\n\t\t\treturn soap_send_fault(soap);\n\t\t");
-
-
-  for (p = table->list; p != (Entry*) 0; p = p->next)
-    {
-      if (p->info.typ->type == Tfun && !(p->info.sto & Sextern))
-	{   if (is_unmatched(p->sym))
-	      fprintf(fserver,"if (soap_serve_%s(soap) && soap->level == 2 && soap->error == SOAP_TAG_MISMATCH)\n\t\t", p->sym->name);
-	    else
-	    { fprintf(fserver,"if (!soap_match_tag(soap, soap->tag, \"%s\"))", ns_convert(p->sym->name));
-	      fprintf(fserver,"\n\t\t\tsoap_serve_%s(soap);", p->sym->name);
-	      fprintf(fserver,"\n\t\telse ");
-	    }
-	}
-    }
-  fprintf(fserver,"\n\t\t\tsoap->error = SOAP_NO_METHOD;");
-  fprintf(fserver,"\n\t\tif (soap->error)");
-  fprintf(fserver,"\n\t\t\treturn soap_send_fault(soap);");
+  fprintf(fserver,"\n\t\tif (soap_envelope_begin_in(soap)\n\t\t || soap_recv_header(soap)\n\t\t || soap_body_begin_in(soap)\n\t\t || %s_serve_request(soap))\n\t\t\treturn soap_send_fault(soap);\n\t\t", nflag?prefix:"soap");
   fprintf(fserver,"\n\t} while (soap->keep_alive);");
   fprintf(fserver,"\n\treturn SOAP_OK;");
   fprintf(fserver,"\n}");
   
+
+  fprintf(fserver,"\n\nSOAP_FMAC5 int SOAP_FMAC6 %s_serve_request(struct soap *soap)\n{", nflag?prefix:"soap");
+  fprintf(fserver, "\n\tsoap_peek_element(soap);");
+  for (p = table->list; p != (Entry*) 0; p = p->next)
+    {
+      if (p->info.typ->type == Tfun && !(p->info.sto & Sextern))
+	{   if (is_invisible(p->sym->name))
+	    { fprintf(fserver,"\n\tif (!soap_serve_%s(soap))\n\t\treturn SOAP_OK;", p->sym->name);
+	      fprintf(fserver,"\n\tif (soap->level != 2 || soap->error != SOAP_TAG_MISMATCH)\n\t\treturn soap->error;");
+	      fprintf(fserver,"\n\tsoap->error = SOAP_OK");
+	    }
+	    else
+	    { fprintf(fserver,"\n\tif (!soap_match_tag(soap, soap->tag, \"%s\"))", ns_convert(p->sym->name));
+	      fprintf(fserver,"\n\t\treturn soap_serve_%s(soap);", p->sym->name);
+	    }
+	}
+    }
+  fprintf(fserver,"\n\treturn soap->error = SOAP_NO_METHOD;\n}");
+
   fprintf(fheader, "\n\n/* Remote Methods */");
   for (p = table->list; p != (Entry*) 0; p = p->next)
     if (p->info.typ->type==Tfun && !(p->info.sto & Sextern))
@@ -2858,10 +3017,8 @@ function_input_output(Table *table)
   for (p = table->list; p != (Entry*) 0; p = p->next)
     if (p->info.typ->type==Tfun && !(p->info.sto & Sextern) && !is_imported(p->info.typ))
 	generate_call(table, p);
-  if (nflag)
-    fprintf(fheader, "\n\n/* Skeletons */\n\nSOAP_FMAC5 int SOAP_FMAC6 %s_serve(struct soap*);", prefix);
-  else
-    fprintf(fheader, "\n\n/* Skeletons */\n\nSOAP_FMAC5 int SOAP_FMAC6 soap_serve(struct soap*);");
+  fprintf(fheader, "\n\n/* Skeletons */\n\nSOAP_FMAC5 int SOAP_FMAC6 %s_serve(struct soap*);", nflag?prefix:"soap");
+  fprintf(fheader, "\n\nSOAP_FMAC5 int SOAP_FMAC6 %s_serve_request(struct soap*);", nflag?prefix:"soap");
   for (p = table->list; p != (Entry*) 0; p = p->next)
     if (p->info.typ->type==Tfun && !(p->info.sto & Sextern) && !is_imported(p->info.typ))
 	generate_server(table, p);
@@ -2896,6 +3053,7 @@ generate_proto(Table *table, Entry *param)
 void
 generate_call(Table *table, Entry *param)
 { Service *sp;
+  char *style, *encoding;
   Entry *pin,*q,*pout,*response=NULL;
   Tnode *temp;
   Table *output,*t;
@@ -2951,7 +3109,12 @@ generate_call(Table *table, Entry *param)
   } 
   for (sp = services; sp; sp = sp->next)
   { if (has_ns_eq(sp->ns, param->sym->name))
-    { for (m = sp->list; m; m = m->next)
+    { style = sp->style;
+      encoding = sp->encoding;
+      method_style = style;
+      method_encoding = encoding;
+      method_response_encoding = NULL;
+      for (m = sp->list; m; m = m->next)
         if (is_eq_nons(m->name, param->sym->name))
           if (m->mess == ACTION)
             action = m->part;
@@ -2966,19 +3129,15 @@ generate_call(Table *table, Entry *param)
   }
   if (!method_response_encoding)
     method_response_encoding = method_encoding;
-  if (sp && sp->URI && (sp->encoding || method_encoding))
+  if (sp && sp->URI && method_encoding)
   { flag = 1;
     /*
     fprintf(fclient, "\n\tconst char *soap_bak_encodingStyle = soap->encodingStyle;");
     */
-    if (sp->encoding && !strcmp(sp->encoding, "literal") || method_encoding && !strcmp(method_encoding, "literal"))
+    if (is_literal(method_encoding))
       fprintf(fclient, "\n\tsoap->encodingStyle = NULL;");
-    else if (sp->encoding)
-      fprintf(fclient, "\n\tsoap->encodingStyle = \"%s\";", sp->encoding);
     else if (method_encoding)
       fprintf(fclient, "\n\tsoap->encodingStyle = \"%s\";", method_encoding);
-    else if (!eflag)
-      fprintf(fclient, "\n\tsoap->encodingStyle = NULL;");
   }
   else if (!eflag)
     fprintf(fclient, "\n\tsoap->encodingStyle = NULL;");
@@ -3199,6 +3358,7 @@ generate_call(Table *table, Entry *param)
 void
 generate_server(Table *table, Entry *param)
 { Service *sp = NULL;
+  char *style, *encoding;
   int flag = 0;
   Entry *q,*pin, *pout, *response;
   Table *t, *input;
@@ -3216,7 +3376,12 @@ generate_server(Table *table, Entry *param)
   fprintf(fserver, "\n{\tstruct %s soap_tmp_%s;", param->sym->name, param->sym->name);
   for (sp = services; sp; sp = sp->next)
     if (has_ns_eq(sp->ns, param->sym->name))
-    { for (m = sp->list; m; m = m->next)
+    { style = sp->style;
+      encoding = sp->encoding;
+      method_style = style;
+      method_encoding = encoding;
+      method_response_encoding = NULL;
+      for (m = sp->list; m; m = m->next)
 	if (is_eq_nons(m->name, param->sym->name))
 	  if (m->mess == ENCODING)
 	    method_encoding = m->part;
@@ -3272,8 +3437,8 @@ generate_server(Table *table, Entry *param)
   }
   fprintf(fserver,"\n\tsoap_default_%s(soap, &soap_tmp_%s);", param->sym->name,param->sym->name);
   fflush(fserver);
-  if (sp && sp->URI && (sp->encoding || method_response_encoding))
-  {     if (sp->encoding && !strcmp(sp->encoding, "literal") || method_response_encoding && !strcmp(method_response_encoding, "literal"))
+  if (sp && sp->URI && method_response_encoding)
+  {     if (is_literal(method_response_encoding))
           fprintf(fserver, "\n\tsoap->encodingStyle = NULL;");
         else if (sp->encoding)
           fprintf(fserver, "\n\tsoap->encodingStyle = \"%s\";", sp->encoding);
@@ -3713,7 +3878,7 @@ ns_of(char *name)
       break;
   if (sp)
     return sp->URI;
-  return "http://tempuri.org";
+  return NULL;
 }
 
 char *
@@ -3880,7 +4045,7 @@ ns_convert(char *tag)
       { *s++ = '_';
         i += 6;
       }
-      else if (!strncmp(tag+i, "_x", 2))
+      else if (!strncmp(tag+i, "_x", 2) && isxdigit(tag[i+2]) && isxdigit(tag[i+3]) && isxdigit(tag[i+4]) && isxdigit(tag[i+5]))
       { utf8(&s, strtoul(tag+i+2, NULL, 16));
         i += 5;
       }
@@ -3903,7 +4068,7 @@ ns_convert(char *tag)
         { *s++ = '_';
           i += 6;
         }
-        else if (!strncmp(tag+i, "_x", 2))
+        else if (!strncmp(tag+i, "_x", 2) && isxdigit(tag[i+2]) && isxdigit(tag[i+3]) && isxdigit(tag[i+4]) && isxdigit(tag[i+5]))
         { utf8(&s, strtoul(tag+i+2, NULL, 16));
           i += 5;
         }
@@ -5333,7 +5498,7 @@ mark(Tnode *typ)
 	if (p = is_dynamic_array(typ->ref))
         { d = get_Darraydims(typ->ref);
           if (d)
-	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, soap_size((*a)->__size, d), SOAP_TYPE_%s))", p->sym->name, d, c_ident(typ->ref));
+	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, soap_size((*a)->__size, %d), SOAP_TYPE_%s))", p->sym->name, d, c_ident(typ->ref));
 	  else
 	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, (*a)->__size, SOAP_TYPE_%s))", p->sym->name, c_ident(typ->ref));
 	}
@@ -5686,16 +5851,22 @@ soap_put(Tnode *typ)
   char *cta = c_type_id(typ, "a");
   char *ctp = c_type_id(typ, "*");
   char *ctpa = c_type_id(typ, "*a");
+  char *ctcp = c_type_id(typ, "const*");
+  char *ctcpa = c_type_id(typ, "const*a");
   char *xt = xsi_type(typ);
   if (typ->type == Tarray)
-  { fprintf(fhead,"\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap*, %s, const char*, const char*);", ci,ct);
-    fprintf(fout,"\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap *soap, %s, const char *tag, const char *type)\n{", ci,cta);
+  { fprintf(fhead,"\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap*, const %s, const char*, const char*);", ci,ct);
+    fprintf(fout,"\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap *soap, const %s, const char *tag, const char *type)\n{", ci,cta);
   }
   else if (typ->type == Tclass && !is_external(typ) && !is_volatile(typ))
     fprintf(fout,"\n\nint %s::soap_put(struct soap *soap, const char *tag, const  char *type) const\n{", ct);
+  else if (typ->type == Tpointer)
+  { fprintf(fhead,"\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap*, %s, const char*, const char*);", ci,ctcp);
+    fprintf(fout,"\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap *soap, %s, const char *tag, const char *type)\n{", ci,ctcpa);
+  }
   else
-  { fprintf(fhead,"\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap*, %s, const char*, const char*);", ci,ctp);
-    fprintf(fout,"\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap *soap, %s, const char *tag, const char *type)\n{", ci,ctpa);
+  { fprintf(fhead,"\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap*, const %s, const char*, const char*);", ci,ctp);
+    fprintf(fout,"\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_put_%s(struct soap *soap, const %s, const char *tag, const char *type)\n{", ci,ctpa);
   }
   fflush(fout);
   fprintf(fout,"\n\tint i = ");
@@ -5851,6 +6022,16 @@ is_body(Tnode *typ)
 { if (typ->type == Tpointer || typ->type == Treference)
     return is_body(typ->ref);
   return (typ->type == Tstruct || typ->type == Tclass) && !strcmp(typ->id->name, "SOAP_ENV__Body");
+}
+
+int
+is_document(const char *style)
+{ return !eflag && !style || style && !strcmp(style, "document");
+}
+
+int
+is_literal(const char *encoding)
+{ return !eflag && !encoding || encoding && !strcmp(encoding, "literal");
 }
 
 char *
@@ -6605,7 +6786,7 @@ soap_out_Darray(Tnode *typ)
       fprintf(fout,"\n\tsoap_array_begin_out(soap, tag, i, t, soap_putoffset(soap, a->__offset));");
   else
     fprintf(fout,"\n\tsoap_array_begin_out(soap, tag, i, t, NULL);");
-  fprintf(fout,"\n\tif (i)\n\t\tsoap_set_embedded(soap, pp);");
+  fprintf(fout,"\n\tif (i > 0)\n\t\tsoap_set_embedded(soap, pp);");
   if (is_binary(typ) && !is_hexBinary(typ))
     fprintf(fout, "\n\tsoap_putbase64(soap, a->__ptr, a->__size);");
   else if (is_hexBinary(typ))
@@ -7288,7 +7469,7 @@ soap_in(Tnode *typ)
         break;
       }
       */
-      if(((Tnode *) typ->ref)->type != Tclass || is_external(typ->ref) || is_volatile(typ->ref))
+      if ((!is_template(typ) && ((Tnode *) typ->ref)->type != Tclass || is_external(typ->ref) || is_volatile(typ->ref)))
       	fprintf(fout,"\n\t%s;",c_type_id(typ, "p"));
       fprintf(fout,"\n\tif (soap_element_begin_in(soap, tag))");
       fprintf(fout,"\n\t\treturn NULL;");
@@ -7606,11 +7787,11 @@ soap_in_Darray(Tnode *typ)
   p = is_dynamic_array(typ);
   if (is_binary(typ))
   { if (is_hexBinary(typ))
-      fprintf(fout,"\n\t\ta->__ptr = soap_gethex(soap, (size_t*)&a->__size);");
+      fprintf(fout,"\n\t\ta->__ptr = soap_gethex(soap, &a->__size);");
     else if (mflag && typ->type == Tclass)
-      fprintf(fout,"\n\t\ta->__ptr = soap_getbase64(soap, (size_t*)&a->__size, 1);");
+      fprintf(fout,"\n\t\ta->__ptr = soap_getbase64(soap, &a->__size, 1);");
     else
-      fprintf(fout,"\n\t\ta->__ptr = soap_getbase64(soap, (size_t*)&a->__size, 0);");
+      fprintf(fout,"\n\t\ta->__ptr = soap_getbase64(soap, &a->__size, 0);");
     fprintf(fout,"\n\t\tif ((!a->__ptr && soap->error) || soap_element_end_in(soap, tag))\n\t\t\treturn NULL;");
   }
   else

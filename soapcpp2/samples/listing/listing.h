@@ -1,7 +1,8 @@
-//gsoap ns service name: XMethodsQuery
-//gsoap ns service namespace: http://www.xmethods.net/interfaces/query.wsdl
-//gsoap ns service location: http://www.xmethods.net/interfaces/query
-//gsoap ns service encoding: encoded
+//gsoap ns service name:	XMethodsQuery
+//gsoap ns service style:	rpc
+//gsoap ns service encoding:	encoded
+//gsoap ns service namespace:	http://www.xmethods.net/interfaces/query.wsdl
+//gsoap ns service location:	http://www.xmethods.net/interfaces/query
 
 //gsoap ns schema namespace: http://www.xmethods.net/interfaces/query
 //gsoap t schema namespace: http://www.xmethods.net/interfaces/query.xsd

@@ -32,6 +32,8 @@ Command line options:
 -nname	use name as the base namespace prefix name instead of 'ns'
 -ofile	output to file
 -p	create polymorphic types with C++ inheritance with base xsd__anyType
+-rhost:port
+	connect via proxy host and port
 -s	do not generate STL code (no std::string and no std::vector)
 -tfile	use type map file instead of the default file typemap.dat
 -v	verbose output

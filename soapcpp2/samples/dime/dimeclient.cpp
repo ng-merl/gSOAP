@@ -135,7 +135,7 @@ static void putData(struct soap *soap, int argc, char **argv)
   data.resize(argc - 2);
   for (int i = 2; i < argc; i++)
   { data[i - 2].__ptr = (unsigned char*)argv[i];
-    // MUST set id, type, or options to enable DIME
+    // MUST set id or type to enable DIME
     data[i - 2].type = "";
   }
   if (soap_call_ns__putData(soap, endpoint, NULL, &data, &names))

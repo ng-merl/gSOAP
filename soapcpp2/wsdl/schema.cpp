@@ -48,7 +48,10 @@ xs__schema::xs__schema()
   soap_default(soap);
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
+  soap->proxy_host = proxy_host;
+  soap->proxy_port = proxy_port;
   targetNamespace = NULL;
+  version = NULL;
 }
 
 xs__schema::xs__schema(struct soap *copy)
@@ -57,6 +60,7 @@ xs__schema::xs__schema(struct soap *copy)
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
   targetNamespace = NULL;
+  version = NULL;
 }
 
 xs__schema::xs__schema(struct soap *copy, const char *location)
@@ -69,6 +73,7 @@ xs__schema::xs__schema(struct soap *copy, const char *location)
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
   targetNamespace = NULL;
+  version = NULL;
   read(location);
 }
 
@@ -161,7 +166,9 @@ int xs__schema::read(const char *location)
     exit(1);
   }
   else if (soap->error == 307) // HTTP redirect, socket was closed
+  { fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
     return read(soap->endpoint);
+  }
   soap_end_recv(soap);
   if (soap->recvfd >= 0)
   { close(soap->recvfd);
@@ -235,11 +242,7 @@ int xs__import::traverse(xs__schema &schema)
     cerr << "schema import" << endl;
   if (!schemaRef)
   { struct Namespace *p = schema.soap->local_namespaces;
-    const char *s = NULL;
-    if (schemaLocation)
-      s = schemaLocation;
-    else
-      s = namespace_;
+    const char *s = schemaLocation;
     if (s && namespace_)
     { if (p)
       { for (; p->id; p++)
@@ -258,6 +261,8 @@ int xs__import::traverse(xs__schema &schema)
       if (!p || !p->id) // don't import any of the schemas in the .nsmap table
         schemaRef = new xs__schema(schema.soap, s);
     }
+    else if (vflag)
+      fprintf(stderr, "Warning: no schemaLocation for namespace import '%s'\n", namespace_?namespace_:"");
   }
   return SOAP_OK;
 }

@@ -1,8 +1,9 @@
-//gsoap ns service name: polymorph
-//gsoap ns service namespace: http://websrv.cs.fsu.edu/~engelen/polymorph.wsdl
-//gsoap ns service location: http://websrv.cs.fsu.edu/~engelen
-//gsoap ns service encoding: encoded
-//gsoap ns service executable: polytest.cgi
+//gsoap ns service name:	polymorph
+//gsoap ns service style:	rpc
+//gsoap ns service encoding:	encoded
+//gsoap ns service namespace:	http://websrv.cs.fsu.edu/~engelen/polymorph.wsdl
+//gsoap ns service location:	http://websrv.cs.fsu.edu/~engelen/polytest.cgi
+
 //gsoap ns schema namespace: urn:copy
 class ns__Object
 { public:

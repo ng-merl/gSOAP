@@ -23,10 +23,11 @@
 	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 */
 
-//gsoap ns service name: factory
-//gsoap ns service namespace: http://websrv.cs.fsu.edu/~engelen/factory.wsdl
-//gsoap ns service location: http://localhost:18085
-//gsoap ns service encoding: encoded
+//gsoap ns service name:	factory
+//gsoap ns service style:	rpc
+//gsoap ns service encoding:	encoded
+//gsoap ns service namespace:	http://websrv.cs.fsu.edu/~engelen/factory.wsdl
+//gsoap ns service location:	http://localhost:18085
 
 //gsoap ns schema namespace: urn:factoryService
 //gsoap t schema namespace: urn:factoryTypes

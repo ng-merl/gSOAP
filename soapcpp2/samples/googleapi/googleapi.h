@@ -1,9 +1,10 @@
 //	Google Web APIs
 
-//gsoap api service name: googleapi
-//gsoap api service location: http://api.google.com/search/beta2
-//gsoap api service namespace: urn:GoogleSearch
-//gsoap api service encoding: encoded
+//gsoap api service name:	googleapi
+//gsoap api service style:	rpc
+//gsoap api service encoding:	encoded
+//gsoap api service location:	http://api.google.com/search/beta2
+//gsoap api service namespace:	urn:GoogleSearch
 
 typedef char *	xsd__string;
 

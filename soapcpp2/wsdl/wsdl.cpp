@@ -63,6 +63,8 @@ wsdl__definitions::wsdl__definitions()
   else
     soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
+  soap->proxy_host = proxy_host;
+  soap->proxy_port = proxy_port;
   name = NULL;
   targetNamespace = "";
   documentation = NULL;
@@ -126,16 +128,17 @@ int wsdl__definitions::read(const char *location)
   soap_begin_recv(soap);
   this->soap_in(soap, "wsdl:definitions", NULL);
   if (soap->error)
-  { // deal with sloppy WSDLs that import schemas at the top level rather than in importing schemas in <types>
+  { // deal with sloppy WSDLs that import schemas at the top level rather than importing them in <types>
     if (soap->error == SOAP_TAG_MISMATCH && soap->level == 0)
     { soap_retry(soap);
       xs__schema *schema = new xs__schema(soap);
       schema->soap_in(soap, "xs:schema", NULL);
-      if (soap->error)
-      { soap_print_fault(soap, stderr);
-        soap_print_fault_location(soap, stderr);
+      if (schema->error())
+      { soap_print_fault(schema->soap, stderr);
+        soap_print_fault_location(schema->soap, stderr);
         exit(1);
       }
+      name = NULL;
       targetNamespace = schema->targetNamespace;
       types = new wsdl__types();
       types->documentation = NULL;
@@ -143,7 +146,9 @@ int wsdl__definitions::read(const char *location)
       traverse();
     }
     else if (soap->error == 307) // HTTP redirect, socket was closed
+    { fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
       return read(soap->endpoint);
+    }
     else
     { fprintf(stderr, "An error occurred while parsing WSDL from '%s'\n", location?location:"");
       soap_print_fault(soap, stderr);
@@ -168,8 +173,8 @@ int wsdl__definitions::traverse()
   for (vector<wsdl__import>::iterator im = import.begin(); im != import.end(); ++im)
     (*im).traverse(*this);
   // merge imported WSDLs
-  vector<wsdl__import>::const_iterator stop = import.end(); // I love for() loops with iterators!
-  for (vector<wsdl__import>::iterator i = import.begin(); i != stop; ++i)
+again:
+  for (vector<wsdl__import>::iterator i = import.begin(); i != import.end(); ++i)
   { if ((*i).definitionsPtr())
     { for (vector<wsdl__import>::iterator j = (*i).definitionsPtr()->import.begin(); j != (*i).definitionsPtr()->import.end(); ++j)
       { bool found = false;
@@ -180,7 +185,9 @@ int wsdl__definitions::traverse()
 	  }
         }
         if (!found)
-          import.push_back(*j);
+        { import.push_back(*j);
+          goto again;
+        }
       }
     }
   }
@@ -700,52 +707,47 @@ int wsdl__types::traverse(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl types" << endl;
   // import external schemas
-  bool extended = false;
-  do
-  { vector<xs__schema*>::const_iterator stop = xs__schema_.end();
-    for (vector<xs__schema*>::iterator schema1 = xs__schema_.begin(); schema1 != stop; ++schema1)
-    { for (vector<xs__import>::iterator import = (*schema1)->import.begin(); import != (*schema1)->import.end(); ++import)
-      { if (!(*import).schemaPtr() && (*import).namespace_ && (*import).schemaLocation)
-        { bool found = false;
-          for (vector<xs__schema*>::const_iterator schema2 = xs__schema_.begin(); schema2 != xs__schema_.end(); ++schema2)
-	  { if ((*schema2)->targetNamespace && !strcmp((*import).namespace_, (*schema2)->targetNamespace))
-            { found = true;
-	      break;
-	    }
-          }
-	  if (!found)
-          { struct Namespace *p = definitions.soap->local_namespaces;
-            const char *s = NULL;
-            if ((*import).schemaLocation)
-              s = (*import).schemaLocation;
-            else
-              s = (*import).namespace_;
-            if (s && (*import).namespace_)
-            { if (p)
-              { for (; p->id; p++)
-                { if (p->in)
-                  { if (!soap_tag_cmp((*import).namespace_, p->in))
-                      break;
-	          }
-	          if (p->ns)
-                  { if (!soap_tag_cmp((*import).namespace_, p->ns))
-                      break;
-	          }
-                }
+again:
+  for (vector<xs__schema*>::iterator schema1 = xs__schema_.begin(); schema1 != xs__schema_.end(); ++schema1)
+  { for (vector<xs__import>::iterator import = (*schema1)->import.begin(); import != (*schema1)->import.end(); ++import)
+    { if (!(*import).schemaPtr() && (*import).namespace_ && (*import).schemaLocation)
+      { bool found = false;
+        for (vector<xs__schema*>::const_iterator schema2 = xs__schema_.begin(); schema2 != xs__schema_.end(); ++schema2)
+        { if ((*schema2)->targetNamespace && !strcmp((*import).namespace_, (*schema2)->targetNamespace))
+          { found = true;
+	    break;
+	  }
+        }
+	if (!found)
+        { struct Namespace *p = definitions.soap->local_namespaces;
+          const char *s = (*import).schemaLocation;
+          if (s && (*import).namespace_)
+          { if (p)
+            { for (; p->id; p++)
+              { if (p->in)
+                { if (!soap_tag_cmp((*import).namespace_, p->in))
+                    break;
+	        }
+	        if (p->ns)
+                { if (!soap_tag_cmp((*import).namespace_, p->ns))
+                    break;
+	        }
               }
-	      else
-	        fprintf(stderr, "Warning: no namespace table\n");
-              if (!p || !p->id) // don't import any of the schemas in the .nsmap table
-	      { xs__schema *importschema = new xs__schema(definitions.soap, s);
-                xs__schema_.push_back(importschema);
-		extended = true;
-              }
-	    }
-          }
+            }
+	    else
+	      fprintf(stderr, "Warning: no namespace table\n");
+            if (!p || !p->id) // don't import any of the schemas in the .nsmap table
+	    { xs__schema *importschema = new xs__schema(definitions.soap, s);
+              xs__schema_.push_back(importschema);
+	      goto again;
+            }
+	  }
+	  else if (vflag)
+	    fprintf(stderr, "Warning: no schemaLocation for namespace '%s'\n", (*import).namespace_?(*import).namespace_:"");
         }
       }
     }
-  } while (extended);
+  }
   for (vector<xs__schema*>::iterator schema2 = xs__schema_.begin(); schema2 != xs__schema_.end(); ++schema2)
   { // artificially extend the <import> of each schema to include others so when we traverse schemas we can resolve references
     for (vector<xs__schema*>::iterator importschema = xs__schema_.begin(); importschema != xs__schema_.end(); ++importschema)
