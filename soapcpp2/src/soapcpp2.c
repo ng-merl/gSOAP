@@ -47,13 +47,14 @@ extern int init();
 extern int yyparse();
 extern FILE *yyin;
 
-int vflag = 1;		/* SOAP version, 1=1.1 2=1.2 */
+int vflag = 0;		/* SOAP version, 0=not set, 1=1.1, 2=1.2 */
 int wflag = 0;		/* when set, don't generate WSDL and schema files */
 int cflag = 0;		/* when set, generate files with .c extension */
 int eflag = 0;		/* when set, use SOAP RPC encoding by default */
 int mflag = 0;		/* when set, generate code that requires array/binary classes to explicitly remove malloced array */
 int nflag = 0;		/* when set, names the namespaces global struct '%NAME%_namespaces */
 int lflag = 0;		/* when set, create library */
+int tflag = 0;		/* when set, generates typed messsages (with xsi:type attributes) */
 int xflag = 0;		/* when set, excludes imported types */
 char dirpath[1024];	/* directory path for generated source files */
 char *prefix = "soap";	/* file name prefix for generated source files */
@@ -108,7 +109,7 @@ main(int argc, char **argv)
 						break;
 					case '?':
 					case 'h':
-						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-I path] [-d path] [-p name] [-c] [-i] [-m] [-n] [file]\n");
+						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-I path] [-d path] [-p name] [-c] [-i] [-m] [-n] [-t] [file]\n");
 						exit(0);
 					case 'I':
 						a++;
@@ -130,6 +131,9 @@ main(int argc, char **argv)
 						break;
 					case 'l':
 						lflag = 1;
+						break;
+					case 't':
+						tflag = 1;
 						break;
 					case 'w':
 						wflag = 1;

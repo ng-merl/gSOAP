@@ -48,7 +48,7 @@ engelen@genivia.com / engelen@acm.org
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.6.2" /* Current version */
+#define VERSION "2.7.0e" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -208,9 +208,12 @@ typedef	struct Tnode
 	int	transient;
 	int	imports;
 	struct	Tnode *next;
-        Bool generated;
-        Bool wsdl;
+        Bool	generated;
+        Bool	wsdl;
 	int	num;
+	char	*pattern;
+	long	minLength;
+	long	maxLength;
 } Tnode;
 
 typedef	union Value {
@@ -225,9 +228,8 @@ typedef	struct IDinfo {
 	Bool	hasval;		/* if true, identifier is constant */
 	Value	val;		/* ... with this value */
 	int	offset;
-	int	minOccurs;
-	int	maxOccurs;
-	char	*pattern;
+	long	minOccurs;
+	long	maxOccurs;
 } IDinfo;
 
 typedef	struct Entry {
@@ -256,8 +258,8 @@ typedef	struct Node {
 	Storage	sto;
 	Bool	hasval;		/* if true, this node has a constant value */
 	Value	val;		/* ... this is the value */
-	int	minOccurs;
-	int	maxOccurs;
+	long	minOccurs;
+	long	maxOccurs;
 	char	*pattern;
 } Node;
 
@@ -289,6 +291,8 @@ typedef struct Service
 	char *WSDL;
 	char *style;
 	char *encoding;
+	char *elementForm;
+	char *attributeForm;
 	char *documentation;
 	struct Method *list;
 } Service;
@@ -326,6 +330,7 @@ extern int eflag;
 extern int mflag;
 extern int nflag;
 extern int lflag;
+extern int tflag;
 extern int xflag;
 extern char dirpath[1024];
 extern char filename[1024];

@@ -76,6 +76,7 @@ static Keyword keywords[] =
 	"long",		LONG,
 	"LONG64",	LLONG,
 	"namespace",	NAMESPACE,
+	"NULL",		null,
 	"operator",	OPERATOR,
 	"private",	PRIVATE,
 	"protected",	PROTECTED,
@@ -138,6 +139,7 @@ static Keyword keywords[] =
 	"operator%",	NONE,
 	"operator++",	NONE,
 	"operator--",	NONE,
+	"operator->",	NONE,
 	"operator[]",	NONE,
 	"operator()",	NONE,
 
@@ -159,7 +161,7 @@ static Keyword keywords[] =
 	"faultactor",		ID,
 	"detail",		ID,
 	"__type",		ID,
-	"value",		ID,
+	"fault",		ID,
 	"__any",		ID,
 
 	"_QName",		TYPE,
@@ -176,7 +178,7 @@ static Keyword keywords[] =
 init - initialize symbol table with predefined keywords
 */
 init()
-{	struct	Keyword *k;
-	for (k = keywords; k->s; k++)
-		install(k->s, k->t);
+{ struct Keyword *k;
+  for (k = keywords; k->s; k++)
+    install(k->s, k->t);
 }

@@ -5,7 +5,9 @@ includes.h
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -24,6 +26,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 */
 
@@ -33,7 +37,7 @@ engelen@genivia.com / engelen@acm.org
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.1.2"
+#define VERSION "1.1.4d"
 
 #include <utility>
 #include <iterator>
@@ -67,7 +71,7 @@ typedef map<Pair, const char*, ltpair> MapOfPairToString;
 
 typedef map<const char*, size_t, ltstr> MapOfStringToNum;
 
-extern int cflag, fflag, lflag, mflag, pflag, sflag, vflag;
+extern int cflag, eflag, fflag, iflag, lflag, mflag, pflag, sflag, vflag;
 
 extern FILE *stream;
 

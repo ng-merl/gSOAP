@@ -4,9 +4,14 @@ soapcpp2_yacc.y
 
 Yacc/Bison grammar.
 
-Note:
+Notes:
+
 Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small Compile with
 -DYYINITDEPTH=1000
+
+This grammar has one shift/reduce conflict related to the use of a class
+declaration with a base class and the use of a maxOccurs. However, the conflict
+is resolved in favor of a shift, which leads to the correct parsing behavior.
 
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
@@ -130,7 +135,7 @@ Pragma	**pp;
 %token	<sym> TIME     USING   NAMESPACE ULLONG
 %token	<sym> MUSTUNDERSTAND   SIZE      FRIEND
 %token	<sym> TEMPLATE EXPLICIT		 TYPENAME
-%token	<sym> RESTRICT
+%token	<sym> RESTRICT null
 /* */
 %token	NONE
 /* identifiers (TYPE = typedef identifier) */
@@ -147,7 +152,7 @@ Pragma	**pp;
 %type	<sym> id arg name
 %type	<s> patt
 /* expressions and statements */
-%type	<rec> expr cexp oexp obex aexp abex rexp lexp pexp init spec tspec ptrs array texp qexp occurs
+%type	<rec> expr cexp oexp obex aexp abex rexp lexp pexp init spec tspec ptrs array arrayck texp qexp occurs
 /* terminals */
 %left	','
 %right	'=' PA NA TA DA MA AA XA OA LA RA  /* += -= *= /= %= &= ^= |= <<= >>= */
@@ -291,7 +296,7 @@ dclrs	: spec		{ }
 	| dclrs ',' fdclr func
 			{ }
 	;
-dclr	: ptrs ID array occurs init
+dclr	: ptrs ID arrayck occurs init
 			{ if (($3.sto & Stypedef) && sp->table->level == GLOBAL)
 			  {	p = enter(typetable, $2);
 				p->info.typ = mksymtype($3.typ, $2);
@@ -300,17 +305,22 @@ dclr	: ptrs ID array occurs init
 				else
 					p->info.typ->transient = $3.typ->transient;
 			  	p->info.sto = $3.sto;
-				p->info.pattern = $4.pattern;
+				p->info.typ->pattern = $4.pattern;
+				if ($4.minOccurs >= 0)
+				{	p->info.typ->minLength = $4.minOccurs;
+					if ($4.minOccurs > $4.maxOccurs)
+						p->info.typ->maxLength = $4.minOccurs;
+					else
+						p->info.typ->maxLength = $4.maxOccurs;
+				}
+				else if ($4.maxOccurs > 1)
+					p->info.typ->maxLength = $4.maxOccurs;
 				$2->token = TYPE;
 			  }
 			  else
 			  {	p = enter(sp->table, $2);
 			  	p->info.typ = $3.typ;
 			  	p->info.sto = $3.sto;
-				if (!($3.sto & Stypedef) && (($3.typ->type == Tclass && $3.typ->transient > 0) || $3.typ->type == Ttemplate))
-				{	sprintf(errbuf, "must declare '%s' pointer to '%s' to avoid copying '%s' instances at run time", $2->name, $3.typ->id->name, $3.typ->id->name);
-					semwarn(errbuf);
-				}
 				if ($5.hasval)
 				{	p->info.hasval = True;
 					switch ($3.typ->type)
@@ -329,7 +339,9 @@ dclr	: ptrs ID array occurs init
 							if ($5.typ->type == Tint || $5.typ->type == Tchar || $5.typ->type == Tenum)
 								sp->val = p->info.val.i = $5.val.i;
 							else
-								semerror("type error in initialization constant");
+							{	semerror("type error in initialization constant");
+								p->info.hasval = False;
+							}
 							break;
 						case Tfloat:
 						case Tdouble:
@@ -338,7 +350,9 @@ dclr	: ptrs ID array occurs init
 							else if ($5.typ->type == Tint)
 								p->info.val.r = (double)$5.val.i;
 							else
-								semerror("type error in initialization constant");
+							{	semerror("type error in initialization constant");
+								p->info.hasval = False;
+							}
 							break;
 						default:
 							if ($3.typ->type == Tpointer
@@ -349,15 +363,23 @@ dclr	: ptrs ID array occurs init
 							else if ($3.typ->type == Tpointer
 							      && ((Tnode*)$3.typ->ref)->id == lookup("std::string"))
 							      	p->info.val.s = $5.val.s;
+							else if ($3.typ->id == lookup("std::string"))
+							      	p->info.val.s = $5.val.s;
+							else if ($3.typ->type == Tpointer
+							      && $5.typ->type == Tint
+							      && $5.val.i == 0)
+								p->info.val.i = 0;
 							else
-								semerror("Initialization constant type error");
+							{	semerror("type error in initialization constant");
+								p->info.hasval = False;
+							}
 							break;
 					}
 				}
 				else
 					p->info.val.i = sp->val;
 			        if ($4.minOccurs < 0)
-			        {	if ($3.typ->type == Tpointer)
+			        {	if (($3.sto & Sattribute) || $3.typ->type == Tpointer || $3.typ->type == Ttemplate || !strncmp($2->name, "__size", 6))
 			        		p->info.minOccurs = 0;
 			        	else
 			        		p->info.minOccurs = 1;
@@ -365,7 +387,6 @@ dclr	: ptrs ID array occurs init
 				else
 					p->info.minOccurs = $4.minOccurs;
 				p->info.maxOccurs = $4.maxOccurs;
-				p->info.pattern = $4.pattern;
 				if (sp->mask)
 					sp->val <<= 1;
 				else
@@ -436,6 +457,7 @@ name	: ID		{ $$ = $1; }
 	| OPERATOR '%'	{ $$ = lookup("operator%"); }
 	| OPERATOR PP	{ $$ = lookup("operator++"); }
 	| OPERATOR NN	{ $$ = lookup("operator--"); }
+	| OPERATOR AR   { $$ = lookup("operator->"); }
 	| OPERATOR'['']'{ $$ = lookup("operator[]"); }
 	| OPERATOR'('')'{ $$ = lookup("operator()"); }
 	| OPERATOR texp { s1 = c_storage($2.sto);
@@ -476,7 +498,7 @@ destr	: virtual '~' TYPE
 			  sp->node.sto = Snone;
 			}
 	;
-func	: fname '(' s2 fargso ')' constobj abstract
+func	: fname '(' s6 fargso ')' constobj abstract
 			{ if ($1->level == GLOBAL)
 			  {	if (!($1->info.sto & Sextern) && sp->entry && sp->entry->info.typ->type == Tpointer && ((Tnode*)sp->entry->info.typ->ref)->type == Tchar)
 			  	{	sprintf(errbuf, "last output parameter of remote method function prototype '%s' is a pointer to a char which will only return one byte: use char** instead to return a string", $1->sym->name);
@@ -488,6 +510,7 @@ func	: fname '(' s2 fargso ')' constobj abstract
 				{	if ($1->info.typ->type == Tint)
 					{	sp->entry->info.sto = (Storage)((int)sp->entry->info.sto | (int)Sreturn);
 						$1->info.typ = mkfun(sp->entry);
+						$1->info.typ->id = $1->sym;
 						if (!is_transient(sp->entry->info.typ))
 							if (!is_response(sp->entry->info.typ))
 							{	if (!is_XML(sp->entry->info.typ))
@@ -527,6 +550,7 @@ func	: fname '(' s2 fargso ')' constobj abstract
 			  else if ($1->level == INTERNAL)
 			  {	$1->info.typ = mkmethod($1->info.typ, sp->table);
 				$1->info.sto = (Storage)((int)$1->info.sto | (int)$6 | (int)$7);
+			  	transient &= ~1;
 			  }
 			  exitscope();
 			}
@@ -539,17 +563,22 @@ fargso	: /* empty */	{ }
 fargs	: farg		{ }
 	| farg ',' fargs{ }
 	;
-farg	: tspec ptrs arg array init
+farg	: tspec ptrs arg arrayck occurs init
 			{ if ($4.sto & Stypedef)
 			  	semwarn("typedef in function argument");
 			  p = enter(sp->table, $3);
 			  p->info.typ = $4.typ;
 			  p->info.sto = $4.sto;
-			  if (($4.typ->type == Tclass && $4.typ->transient > 0) || $4.typ->type == Ttemplate)
-			  {	sprintf(errbuf, "must declare '%s' pointer to '%s' to avoid copying '%s' instances at run time", $3->name, $4.typ->id->name, $4.typ->id->name);
-				semwarn(errbuf);
+			  if ($5.minOccurs < 0)
+			  {	if (($4.sto & Sattribute) || $4.typ->type == Tpointer)
+			        	p->info.minOccurs = 0;
+			       	else
+			        	p->info.minOccurs = 1;
 			  }
-			  if ($5.hasval)
+			  else
+				p->info.minOccurs = $5.minOccurs;
+			  p->info.maxOccurs = $5.maxOccurs;
+			  if ($6.hasval)
 			  {	p->info.hasval = True;
 				switch ($4.typ->type)
 				{	case Tchar:
@@ -562,31 +591,43 @@ farg	: tspec ptrs arg array init
 					case Tulong:
 					case Tenum:
 					case Ttime:
-						if ($5.typ->type == Tint || $5.typ->type == Tchar || $5.typ->type == Tenum)
-							sp->val = p->info.val.i = $5.val.i;
+						if ($6.typ->type == Tint || $6.typ->type == Tchar || $6.typ->type == Tenum)
+							sp->val = p->info.val.i = $6.val.i;
 						else
-							semerror("type error in initialization constant");
+						{	semerror("type error in initialization constant");
+							p->info.hasval = False;
+						}
 						break;
 					case Tfloat:
 					case Tdouble:
-						if ($5.typ->type == Tfloat || $5.typ->type == Tdouble)
-							p->info.val.r = $5.val.r;
-						else if ($5.typ->type == Tint)
-							p->info.val.r = (double)$5.val.i;
+						if ($6.typ->type == Tfloat || $6.typ->type == Tdouble)
+							p->info.val.r = $6.val.r;
+						else if ($6.typ->type == Tint)
+							p->info.val.r = (double)$6.val.i;
 						else
-							semerror("type error in initialization constant");
+						{	semerror("type error in initialization constant");
+							p->info.hasval = False;
+						}
 						break;
 					default:
 						if ($4.typ->type == Tpointer
 						 && ((Tnode*)$4.typ->ref)->type == Tchar
-						 && $5.typ->type == Tpointer
-						 && ((Tnode*)$5.typ->ref)->type == Tchar)
-							p->info.val.s = $5.val.s;
+						 && $6.typ->type == Tpointer
+						 && ((Tnode*)$6.typ->ref)->type == Tchar)
+							p->info.val.s = $6.val.s;
 						else if ($4.typ->type == Tpointer
 						      && ((Tnode*)$4.typ->ref)->id == lookup("std::string"))
-						      	p->info.val.s = $5.val.s;
+						      	p->info.val.s = $6.val.s;
+						else if ($4.typ->id == lookup("std::string"))
+						      	p->info.val.s = $6.val.s;
+						else if ($4.typ->type == Tpointer
+						      && $6.typ->type == Tint
+						      && $6.val.i == 0)
+							p->info.val.i = 0;
 						else
-							semerror("Initialization constant type error");
+						{	semerror("type error in initialization constant");
+							p->info.hasval = False;
+						}
 						break;
 				}
 			  }
@@ -605,7 +646,7 @@ arg	: /* empty */	{ if (eflag && vflag == 1)
 			  else
 				$$ = gensym("param");
 			}
-	| ID		{ if (vflag != 1 && *$1->name == '_')
+	| ID		{ if (vflag != 1 && *$1->name == '_' && sp->table->level == GLOBAL)
 			  { sprintf(errbuf, "SOAP 1.2 does not support anonymous parameters '%s'", $1->name);
 			    semwarn(errbuf);
 			  }
@@ -1106,6 +1147,12 @@ s4	: /* empty */	{ enterscope(mktable((Table*) 0), 0);
 s5	: /* empty */	{ }
 	| ','		{ }
 	;
+s6	: /* empty */	{ if (sp->table->level == INTERNAL)
+			  	transient |= 1;
+			  enterscope(mktable((Table*) 0), 0);
+			  sp->entry = (Entry*)0;
+			}
+	;
 store	: AUTO		{ $$ = Sauto; }
 	| REGISTER	{ $$ = Sregister; }
 	| STATIC	{ $$ = Sstatic; }
@@ -1141,24 +1188,10 @@ ptrs	: /* empty */	{ $$ = tmp = sp->node; }
 			}
 	;
 array	: /* empty */ 	{ $$ = tmp;	/* tmp is inherited */
-			  switch (tmp.typ->type)
-			  {	case Tstruct:
-					if (!tmp.typ->ref && !tmp.typ->transient && !(tmp.sto & Stypedef))
-			   		{	sprintf(errbuf, "struct '%s' has incomplete type", tmp.typ->id->name);
-						semerror(errbuf);
-					}
-					break;
-			   	case Tclass:
-					if (!tmp.typ->ref && !tmp.typ->transient && !(tmp.sto & Stypedef))
-			   		{	sprintf(errbuf, "class '%s' has incomplete type", tmp.typ->id->name);
-						semerror(errbuf);
-						break;
-			  		}
-			  }
 			}
 	| '[' cexp ']' array
 			{ if ($4.typ->type == Tchar)
-			  {	sprintf(errbuf, "char[%d] will be encoded as an array of %d bytes: use char* for strings", $2.val.i, $2.val.i);
+			  {	sprintf(errbuf, "char["SOAP_LONG_FORMAT"] will be encoded as an array of "SOAP_LONG_FORMAT" bytes: use char* for strings", $2.val.i, $2.val.i);
 			  	semwarn(errbuf);
 			  }
 			  if ($2.hasval && $2.typ->type == Tint && $2.val.i > 0 && $4.typ->width > 0)
@@ -1173,6 +1206,14 @@ array	: /* empty */ 	{ $$ = tmp;	/* tmp is inherited */
 			  $$.sto = $3.sto;
 			}
 	;
+arrayck	: array		{ if ($1.typ->type == Tstruct || $1.typ->type == Tclass)
+				if (!$1.typ->ref && !$1.typ->transient && !($1.sto & Stypedef))
+			   	{	sprintf(errbuf, "struct/class '%s' has incomplete type", $1.typ->id->name);
+					semerror(errbuf);
+				}
+			  $$ = $1;
+			}
+	;
 init	: /* empty */   { $$.hasval = False; }
 	| '=' cexp      { if ($2.hasval)
 			  {	$$.typ = $2.typ;
@@ -1185,15 +1226,18 @@ init	: /* empty */   { $$.hasval = False; }
 			  }
 			}
         ;
-occurs	: patt		{ $$.minOccurs = -1;
+occurs	: patt
+			{ $$.minOccurs = -1;
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
-	| patt LNG	{ $$.minOccurs = $2;
+	| patt LNG
+			{ $$.minOccurs = $2;
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
-	| patt LNG ':'	{ $$.minOccurs = $2;
+	| patt LNG ':'
+			{ $$.minOccurs = $2;
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
@@ -1202,7 +1246,8 @@ occurs	: patt		{ $$.minOccurs = -1;
 			  $$.maxOccurs = $4;
 			  $$.pattern = $1;
 			}
-	| patt ':' LNG	{ $$.minOccurs = -1;
+	| patt ':' LNG
+			{ $$.minOccurs = -1;
 			  $$.maxOccurs = $3;
 			  $$.pattern = $1;
 			}
@@ -1318,6 +1363,10 @@ pexp	: '(' expr ')'	{ $$ = $2; }
 	| LNG		{ $$.typ = mkint();
 			  $$.hasval = True;
 			  $$.val.i = $1;
+			}
+	| null		{ $$.typ = mkint();
+			  $$.hasval = True;
+			  $$.val.i = 0;
 			}
 	| DBL		{ $$.typ = mkfloat();
 			  $$.hasval = True;
@@ -1563,7 +1612,7 @@ add_fault(Table *gt)
     p3 = enter(t, lookup("__type"));
     p3->info.typ = mkint();
     p3->info.minOccurs = 0;
-    p3 = enter(t, lookup("value"));
+    p3 = enter(t, lookup("fault"));
     p3->info.typ = mkpointer(mkvoid());
     p3->info.minOccurs = 0;
     p3 = enter(t, lookup("__any"));

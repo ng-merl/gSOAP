@@ -6,8 +6,10 @@ XSD binding schema implementation
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -26,10 +28,16 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 */
 
 #include "wsdlH.h"		// cannot include "schemaH.h"
+
+#ifdef WITH_NONAMESPACES
+extern struct Namespace namespaces[];
+#endif
 
 using namespace std;
 
@@ -45,6 +53,9 @@ extern int is_builtin_qname(const char*);
 
 xs__schema::xs__schema()
 { soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
+#ifdef WITH_NONAMESPACES
+  soap_set_namespaces(soap, namespaces);
+#endif
   soap_default(soap);
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
@@ -122,6 +133,8 @@ int xs__schema::traverse()
   // process complexTypes
   for (vector<xs__complexType>::iterator ct = complexType.begin(); ct != complexType.end(); ++ct)
     (*ct).traverse(*this);
+  if (vflag)
+    cerr << "end of schema " << (targetNamespace?targetNamespace:"") << endl;
   return SOAP_OK;
 }
 
@@ -158,17 +171,17 @@ int xs__schema::read(const char *location)
       }
     }
   }
-  soap_begin_recv(soap);
-  this->soap_in(soap, "xs:schema", NULL);
+  if (!soap_begin_recv(soap))
+    this->soap_in(soap, "xs:schema", NULL);
+  if ((soap->error >= 301 && soap->error <= 303) || soap->error == 307) // HTTP redirect, socket was closed
+  { fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
+    return read(soap_strdup(soap, soap->endpoint));
+  }
   if (soap->error)
   { fprintf(stderr, "An error occurred while parsing schema from '%s'\n", location?location:"");
     soap_print_fault(soap, stderr);
     soap_print_fault_location(soap, stderr);
     exit(1);
-  }
-  else if (soap->error == 307) // HTTP redirect, socket was closed
-  { fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
-    return read(soap->endpoint);
   }
   soap_end_recv(soap);
   if (soap->recvfd >= 0)
@@ -179,6 +192,7 @@ int xs__schema::read(const char *location)
     soap_closesock(soap);
   return SOAP_OK;
 }
+
 int xs__schema::error()
 { return soap->error;
 }
@@ -248,7 +262,7 @@ xs__import::~xs__import()
 
 int xs__import::traverse(xs__schema &schema)
 { if (vflag)
-    cerr << "schema import" << endl;
+    cerr << "schema import " << (namespace_?namespace_:"") << endl;
   if (!schemaRef)
   { struct Namespace *p = schema.soap->local_namespaces;
     const char *s = schemaLocation;
@@ -267,8 +281,16 @@ int xs__import::traverse(xs__schema &schema)
       }
       else
 	fprintf(stderr, "Warning: no namespace table\n");
-      if (!p || !p->id) // don't import any of the schemas in the .nsmap table
-        schemaRef = new xs__schema(schema.soap, s);
+      if (!iflag && (!p || !p->id)) // don't import any of the schemas in the .nsmap table (or when -i option is used)
+      { schemaRef = new xs__schema(schema.soap, s);
+        if (schemaPtr())
+        { if (!schemaPtr()->targetNamespace || !*schemaPtr()->targetNamespace)
+            schemaPtr()->targetNamespace = namespace_;
+	  else if (strcmp(schemaPtr()->targetNamespace, namespace_))
+            fprintf(stderr, "Warning: schema import '%s' with schema targetNamespace '%s' mismatch\n", namespace_?namespace_:"", schemaPtr()->targetNamespace);
+	  schemaPtr()->traverse();
+        }
+      }
     }
     else if (vflag)
       fprintf(stderr, "Warning: no schemaLocation for namespace import '%s'\n", namespace_?namespace_:"");
@@ -283,6 +305,15 @@ void xs__import::schemaPtr(xs__schema *schema)
 xs__schema *xs__import::schemaPtr() const
 { return schemaRef;
 }
+
+xs__attribute::xs__attribute()
+{ schemaRef = NULL;
+  attributeRef = NULL;
+  simpleTypeRef = NULL;
+}
+
+xs__attribute::~xs__attribute()
+{ }
 
 int xs__attribute::traverse(xs__schema &schema)
 { if (vflag)
@@ -717,6 +748,14 @@ int xs__complexContent::traverse(xs__schema &schema)
   return SOAP_OK;
 }
 
+xs__extension::xs__extension()
+{ simpleTypeRef = NULL;
+  complexTypeRef = NULL;
+}
+
+xs__extension::~xs__extension()
+{ }
+
 int xs__extension::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema extension" << endl;
@@ -728,8 +767,8 @@ int xs__extension::traverse(xs__schema &schema)
     choice->traverse(schema);
   else if (sequence)
     sequence->traverse(schema);
-  for (vector<xs__attribute>::iterator i = attribute.begin(); i != attribute.end(); ++i)
-    (*i).traverse(schema);
+  for (vector<xs__attribute>::iterator at = attribute.begin(); at != attribute.end(); ++at)
+    (*at).traverse(schema);
   const char *token = qname_token(base, schema.targetNamespace);
   simpleTypeRef = NULL;
   if (token)
@@ -817,6 +856,14 @@ xs__complexType *xs__extension::complexTypePtr() const
 { return complexTypeRef;
 }
 
+xs__restriction::xs__restriction()
+{ simpleTypeRef = NULL;
+  complexTypeRef = NULL;
+}
+
+xs__restriction::~xs__restriction()
+{ }
+
 int xs__restriction::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema restriction" << endl;
@@ -834,6 +881,8 @@ int xs__restriction::traverse(xs__schema &schema)
     for (vector<xs__pattern>::iterator pn = pattern.begin(); pn != pattern.end(); ++pn)
       (*pn).traverse(schema);
   }
+  for (vector<xs__attribute>::iterator at = attribute.begin(); at != attribute.end(); ++at)
+    (*at).traverse(schema);
   const char *token = qname_token(base, schema.targetNamespace);
   simpleTypeRef = NULL;
   if (token)
@@ -921,6 +970,13 @@ xs__complexType *xs__restriction::complexTypePtr() const
 { return complexTypeRef;
 }
 
+xs__list::xs__list()
+{ itemTypeRef = NULL;
+}
+
+xs__list::~xs__list()
+{ }
+
 int xs__list::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema list" << endl;
@@ -957,7 +1013,7 @@ int xs__list::traverse(xs__schema &schema)
       }
     }
   }
-  if (itemType)
+  if (itemType && !itemTypeRef)
   { if (is_builtin_qname(itemType))
       schema.builtinType(itemType);
     else
@@ -1013,17 +1069,26 @@ int xs__sequence::traverse(xs__schema &schema)
     (*gp).traverse(schema);
   for (vector<xs__choice>::iterator ch = choice.begin(); ch != choice.end(); ++ch)
     (*ch).traverse(schema);
+  for (vector<xs__sequence*>::iterator sq = sequence.begin(); sq != sequence.end(); ++sq)
+    (*sq)->traverse(schema);
   for (vector<xs__any>::iterator an = any.begin(); an != any.end(); ++an)
     (*an).traverse(schema);
   return SOAP_OK;
 }
 
+xs__attributeGroup::xs__attributeGroup()
+{ schemaRef = NULL;
+  attributeGroupRef = NULL;
+}
+
+xs__attributeGroup::~xs__attributeGroup()
+{ }
 
 int xs__attributeGroup::traverse(xs__schema& schema)
 { if (vflag)
     cerr << "attributeGroup" << endl;
-  for (vector<xs__attribute>::iterator i = attribute.begin(); i != attribute.end(); ++i)
-    (*i).traverse(schema);
+  for (vector<xs__attribute>::iterator at = attribute.begin(); at != attribute.end(); ++at)
+    (*at).traverse(schema);
   return SOAP_OK;
 }
 
@@ -1050,6 +1115,14 @@ int xs__any::traverse(xs__schema &schema)
     (*i).traverse(schema);
   return SOAP_OK;
 }
+
+xs__group::xs__group()
+{ schemaRef = NULL;
+  groupRef = NULL;
+}
+
+xs__group::~xs__group()
+{ }
 
 int xs__group::traverse(xs__schema &schema)
 { if (vflag)
@@ -1133,6 +1206,9 @@ ostream &operator<<(ostream &o, const xs__schema &e)
 { if (!e.soap)
   { struct soap soap;
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_TREE | SOAP_C_UTFSTRING);
+#ifdef WITH_NONAMESPACES
+    soap_set_namespaces(&soap, namespaces);
+#endif
     e.soap_serialize(&soap);
     soap_begin_send(&soap);
     e.soap_out(&soap, "xs:schema", 0, NULL);
@@ -1155,6 +1231,9 @@ ostream &operator<<(ostream &o, const xs__schema &e)
 istream &operator>>(istream &i, xs__schema &e)
 { if (!e.soap)
     e.soap = soap_new();
+#ifdef WITH_NONAMESPACES
+  soap_set_namespaces(e.soap, namespaces);
+#endif
   istream *is = e.soap->is;
   e.soap->is = &i;
   if (soap_begin_recv(e.soap)
@@ -1165,5 +1244,4 @@ istream &operator>>(istream &i, xs__schema &e)
   e.soap->is = is;
   return i;
 }
-
 

@@ -40,48 +40,25 @@ soap_dispatch_callback(struct soap *soap, int idx, const char *msg, size_t len)
 // Note: 'msg' is not 0-terminated!
 void
 soap_recv_callback(struct soap *soap, const char *msg, size_t len)
-{ char tmp[SOAP_BUFLEN+1];
-  if (len <= SOAP_BUFLEN)
-  { memcpy(tmp, msg, len);
-    tmp[len] = '\0';
-    *(ostream*)soap->user
-	<< endl
+{ ostream& os = *(ostream*)soap->user;
+  os << endl
 	<< "Received:" << endl
-	<< "----------------------------------------" << endl
-	<< tmp << endl
 	<< "----------------------------------------" << endl;
-  }
-  else
-    *(ostream*)soap->user
-    	<< endl
-    	<< "Received Data" << endl;
+  os.write(msg, len);
+  os << "----------------------------------------" << endl;
 }
 
 void
 soap_sent_callback(struct soap *soap, const char *msg, size_t len)
-{ char tmp[SOAP_BUFLEN+1];
-  if (len <= SOAP_BUFLEN)
-  { memcpy(tmp, msg, len);
-    tmp[len] = '\0';
-    *(ostream*)soap->user
-    	<< endl
+{ ostream& os = *(ostream*)soap->user;
+  os << endl
 	<< "Sent:" << endl
-	<< "----------------------------------------" << endl
-	<< tmp << endl
 	<< "----------------------------------------" << endl;
-  }
-  else
-    *(ostream*)soap->user
-    	<< endl
-    	<< "Sent Data" << endl;
+  os.write(msg, len);
+  os << "----------------------------------------" << endl;
 }
 
 void
 soap_test_callback(struct soap *soap, const char *msg, size_t len)
-{ char tmp[SOAP_BUFLEN+1];
-  if (len <= SOAP_BUFLEN)
-  { memcpy(tmp, msg, len);
-    tmp[len] = '\0';
-    *(ostream*)soap->user << "Trace: " << tmp;
-  }
+{ (*(ostream*)soap->user << "Trace: ").write(msg, len);
 }

@@ -17,18 +17,20 @@
 	soapcpp2 -c router.h
 	gcc -o router router.c stdsoap2.c soapC.c
 
+	NOTE: Unix/Linux SIGPIPE handler must be added to avoid broken pipe.
+
 	Usage scenarios
 	===============
 
 	Forwarding of messages to a service
 	-----------------------------------
 
-	router [-e<endpoint> | -g<endpoint>] [-a<SOAPAction>] [-r<routingfile>] [-t<timeout>] [<msgfile>]
+	router [-e<endpoint> | -g<endpoint>] [-a<SOAPAction>] [-r<routingfile>] [-t<timeout>] [-c] [<msgfile>]
 
 	Examples:
 
 	1.
-	router request.soap
+	router -c request.soap
 	Sends the request message stored in file request.soap and returns
 	response to stdout where file request.soap contains a SOAP request with
 	HTTP header and SOAP/XML/DIME body. If the SOAPAction in the message is
@@ -41,7 +43,7 @@
 	the alternative endpoints will be tried first until one endpoint is
 	found to accept the connection. Finally, the endpoint in the HTTP
 	header of request.soap is used to establish a connection if all other
-	service endpoints in the table failed.
+	service endpoints in the table failed and if option -c is enabled.
 
 	2.
 	router -ehttp://domain/path request.soap
@@ -55,7 +57,7 @@
 
 	To try this, compile the 'quote' client (samples/quote). Edit the
 	'quote.getQuote.req.xml' SOAP/XML request file and replace
-	<symbol></symbol> with <symbol>AOL</symbol>. Then run
+	<symbol></symbol> with <symbol>IBM</symbol>. Then run
 	router -ehttp://services.xmethods.net/soap -a"" quote.getQuote.req.xml
 	The SOAP/XML response is returned.
 
@@ -69,14 +71,14 @@
 	body.
 
 	4.
-	router -rroutingtable.xml request.soap
+	router -c -rroutingtable.xml request.soap
 	Same as 1. but uses routingtable.xml as the routing table after
 	checking keys in the internal routing table. The XSD schema of
 	routingtable.xml is generated as t.xsd. The default routing table file
 	is router.xml.
 
 	5.
-	router -t5 request.soap
+	router -c -t5 request.soap
 	Same as 1. but searches the routing table for an endpoint that takes
 	less than 5 seconds to connect to. Use negative timeouts to specify a
 	timeout value in microseconds. The timeout also specifies the message
@@ -159,7 +161,8 @@
 	  Next, HTTP query string in the endpoint URL (CGI only) is used to
 	  match routing table keys.
 	  Next, the service endpoint is checked to match routing table keys.
-	  Finally, the service endpoint URL itself is used to connect.
+	  Finally, if the -c option is set the service endpoint URL itself is
+	  used to connect.
 	* Keys in routing table may contain * (multi-char) and - (single-char)
 	  wildcards to match multiple SOAPActions and endpoints.
 	* When a match is found but the endpoint is NULL in the table, the
@@ -219,6 +222,7 @@ static const char *service_action = NULL;
 static const char *routing_file = DEFAULT_ROUTINGFILE;
 static int server_timeout = 0;
 static int method = SOAP_POST;
+static int connect_flag = 0;
 
 void options(int, char**);
 void *process_request(void*);
@@ -238,7 +242,7 @@ main(int argc, char **argv)
     pthread_t tid;
     int m, s, i;
     soap_init(&soap);
-    soap.bind_flags = SO_REUSEADDR; /* don't use this in a non-secure environment. We keep it here so you can quickly restart the router */
+    soap.bind_flags = SO_REUSEADDR; /* don't use this in a secure environment. We keep it here so you can quickly restart the router */
     m = soap_bind(&soap, NULL, port_number, BACKLOG);
     if (m < 0)
     { soap_print_fault(&soap, stderr);
@@ -248,7 +252,10 @@ main(int argc, char **argv)
     for (i = 1; ; i++)
     { s = soap_accept(&soap);
       if (s < 0)
-      { soap_print_fault(&soap, stderr);
+      { if (soap.errnum)
+          soap_print_fault(&soap, stderr);
+        else
+          fprintf(stderr, "router timed out\n"); /* if accept_timeout is set */
         break;
       }
       fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
@@ -276,7 +283,7 @@ main(int argc, char **argv)
         service_action = getenv("QUERY_STRING");
     }
     if (method == SOAP_POST)
-    { wchar c;
+    { soap_wchar c;
       if (input_file)
       { client.recvfd = open(input_file, O_RDONLY);
         if (client.recvfd < 0)
@@ -284,8 +291,7 @@ main(int argc, char **argv)
           exit(1);
         }
       }
-      c = soap_getchar(&client);
-      client.bufidx--; /* instead of unget: enables copying buffer */
+      c = soap_get0(&client);
       if (c == 'G' || c == 'P') /* simple check to see if HTTP GET/POST header is present */
       { if (copy_header(&client, &server, service_endpoint, service_action))
         { client.error = server.error;
@@ -319,6 +325,8 @@ main(int argc, char **argv)
     /* should check these for errors: */
     copy_header(&server, &client, NULL, NULL);
     copy_body(&server, &client);
+    soap_closesock(&client);
+    soap_closesock(&server);
     soap_end(&client);
     soap_end(&server);
     soap_done(&client);
@@ -338,7 +346,7 @@ options(int argc, char **argv)
       while (flag && *++arg)
         switch (*arg)
         { case 'h':
-            fprintf(stderr, "Usage: router [-p<port>] [-e<endpoint> | -g<endpoint>] [-a<action>] [-r<routingfile>] [<msgfile>]\n");
+            fprintf(stderr, "Usage: router [-p<port>] [-e<endpoint> | -g<endpoint>] [-a<action>] [-r<routingfile>] [-c] [<msgfile>]\n");
             exit(0);
           case 'p':
             flag = 0;
@@ -397,6 +405,9 @@ options(int argc, char **argv)
               exit(1);
             }
             break;
+	  case 'c':
+	    connect_flag = 1;
+	    break;
           default:
             fprintf(stderr, "router: unknown option -%c\n", *arg);
 	}
@@ -409,13 +420,12 @@ options(int argc, char **argv)
 void*
 process_request(void *soap)
 { struct soap *client, server;
-  wchar c;
+  soap_wchar c;
   pthread_detach(pthread_self());
   client = (struct soap*)soap;
   soap_init(&server);
   soap_begin(client);
-  c = soap_getchar(client);
-  client->bufidx--; /* instead of unget: enables copying buffer */
+  c = soap_get0(client);
   if (c == 'G' || c == 'P') /* simple check to see if HTTP GET/POST header is present */
   { if (copy_header(client, &server, NULL, NULL))
       client->error = server.error;
@@ -425,7 +435,7 @@ process_request(void *soap)
     if (create_header(&server, method, service_endpoint, service_action, client->length))
       client->error = server.error;
   }
-  if (!server.error)
+  if (!client->error)
   { copy_body(client, &server);
     soap_begin(&server);
     copy_header(&server, client, NULL, NULL);
@@ -433,10 +443,12 @@ process_request(void *soap)
   }
   else
     soap_send_fault(client);
+  soap_closesock(client);
+  soap_closesock(&server);
   soap_end(client);
   soap_end(&server);
-  soap_done(&server);
   soap_done(client);
+  soap_done(&server);
   free(soap);
   return NULL;
 }
@@ -521,8 +533,7 @@ make_connect(struct soap *server, const char *endpoint)
 
 int
 server_connect(struct soap *server, const char *endpoint, const char *action, const char *userid, const char *passwd)
-{ short c = 0;
-  if (action && *action)
+{ if (action && *action)
   { struct t__RoutingTable route;
     route.__ptr = NULL;
     route.__size = 0;
@@ -530,12 +541,10 @@ server_connect(struct soap *server, const char *endpoint, const char *action, co
     while (lookup(&route, action, userid, passwd))
     { fprintf(stderr, "Attempting to connect to '%s'\n", route.__ptr->endpoint);
       if (!make_connect(server, route.__ptr->endpoint))
-      { c = 1;
-        break;
-      }
+        return SOAP_OK;
     }
   }
-  if (!c && endpoint && *endpoint)
+  if (endpoint && *endpoint)
   { struct t__RoutingTable route;
     route.__ptr = NULL;
     route.__size = 0;
@@ -543,17 +552,15 @@ server_connect(struct soap *server, const char *endpoint, const char *action, co
     while (lookup(&route, endpoint, userid, passwd))
     { fprintf(stderr, "Attempting to connect to '%s'\n", route.__ptr->endpoint);
       if (!make_connect(server, route.__ptr->endpoint))
-      { c = 1;
-        break;
-      }
+        return SOAP_OK;
     }
   }
-  if (!c && endpoint && *endpoint)
+  if (connect_flag && endpoint && *endpoint)
   { fprintf(stderr, "Connect to endpoint %s...\n", endpoint);
-    if (make_connect(server, endpoint))
-      return server->error;
+    if (!make_connect(server, endpoint))
+      return SOAP_OK;
   }
-  return SOAP_OK;
+  return server->error = SOAP_TCP_ERROR;
 }
 
 int
@@ -563,21 +570,31 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
   h = (struct header*)malloc(sizeof(struct header));
   for (;;)
   { if (soap_getline(sender, h->line, SOAP_HDRLEN))
+    { free(h);
       return sender->error = SOAP_EOF;
+    }
     t = strchr(h->line, ' ');
     if (!t || strncmp(t, " 100 ", 5))
       break;
     do
-      if (soap_getline(sender, h->line, SOAP_HDRLEN))
+    { if (soap_getline(sender, h->line, SOAP_HDRLEN))
+      { free(h);
         return sender->error = SOAP_EOF;
-    while (*h->line); 
+      }
+    } while (*h->line); 
   }
   p = h;
   for (;;)
   { p = p->next = (struct header*)malloc(sizeof(struct header));
     p->next = NULL;
     if (soap_getline(sender, p->line, SOAP_HDRLEN))
+    { while (h)
+      { p = h->next;
+        free(h);
+        h = p;
+      }
       return sender->error = SOAP_EOF;
+    }
     if (!*p->line)
       break;
     s = t = strchr(p->line, ':');
@@ -592,9 +609,9 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
   }
   s = strstr(h->line, "HTTP/");
   if (s && (!strncmp(h->line, "GET ", 4) || !strncmp(h->line, "POST ", 5)))
-  { int m = strlen(sender->endpoint);
-    int n = m + (s - h->line) - 5 - (*h->line == 'P');
-    if (n >= (int)sizeof(sender->endpoint))
+  { size_t m = strlen(sender->endpoint);
+    size_t n = m + (s - h->line) - 5 - (*h->line == 'P');
+    if (n >= sizeof(sender->endpoint))
       n = sizeof(sender->endpoint) - 1;
     strncpy(sender->path, h->line + 4 + (*h->line == 'P'), n - m);
     sender->path[n - m] = '\0';
@@ -605,11 +622,19 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
   if (!action || !*action)
     action = sender->action;
   if (server_connect(receiver, endpoint, action, receiver->userid, receiver->passwd))
+  { while (h)
+    { p = h->next;
+      free(h);
+      h = p;
+    }
     return receiver->error;
+  }
+  receiver->count = sender->length;
   soap_begin_send(receiver);
+  receiver->mode &= ~SOAP_IO;
+  receiver->mode |= SOAP_IO_BUFFER;
   while (h)
-  { if ((receiver->error = receiver->fposthdr(receiver, h->line, NULL)))
-      return receiver->error;
+  { receiver->fposthdr(receiver, h->line, NULL);
     p = h->next;
     free(h);
     h = p;
@@ -617,7 +642,8 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
   if ((sender->mode & SOAP_IO) == SOAP_IO_CHUNK)
   { if (soap_flush(receiver))
       return receiver->error;
-    receiver->mode = sender->mode;
+    receiver->mode &= ~SOAP_IO;
+    receiver->mode |= SOAP_IO_CHUNK;
   }
   return SOAP_OK;
 }

@@ -15,6 +15,12 @@
 i	= "http://www.soapinterop.org/"
 s	= "http://www.soapinterop.org/xsd"
 
+aws	= "urn:PI/DevCentral/SoapService"
+
+dsig	= "http://www.w3.org/2000/09/xmldsig#"
+
+uddi	= "urn:uddi-org:api_v3"
+
 #	Type definitions consists of a single line containing:
 #	type = declaration | use | pointer-use
 #	where

@@ -6,8 +6,10 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -25,6 +27,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 
 Author contact information:
 engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 
 Build:
@@ -46,7 +50,9 @@ TODO:
 static void options(int argc, char **argv);
 
 int cflag = 0,
+    eflag = 0,
     fflag = 0,
+    iflag = 0,
     lflag = 0,
     mflag = 0,
     pflag = 0,
@@ -70,8 +76,8 @@ char attributeformat[] = "   @%-35s  %-30s";
 char vectorformat[]    = "    std::vector<%-22s> *%-30s";
 char arrayformat[]     = "    %-35s *__ptr%-25s";
 char sizeformat[]      = "    %-35s  __size%-24s";
-char schemaformat[]    = "//gsoap %s schema %s:\t%s\n";
-char serviceformat[]   = "//gsoap %s service %s:\t%s %s\n";
+char schemaformat[]    = "//gsoap %-5s schema %s:\t%s\n";
+char serviceformat[]   = "//gsoap %-4s service %s:\t%s %s\n";
 char paraformat[]      = "    %-35s %s%s";
 char anonformat[]      = "    %-35s _%s%s";
 
@@ -81,6 +87,9 @@ char licensenotice[]   = "\n\
 --------------------------------------------------------------------------------\n\
 gSOAP XML Web services tools\n\
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.\n\
+\n\
+This software is released under one of the following two licenses:\n\
+GPL or Genivia's license for commercial use.\n\
 \n\
 GPL license.\n\
 \n\
@@ -99,6 +108,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA\n\
 \n\
 Author contact information:\n\
 engelen@genivia.com / engelen@acm.org\n\
+--------------------------------------------------------------------------------\n\
+A commercial use license is available from Genivia, Inc., contact@genivia.com\n\
 --------------------------------------------------------------------------------\n";
 
 int main(int argc, char **argv)
@@ -165,8 +176,14 @@ static void options(int argc, char **argv)
         { case 'c':
             cflag = 1;
        	    break;
+	  case 'e':
+	    eflag = 1;
+	    break;
 	  case 'f':
 	    fflag = 1;
+	    break;
+	  case 'i':
+	    iflag = 1;
 	    break;
 	  case 'l':
 	    lflag = 1;
@@ -235,7 +252,7 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-c|-f|-s] [-m] [-n name] [-p] [-r host:port] [-v] [-t typemapfile.dat] [-o outfile.h] [-x] [infile.xsd|infile.wsdl|http://...]\n");
+            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-i] [-m] [-n name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-o outfile.h] [infile.wsdl | infile.xsd | http://...]\n");
             exit(0);
           default:
             fprintf(stderr, "wsdl2h: Unknown option %s\n", a);
@@ -260,10 +277,12 @@ struct Namespace namespaces[] =
   {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding"},
   {"xsi", "http://www.w3.org/2001/XMLSchema-instance"},
   {"xsd", ""}, // http://www.w3.org/2001/XMLSchema"}, // don't use this, it might conflict with xs
-  {"xml", "http://www.w3.org/1998/namespace"},
+  {"xml", "http://www.w3.org/XML/1998/namespace"},
   {"xs", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema" },
   {"http", "http://schemas.xmlsoap.org/wsdl/http/"},
   {"soap", "http://schemas.xmlsoap.org/wsdl/soap/", "http://schemas.xmlsoap.org/wsdl/soap*/"},
+  {"mime", "http://schemas.xmlsoap.org/wsdl/mime/"},
+  {"dime", "http://schemas.xmlsoap.org/ws/2002/04/dime/wsdl/", "http://schemas.xmlsoap.org/ws/*/dime/wsdl/"},
   {"wsdl", "http://schemas.xmlsoap.org/wsdl/"},
   {"gwsdl", "http://www.gridforum.org/namespaces/2003/03/gridWSDLExtensions"},
   {"sd", "http://www.gridforum.org/namespaces/2003/03/serviceData"},

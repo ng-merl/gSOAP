@@ -6,8 +6,10 @@ XSD binding schema interface
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -26,11 +28,16 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 */
 
 //gsoap xs schema documentation:	XSD binding schema
 //gsoap xs schema namespace:		http://www.w3.org/2000/10/XMLSchema
+//gsoap xs schema elementForm:		qualified
+//gsoap xs schema attributeForm:	unqualified
+
 /* For the wsdl:arrayType attribute to support old style SOAP arrays: */
 //gsoap wsdl schema namespace:		http://schemas.xmlsoap.org/wsdl/
 
@@ -87,6 +94,7 @@ class xs__attribute
 	@xsd__QName			type;
 	@enum xs__attribute_use		use			= optional;
 	@xsd__string			value;
+	@xsd__QName			value_;			// also get QName value if attribute type is QName
 	@xsd__QName			wsdl__arrayType;	// extensibility attribute added to simplify WSDL parsing
 	xs__simpleType			*simpleType;
   private:
@@ -94,6 +102,8 @@ class xs__attribute
   	xs__attribute			*attributeRef;		// traverse() finds ref
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type or = simpleType above
   public:
+					xs__attribute();
+					~xs__attribute();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				attributePtr(xs__attribute*);
@@ -136,6 +146,8 @@ class xs__group
 	xs__schema			*schemaRef;		// schema to which this belongs
   	xs__group			*groupRef;		// traverse() finds ref
   public:
+  					xs__group();
+  					~xs__group();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				groupPtr(xs__group*);
@@ -163,7 +175,7 @@ class xs__sequence
 	std::vector<xs__element>	element;
 	std::vector<xs__group>		group;
 	std::vector<xs__choice>		choice;
-	//std::vector<xs__sequence>	sequence;
+	std::vector<xs__sequence*>	sequence;
 	std::vector<xs__any>		any;
   public:
   	int				traverse(xs__schema&);
@@ -178,6 +190,8 @@ class xs__attributeGroup
 	xs__schema			*schemaRef;
   	xs__attributeGroup		*attributeGroupRef;
   public:
+					xs__attributeGroup();
+					~xs__attributeGroup();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				attributeGroupPtr(xs__attributeGroup*);
@@ -194,6 +208,7 @@ class xs__anyAttribute
 class xs__enumeration
 { public:
 	@xsd__string			value;
+	@xsd__QName			value_;	// also get QName value if base type is QName
   public:
   	int				traverse(xs__schema&);
 };
@@ -239,10 +254,13 @@ class xs__extension
 	xs__choice			*choice;
 	xs__sequence			*sequence;
 	std::vector<xs__attribute>	attribute;
+	xs__anyAttribute		*anyAttribute;
   private:
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type
   	xs__complexType			*complexTypeRef;	// traverse() finds type
   public:
+					xs__extension();
+					~xs__extension();
   	int				traverse(xs__schema&);
 	void				simpleTypePtr(xs__simpleType*);
 	void				complexTypePtr(xs__complexType*);
@@ -287,6 +305,8 @@ class xs__restriction
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type
   	xs__complexType			*complexTypeRef;	// traverse() finds type
   public:
+					xs__restriction();
+					~xs__restriction();
   	int				traverse(xs__schema&);
 	void				simpleTypePtr(xs__simpleType*);
 	void				complexTypePtr(xs__complexType*);
@@ -302,6 +322,8 @@ class xs__list
   private:
   	xs__simpleType			*itemTypeRef;
   public:
+					xs__list();
+					~xs__list();
   	int				traverse(xs__schema&);
 	void				itemTypePtr(xs__simpleType*);
 	xs__simpleType			*itemTypePtr() const;

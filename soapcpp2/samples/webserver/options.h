@@ -4,10 +4,14 @@ options.h
 
 Command line option handler for webserver.
 
+--------------------------------------------------------------------------------
 gSOAP XML Web services tools
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -24,6 +28,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 	The option structure defines a program option as follows:
 	name		the name of the option, which may include a period to
@@ -33,26 +39,28 @@ engelen@genivia.com / engelen@acm.org
 			When the name is empty (""), then this option is used to
 			collect remaining command-line arguments, such as file
 			names and so on.
-	selections:	must be NULL to define boolean option. In this case
-				selected=0 is false and selected=1 is true.
-			or a space-delimited list of option values. In this case
-				the 'selected' field is set to # word in list.
-			or a one-word description for option values. In this
+	selections:	either must be NULL to define a boolean option. In this
+				case selected=0 is false and selected=1 is true.
+			or a space-delimited string of option values. In this
+				case 'selected' is set to # word in list.
+			or a single-word description for option values. In this
 				case the argument is stored in 'value' field.
 	selected:	word index in 'selections' list, or 0/1 for boolean
-			option, or max length of value below.
-	value:		the (default) value of option argument.
+			option, or max length of string value a user can enter
+			(see below).
+	value:		the (default) string value of option
 
 	Example:
 
 	static struct option options[] =
-	{ { "c.compress", NULL },	on/off option (-c command line)
+	{ { "c.compress", NULL },	on/off option (-c turns it on)
   	  { "e.endpoint", "URL" }, 	this option requires an argument value
   	  { "name", "alphanum", 20, "demo" },
 	  				this option requires an argument value.
 					The default value will be "demo".
 					The HTML slot will be 20 chars wide.
-  	  { "action", "start finish" }, this option requires an argument "start" or "finish"
+  	  { "action", "start finish" }, this option requires an argument "start"
+	  				or "finish"
   	  { "", "file1 file2 ..." },	collect remaining arguments
   	  { NULL },			end of table
 	};
@@ -98,12 +106,15 @@ engelen@genivia.com / engelen@acm.org
 
 struct option
 { const char *name;		/* name */
-  const char *selections;	/* NULL (option does not require argument), or one-word description, or selection of possible values (separated by spaces) */
-  int selected;			/* >=0 current selection in selections list */
-  char *value;			/* parsed value (when .selections has one name) */
+  const char *selections;	/* NULL (option does not require argument),
+  				   or one-word description,
+				   or selection of possible values (separated by spaces) */
+  int selected;			/* >=0: current selection in selections list */
+  char *value;			/* parsed value (when 'selections' is one name) */
 };
 
 extern struct option *copy_options(const struct option *options);
+extern void free_options(struct option *options);
 extern int parse_options(int argc, char **argv, struct option *options);
 extern void query_options(struct soap *soap, struct option *options);
 extern int save_options(const char *file, const char *name, struct option *options);

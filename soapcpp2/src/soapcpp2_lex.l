@@ -79,6 +79,7 @@ static void module(const char *name), import(const char *file);
 static void endimport();
 static int magic(const char *name);
 %}
+ws		[ \t\v\n\f\r\x1A\xA0]
 digit		[0-9]
 alpha		[a-zA-Z_]
 scope		::
@@ -88,12 +89,12 @@ hex		0[xX][0-9a-fA-F]+
 num		{int}(\.{int}([Ee][+-]?{int})?|(\.{int})?[Ee][+-]?{int})
 chr		'(\\'|[^'\n])*'
 str		\"(\\\"|\\\n|[^"])*\"
-module		#module[ \t]*{str}.*\n
-import		#import[ \t]*{str}.*\n
+module		#module{ws}*{str}.*\n
+import		#import{ws}*{str}.*\n
 eof		<<EOF>>
 %x MLCOMMENT
 %%
-[ \t\v\n\f\r\x1A\xA0]   { /* skip white space (\x1A is ^Z and \xA0 is HTML non-breakable space) */ }
+{ws}			{ /* skip white space */ }
 "/*"			{ BEGIN(MLCOMMENT); }
 <MLCOMMENT>[^*]		{ /* eat anything that's not a '*' */ }
 <MLCOMMENT>"*"[^/]	{ /* eat up '*'s not followed by '/'s */ }
@@ -289,6 +290,8 @@ static void directive()
 		sp->WSDL = NULL;
 		sp->style = NULL;
 		sp->encoding = NULL;
+		sp->elementForm = NULL;
+		sp->attributeForm = NULL;
 		sp->executable = NULL;
 		sp->import = NULL;
 		sp->documentation = NULL;
@@ -348,10 +351,7 @@ static void directive()
 			sp->documentation = s;
 		}
 		else if (!strncmp(yytext+i, "location:", 9) || !strncmp(yytext+i, "port:", 5))
-		{	if (s[strlen(s)-1] == '/' && s[strlen(s)-2] != '/')
-				s[strlen(s)-1] = '\0';
 			sp->URL = s;
-		}
 		else if (!strncmp(yytext+i, "executable:", 11))
 			sp->executable = s;
 		else if (!strncmp(yytext+i, "namespace:", 10))
@@ -360,9 +360,21 @@ static void directive()
 					sp->URI = s;
 				sp->WSDL = s;
 			}
+			else if (vflag != 0 && !strcmp(sp->ns, "SOAP-ENV"))
+				sp->URI = envURI;
+			else if (vflag != 0 && !strcmp(sp->ns, "SOAP-ENC"))
+				sp->URI = encURI;
 			else
 				sp->URI = s;
 		}
+		else if (!strncmp(yytext+i, "form:", 5))
+		{	sp->elementForm = s;
+			sp->attributeForm = s;
+		}
+		else if (!strncmp(yytext+i, "elementForm:", 12))
+			sp->elementForm = s;
+		else if (!strncmp(yytext+i, "attributeForm:", 14))
+			sp->attributeForm = s;
 		else if (!strncmp(yytext+i, "import:", 7))
 		{	if (!sp->URI)
 				sp->URI = s;
@@ -553,7 +565,7 @@ static void directive()
 				if (yytext[j] > 32)
 					break;
 			for (k = j; yytext[k]; k++)
-				if (yytext[k] == 10 || yytext[k] == 13)
+				if (yytext[k] <= 32)
 					break;
 			if (j == k)
 				return;

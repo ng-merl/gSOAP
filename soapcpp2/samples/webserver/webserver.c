@@ -2,14 +2,18 @@
 
 webserver.c
 
-Example stand-alone gSOAP Web server using gSOAP HTTP GET plugin This is a
-small but fully functional (embedded) Web server that can serve static and
-dynamic pages and provides SOAP/XML responses.
-
-gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Example stand-alone gSOAP Web server based on the gSOAP HTTP GET plugin.
+This is a small but fully functional (embedded) Web server for serving
+static and dynamic pages and SOAP/XML responses.
 
 --------------------------------------------------------------------------------
+gSOAP XML Web services tools
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -25,6 +29,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 
 Author contact information:
 engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 
 	The Web server handles HTTP GET requests to serve pages and HTTP POST
@@ -94,6 +100,10 @@ engelen@genivia.com / engelen@acm.org
 	-l[none inbound outbound both]
 			enables logging
 
+	Requires options.h and options.c for command line option parsing and
+	for parsing interactive Web page options settings. The
+	default_options[] array defines application options, short-hands,
+	selection lists, and default values. See options.h for more details.
 */
 
 #include "soapH.h"
@@ -127,7 +137,7 @@ static const struct option default_options[] =
   { "d.cookieDomain", "host", 20, "localhost:8080"},
   { "p.cookiePath", "path", 20, "/"},
   { "l.logging", "none inbound outbound both", },
-  { "", "port" },		/* rest of command line args */
+  { "", "port", },		/* rest of command line args */
   { NULL },			/* must be NULL terminated */
 };
 
@@ -175,12 +185,13 @@ int main(int argc, char **argv)
 { struct soap soap, *tsoap;
   struct logging_data *logdata;
   pthread_t tid;
-  int port;
+  int port = 0;
   int m, s, i;
   options = copy_options(default_options); /* must copy, so option values can be modified */
   if (parse_options(argc, argv, options))
     exit(0);
-  port = atol(options[8].value);
+  if (options[8].value)
+    port = atol(options[8].value);
   if (!port)
     port = 8080;
   start = time(NULL);
@@ -269,6 +280,8 @@ int main(int argc, char **argv)
 #ifdef WITH_OPENSSL
   CRYPTO_thread_cleanup();
 #endif
+  free_options(options);
+  soap_end(&soap);
   soap_done(&soap);
   return 0;
 }
@@ -291,7 +304,7 @@ void *process_request(void *soap)
 
 /******************************************************************************\
  *
- *	SOAP/XML handling
+ *	SOAP/XML handling: calculator example
  *
 \******************************************************************************/
 
@@ -373,6 +386,11 @@ int http_get_handler(struct soap *soap)
     return copy_file(soap, soap->path + 1, "image/ico");
   if (!strncmp(soap->path, "/calc?", 6))
     return calc(soap);
+  if (!strncmp(soap->path, "/genivia", 8))
+  { strcpy(soap->endpoint, "http://genivia.com"); /* redirect */
+    strcat(soap->endpoint, soap->path + 8);
+    return 307; /* Temporary Redirect */
+  }
   /* Check requestor's authentication: */
   if (check_authentication(soap))
     return 401; /* HTTP not authorized */
@@ -400,7 +418,7 @@ int check_authentication(struct soap *soap)
 int copy_file(struct soap *soap, const char *name, const char *type)
 { FILE *fd;
   size_t r;
-  fd = fopen(name, "r"); /* open file to copy */
+  fd = fopen(name, "rb"); /* open file to copy */
   if (!fd)
     return 404; /* return HTTP not found */
   soap->http_content = type;
@@ -478,50 +496,52 @@ int info(struct soap *soap)
   time_t now = time(NULL);
   query_options(soap, options);
   if (soap->omode & SOAP_IO_KEEPALIVE)
-    t0 = "<td align='center' bgcolor=green>YES</td>";
+    t0 = "<td align='center' bgcolor='green'>YES</td>";
   else
-    t0 = "<td align='center' bgcolor=red>NO</td>";
+    t0 = "<td align='center' bgcolor='red'>NO</td>";
 #ifdef WITH_COOKIES
-  t1 = "<td align='center' bgcolor=green>YES</td>";
+  t1 = "<td align='center' bgcolor='green'>YES</td>";
   if (soap_cookie_value(soap, "visit", NULL, NULL))
-    t2 = "<td align='center' bgcolor=green>PASS</td>";
+    t2 = "<td align='center' bgcolor='green'>PASS</td>";
   else
-    t2 = "<td align='center' bgcolor=yellow>WAIT</td>";
+    t2 = "<td align='center' bgcolor='yellow'>WAIT</td>";
 #else
-  t1 = "<td align='center' bgcolor=red>NO</td>";
-  t2 = "<td align='center' bgcolor=blue>N/A</td>";
+  t1 = "<td align='center' bgcolor='red'>NO</td>";
+  t2 = "<td align='center' bgcolor='blue'>N/A</td>";
 #endif
   if (secure)
-  { t3 = "<td align='center' bgcolor=green>YES</td>";
+  { t3 = "<td align='center' bgcolor='green'>YES</td>";
     if (soap->imode & SOAP_ENC_SSL)
-      t4 = "<td align='center' bgcolor=green>PASS</td>";
+      t4 = "<td align='center' bgcolor='green'>PASS</td>";
     else
-      t4 = "<td align='center' bgcolor=red><blink>FAIL</blink></td>";
+      t4 = "<td align='center' bgcolor='red'><blink>FAIL</blink></td>";
   }
   else
-  { t3 = "<td align='center' bgcolor=red>NO</td>";
-    t4 = "<td align='center' bgcolor=blue>N/A</td>";
+  { t3 = "<td align='center' bgcolor='red'>NO</td>";
+    t4 = "<td align='center' bgcolor='blue'>N/A</td>";
   }
 #ifdef WITH_ZLIB
   if (options[0].selected)
-  { t5 = "<td align='center' bgcolor=green>YES</td>";
+  { t5 = "<td align='center' bgcolor='green'>YES</td>";
     if (soap->omode & SOAP_ENC_ZLIB)
-      t6 = "<td align='center' bgcolor=green>PASS</td>";
+      t6 = "<td align='center' bgcolor='green'>PASS</td>";
     else
-      t6 = "<td align='center' bgcolor=yellow>WAIT</td>";
+      t6 = "<td align='center' bgcolor='yellow'>WAIT</td>";
   }
   else
-  { t5 = "<td align='center' bgcolor=red>NO</td>";
-    t6 = "<td align='center' bgcolor=blue>N/A</td>";
+  { t5 = "<td align='center' bgcolor='red'>NO</td>";
+    t6 = "<td align='center' bgcolor='blue'>N/A</td>";
   }
 #else
-  t5 = "<td align='center' bgcolor=red>NO</td>";
-  t6 = "<td align='center' bgcolor=blue>N/A</td>";
+  t5 = "<td align='center' bgcolor='red'>NO</td>";
+  t6 = "<td align='center' bgcolor='blue'>N/A</td>";
 #endif
   if (options[1].selected || (soap->omode & SOAP_IO) == SOAP_IO_CHUNK)
-    t7 = "<td align='center' bgcolor=green>YES</td>";
+    t7 = "<td align='center' bgcolor='green'>YES</td>";
   else
-    t7 = "<td align='center' bgcolor=red>NO</td>";
+    t7 = "<td align='center' bgcolor='red'>NO</td>";
+  soap->cookie_domain = options[5].value;
+  soap->cookie_path = options[6].value;
   soap_set_cookie(soap, "visit", "true", NULL, NULL);
   soap_set_cookie_expire(soap, "visit", 600, NULL, NULL);
   if (soap_response(soap, SOAP_HTML))
@@ -535,7 +555,7 @@ int info(struct soap *soap)
 <style type='text/css' media='screen'><!-- table { background-color: #666 } td { color: white; font-size: 10px; line-height: 10px; font-family: Arial, Helve tica, Geneva, Swiss, SunSans-Regular } --></style>\
 <title>gSOAP Web Server Administration</title>\
 </head>\
-<body bgcolor='FFFFFF'>\
+<body bgcolor='#FFFFFF'>\
 <h1>gSOAP Web Server Administration</h1>\
 <p>Server endpoint: %s\
 <p>Client agent IP: %d.%d.%d.%d\
@@ -554,7 +574,7 @@ int info(struct soap *soap)
 <h2>Function Tests</h2>\
 <table border='0' cellspacing='0' cellpadding='0' bgcolor='#666666' nosave>\
 <tr height='10'><td height='10' background='bl.gif'></td><td height='10'><i>Function</i></td><td align='center' height='10'><i>Result</i></td><td height='10' background='obls.gif'></td></tr>\
-<tr><td background='bl.gif'></td><td>HTTP operational</td><td align='center' bgcolor=green>YES</td><td width='10' background='ls.gif'></td></tr>\
+<tr><td background='bl.gif'></td><td>HTTP operational</td><td align='center' bgcolor='green'>YES</td><td width='10' background='ls.gif'></td></tr>\
 <tr><td background='bl.gif'></td><td>HTTP keep alive enabled</td>%s<td width='10' background='ls.gif'></td></tr>\
 <tr><td background='bl.gif'></td><td>HTTP cookies enabled</td>%s<td width='10' background='ls.gif'></td></tr>\
 <tr><td background='bl.gif'></td><td>HTTP cookies test</td>%s<td width='10' background='ls.gif'></td></tr>\

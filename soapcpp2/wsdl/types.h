@@ -6,7 +6,11 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
+GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -23,6 +27,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 
 Author contact information:
 engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 
 */
@@ -49,6 +55,7 @@ class Types
     SetOfString		rnames;	// enum reserved symbolic names to avoid reuse
     SetOfString		onames;	// service operator names
     MapOfPairToString	snames;	// enum symbolic names
+    SetOfString		unames;	// unique names
     Types();
     void init();
     int read(const char *file);
@@ -63,7 +70,9 @@ class Types
     const char *sname(const char *type, const char *value);
     const char *nsprefix(const char *prefix, const char *URI);
     const char *deftname(enum Type type, const char *pointer, const char *prefix, const char *URI, const char *qname);
-    int is_defined(const char *prefix, const char *URI, const char *qname);
+    bool is_defined(const char *prefix, const char *URI, const char *qname);
+    bool is_nillable(const xs__element& element);
+    bool is_basetype(const char *type);
     void define(const char *URI, const char *name, const xs__complexType&);
     void gen(const char *URI, const vector<xs__attribute>&);
     void gen(const char *URI, const vector<xs__attributeGroup>&);

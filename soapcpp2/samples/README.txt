@@ -24,6 +24,7 @@ quote2.h quote2.c			 Get delayed stock quote (SOAP messages)
 quote3.h quote3.cpp			 Get delayed stock quote (Stock class)
 quote4.h quote4.cpp			 Get delayed stock quote using XML DOM
 quotex.h quotex.cpp:			 Combined client/server example
+rss.h rss.c				 Obtain RSS feeds
 ssl.h sslclient.c sslserver.c:		 SSL example (requires OpenSSL)
 uddi.h uddi.cpp:			 UDDI client
 varparam.h varparam.cpp:		 Variable polymorphic parameters example

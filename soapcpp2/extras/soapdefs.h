@@ -11,8 +11,6 @@
 #ifndef SOAPDEFS_H
 #define SOAPDEFS_H
 
-#include <iostream.h>
-
 #ifdef DEBUG_CALLBACKS
 #ifndef DEBUG
 #define DEBUG

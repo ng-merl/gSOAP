@@ -7,7 +7,9 @@ WSDL/SOAP binding schema
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -25,6 +27,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 
 Author contact information:
 engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 
 */

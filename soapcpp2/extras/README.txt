@@ -8,21 +8,20 @@ included in this directory:
 fault.cpp contributed by A. Kelly
 logging.cpp contributed by M. Helmick
 WinInet support contributed by J. Kastanowitz and B. Thiesfield
-apache_gsoap constributed by Christian Aberger
-mod_gsoap contributed by Christian Aberger
+mod_gsoap contributed by Christian Aberger and others
 
 ckdb.h ckdb.c			Simple Cookie database manager (store/load)
 ckdbtest.h ckdbtest.c		Test code for Simple Cookie database manager
 fault.cpp			Print SOAP Fault messages to C++ streams
 GSoapWinInet.h GSoapWinInet.cpp	WinInet support
+httpmd5.h httpmd5.c		HTTP Content-MD5 support
+httpmd5test.h httpmd5test.c	Example HTTP Content-MD5 test application
 logging.cpp			Log send, receive, and trace messages on streams
 plugin.h plugin.c		Example gSOAP plugin to view SOAP messages
-stringtest.h stringtest.cpp	Example std::string serialization
-apache_gsoap			Apache module (to run gSOAP within Apache Web server)
-mod_gsoap			IIS module (to run gSOAP within IIS)
+mod_gsoap			Directory with mod_gsoap modules for Apache
 
-Please refer to the Christian's Web site for installation intructions for the Apache and
-IIS modules for gSOAP:
+Please refer to the Christian's Web site for installation intructions for the
+Apache and IIS modules for gSOAP (mod_gsoap directory):
 
 http://mx.aberger.at/SOAP/
 

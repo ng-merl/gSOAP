@@ -8,6 +8,11 @@ gSOAP XML Web services tools
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
 --------------------------------------------------------------------------------
+
+   This software is released under one of the following three licenses:
+   GPL, the gSOAP public license, or Genivia's license for commercial use.
+
+--------------------------------------------------------------------------------
 gSOAP public license.
 
 The contents of this file are subject to the gSOAP Public License Version 1.3
@@ -39,6 +44,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 	This level-2 DOM parser features automatic XML namespace handling and
 	allows mixing with gSOAP's data type (de)serializers.
@@ -57,8 +64,8 @@ engelen@genivia.com / engelen@acm.org
 	parsed as a DOM.
 
 	DOM node fields:
-	           *elts	optional sub elements (list of DOM nodes)
-	           *atts	optional element attributes
+	           *elts	optional child elements (list of DOM nodes)
+	           *atts	optional attributes of element node
 	const char *nstr	element namespace name (URI)
 	      char *name	element name with optional ns: prefix
 	      char *data	optional element data (see comment below)
@@ -78,11 +85,12 @@ engelen@genivia.com / engelen@acm.org
 	Character data parsing:
 	The parser fills the 'wide' string fields of the DOM nodes only (the
 	'wide' fields contain Unicode XML cdata), unless the input-mode flag
-	SOAP_C_UTFSTRING is set using soap_init2() or soap_set_imode().
-	In that case the 'data' fields are set with UTF8 contents.
+	SOAP_C_UTFSTRING or SOAP_C_MBSTRING is set using soap_init2() or
+	soap_set_imode(). In that case the 'data' fields are set with UTF8
+	contents or multibyte character strings.
 
 	The following input-mode flags (set with soap_set_imode()) control the
-	parsing of C/C++ data types (stored in node and type fields):
+	parsing of C/C++ data types (stored in the 'node' and 'type' fields):
 
 	default:	only elements with an 'id' attribute are deserialized
 			as C/C++ data types (when a deserializer is available)
@@ -106,7 +114,7 @@ engelen@genivia.com / engelen@acm.org
 	xsd__anyType dom(soap); // need a soap struct to parse XML using '>>'
 	cin >> dom; // parse XML
 	if (soap->error)
-	  ... parse error ...
+	  ... input error ...
 	soap_destroy(soap); // delete DOM
 	soap_end(soap); // delete data
 	soap_done(soap); // finalize
@@ -117,6 +125,7 @@ engelen@genivia.com / engelen@acm.org
 	cout << dom; // print 
 	if (soap->error)
 	  ... output error ...
+	soap_destroy(soap); // clean up objects
 	soap_end(soap); // clean up
 	soap_done(soap); // finalize
 	free(soap);
@@ -125,13 +134,15 @@ engelen@genivia.com / engelen@acm.org
 	dom.unlink();
 
 	Compile:
-	soapcpp2 dom++.h
-	g++ -c dom++.cpp
+	soapcpp2 dom.h
+	g++ -c dom.cpp
 
-	Add to the application's header file:
-	#import "dom++.h"
+	To use a DOM in your Web service application, add to the gSOAP header
+	file that defines your service:
+	#import "dom.h"
+	Then use the xsd__anyType to refer to the DOM in your data structures.
 
-	Then link the application with dom++.o
+	Link the application with dom.o
 
 	Development note:
 	Reused the gSOAP struct soap id hash table for handling namespace
@@ -139,13 +150,11 @@ engelen@genivia.com / engelen@acm.org
 
 Changes:
 	Renamed __type to type (correction)
-	dom.h and dom++.h are equivalent
 	dom.c, dom++.cpp, and dom.cpp are equivalent
 	Renamed SOAP_XML_TREE to SOAP_DOM_TREE
 	Renamed SOAP_XML_GRAPH to SOAP_DOM_NODE
 
-TODO:	Add wide string support for DOM attribute parsing
-	Improve mixed content handling
+TODO:	Improve mixed content handling
 */
 
 #include "stdsoap2.h"
@@ -202,6 +211,7 @@ soap_default_xsd__anyType(struct soap *soap, struct soap_dom_element *node)
   node->wide = NULL;
   node->node = NULL;
   node->type = 0;
+  node->soap = soap;
 }
 
 static int element(struct soap *soap, const char *name)
@@ -410,16 +420,7 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     { soap->error = SOAP_EOM;
       return NULL;
     }
-  node->next = NULL;
-  node->prnt = NULL;
-  node->elts = NULL;
-  node->atts = NULL;
-  node->nstr = NULL;
-  node->name = NULL;
-  node->data = NULL;
-  node->wide = NULL;
-  node->node = NULL;
-  node->type = 0;
+  soap_default_xsd__anyType(soap, node);
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node %s\n", soap->tag));
   np = soap->nlist;
   if (!(s = strchr(soap->tag, ':')))
@@ -449,6 +450,10 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node contains type %d from xsi:type\n", node->type));
       return node;
     }
+    if (soap->error == SOAP_TAG_MISMATCH)
+      soap->error = SOAP_OK;
+    else
+      return NULL;
   }
   att = &node->atts;
   for (tp = soap->attributes; tp; tp = tp->next)
@@ -492,10 +497,10 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
       att = &(*att)->next;
       tp->visible = 0;
     }
-  soap_element_begin_in(soap, NULL);
+  soap_element_begin_in(soap, NULL, 1);
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' accepted\n", node->name));
   if (soap->body)
-  { wchar c;
+  { soap_wchar c;
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' has content\n", node->name));
     do c = soap_getchar(soap);
     while (c > 0 && c <= 32);
@@ -522,11 +527,11 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     }
     else
     { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' has cdata\n", node->name));
-      if ((soap->mode & SOAP_C_UTFSTRING))
-      { if (!(node->data = soap_string_in(soap, 1)))
+      if ((soap->mode & SOAP_C_UTFSTRING) || (soap->mode & SOAP_C_MBSTRING))
+      { if (!(node->data = soap_string_in(soap, 1, -1, -1)))
           return NULL;
       }
-      else if (!(node->wide = soap_wstring_in(soap, 1)))
+      else if (!(node->wide = soap_wstring_in(soap, 1, -1, -1)))
         return NULL;
     }
     if (soap_element_end_in(soap, node->name))
@@ -860,7 +865,7 @@ soap_dom_iterator &soap_dom_iterator::operator++()
 std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
 { if (!e.soap)
   { struct soap soap;
-    soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_DOM_NODE);
+    soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_GRAPH);
     soap_mark_xsd__anyType(&soap, &e);
     soap_begin_send(&soap);
     soap_put_xsd__anyType(&soap, &e, NULL, NULL);
@@ -872,7 +877,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
   { std::ostream *os = e.soap->os;
     e.soap->os = &o;
     short omode = e.soap->omode;
-    soap_set_omode(e.soap, SOAP_DOM_NODE);
+    soap_set_omode(e.soap, SOAP_XML_GRAPH);
     soap_mark_xsd__anyType(e.soap, &e);
     soap_begin_send(e.soap);
     soap_put_xsd__anyType(e.soap, &e, NULL, NULL);

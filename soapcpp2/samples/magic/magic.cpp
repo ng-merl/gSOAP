@@ -8,11 +8,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // To access a stand-alone server on a port: magicserver[] = "IP:PORT";
-// use "http://" to include HTTP header: magicserver[] = "http://IP:PORT";
-// const char magicserver[] = "linprog2.cs.fsu.edu:18081";
-// const char magicserver[] = "http://diablo.cs.fsu.edu:18081";
-// const char magicserver[] = "http://";
+// use "http://" to include HTTP header, e.g: magicserver[] = "http://IP:PORT";
 const char magicserver[] = "http://www.cs.fsu.edu/~engelen/magicserver.cgi";
+// To send request to stdout and read response from stdin, use:
+// const char magicserver[] = "http://";
 
 int main(int argc, char **argv)
 { struct soap soap;
@@ -41,6 +40,7 @@ int main(int argc, char **argv)
   printf("</pre></html>\n");
   soap_destroy(&soap);
   soap_end(&soap);
+  soap_done(&soap);
   return 0;
 }
 

@@ -1,11 +1,11 @@
-gSOAP WSDL parser and importer
+The gSOAP WSDL parser and importer
 
 INSTRUCTIONS
 
 The gSOAP WSDL parser converts WSDL into a gSOAP header file for processing
-with the gSOAP compiler to generate the stubs and skeletons.
+with the gSOAP soapcpp2 compiler to generate client stubs and server skeletons.
 
-For example:
+Example:
 
 $ wsdl2h -o Amazon.h http://soap.amazon.com/schemas/AmazonWebServices.wsdl
 
@@ -25,10 +25,34 @@ from a Web location is accessed, the header output will be produced on the
 standard output. An input file may also contain a schema and will be handled as
 such.
 
-Command line options:
+INPUT
+
+wsdl2h reads from standard input or the file name provided at the command line:
+
+wsdl2h [options] [-o outfile.h] [infile.wsdl]
+
+Valid input file formats are .wsdl and .xsd (schema) files.
+
+OUTPUT
+
+The output file is a gSOAP-formatted header file. The header file syntax is
+augmented with annotations reflecting WSDL and schema-specific bindings and
+validation constraints.
+
+We suggest the use of Doxygen (www.doxygen.org) to produce documented for the
+generated header file. However, we STRONGLY recommend user to inspect the
+generated header file first for warnings and other annotations indicating
+potential problems.
+
+Note that Doxygen's license model does not infinge on your ownership of the
+gSOAP source code output when you purchased a commercial license.
+
+COMMAND OPTIONS
 
 -c	generate pure C header file code
+-e	enum names will not be prefixed
 -f	generate flat C++ class hierarchy for schema extensions
+-i	don't import schemas, but treat them as modules (using -m below)
 -m	create modules for separate compilation
 -nname	use name as the base namespace prefix name instead of 'ns'
 -ofile	output to file
@@ -40,16 +64,19 @@ Command line options:
 -v	verbose output
 -?	help
 
-TYPE TYPE MAP FILE
+DOCUMENTATION
+
+See soapdoc2.pdf for documentation.
+
+TYPEMAP FILE
 
 The 'typemap.dat' file can be used to provide custom type mappings for binding
 XML schema types to C and/or C++ types. The WSDL parser 'wsdl2h' can be used
 without the 'typemap.dat' file, because and internal table is used to associate
-XML schema types to C or C++ types (for C, use the -c option). An example
-'typemapDIMEC.dat' and 'typemapDIMECPP.dat' files provide bindings for DIME
-attachment support.  The 'typemap.dat' file also allows you to change the
-generation of the 'ns1', 'ns2', 'ns3', ... namespace prefixes with custom
-names.
+XML schema types to C or C++ types (for C, use the -c option).
+
+The 'typemap.dat' file also allows you to change the generation of the 'ns1',
+'ns2', 'ns3', ... namespace prefixes with custom names.
 
 INSTALLATION
 

@@ -10,6 +10,13 @@ aclocal.m4 *.cache Makefile
 ## you have all needed files, that a GNU package needs
 AUTOMAKE_OPTIONS = foreign 1.4
 
+##
+## Add support for pkg-config
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc
+
+EXTRA_DIST = gsoap.pc.in gsoap++.pc.in gsoapck.pc.in gsoapck++.pc.in
+
 .PHONY: backup
 
 install-data-hook:

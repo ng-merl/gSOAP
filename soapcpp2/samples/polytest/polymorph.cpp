@@ -82,7 +82,7 @@ ns__Object::~ns__Object()
 }
 
 void ns__Object::print()
-{ cout << "Object: " << name << endl;
+{ cout << "Object: " << (name?name:"") << endl;
 }
 
 ns__Shape::ns__Shape()
@@ -100,7 +100,7 @@ ns__Shape::~ns__Shape()
 }
 
 void ns__Shape::print()
-{ cout << "Shape: " << name << " sides=" << sides << endl;
+{ cout << "Shape: " << (name?name:"") << " sides=" << sides << endl;
 }
 
 ns__Square::ns__Square()
@@ -119,7 +119,7 @@ ns__Square::~ns__Square()
 }
 
 void ns__Square::print()
-{ cout << "Square: " << name << " size=" << size << endl;
+{ cout << "Square: " << (name?name:"") << " size=" << size << endl;
 }
 
 ns__List::ns__List()

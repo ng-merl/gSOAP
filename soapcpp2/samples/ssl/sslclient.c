@@ -30,11 +30,28 @@ int main()
   a = 10.0;
   b = 20.0;
   soap_init(&soap);
+  /* The supplied server certificate "server.pem" assumes that the server is
+    running on 'localhost', so clients can only connect from the same host when
+    verifying the server's certificate. Use SOAP_SSL_NO_AUTHENTICATION to omit
+    the authentication of the server and use encryption directly from any site.
+    To verify the certificates of third-party services, they must provide a
+    certificate issued by Verisign or another trusted CA. At the client-side,
+    the capath parameter should point to a directory that contains these
+    trusted (root) certificates or the cafile parameter should refer to one
+    file will all certificates. To help you out, the supplied "cacerts.pem"
+    file contains the certificates issued by various CAs. You should use this
+    file for the cafile parameter instead of "cacert.pem" to connect to trusted
+    servers.  Note that the client may fail to connect if the server's
+    credentials have problems (e.g. expired). Use SOAP_SSL_NO_AUTHENTICATION
+    and set cacert to NULL to encrypt messages if you don't care about the
+    trustworthyness of the server.  Note: setting capath may not work on
+    Windows.
+  */
   if (soap_ssl_client_context(&soap,
-    SOAP_SSL_NO_AUTHENTICATION,	/* for testing only, use SOAP_SSL_DEFAULT in production code */
+    SOAP_SSL_DEFAULT,	/* use SOAP_SSL_DEFAULT in production code */
     NULL, 		/* keyfile: required only when client must authenticate to server (see SSL docs on how to obtain this file) */
     NULL, 		/* password to read the key file */
-    NULL, 		/* optional cacert file to store trusted certificates */
+    "cacert.pem",	/* optional cacert file to store trusted certificates */
     NULL,		/* optional capath to directory with trusted certificates */
     NULL		/* if randfile!=NULL: use a file with random data to seed randomness */ 
   ))

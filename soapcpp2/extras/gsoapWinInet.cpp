@@ -1,5 +1,5 @@
 /*
- * File:    gsoapWinInet2.cpp
+ * File:    gsoapWinInet.cpp
  *
  *  See the header file for details.
  *
@@ -18,7 +18,7 @@
 #include <stdsoap2.h>
 
 /* local */
-#include "gsoapWinInet2.h"
+#include "gsoapWinInet.h"
 
 /* ensure that the wininet library is linked */
 #pragma comment( lib, "wininet.lib" )
@@ -545,9 +545,9 @@ wininet_fsend(
         /* if we are doing chunked transfers, and this is a chunk size block,
            and it is "0", then this is the last block in the transfer and we
            can set the maximum size now to continue to the actual send. */
-        if ( (soap->mode & SOAP_IO) == SOAP_IO_CHUNK 
+        if ( (soap->mode & SOAP_IO) == SOAP_IO_CHUNK
              && pData->bIsChunkSize 
-             && a_pBuffer[0] == '0' && !isalnum(a_pBuffer[1]) )
+             && a_pBuffer[2] == '0' && !isalnum(a_pBuffer[3]) )
         {
             pData->uiBufferLenMax = pData->uiBufferLen;
         }

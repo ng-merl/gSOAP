@@ -84,7 +84,7 @@ synerror(const char *s)
 semerror - report semantic error from static checking
 */
 semerror(const char *s)
-{	fprintf(stderr, "%s(%d): Error: %s\n", filename, yylineno, s);
+{	fprintf(stderr, "\n%s(%d): **ERROR**: %s\n\n", filename, yylineno, s);
 	if (semerrno++ >= MAXERR)
 		execerror("too many semantic errors, bailing out");
 }
@@ -93,7 +93,7 @@ semerror(const char *s)
 semwarn - report semantic warning from static checking
 */
 semwarn(const char *s)
-{	fprintf(stderr, "Warning: %s (detected at line %d in %s)\n", s, yylineno, filename);
+{	fprintf(stderr, "\n**WARNING**: %s (detected at line %d in %s)\n\n", s, yylineno, filename);
 	semwarno++;
 }
 
@@ -101,7 +101,7 @@ semwarn(const char *s)
 compliancewarn - report compliance warning
 */
 compliancewarn(const char *s)
-{	fprintf(stderr, "Compliance Warning: %s\n", s);
+{	fprintf(stderr, "Compliance warning: %s\n", s);
 }
 
 /*

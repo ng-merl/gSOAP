@@ -6,8 +6,10 @@ WSDL 1.1 binding schema implementation
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -26,10 +28,16 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 */
 
 #include "wsdlH.h"
+
+#ifdef WITH_NONAMESPACES
+extern struct Namespace namespaces[];
+#endif
 
 using namespace std;
 
@@ -45,7 +53,7 @@ const char *qname_token(const char *QName, const char *URI)
 }
 
 int is_builtin_qname(const char *QName)
-{ return QName ? *QName != '"' : 0; // if the QName does not start with a ", it must be in the nsmap
+{ return iflag || (QName ? *QName != '"' : 0); // if the QName does not start with a ", it must be in the nsmap
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +67,9 @@ int show_ignore(struct soap*, const char*);
 
 wsdl__definitions::wsdl__definitions()
 { soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
+#ifdef WITH_NONAMESPACES
+  soap_set_namespaces(soap, namespaces);
+#endif
   soap_default(soap);
   if (vflag)
     soap->fignore = show_ignore;
@@ -127,8 +138,8 @@ int wsdl__definitions::read(const char *location)
       }
     }
   }
-  soap_begin_recv(soap);
-  this->soap_in(soap, "wsdl:definitions", NULL);
+  if (!soap_begin_recv(soap))
+    this->soap_in(soap, "wsdl:definitions", NULL);
   if (soap->error)
   { // deal with sloppy WSDLs that import schemas at the top level rather than importing them in <types>
     if (soap->error == SOAP_TAG_MISMATCH && soap->level == 0)
@@ -142,14 +153,16 @@ int wsdl__definitions::read(const char *location)
       }
       name = NULL;
       targetNamespace = schema->targetNamespace;
+      if (vflag)
+        cerr << "Found schema " << (targetNamespace?targetNamespace:"") << " when expecting WSDL" << endl;
       types = new wsdl__types();
       types->documentation = NULL;
       types->xs__schema_.push_back(schema);
       traverse();
     }
-    else if (soap->error == 307) // HTTP redirect, socket was closed
+    else if ((soap->error >= 301 && soap->error <= 303) || soap->error == 307) // HTTP redirect, socket was closed
     { fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
-      return read(soap->endpoint);
+      return read(soap_strdup(soap, soap->endpoint));
     }
     else
     { fprintf(stderr, "An error occurred while parsing WSDL from '%s'\n", location?location:"");
@@ -170,7 +183,7 @@ int wsdl__definitions::read(const char *location)
 
 int wsdl__definitions::traverse()
 { if (vflag)
-    cerr << "wsdl definitions " << (name?name:"") << endl;
+    cerr << "wsdl definitions " << (name?name:"") << " " << (targetNamespace?targetNamespace:"") << endl;
   if (!targetNamespace)
   { if (vflag)
       fprintf(stderr, "Warning: WSDL %s has no targetNamespace\n", name?name:"");
@@ -213,6 +226,8 @@ again:
   // process services
   for (vector<wsdl__service>::iterator sv = service.begin(); sv != service.end(); ++sv)
     (*sv).traverse(*this);
+  if (vflag)
+    cerr << "end of wsdl definitions " << (name?name:"") << " " << (targetNamespace?targetNamespace:"") << endl;
   return SOAP_OK;
 }
 
@@ -273,6 +288,13 @@ int wsdl__service::traverse(wsdl__definitions& definitions)
   return SOAP_OK;
 }
 
+wsdl__port::wsdl__port()
+{ bindingRef = NULL;
+}
+
+wsdl__port::~wsdl__port()
+{ }
+
 int wsdl__port::traverse(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl port" << endl;
@@ -319,6 +341,13 @@ void wsdl__port::bindingPtr(wsdl__binding *binding)
 wsdl__binding *wsdl__port::bindingPtr() const
 { return bindingRef;
 }
+
+wsdl__binding::wsdl__binding()
+{ portTypeRef = NULL;
+}
+
+wsdl__binding::~wsdl__binding()
+{ }
 
 int wsdl__binding::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -367,6 +396,13 @@ void wsdl__binding::portTypePtr(wsdl__portType *portType)
 wsdl__portType *wsdl__binding::portTypePtr() const
 { return portTypeRef;
 }
+
+wsdl__binding_operation::wsdl__binding_operation()
+{ operationRef = NULL;
+}
+
+wsdl__binding_operation::~wsdl__binding_operation()
+{ }
 
 int wsdl__binding_operation::traverse(wsdl__definitions& definitions, wsdl__portType *portTypeRef)
 { if (vflag)
@@ -443,6 +479,13 @@ int wsdl__ext_output::traverse(wsdl__definitions& definitions)
   return SOAP_OK;
 }
 
+wsdl__ext_fault::wsdl__ext_fault()
+{ messageRef = NULL;
+}
+
+wsdl__ext_fault::~wsdl__ext_fault()
+{ }
+
 int wsdl__ext_fault::traverse(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl ext fault" << endl;
@@ -477,6 +520,13 @@ int wsdl__operation::traverse(wsdl__definitions& definitions)
     (*i).traverse(definitions);
   return SOAP_OK;
 }
+
+wsdl__input::wsdl__input()
+{ messageRef = NULL;
+}
+
+wsdl__input::~wsdl__input()
+{ }
 
 int wsdl__input::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -524,6 +574,13 @@ wsdl__message *wsdl__input::messagePtr() const
 { return messageRef;
 }
 
+wsdl__output::wsdl__output()
+{ messageRef = NULL;
+}
+
+wsdl__output::~wsdl__output()
+{ }
+
 int wsdl__output::traverse(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl output" << endl;
@@ -569,6 +626,13 @@ void wsdl__output::messagePtr(wsdl__message *message)
 wsdl__message *wsdl__output::messagePtr() const
 { return messageRef;
 }
+
+wsdl__fault::wsdl__fault()
+{ messageRef = NULL;
+}
+
+wsdl__fault::~wsdl__fault()
+{ }
 
 int wsdl__fault::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -623,6 +687,15 @@ int wsdl__message::traverse(wsdl__definitions& definitions)
     (*i).traverse(definitions);
   return SOAP_OK;
 }
+
+wsdl__part::wsdl__part()
+{ elementRef = NULL;
+  simpleTypeRef = NULL;
+  complexTypeRef = NULL;
+}
+
+wsdl__part::~wsdl__part()
+{ }
 
 int wsdl__part::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -717,7 +790,7 @@ int wsdl__types::traverse(wsdl__definitions& definitions)
 again:
   for (vector<xs__schema*>::iterator schema1 = xs__schema_.begin(); schema1 != xs__schema_.end(); ++schema1)
   { for (vector<xs__import>::iterator import = (*schema1)->import.begin(); import != (*schema1)->import.end(); ++import)
-    { if (!(*import).schemaPtr() && (*import).namespace_ && (*import).schemaLocation)
+    { if ((*import).namespace_ && (*import).schemaLocation)
       { bool found = false;
         for (vector<xs__schema*>::const_iterator schema2 = xs__schema_.begin(); schema2 != xs__schema_.end(); ++schema2)
         { if ((*schema2)->targetNamespace && !strcmp((*import).namespace_, (*schema2)->targetNamespace))
@@ -726,31 +799,49 @@ again:
 	  }
         }
 	if (!found)
-        { struct Namespace *p = definitions.soap->local_namespaces;
-          const char *s = (*import).schemaLocation;
-          if (s && (*import).namespace_)
-          { if (p)
-            { for (; p->id; p++)
-              { if (p->in)
-                { if (!soap_tag_cmp((*import).namespace_, p->in))
-                    break;
-	        }
-	        if (p->ns)
-                { if (!soap_tag_cmp((*import).namespace_, p->ns))
-                    break;
+	{ if ((*import).schemaPtr())
+	  { if (strcmp((*import).schemaPtr()->targetNamespace, (*import).namespace_))
+	      cerr << "Schema import namespace " << (*import).namespace_ << " does not correspond to imported targetNamespace " << (*import).schemaPtr()->targetNamespace << endl;
+	    else
+	    { xs__schema_.push_back((*import).schemaPtr());
+	      goto again;
+	    }
+	  }
+	  else
+          { struct Namespace *p = definitions.soap->local_namespaces;
+            const char *s = (*import).schemaLocation;
+            if (s && (*import).namespace_)
+            { if (p)
+              { for (; p->id; p++)
+                { if (p->in)
+                  { if (!soap_tag_cmp((*import).namespace_, p->in))
+                      break;
+	          }
+	          if (p->ns)
+                  { if (!soap_tag_cmp((*import).namespace_, p->ns))
+                      break;
+	          }
+                }
+              }
+	      else
+	        fprintf(stderr, "Warning: no namespace table\n");
+              if (!iflag && (!p || !p->id)) // don't import any of the schemas in the .nsmap table (or when -i option is used)
+	      { xs__schema *importschema = new xs__schema(definitions.soap, s);
+	        (*import).schemaPtr(importschema);
+	        if (!importschema->targetNamespace)
+	          importschema->targetNamespace = (*import).namespace_;
+	        if (strcmp(importschema->targetNamespace, (*import).namespace_))
+	          cerr << "Schema import namespace " << (*import).namespace_ << " does not correspond to imported targetNamespace " << importschema->targetNamespace << endl;
+	        else
+                { importschema->traverse();
+	          xs__schema_.push_back(importschema);
+	          goto again;
 	        }
               }
-            }
-	    else
-	      fprintf(stderr, "Warning: no namespace table\n");
-            if (!p || !p->id) // don't import any of the schemas in the .nsmap table
-	    { xs__schema *importschema = new xs__schema(definitions.soap, s);
-              xs__schema_.push_back(importschema);
-	      goto again;
-            }
+	    }
+	    else if (vflag)
+	      fprintf(stderr, "Warning: no schemaLocation for namespace '%s'\n", (*import).namespace_?(*import).namespace_:"");
 	  }
-	  else if (vflag)
-	    fprintf(stderr, "Warning: no schemaLocation for namespace '%s'\n", (*import).namespace_?(*import).namespace_:"");
         }
       }
     }
@@ -775,7 +866,7 @@ again:
 	  }
         }
 	if (!found)
-	  cerr << "Schema import namespace=" << (*import).namespace_ << " refers to an external Schema" << endl;
+	  cerr << "Schema import namespace " << (*import).namespace_ << " refers to a known external Schema" << endl;
       }
       else
         cerr << "<xs:import> has no namespace" << endl;
@@ -871,6 +962,9 @@ ostream &operator<<(ostream &o, const wsdl__definitions &e)
 { if (!e.soap)
   { struct soap soap;
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_TREE | SOAP_C_UTFSTRING);
+#ifdef WITH_NONAMESPACES
+    soap_set_namespaces(&soap, namespaces);
+#endif
     e.soap_serialize(&soap);
     soap_begin_send(&soap);
     e.soap_out(&soap, "wsdl:definitions", 0, NULL);
@@ -893,6 +987,9 @@ ostream &operator<<(ostream &o, const wsdl__definitions &e)
 istream &operator>>(istream &i, wsdl__definitions &e)
 { if (!e.soap)
     e.soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
+#ifdef WITH_NONAMESPACES
+  soap_set_namespaces(e.soap, namespaces);
+#endif
   istream *is = e.soap->is;
   e.soap->is = &i;
   if (soap_begin_recv(e.soap)

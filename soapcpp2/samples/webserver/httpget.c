@@ -200,7 +200,7 @@ char *query(struct soap *soap)
 char *query_key(struct soap *soap, char **s)
 { char *t = *s;
   if (t && *t)
-  { *s = (char*)soap_decode_string(t, soap->path - t, t + 1);
+  { *s = (char*)soap_decode_string(t, soap->path + strlen(soap->path) - t, t + 1);
     return t;
   }
   return *s = NULL;
@@ -209,16 +209,16 @@ char *query_key(struct soap *soap, char **s)
 char *query_val(struct soap *soap, char **s)
 { char *t = *s;
   if (t && *t == '=')
-  { *s = (char*)soap_decode_string(t, soap->path - t, t + 1);
+  { *s = (char*)soap_decode_string(t, soap->path + strlen(soap->path) - t, t + 1);
     return t;
   }
   return NULL;
 }
 
-int soap_encode_string(const char *s, char *t, int len)
+int soap_encode_string(const char *s, char *t, size_t len)
 { register int c;
-  register int n = len;
-  while ((c = *s++) && --n > 0)
+  register size_t n = len;
+  while ((c = *s++) && n-- > 1)
   { if (c == ' ') 
       *t++ = '+';
     else if (c == '!'
@@ -243,7 +243,7 @@ int soap_encode_string(const char *s, char *t, int len)
   return len - n;
 }
 
-const char* soap_decode_string(char *buf, int len, const char *val)
+const char* soap_decode_string(char *buf, size_t len, const char *val)
 { const char *s;
   char *t;
   for (s = val; *s; s++)

@@ -2,11 +2,15 @@
 
 service.h
 
-WSDL parser and converter to gSOAP header file format
+Service structures.
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
+GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -24,6 +28,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 
 */
 
@@ -40,8 +46,11 @@ class Message
     soap__useChoice use;
     const char *encodingStyle;
     wsdl__message *message;
+    const char *body_parts;
     wsdl__part *part;
     vector<soap__header> header;
+    mime__multipartRelated *multipartRelated;	// MIME
+    const char *layout;				// DIME
     const char *documentation;
     const char *ext_documentation;
     void generate(Types&, const char *sep, bool anonymous, bool remark);
@@ -59,8 +68,8 @@ class Operation
     const char *soapAction;
     const char *input_name;
     const char *output_name;
-    Message *input; // name, use, and parts
-    Message *output; // name, use, and parts
+    Message *input; 			// name, use, and parts
+    Message *output;			// name, use, and parts
     vector<Message*> fault;
     const char *documentation;
     const char *operation_documentation;

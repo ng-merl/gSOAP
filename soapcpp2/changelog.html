@@ -485,6 +485,30 @@ pointers std::string**). To obtain old behavior, add entry "xsd:string =
 schema attributes.</li>
 <li>Fixed MB char handling.</li>
 </ul>
+<li>Version 2.7.0a/b/c/d/e (09/10/2004, 1/24/2005)</li>
+<ul>
+<li>Added multipart/related support for SOAP with MIME attachments (SwA).</li>
+<li>Added API functions for DIME open and closed layout support.</li>
+<li>Added //gsoap schema elementForm/attributeForm directive.</li>
+<li>Added fclosesocket, fshutdownsocket, fpoll, fserveloop callbacks.</li>
+<li>Added soap.authrealm string attribute to set basic authentication realm.</li>
+<li>Added soap.prolog string attribute to output optional XML prolog with processing instructions and directives.</li>
+<li>Added soapcpp2 option -t.</li>
+<li>Added wsdl2h options -e and -i.</li>
+<li>Added Palm OS and Symbian instructions and examples.</li>
+<li>Added xml-rpc support and examples.</li>
+<li>Improved XML validation with SOAP_XML_STRICT flag.</li>
+<li>Improved memory footprint (reduced code size and reduced serialization overhead).</li>
+<li>Improved runtime id-ref serialization and deserialization.</li>
+<li>Improved wsdl2h translation.</li>
+<li>Updated dom.cpp.</li>
+<li>Updated webserver.c.</li>
+<li>Fixed issues with namespace qualification in doc/lit messages.</li>
+<li>Fixed SOAP_HREF error.</li>
+<li>Fixed proxy+SSL+zlib+chunking.</li>
+<li>Fixed SSL select() polling in frecv().</li>
+<li>Fixed wsdl2h multidimensional SOAP arrays generate problem.</li>
+</ul>
 </ul>
 
 </body>

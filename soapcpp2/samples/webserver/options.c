@@ -5,10 +5,14 @@ options.c
 Parses command line options and provides options control panel with an
 interactive Web interface for the Web server (webserver.c).
 
-gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
 --------------------------------------------------------------------------------
+gSOAP XML Web services tools
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+This software is released under one of the following two licenses:
+GPL or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -25,6 +29,9 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
+
 */
 
 #define SOAP_NOGLOBAL
@@ -66,9 +73,26 @@ struct option *copy_options(const struct option *options)
       { p[n].value = (char*)malloc(strlen(options[n].value) + 1);
         strcpy(p[n].value, options[n].value);
       }
+      else
+        p[n].value = NULL;
     }
+    p[n].name = NULL;
+    p[n].selections = NULL;
+    p[n].selected = 0;
+    p[n].value = NULL;
   }
   return p;
+}
+
+void free_options(struct option *options)
+{ if (options)
+  { struct option *p;
+    for (p = options; p->name; p++ )
+    { if (p->value)
+        free(p->value);
+    }
+    free(options);
+  }
 }
 
 int parse_options(int argc, char **argv, struct option *options)
@@ -131,7 +155,7 @@ int load_options(const char *file, const char *name, struct option *options)
       return EOF;
     }
   }
-  if (!soap_begin_recv(&soap) && !soap_element_begin_in(&soap, name))
+  if (!soap_begin_recv(&soap) && !soap_element_begin_in(&soap, name, 1))
   { struct t__Option t;
     while (soap_in_t__Option(&soap, "option", &t, NULL))
       if (set_option(t.key, t.val, options) < 0)
@@ -208,7 +232,8 @@ int save_options(const char *file, const char *name, struct option *options)
 
 int html_options(struct soap *soap, struct option *options)
 { struct option *p;
-  soap_send(soap, "<table border='0' cellspacing='0' cellpadding='0'>\n");
+  soap_send(soap, "<table border='0' cellspacing='0' cellpadding='0' bgcolor='#666666' nosave>\n");
+  soap_send(soap, "<tr height='10'><td background='btl.gif'></td><td background='bt.gif'></td><td background='bt.gif'></td><td background='bt.gif'></td><td background='bt.gif'></td><td background='bt.gif'></td><td width='10' background='btr.gif'></td><td width='10' height='10' background='obls.gif'></td></tr>");
   for (p = options; p->name; p++)
   { const char *s, *t, *n;
     int i;
@@ -216,38 +241,35 @@ int html_options(struct soap *soap, struct option *options)
     if (n[0] && n[1] == '.')
       n += 2;
     s = p->selections;
+    soap_send(soap, "<tr><td background='bl.gif'></td><td align='right'>");
     if (!n[0])
-    { soap_send(soap, "<tr><td align='right'>");
-      if (s)
+    { if (s)
         soap_send(soap, s);
-      soap_send(soap, "</td><td>");
+      soap_send(soap, "</td><td></td><td></td><td></td><td>");
       if (p->value)
         soap_send(soap, p->value);
-      soap_send(soap, "</td></tr>");
+      soap_send(soap, "</td>");
     }
     else if (!s)
-    { soap_send(soap, "<tr><td align='right'>");
-      soap_send(soap, n);
-      soap_send(soap, "</td><td><a href='?");
+    { soap_send(soap, n);
+      soap_send(soap, "</td><td width='10' background='ls.gif'></td><td bgcolor='#FFFFFF'><a href='?");
       soap_send(soap, n);
       if (p->selected)
-        soap_send(soap, "='><img src='checked.gif'");
+        soap_send(soap, "='><img src='checked.gif' align='absmiddle' border='0'></a></td><td width='10' background='rs.gif'></td><td>on</td>");
       else
-        soap_send(soap, "'><img src='unchecked.gif'");
-      soap_send(soap, " align='absmiddle' border='0'></a></td></tr>\n");
+        soap_send(soap, "'><img src='unchecked.gif' align='absmiddle' border='0'></a></td><td width='10' background='rs.gif'></td><td>off</td>");
     }
     else if (strchr(s, ' '))
-    { soap_send(soap, "<tr><td align='right'>");
-      soap_send(soap, n);
+    { soap_send(soap, n);
       soap_send(soap, "</td>");
       for (i = 0; ; i++)
       { t = strchr(s, ' ');
         if (i == 0)
-	  soap_send(soap, "<td>");
+	  soap_send(soap, "<td width='10' background='ls.gif'></td><td bgcolor='#FFFFFF'>");
         else
-	  soap_send(soap, "<tr><td></td><td>");
+	  soap_send(soap, "<tr><td background='bl.gif'></td><td></td><td width='10' background='ls.gif'></td><td bgcolor='#FFFFFF'>");
         if (i == p->selected)
-          soap_send(soap, "<img src='selected.gif' align='absmiddle' border='0'> ");
+          soap_send(soap, "<img src='selected.gif' align='absmiddle' border='0'></td><td width='10' background='rs.gif'></td><td>");
         else
         { soap_send(soap, "<a href='?");
           soap_send(soap, n);
@@ -257,24 +279,23 @@ int html_options(struct soap *soap, struct option *options)
           else
             soap_send(soap, s);
           soap_send(soap, "'>");
-          soap_send(soap, "<img src='deselected.gif' align='absmiddle' border='0'></a> ");
+          soap_send(soap, "<img src='deselected.gif' align='absmiddle' border='0'></a></td><td width='10' background='rs.gif'></td><td>");
 	}
         if (t)
           soap_send_raw(soap, s, t - s);
         else
           soap_send(soap, s);
-        soap_send(soap, "</td></tr>");
+        soap_send(soap, "</td>");
         if (!t)
           break;
+        soap_send(soap, "<td width='10' background='br.gif'></td><td width='10' background='ls.gif'></td></tr>\n");
         s = t + 1;
       }
-      soap_send(soap, "</tr>\n");
     }
     else
     { char buf[16];
-      soap_send(soap, "<tr><td align='right'>");
       soap_send(soap, n);
-      soap_send(soap, "</td><td><input type='text' name='");
+      soap_send(soap, "</td><td width='10' background='ls.gif'></td><td bgcolor='#FFFFFF'>&nbsp;</td><td width='10' background='rs.gif'></td><td><input type='text' name='");
       soap_send(soap, n);
       soap_send(soap, "' value='");
       if (p->value)
@@ -284,10 +305,12 @@ int html_options(struct soap *soap, struct option *options)
       soap_send(soap, buf);
       soap_send(soap, "'><input type='submit' value='Set ");
       soap_send(soap, s);
-      soap_send(soap, "'></td></tr>\n");
+      soap_send(soap, "'></td>");
     }
+    soap_send(soap, "<td width='10' background='br.gif'></td><td width='10' background='ls.gif'></td></tr>\n");
+    // <tr height='1'><td height='1' background='bl.gif'></td><td></td><td></td><td></td><td></td><td width='10' height='1' background='br.gif'></td><td width='10' height='1' background='ls.gif'></td></tr>\n");
   }
-  soap_send(soap, "</table>\n");
+  soap_send(soap, "<tr height='10'><td background='bbl.gif'></td><td background='bb.gif'></td><td background='bb.gif'></td><td background='bb.gif'></td><td background='bb.gif'></td><td background='bb.gif'></td><td width='10' background='bbr.gif'><td width='10' height='10' background='ls.gif'</td></tr>\n<tr height='10'><td width='10' height='10' background=otrs.gif></td><td height='10' background='ts.gif'></td><td height='10' background='ts.gif'></td><td height='10' background='ts.gif'></td><td height='10' background='ts.gif'></td><td height='10' background='ts.gif'></td><td height='10' background='ts.gif'></td><td width='10' height='10' background='otls.gif'></td></tr>\n</table>\n");
   return SOAP_OK;
 }
 
