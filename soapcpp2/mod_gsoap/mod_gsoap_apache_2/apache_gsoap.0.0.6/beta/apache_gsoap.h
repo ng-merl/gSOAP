@@ -1,4 +1,4 @@
-/** Apache gSOAP module for Apache 2.0
+/** Apache gSOAP module 0.0.7 for Apache 2.0
  * Interface between the apache http - server (http://httpd.apache.org) and the gsoap SOAP stack (http://www.cs.fsu.edu/~engelen/soap.html)  
  * @file apache_gsoap.h
  *
@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define APACHE_GSOAP_INTERFACE_VERSION 6
+#define APACHE_GSOAP_INTERFACE_VERSION 7
 #define APACHE_HTTPSERVER_ENTRY_POINT "apache_init_soap_interface"
 
 typedef SOAP_FMAC1 void (SOAP_FMAC2 *apache_soap_init_fn)(struct soap *, request_rec *); ///< calls soap_serve inside shared library 

@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.1.4d"
+#define VERSION "1.1.5"
 
 #include <utility>
 #include <iterator>
@@ -71,7 +71,7 @@ typedef map<Pair, const char*, ltpair> MapOfPairToString;
 
 typedef map<const char*, size_t, ltstr> MapOfStringToNum;
 
-extern int cflag, eflag, fflag, iflag, lflag, mflag, pflag, sflag, vflag;
+extern int cflag, eflag, fflag, iflag, lflag, mflag, pflag, sflag, vflag, wflag;
 
 extern FILE *stream;
 

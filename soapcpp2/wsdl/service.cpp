@@ -380,7 +380,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
     }
   }
   if (!cflag && !sflag)
-    fprintf(stream, "#import \"stl.h\"\n");
+    fprintf(stream, "#import \"stlvector.h\"\n");
   if (mflag)
     fprintf(stream, "#import \"base.h\"\n");
   // generate the prototypes first: these should allow use before def, e.g. class names then generate the defs
@@ -738,7 +738,10 @@ void Service::generate(Types& types)
   { if (*op2 && (*op2)->input)
     { bool flag = false, anonymous = (*op2)->parameterOrder != NULL;
       if ((*op2)->output && (*op2)->output_name)
-      { flag = ((*op2)->style == document && (*op2)->output->message && (*op2)->output->message->part.size() == 1);
+      { if ((*op2)->style == document)
+          flag = (*op2)->output->message && (*op2)->output->message->part.size() == 1;
+        else if (!wflag)
+          flag = (*op2)->output->message && (*op2)->output->message->part.size() == 1 && !(*(*op2)->output->message->part.begin()).simpleTypePtr() && !(*(*op2)->output->message->part.begin()).complexTypePtr();
         if (flag && (*op2)->input->message && (*(*op2)->output->message->part.begin()).element)
           for (vector<wsdl__part>::const_iterator part = (*op2)->input->message->part.begin(); part != (*op2)->input->message->part.end(); ++part)
             if ((*part).element && !strcmp((*part).element, (*(*op2)->output->message->part.begin()).element))
@@ -806,13 +809,20 @@ void Service::generate(Types& types)
         fprintf(stream, "  - Response message has MIME multipart/related attachments\n");
       if ((*op2)->output && (*op2)->output_name && (*op2)->output->layout)
         fprintf(stream, "  - Response message has DIME attachments in compliance with %s\n", (*op2)->output->layout);
-      fprintf(stream, "\nC stub function (defined in soapClient.c[pp]):\n@code\n  int soap_call_%s(struct soap *soap,\n    NULL, // char *endpoint = NULL selects default endpoint for this operation\n    NULL, // char *action = NULL selects default action for this operation", (*op2)->input_name);
+      fprintf(stream, "\nC stub function (defined in soapClient.c[pp]):\n@code\n  int soap_call_%s(struct soap *soap,\n    NULL, // char *endpoint = NULL selects default endpoint for this operation\n    NULL, // char *action = NULL selects default action for this operation\n    // request parameters:", (*op2)->input_name);
       (*op2)->input->generate(types, ",", false, false);
+      fprintf(stream, "\n    // response parameters:");
       if ((*op2)->output && (*op2)->output_name)
       { if (flag)
-        { // Shortcut: do not generate wrapper struct
-          (*op2)->output->generate(types, "", false, false);
-        }
+        { if ((*op2)->style == document)
+	  { // Shortcut: do not generate wrapper struct
+            (*op2)->output->generate(types, "", false, false);
+          }
+          else if ((*(*op2)->output->message->part.begin()).name)
+	  { fprintf(stream, "\n");
+            fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, NULL, (*(*op2)->output->message->part.begin()).type), cflag ? "*" : "&", types.aname(NULL, NULL, (*(*op2)->output->message->part.begin()).name), "");
+	  }
+	}
         else
           fprintf(stream, "\n    struct %s%s", (*op2)->output_name, cflag ? "*" : "&");
       }
@@ -877,7 +887,10 @@ void Operation::generate(Types &types)
       if ((*outputheader).part)
         fprintf(stream, serviceformat, prefix, "method-output-header-part", method_name, types.aname(NULL, (*outputheader).namespace_, (*outputheader).part));
   if (output_name)
-  { flag = (style == document && output->message && output->message->part.size() == 1);
+  { if (style == document)
+      flag = output->message && output->message->part.size() == 1;
+    else if (!wflag)
+      flag = output->message && output->message->part.size() == 1 && !(*output->message->part.begin()).simpleTypePtr() && !(*output->message->part.begin()).complexTypePtr();
     if (flag && input->message && (*output->message->part.begin()).element)
       for (vector<wsdl__part>::const_iterator part = input->message->part.begin(); part != input->message->part.end(); ++part)
         if ((*part).element && !strcmp((*part).element, (*output->message->part.begin()).element))
@@ -887,16 +900,22 @@ void Operation::generate(Types &types)
   input->generate(types, ",", anonymous, true);
   if (output_name)
   { if (flag)
-    { // Shortcut: do not generate wrapper struct
-      output->generate(types, "", anonymous, true);
-      fprintf(stream, " );\n");
+    { if (style == document)
+      { // Shortcut: do not generate wrapper struct
+        output->generate(types, "", anonymous, true);
+      }
+      else if ((*output->message->part.begin()).name)
+      { fprintf(stream, "\n");
+        fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, NULL, (*output->message->part.begin()).type), cflag ? "*" : "&", types.aname(NULL, NULL, (*output->message->part.begin()).name), "");
+      }
     }
     else
-    { fprintf(stream, "\n    struct %s%s );\n", output_name, cflag ? "*" : "&");
+    { fprintf(stream, "\n    struct %-28s%s", output_name, cflag ? "*" : "&");
     }
+    fprintf(stream, " ///< response parameter\n);\n");
   }
   else
-    fprintf(stream, " void );\n");
+    fprintf(stream, " void\n);\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -926,12 +945,12 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
             URI = (*part).elementPtr()->schemaPtr()->targetNamespace;
           else
             URI = NULL;
-          fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, URI, type), types.aname(NULL, URI, name), sep);
+          fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, URI, type), " ", types.aname(NULL, URI, name), sep);
         }
         else if ((*part).type)
         { if (use == literal)
             fprintf(stderr, "Warning: part '%s' uses literal style and must refer to an element rather than a type\n", (*part).name);
-	  fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, NULL, (*part).type), types.aname(NULL, NULL, (*part).name), sep);
+	  fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, NULL, (*part).type), " ", types.aname(NULL, NULL, (*part).name), sep);
         }
         else
           fprintf(stderr, "Error: no wsdl:definitions/message/part/@type in part '%s'\n", (*part).name);

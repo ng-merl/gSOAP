@@ -5,7 +5,7 @@ soapcpp2.c
 Main compiler.
 
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
 --------------------------------------------------------------------------------
 gSOAP public license.
@@ -19,7 +19,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2005 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -163,7 +163,7 @@ main(int argc, char **argv)
 						rpcURI = "http://www.w3.org/2003/05/soap-rpc";
 						break;
 					case 'v':
-						fprintf(stderr, "gSOAP compiler version "VERSION". Copyright (C) 2001-2004 Genivia, Inc. All Rights Reserved.\n");
+						fprintf(stderr, "gSOAP compiler version "VERSION". Copyright (C) 2001-2005 Genivia, Inc. All Rights Reserved.\n");
 						exit(0);
 					default:
             					fprintf(stderr, "soapcpp2: Unknown option %s\n", a);
@@ -177,7 +177,7 @@ main(int argc, char **argv)
 		else
 			strcpy(filename, argv[i]);
 	}
-	fprintf(stderr, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2001-2004 Robert van Engelen, Genivia, Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n\n");
+	fprintf(stderr, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2005 Robert van Engelen, Genivia, Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
 	init();
 	if (yyparse())
 		synerror("skipping the remaining part of the input");

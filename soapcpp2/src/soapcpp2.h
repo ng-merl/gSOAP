@@ -3,7 +3,7 @@
 soapcpp2.h
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
 --------------------------------------------------------------------------------
 gSOAP public license.
@@ -17,7 +17,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2005 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -48,7 +48,7 @@ engelen@genivia.com / engelen@acm.org
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.0e" /* Current version */
+#define VERSION "2.7.0f" /* Current version */
 #endif
 
 #if defined(WIN32)

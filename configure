@@ -5457,7 +5457,8 @@ fi
 
 
 
-for ac_func in rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtod sscanf wctomb mbtowc
+
+for ac_func in rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtod strtof sscanf wctomb mbtowc
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5

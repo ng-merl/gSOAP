@@ -53,6 +53,9 @@ extern int is_builtin_qname(const char*);
 
 xs__schema::xs__schema()
 { soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
+#ifdef WITH_OPENSSL
+  soap_ssl_client_context(soap, SOAP_SSL_NOAUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
+#endif
 #ifdef WITH_NONAMESPACES
   soap_set_namespaces(soap, namespaces);
 #endif

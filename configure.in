@@ -86,7 +86,7 @@ AC_FUNC_MKTIME
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtod sscanf wctomb mbtowc])
+AC_CHECK_FUNCS([rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtod strtof sscanf wctomb mbtowc])
 
 dnl Function test depending on platform
 dnl AIX Has incompatible gethostbyname_r

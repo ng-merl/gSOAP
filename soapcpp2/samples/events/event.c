@@ -5,6 +5,10 @@
 	Events are based on asynchronous one-way SOAP messaging using HTTP
 	keep-alive for persistent connections
 
+	The 'synchronous' global flag illustrates SOAP one-way messaging,
+	which requires an HTTP OK response with an empty body to be returned
+	by the server.
+
 	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 
 	Compile:
@@ -19,6 +23,8 @@
 #include "soapH.h"
 #include "Event.nsmap"
 
+int synchronous = 0; /* =1: SOAP interoperable synchronous one-way messaging over HTTP */
+
 /* Service details copied from event.h: */
 const char *event_handler_endpoint = "http://localhost:18000";
 const char *event_handler_action = "event";
@@ -28,11 +34,17 @@ int main()
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_KEEPALIVE);
   if (soap_send_ns__handle(&soap, event_handler_endpoint, event_handler_action, EVENT_A))
     soap_print_fault(&soap, stderr);
+  if (synchronous && soap_recv_empty_response(&soap))
+    soap_print_fault(&soap, stderr);
   if (soap_send_ns__handle(&soap, event_handler_endpoint, event_handler_action, EVENT_B))
+    soap_print_fault(&soap, stderr);
+  if (synchronous && soap_recv_empty_response(&soap))
     soap_print_fault(&soap, stderr);
   /* reset keep-alive when client needs to inform the server that it will close the connection. It may reconnect later */
   soap_clr_omode(&soap, SOAP_IO_KEEPALIVE);
   if (soap_send_ns__handle(&soap, event_handler_endpoint, event_handler_action, EVENT_C))
+    soap_print_fault(&soap, stderr);
+  if (synchronous && soap_recv_empty_response(&soap))
     soap_print_fault(&soap, stderr);
   /* close the socket */
   soap_closesock(&soap);

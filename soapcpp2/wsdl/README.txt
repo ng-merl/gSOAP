@@ -7,17 +7,28 @@ with the gSOAP soapcpp2 compiler to generate client stubs and server skeletons.
 
 Example:
 
-$ wsdl2h -o Amazon.h http://soap.amazon.com/schemas/AmazonWebServices.wsdl
+$ wsdl2h -o XMethodsQuery.h http://www.xmethods.net/wsdl/query.wsdl
 
-$ soapcpp2 Amazon.h
+You need to have stlvector.h present in the current directory (stlvector.h is
+in the package) to support STL vectors. To build without STL, use option -s:
 
-The generated Amazon.h includes the definitions of data types and service
-operations of the Amazon Web service. To develop a C++ client application, you
-can use the generated 'soapAmazonSearchBindingProxy.h' class and
-'AmazonSearchBinding.nsmap' XML namespace table to access the Amazon Web
-service. Both need to be '#include'-d in your source. Then compile and link the
-soapC.cpp, soapClient.cpp, and stdsoap2.cpp sources to complete the build.
-More information can be found in the gSOAP documentation.
+$ wsdl2h -s -o XMethodsQuery.h http://www.xmethods.net/wsdl/query.wsdl
+
+Or to build a pure C application, use option -c:
+
+$ wsdl2h -c -o XMethodsQuery.h http://www.xmethods.net/wsdl/query.wsdl
+
+The above commands are to be followed by the soapcpp2 compilation phase:
+
+$ soapcpp2 XMethodsQuery.h
+
+The generated XMethodsQuery.h includes the definitions of data types and
+service operations of the XMethods Query Web service. To develop a C++ client
+application, you can use the generated 'soapXMethodsQuerySoapProxy' class and
+'XMethodsQuerySoap.nsmap' XML namespace table to access the Web service. Both
+need to be '#include'-d in your source. Then compile and link the soapC.cpp,
+soapClient.cpp, and stdsoap2.cpp sources to complete the build.  More
+information can be found in the gSOAP documentation.
 
 When parsing a WSDL, the output file name is the WSDL input file name with
 extension '.h' instead of '.wsdl'. When an input file is absent or a WSDL file
@@ -52,7 +63,6 @@ COMMAND OPTIONS
 -c	generate pure C header file code
 -e	enum names will not be prefixed
 -f	generate flat C++ class hierarchy for schema extensions
--i	don't import schemas, but treat them as modules (using -m below)
 -m	create modules for separate compilation
 -nname	use name as the base namespace prefix name instead of 'ns'
 -ofile	output to file
@@ -62,6 +72,7 @@ COMMAND OPTIONS
 -s	do not generate STL code (no std::string and no std::vector)
 -tfile	use type map file instead of the default file typemap.dat
 -v	verbose output
+-w	always wrap response parameters in a response struct (<=1.1.4 behavior)
 -?	help
 
 DOCUMENTATION

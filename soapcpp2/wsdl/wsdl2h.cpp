@@ -57,7 +57,8 @@ int cflag = 0,
     mflag = 0,
     pflag = 0,
     sflag = 0,
-    vflag = 0;
+    vflag = 0,
+    wflag = 0;
 
 char *infile = NULL,
      *outfile = NULL,
@@ -78,10 +79,10 @@ char arrayformat[]     = "    %-35s *__ptr%-25s";
 char sizeformat[]      = "    %-35s  __size%-24s";
 char schemaformat[]    = "//gsoap %-5s schema %s:\t%s\n";
 char serviceformat[]   = "//gsoap %-4s service %s:\t%s %s\n";
-char paraformat[]      = "    %-35s %s%s";
-char anonformat[]      = "    %-35s _%s%s";
+char paraformat[]      = "    %-35s%s%s%s";
+char anonformat[]      = "    %-35s%s_%s%s";
 
-char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2001-2004 Robert van Engelen, Genivia, Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n\n";
+char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2005 Robert van Engelen, Genivia, Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc.\n\n";
 
 char licensenotice[]   = "\n\
 --------------------------------------------------------------------------------\n\
@@ -250,9 +251,12 @@ static void options(int argc, char **argv)
 	  case 'v':
 	    vflag = 1;
 	    break;
+	  case 'w':
+	    wflag = 1;
+	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-i] [-m] [-n name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-o outfile.h] [infile.wsdl | infile.xsd | http://...]\n");
+            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-i] [-m] [-n name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-w] [-o outfile.h] [infile.wsdl | infile.xsd | http://...]\n");
             exit(0);
           default:
             fprintf(stderr, "wsdl2h: Unknown option %s\n", a);

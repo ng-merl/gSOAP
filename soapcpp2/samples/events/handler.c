@@ -5,6 +5,10 @@
 	Events are based on asynchronous one-way SOAP messaging using HTTP
 	keep-alive for persistent connections
 
+	The 'synchronous' global flag illustrates SOAP one-way messaging,
+	which requires an HTTP OK response with an empty body to be returned
+	by the server.
+
 	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 
 	Compile:
@@ -32,6 +36,8 @@
 #define TIMEOUT (24*60*60) /* timeout after 24hrs of inactivity */
 
 void *process_request(void*);
+
+int synchronous = 0; /* =1: SOAP interoperable synchronous one-way messaging over HTTP */
 
 int main(int argc, char **argv)
 { struct soap soap, *tsoap;
@@ -96,7 +102,10 @@ int ns__handle(struct soap *soap, enum ns__event event)
       soap_send_ns__handle(resp, "http://", NULL, EVENT_C);
       soap_end(resp);
       soap_done(resp);
+      free(resp);
     }
   }
+  if (event != EVENT_Z && synchronous)
+    return soap_send_empty_response(soap);
   return SOAP_OK;
 }

@@ -83,7 +83,7 @@ int main()
 # define MUTEX_CLEANUP(x)	CloseHandle(x)
 # define MUTEX_LOCK(x)		WaitForSingleObject((x), INFINITE)
 # define MUTEX_UNLOCK(x)	ReleaseMutex(x)
-# define THREAD_ID		GetCurrentThreadID()
+# define THREAD_ID		GetCurrentThreadId()
 #elif defined(_POSIX_THREADS)
 # define MUTEX_TYPE		pthread_mutex_t
 # define MUTEX_SETUP(x)		pthread_mutex_init(&(x), NULL)

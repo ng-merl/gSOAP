@@ -97,6 +97,9 @@
 /* Define to 1 if you have the `strtod' function. */
 #undef HAVE_STRTOD
 
+/* Define to 1 if you have the `strtof' function. */
+#undef HAVE_STRTOF
+
 /* Define to 1 if you have the `strtol' function. */
 #undef HAVE_STRTOL
 

@@ -160,7 +160,6 @@ TODO:	Improve mixed content handling
 #include "stdsoap2.h"
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__anyType(struct soap*, struct soap_dom_element const*);
-SOAP_FMAC1 void SOAP_FMAC2 soap_mark_xsd__anyType(struct soap*, const struct soap_dom_element *);
 SOAP_FMAC1 void SOAP_FMAC2 soap_default_xsd__anyType(struct soap*, struct soap_dom_element *);
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_xsd__anyType(struct soap*, const struct soap_dom_element *, const char*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyType(struct soap*, const char*, int, const struct soap_dom_element *, const char*);
@@ -185,14 +184,14 @@ static struct soap_ilist *soap_enter_ns(struct soap*, const char*, const char*);
 SOAP_FMAC1
 void
 SOAP_FMAC2
-soap_mark_xsd__anyType(struct soap *soap, const struct soap_dom_element *node)
+soap_serialize_xsd__anyType(struct soap *soap, const struct soap_dom_element *node)
 { if (node)
   { if (node->type && node->node)
       soap_markelement(soap, node->node, node->type);
     else if (!node->data && !node->wide)
     { struct soap_dom_element *elt;
       for (elt = node->elts; elt; elt = elt->next)
-        soap_mark_xsd__anyType(soap, elt);
+        soap_serialize_xsd__anyType(soap, elt);
     }
   }
 }
@@ -866,7 +865,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
 { if (!e.soap)
   { struct soap soap;
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_GRAPH);
-    soap_mark_xsd__anyType(&soap, &e);
+    soap_serialize_xsd__anyType(&soap, &e);
     soap_begin_send(&soap);
     soap_put_xsd__anyType(&soap, &e, NULL, NULL);
     soap_end_send(&soap);
@@ -878,7 +877,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
     e.soap->os = &o;
     short omode = e.soap->omode;
     soap_set_omode(e.soap, SOAP_XML_GRAPH);
-    soap_mark_xsd__anyType(e.soap, &e);
+    soap_serialize_xsd__anyType(e.soap, &e);
     soap_begin_send(e.soap);
     soap_put_xsd__anyType(e.soap, &e, NULL, NULL);
     soap_end_send(e.soap);

@@ -79,7 +79,6 @@ we are currently working on:
 
 * WSDL 2.0 support
 * WS-Security support
-* HTTP/MIME attachment handling
 
 LICENSE
 

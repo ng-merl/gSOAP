@@ -34,6 +34,7 @@ and the following subdirectories:
 src		gSOAP compiler sources
 samples		examples
 extras		(contributed) extras
+mod_gsoap	Apache mod_gsoap, IIS, and WinInet support
 wsdl		WSDL parser sources
 
 If any of the above files is missing, please contact us: contact@genivia.com

@@ -1,15 +1,10 @@
 
 #include "soapH.h"
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloatArray(struct soap *soap, struct ns__echoFloatArray const*a)
-{
-	soap_mark_ns__echoFloatArray(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoFloatArray(struct soap *soap, const struct ns__echoFloatArray *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloatArray(struct soap *soap, const struct ns__echoFloatArray *a)
 {
 	soap_embedded(soap, &a->inputFloatArray, SOAP_TYPE_ArrayOffloat);
-	soap_mark_ArrayOffloat(soap, &a->inputFloatArray);
+	soap_serialize_ArrayOffloat(soap, &a->inputFloatArray);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoFloatArray(struct soap *soap, struct ns__echoFloatArray *a)
@@ -84,15 +79,10 @@ SOAP_FMAC3 struct ns__echoFloatArray * SOAP_FMAC4 soap_in_ns__echoFloatArray(str
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloatArrayResponse(struct soap *soap, struct ns__echoFloatArrayResponse const*a)
-{
-	soap_mark_ns__echoFloatArrayResponse(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoFloatArrayResponse(struct soap *soap, const struct ns__echoFloatArrayResponse *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloatArrayResponse(struct soap *soap, const struct ns__echoFloatArrayResponse *a)
 {
 	soap_embedded(soap, &a->_return, SOAP_TYPE_ArrayOffloat);
-	soap_mark_ArrayOffloat(soap, &a->_return);
+	soap_serialize_ArrayOffloat(soap, &a->_return);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoFloatArrayResponse(struct soap *soap, struct ns__echoFloatArrayResponse *a)
@@ -170,16 +160,11 @@ SOAP_FMAC3 struct ns__echoFloatArrayResponse * SOAP_FMAC4 soap_in_ns__echoFloatA
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ArrayOffloat(struct soap *soap, struct ArrayOffloat const*a)
 {
-	soap_mark_ArrayOffloat(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ArrayOffloat(struct soap *soap, struct ArrayOffloat const*a)
-{
 	int i;
 	if (a->__ptr && !soap_array_reference(soap, a, (struct soap_array*)&a->__ptr, 1, SOAP_TYPE_ArrayOffloat))
 		for (i = 0; i < a->__size; i++)
 		{	soap_embedded(soap, a->__ptr + i, SOAP_TYPE_PointerToxsd__float);
-			soap_mark_PointerToxsd__float(soap, a->__ptr + i);
+			soap_serialize_PointerToxsd__float(soap, a->__ptr + i);
 		}
 }
 
@@ -292,12 +277,7 @@ SOAP_FMAC3 struct ArrayOffloat * SOAP_FMAC4 soap_in_ArrayOffloat(struct soap *so
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloat(struct soap *soap, struct ns__echoFloat const*a)
-{
-	soap_mark_ns__echoFloat(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoFloat(struct soap *soap, const struct ns__echoFloat *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloat(struct soap *soap, const struct ns__echoFloat *a)
 {
 	soap_embedded(soap, &a->inputFloat, SOAP_TYPE_xsd__float);
 }
@@ -374,12 +354,7 @@ SOAP_FMAC3 struct ns__echoFloat * SOAP_FMAC4 soap_in_ns__echoFloat(struct soap *
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloatResponse(struct soap *soap, struct ns__echoFloatResponse const*a)
-{
-	soap_mark_ns__echoFloatResponse(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoFloatResponse(struct soap *soap, const struct ns__echoFloatResponse *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoFloatResponse(struct soap *soap, const struct ns__echoFloatResponse *a)
 {
 	soap_embedded(soap, &a->_return, SOAP_TYPE_xsd__float);
 }
@@ -457,15 +432,10 @@ SOAP_FMAC3 struct ns__echoFloatResponse * SOAP_FMAC4 soap_in_ns__echoFloatRespon
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoIntegerArray(struct soap *soap, struct ns__echoIntegerArray const*a)
-{
-	soap_mark_ns__echoIntegerArray(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoIntegerArray(struct soap *soap, const struct ns__echoIntegerArray *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoIntegerArray(struct soap *soap, const struct ns__echoIntegerArray *a)
 {
 	soap_embedded(soap, &a->inputIntegerArray, SOAP_TYPE_ArrayOfint);
-	soap_mark_ArrayOfint(soap, &a->inputIntegerArray);
+	soap_serialize_ArrayOfint(soap, &a->inputIntegerArray);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoIntegerArray(struct soap *soap, struct ns__echoIntegerArray *a)
@@ -540,15 +510,10 @@ SOAP_FMAC3 struct ns__echoIntegerArray * SOAP_FMAC4 soap_in_ns__echoIntegerArray
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoIntegerArrayResponse(struct soap *soap, struct ns__echoIntegerArrayResponse const*a)
-{
-	soap_mark_ns__echoIntegerArrayResponse(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoIntegerArrayResponse(struct soap *soap, const struct ns__echoIntegerArrayResponse *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoIntegerArrayResponse(struct soap *soap, const struct ns__echoIntegerArrayResponse *a)
 {
 	soap_embedded(soap, &a->_return, SOAP_TYPE_ArrayOfint);
-	soap_mark_ArrayOfint(soap, &a->_return);
+	soap_serialize_ArrayOfint(soap, &a->_return);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoIntegerArrayResponse(struct soap *soap, struct ns__echoIntegerArrayResponse *a)
@@ -626,16 +591,11 @@ SOAP_FMAC3 struct ns__echoIntegerArrayResponse * SOAP_FMAC4 soap_in_ns__echoInte
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ArrayOfint(struct soap *soap, struct ArrayOfint const*a)
 {
-	soap_mark_ArrayOfint(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ArrayOfint(struct soap *soap, struct ArrayOfint const*a)
-{
 	int i;
 	if (a->__ptr && !soap_array_reference(soap, a, (struct soap_array*)&a->__ptr, 1, SOAP_TYPE_ArrayOfint))
 		for (i = 0; i < a->__size; i++)
 		{	soap_embedded(soap, a->__ptr + i, SOAP_TYPE_PointerToxsd__int);
-			soap_mark_PointerToxsd__int(soap, a->__ptr + i);
+			soap_serialize_PointerToxsd__int(soap, a->__ptr + i);
 		}
 }
 
@@ -748,12 +708,7 @@ SOAP_FMAC3 struct ArrayOfint * SOAP_FMAC4 soap_in_ArrayOfint(struct soap *soap, 
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoInteger(struct soap *soap, struct ns__echoInteger const*a)
-{
-	soap_mark_ns__echoInteger(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoInteger(struct soap *soap, const struct ns__echoInteger *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoInteger(struct soap *soap, const struct ns__echoInteger *a)
 {
 	soap_embedded(soap, &a->inputInteger, SOAP_TYPE_xsd__int);
 }
@@ -830,12 +785,7 @@ SOAP_FMAC3 struct ns__echoInteger * SOAP_FMAC4 soap_in_ns__echoInteger(struct so
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoIntegerResponse(struct soap *soap, struct ns__echoIntegerResponse const*a)
-{
-	soap_mark_ns__echoIntegerResponse(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoIntegerResponse(struct soap *soap, const struct ns__echoIntegerResponse *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoIntegerResponse(struct soap *soap, const struct ns__echoIntegerResponse *a)
 {
 	soap_embedded(soap, &a->_return, SOAP_TYPE_xsd__int);
 }
@@ -913,15 +863,10 @@ SOAP_FMAC3 struct ns__echoIntegerResponse * SOAP_FMAC4 soap_in_ns__echoIntegerRe
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoStringArray(struct soap *soap, struct ns__echoStringArray const*a)
-{
-	soap_mark_ns__echoStringArray(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoStringArray(struct soap *soap, const struct ns__echoStringArray *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoStringArray(struct soap *soap, const struct ns__echoStringArray *a)
 {
 	soap_embedded(soap, &a->inputStringArray, SOAP_TYPE_ArrayOfstring);
-	soap_mark_ArrayOfstring(soap, &a->inputStringArray);
+	soap_serialize_ArrayOfstring(soap, &a->inputStringArray);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoStringArray(struct soap *soap, struct ns__echoStringArray *a)
@@ -996,15 +941,10 @@ SOAP_FMAC3 struct ns__echoStringArray * SOAP_FMAC4 soap_in_ns__echoStringArray(s
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoStringArrayResponse(struct soap *soap, struct ns__echoStringArrayResponse const*a)
-{
-	soap_mark_ns__echoStringArrayResponse(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoStringArrayResponse(struct soap *soap, const struct ns__echoStringArrayResponse *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoStringArrayResponse(struct soap *soap, const struct ns__echoStringArrayResponse *a)
 {
 	soap_embedded(soap, &a->_return, SOAP_TYPE_ArrayOfstring);
-	soap_mark_ArrayOfstring(soap, &a->_return);
+	soap_serialize_ArrayOfstring(soap, &a->_return);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoStringArrayResponse(struct soap *soap, struct ns__echoStringArrayResponse *a)
@@ -1082,16 +1022,11 @@ SOAP_FMAC3 struct ns__echoStringArrayResponse * SOAP_FMAC4 soap_in_ns__echoStrin
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ArrayOfstring(struct soap *soap, struct ArrayOfstring const*a)
 {
-	soap_mark_ArrayOfstring(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ArrayOfstring(struct soap *soap, struct ArrayOfstring const*a)
-{
 	int i;
 	if (a->__ptr && !soap_array_reference(soap, a, (struct soap_array*)&a->__ptr, 1, SOAP_TYPE_ArrayOfstring))
 		for (i = 0; i < a->__size; i++)
 		{	soap_embedded(soap, a->__ptr + i, SOAP_TYPE_xsd__string);
-			soap_mark_xsd__string(soap, a->__ptr + i);
+			soap_serialize_xsd__string(soap, a->__ptr + i);
 		}
 }
 
@@ -1204,15 +1139,10 @@ SOAP_FMAC3 struct ArrayOfstring * SOAP_FMAC4 soap_in_ArrayOfstring(struct soap *
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoString(struct soap *soap, struct ns__echoString const*a)
-{
-	soap_mark_ns__echoString(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoString(struct soap *soap, const struct ns__echoString *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoString(struct soap *soap, const struct ns__echoString *a)
 {
 	soap_embedded(soap, &a->inputString, SOAP_TYPE_xsd__string);
-	soap_mark_xsd__string(soap, &a->inputString);
+	soap_serialize_xsd__string(soap, &a->inputString);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoString(struct soap *soap, struct ns__echoString *a)
@@ -1283,15 +1213,10 @@ SOAP_FMAC3 struct ns__echoString * SOAP_FMAC4 soap_in_ns__echoString(struct soap
 	return a;
 }
 
-SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoStringResponse(struct soap *soap, struct ns__echoStringResponse const*a)
-{
-	soap_mark_ns__echoStringResponse(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_ns__echoStringResponse(struct soap *soap, const struct ns__echoStringResponse *a)
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_ns__echoStringResponse(struct soap *soap, const struct ns__echoStringResponse *a)
 {
 	soap_embedded(soap, &a->_return, SOAP_TYPE_xsd__string);
-	soap_mark_xsd__string(soap, &a->_return);
+	soap_serialize_xsd__string(soap, &a->_return);
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_ns__echoStringResponse(struct soap *soap, struct ns__echoStringResponse *a)
@@ -1372,13 +1297,8 @@ SOAP_FMAC3 struct ns__echoStringResponse * SOAP_FMAC4 soap_in_ns__echoStringResp
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToSOAP_ENV__Code(struct soap *soap, struct SOAP_ENV__Code *const*a)
 {
-	soap_mark_PointerToSOAP_ENV__Code(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToSOAP_ENV__Code(struct soap *soap, struct SOAP_ENV__Code *const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_SOAP_ENV__Code))
-		soap_mark_SOAP_ENV__Code(soap, *a);
+		soap_serialize_SOAP_ENV__Code(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToSOAP_ENV__Code(struct soap *soap, struct SOAP_ENV__Code *const*a, const char *tag, const char *type)
@@ -1431,13 +1351,8 @@ SOAP_FMAC3 struct SOAP_ENV__Code ** SOAP_FMAC4 soap_in_PointerToSOAP_ENV__Code(s
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToSOAP_ENV__Detail(struct soap *soap, struct SOAP_ENV__Detail *const*a)
 {
-	soap_mark_PointerToSOAP_ENV__Detail(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToSOAP_ENV__Detail(struct soap *soap, struct SOAP_ENV__Detail *const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_SOAP_ENV__Detail))
-		soap_mark_SOAP_ENV__Detail(soap, *a);
+		soap_serialize_SOAP_ENV__Detail(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToSOAP_ENV__Detail(struct soap *soap, struct SOAP_ENV__Detail *const*a, const char *tag, const char *type)
@@ -1497,11 +1412,6 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default_xsd__decimal(struct soap *soap, char **a
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__decimal(struct soap *soap, char *const*a)
 {
-	soap_mark_xsd__decimal(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_xsd__decimal(struct soap *soap, char *const*a)
-{
 	soap_reference(soap, *a, SOAP_TYPE_xsd__decimal);
 }
 
@@ -1541,11 +1451,6 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default_xsd__dateTime(struct soap *soap, char **
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__dateTime(struct soap *soap, char *const*a)
 {
-	soap_mark_xsd__dateTime(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_xsd__dateTime(struct soap *soap, char *const*a)
-{
 	soap_reference(soap, *a, SOAP_TYPE_xsd__dateTime);
 }
 
@@ -1575,11 +1480,6 @@ SOAP_FMAC3 char * * SOAP_FMAC4 soap_in_xsd__dateTime(struct soap *soap, const ch
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerTounsignedByte(struct soap *soap, unsigned char *const*a)
-{
-	soap_mark_PointerTounsignedByte(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerTounsignedByte(struct soap *soap, unsigned char *const*a)
 {
 	soap_reference(soap, *a, SOAP_TYPE_unsignedByte);
 }
@@ -1630,13 +1530,8 @@ SOAP_FMAC3 unsigned char ** SOAP_FMAC4 soap_in_PointerTounsignedByte(struct soap
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToPointerTos__SOAPStruct(struct soap *soap, struct s__SOAPStruct **const*a)
 {
-	soap_mark_PointerToPointerTos__SOAPStruct(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToPointerTos__SOAPStruct(struct soap *soap, struct s__SOAPStruct **const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_PointerTos__SOAPStruct))
-		soap_mark_PointerTos__SOAPStruct(soap, *a);
+		soap_serialize_PointerTos__SOAPStruct(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToPointerTos__SOAPStruct(struct soap *soap, struct s__SOAPStruct **const*a, const char *tag, const char *type)
@@ -1685,13 +1580,8 @@ SOAP_FMAC3 struct s__SOAPStruct *** SOAP_FMAC4 soap_in_PointerToPointerTos__SOAP
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerTos__SOAPStruct(struct soap *soap, struct s__SOAPStruct *const*a)
 {
-	soap_mark_PointerTos__SOAPStruct(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerTos__SOAPStruct(struct soap *soap, struct s__SOAPStruct *const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_s__SOAPStruct))
-		soap_mark_s__SOAPStruct(soap, *a);
+		soap_serialize_s__SOAPStruct(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerTos__SOAPStruct(struct soap *soap, struct s__SOAPStruct *const*a, const char *tag, const char *type)
@@ -1740,13 +1630,8 @@ SOAP_FMAC3 struct s__SOAPStruct ** SOAP_FMAC4 soap_in_PointerTos__SOAPStruct(str
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToPointerToxsd__float(struct soap *soap, float **const*a)
 {
-	soap_mark_PointerToPointerToxsd__float(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToPointerToxsd__float(struct soap *soap, float **const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_PointerToxsd__float))
-		soap_mark_PointerToxsd__float(soap, *a);
+		soap_serialize_PointerToxsd__float(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToPointerToxsd__float(struct soap *soap, float **const*a, const char *tag, const char *type)
@@ -1794,11 +1679,6 @@ SOAP_FMAC3 float *** SOAP_FMAC4 soap_in_PointerToPointerToxsd__float(struct soap
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToxsd__float(struct soap *soap, float *const*a)
-{
-	soap_mark_PointerToxsd__float(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToxsd__float(struct soap *soap, float *const*a)
 {
 	soap_reference(soap, *a, SOAP_TYPE_xsd__float);
 }
@@ -1849,13 +1729,8 @@ SOAP_FMAC3 float ** SOAP_FMAC4 soap_in_PointerToxsd__float(struct soap *soap, co
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToPointerToxsd__int(struct soap *soap, long **const*a)
 {
-	soap_mark_PointerToPointerToxsd__int(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToPointerToxsd__int(struct soap *soap, long **const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_PointerToxsd__int))
-		soap_mark_PointerToxsd__int(soap, *a);
+		soap_serialize_PointerToxsd__int(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToPointerToxsd__int(struct soap *soap, long **const*a, const char *tag, const char *type)
@@ -1903,11 +1778,6 @@ SOAP_FMAC3 long *** SOAP_FMAC4 soap_in_PointerToPointerToxsd__int(struct soap *s
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToxsd__int(struct soap *soap, long *const*a)
-{
-	soap_mark_PointerToxsd__int(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToxsd__int(struct soap *soap, long *const*a)
 {
 	soap_reference(soap, *a, SOAP_TYPE_xsd__int);
 }
@@ -1958,13 +1828,8 @@ SOAP_FMAC3 long ** SOAP_FMAC4 soap_in_PointerToxsd__int(struct soap *soap, const
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToxsd__string(struct soap *soap, char **const*a)
 {
-	soap_mark_PointerToxsd__string(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_PointerToxsd__string(struct soap *soap, char **const*a)
-{
 	if (!soap_reference(soap, *a, SOAP_TYPE_xsd__string))
-		soap_mark_xsd__string(soap, *a);
+		soap_serialize_xsd__string(soap, *a);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToxsd__string(struct soap *soap, char **const*a, const char *tag, const char *type)
@@ -2022,11 +1887,6 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default_xsd__string(struct soap *soap, char **a)
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__string(struct soap *soap, char *const*a)
 {
-	soap_mark_xsd__string(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_xsd__string(struct soap *soap, char *const*a)
-{
 	soap_reference(soap, *a, SOAP_TYPE_xsd__string);
 }
 
@@ -2065,11 +1925,6 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default__QName(struct soap *soap, char **a)
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize__QName(struct soap *soap, char *const*a)
-{
-	soap_mark__QName(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark__QName(struct soap *soap, char *const*a)
 {
 	soap_reference(soap, *a, SOAP_TYPE__QName);
 }
@@ -2110,11 +1965,6 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default_string(struct soap *soap, char **a)
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_string(struct soap *soap, char *const*a)
 {
-	soap_mark_string(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_string(struct soap *soap, char *const*a)
-{
 	soap_reference(soap, *a, SOAP_TYPE_string);
 }
 
@@ -2144,10 +1994,6 @@ SOAP_FMAC3 char * * SOAP_FMAC4 soap_in_string(struct soap *soap, const char *tag
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_Array2Ofint(struct soap *soap, int const a[2])
-{	soap_mark_Array2Ofint(soap, a);
-}
-
-SOAP_FMAC3 void SOAP_FMAC4 soap_mark_Array2Ofint(struct soap *soap, int const a[2])
 {
 }
 

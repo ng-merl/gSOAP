@@ -21,7 +21,7 @@
 
 <h3 align="center">Robert van Engelen <br />Genivia, Inc., <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Jan 23, 2005
+<h3 align="center">Mar  1, 2005
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -100,17 +100,19 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.3"
 >8.3&nbsp; <font color="#0000FF">How to Use gSOAP for Asynchronous One-Way Message Passing</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4"
->8.4&nbsp; <font color="#0000FF">How to Use the SOAP Serializers and Deserializers to Save and Load Application Data</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4.1"
->8.4.1&nbsp; <font color="#0000FF">Serializing a Data Type</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4.2"
->8.4.2&nbsp; <font color="#0000FF">Deserializing a Data Type</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4.3"
->8.4.3&nbsp; <font color="#0000FF">Example</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4.4"
->8.4.4&nbsp; <font color="#0000FF">Serializing and Deserializing Class Instances to Streams</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4.5"
->8.4.5&nbsp; <font color="#0000FF">How to Specify Default Values for Omitted Data</font></a><br />
+>8.4&nbsp; <font color="#0000FF">One-Way Message Passing over HTTP</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.5"
+>8.5&nbsp; <font color="#0000FF">How to Use the SOAP Serializers and Deserializers to Save and Load Application Data</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.5.1"
+>8.5.1&nbsp; <font color="#0000FF">Serializing a Data Type</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.5.2"
+>8.5.2&nbsp; <font color="#0000FF">Deserializing a Data Type</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.5.3"
+>8.5.3&nbsp; <font color="#0000FF">Example</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.5.4"
+>8.5.4&nbsp; <font color="#0000FF">Serializing and Deserializing Class Instances to Streams</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.5.5"
+>8.5.5&nbsp; <font color="#0000FF">How to Specify Default Values for Omitted Data</font></a><br />
 <a href="#tth_sEc9"
 >9&nbsp; <font color="#0000FF">Using the gSOAP Stub and Skeleton Compiler</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc9.1"
@@ -1745,8 +1747,7 @@ This parameter is not (de)serialized.
 
 <p>
 Some SOAP resources refer to SOAP RPC with empty responses as <b>one way</b> SOAP messaging. However, we refer to one-way massaging
-by asynchronous explicit send and receive operations as described in Section&nbsp;<a href="#sec:oneway">8.3</a>. We found
-this view of one-way SOAP messaging more useful by providing a message passing alternative to SOAP RPC.
+by asynchronous explicit send and receive operations as described in Section&nbsp;<a href="#sec:oneway1">8.3</a>.  The latter view of one-way SOAP messaging is also in line with Basic Profile 1.0.
 
 <p>
 	     <h3><a name="tth_sEc8.2">
@@ -2133,6 +2134,12 @@ The following example uses a pool of threads:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_create(&amp;tid[i], NULL, (<b>void</b>*(*)(<b>void</b>*))soap_serve, (<b>void</b>*)soap_thr[i]); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_THR; i++) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_thr[i]) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_done(soap_thr[i]); // detach context <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;free(soap_thr[i]); // free up <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
 &nbsp;&nbsp;&nbsp;} <br />
 &nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;0; <br />
 }
@@ -2656,12 +2663,14 @@ services).
 
 <p>
 	     <h3><a name="tth_sEc8.3">
-8.3</a>&nbsp;&nbsp;<font color="#0000FF">How to Use gSOAP for Asynchronous One-Way Message Passing</font></h3><a name="sec:oneway">
+8.3</a>&nbsp;&nbsp;<font color="#0000FF">How to Use gSOAP for Asynchronous One-Way Message Passing</font></h3><a name="sec:oneway1">
 </a>
 
 <p>
 SOAP RPC client-server interaction is synchronous: the client blocks until the server responds to the request.
-gSOAP also supports asynchronous one-way message passing.
+gSOAP also supports asynchronous one-way message passing and the interoperable synchronous one-way message passing over HTTP. The two styles are similar, but only the latter is interoperable and is compliant to Basic Profile 1.0. The interoperable synchronous one-way message passing style over HTTP is discussed in Section&nbsp;<a href="#sec:oneway2">8.4</a> below.
+
+<p>
 SOAP messaging routines are declared as function prototypes, just like remote methods for SOAP RPC.  However, the output parameter is a
 <i><b>void</b></i> type to indicate the absence of a return value.
 
@@ -2713,7 +2722,37 @@ main() <br />
 
 <p>
 	     <h3><a name="tth_sEc8.4">
-8.4</a>&nbsp;&nbsp;<font color="#0000FF">How to Use the SOAP Serializers and Deserializers to Save and Load Application Data</font></h3>
+8.4</a>&nbsp;&nbsp;<font color="#0000FF">One-Way Message Passing over HTTP</font></h3><a name="sec:oneway2">
+</a>
+
+<p>
+One-way SOAP message passing over HTTP as defined by the SOAP specification and Basic Profile 1.0 is synchrounous, meaning that the server must respond with an HTTP OK header and an empty body. To implement synchrounous one-way messaging, the same setup for asynchrounous one-way messaing discussed in Section&nbsp;<a href="#sec:oneway1">8.3</a> is used, but with one simple addition at the client and server side.
+
+<p>
+At the server side, we need to return an empty HTTP OK response. This is accomplished as follows. For each one-way operation implemented in C/C++, we replace the <i><b>return</b>&nbsp;SOAP_OK</i> with:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;ns__event(<b>struct</b>&nbsp;soap *soap, <b>int</b>&nbsp;eventNo) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;... // handle event <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_send_empty_response(soap); <br />
+}
+</td></tr></table><br></i>
+At the client side, the empty response header must be parsed as follows:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>if</b>&nbsp;(soap_call_ns__event(soap, eventNo) != SOAP_OK <br />
+&nbsp;&nbsp;&nbsp;<font face="symbol">|</font
+><font face="symbol">|</font
+> soap_recv_empty_response(soap) != SOAP_OK) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_recv_empty_response(soap) != SOAP_OK) // parse HTTP OK <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); <br />
+}
+</td></tr></table><br></i>
+The synchronous (and asynchronous) one-way messaging supports HTTP keep-alive and chunking.
+
+<p>
+	     <h3><a name="tth_sEc8.5">
+8.5</a>&nbsp;&nbsp;<font color="#0000FF">How to Use the SOAP Serializers and Deserializers to Save and Load Application Data</font></h3>
 
 <p>
 The gSOAP stub and skeleton compiler generates serializers and deserializers for all user-defined data structures that are
@@ -2753,8 +2792,8 @@ When <i>soap.socket</i> &lt; 0 and none of the streams and descriptors are set, 
 See also Section&nbsp;<a href="#sec:flags">9.12</a> to control the I/O buffering and content encoding such as compression and DIME encoding.
 
 <p>
-		      <h4><a name="tth_sEc8.4.1">
-8.4.1</a>&nbsp;&nbsp;<font color="#0000FF">Serializing a Data Type</font></h4><a name="sec:serialize">
+		      <h4><a name="tth_sEc8.5.1">
+8.5.1</a>&nbsp;&nbsp;<font color="#0000FF">Serializing a Data Type</font></h4><a name="sec:serialize">
 </a>
 
 <p>
@@ -3016,8 +3055,8 @@ In this case, the XML is self-contained and multi-referenced data is accurately 
 The gSOAP generated deserializer for this data type will be able to accurately reconstruct the data from the XML (on the heap).
 
 <p>
-		      <h4><a name="tth_sEc8.4.2">
-8.4.2</a>&nbsp;&nbsp;<font color="#0000FF">Deserializing a Data Type</font></h4><a name="sec:deserialize">
+		      <h4><a name="tth_sEc8.5.2">
+8.5.2</a>&nbsp;&nbsp;<font color="#0000FF">Deserializing a Data Type</font></h4><a name="sec:deserialize">
 </a>
 
 <p>
@@ -3103,8 +3142,8 @@ istream &amp;operator<tt>&gt;&gt;</tt>(istream &amp;i, myClass &amp;e) <br />
 </td></tr></table><br></i>
 
 <p>
-		      <h4><a name="tth_sEc8.4.3">
-8.4.3</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4><a name="sec:example9">
+		      <h4><a name="tth_sEc8.5.3">
+8.5.3</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4><a name="sec:example9">
 </a>
 
 <p>
@@ -3292,8 +3331,8 @@ Note the use of <i>soap_default_ns__Person</i>. This routine is generated by the
 values to the fields of <i>john</i>.
 
 <p>
-	      <h4><a name="tth_sEc8.4.4">
-8.4.4</a>&nbsp;&nbsp;<font color="#0000FF">Serializing and Deserializing Class Instances to Streams</font></h4>
+	      <h4><a name="tth_sEc8.5.4">
+8.5.4</a>&nbsp;&nbsp;<font color="#0000FF">Serializing and Deserializing Class Instances to Streams</font></h4>
 
 <p>
 C++ applications can define appropriate stream operations on objects for (de)serialization of objects on streams.
@@ -3364,8 +3403,8 @@ istream &amp;<b>operator</b><tt>&gt;&gt;</tt>(istream &amp;i, ns__person &amp;p)
 </td></tr></table><br></i>
 
 <p>
-		      <h4><a name="tth_sEc8.4.5">
-8.4.5</a>&nbsp;&nbsp;<font color="#0000FF">How to Specify Default Values for Omitted Data</font></h4>
+		      <h4><a name="tth_sEc8.5.5">
+8.5.5</a>&nbsp;&nbsp;<font color="#0000FF">How to Specify Default Values for Omitted Data</font></h4>
 
 <p>
 The gSOAP compiler generates <i>soap_default</i> functions for all data types.  The default values of the primitive types can be
@@ -3669,7 +3708,7 @@ An example of the <i>#import</i> directive:
 #import "mydefs.gsoap" <br />
 <b>int</b>&nbsp;ns__mymethod(xsd__string in, xsd__int *out);
 </td></tr></table><br></i>
-where <i>"mydefs.gsoap"</i> is a gSOAP header file that defines <i>xsd__string</i> and <i>xsd_int</i>:
+where <i>"mydefs.gsoap"</i> is a gSOAP header file that defines <i>xsd__string</i> and <i>xsd__int</i>:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>typedef</b>&nbsp;<b>char</b>&nbsp;*xsd__string; <br />
 <b>typedef</b>&nbsp;<b>int</b>&nbsp;xsd__int;
@@ -3883,7 +3922,7 @@ The following macros (<i>#define</i>s) can be used to enable certain optional fe
 <tr><td><i>WITH_GZIP</i>	</td><td>enables gzip and deflate compression, see Section&nbsp;<a href="#sec:compression">17.25</a> </td></tr>
 <tr><td><i>WITH_ZLIB</i>	</td><td>enables deflate compression only, see Section&nbsp;<a href="#sec:compression">17.25</a> </td></tr>
 <tr><td><i>WITH_FAST</i>	</td><td>(experimental) may yield faster executables </td></tr>
-<tr><td><i>WITH_NOIO</i>	</td><td>eliminates need for BSD socket library linkage, see Section&nbsp;<a href="#sec:noio">17.31</a> </td></tr>
+<tr><td><i>WITH_NOIO</i>	</td><td>eliminates need for file IO and BSD socket library, see Section&nbsp;<a href="#sec:noio">17.31</a> </td></tr>
 <tr><td><i>WITH_LEAN</i>	</td><td>creates a small-footprint executable, see Section&nbsp;<a href="#sec:lean">17.30</a> </td></tr>
 <tr><td><i>WITH_LEANER</i>	</td><td>creates an even smaller footprint executable, see Section&nbsp;<a href="#sec:lean">17.30</a> </td></tr>
 <tr><td><i>WITH_NONAMESPACES</i></td><td>omit initialization of soap struct with global <i>namespaces</i> table </td></tr>
@@ -6592,7 +6631,7 @@ type</i> field contains run time information on the type of the data pointed to 
 <i><b>void</b>*</i> member in a struct/class to enable the (de)serialization of this
 data.  The <i><b>int</b>&nbsp;__type</i> field is set to a <i>SOAP_TYPE_X</i> value, where <i>X</i> is the name of a type.  gSOAP generates the <i>SOAP_TYPE_X</i> definitions in <i>soapH.h</i> and uses them internally to uniquely identify the type of each object.
 The type naming conventions outlined in
-Section&nbsp;<a href="#sec:serialize">8.4.1</a> are used to determine the type name for <i>X</i>.
+Section&nbsp;<a href="#sec:serialize">8.5.1</a> are used to determine the type name for <i>X</i>.
 
 <p>
 Here is an example to illustrate the (de)serialization of a <i><b>void</b>*</i> field in a struct:
@@ -9160,7 +9199,7 @@ for the type name that is declared. For example:
 </td></tr></table><br></i>
 The user is required to supply the following routines for each <i><b>extern</b>&nbsp;<b>typedef</b></i>'ed name <u>T</u>:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>void</b>&nbsp;soap_mark_<u><span class="roman">T</span></u>(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<u><span class="roman">T</span></u> *a) <br />
+<b>void</b>&nbsp;soap_serialize_<u><span class="roman">T</span></u>(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<u><span class="roman">T</span></u> *a) <br />
 <b>void</b>&nbsp;soap_default_<u><span class="roman">T</span></u>(<b>struct</b>&nbsp;soap *soap, <u><span class="roman">T</span></u> *a) <br />
 <b>void</b>&nbsp;soap_out_<u><span class="roman">T</span></u>(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*tag, <b>int</b>&nbsp;id, <b>const</b>&nbsp;<u><span class="roman">T</span></u> *a, <b>const</b>&nbsp;<b>char</b>&nbsp;*type) <br />
 <u><span class="roman">T</span></u> *soap_in_<u><span class="roman">T</span></u>(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*tag, <u><span class="roman">T</span></u> *a, <b>const</b>&nbsp;<b>char</b>&nbsp;*type) 
@@ -9170,7 +9209,7 @@ The function prototypes can be found in <i>soapH.h</i>.
 <p>
 For example, the (de)serialization of <i>MyData</i> can be done with the following code:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>void</b>&nbsp;soap_mark_MyData(<b>struct</b>&nbsp;soap *soap, MyData *<b>const</b>*a) <br />
+<b>void</b>&nbsp;soap_serialize_MyData(<b>struct</b>&nbsp;soap *soap, MyData *<b>const</b>*a) <br />
 { } // no need to mark this node (for multi-ref and cycle detection) <br />
 <b>void</b>&nbsp;soap_default_MyData(&amp;soap, MyData **a) <br />
 { *a = NULL } <br />
@@ -10782,16 +10821,15 @@ non-essential features. The features that will be disabled are:
 <p>
 <li> No support for <i>time_t</i> serialization</li>
 <p>
-<li> No support for <i><b>unsigned</b>&nbsp;<b>short</b></i> and <i>LONG64</i>/<i>ULONG64</i> serialization (use
-<i><b>typedef</b>&nbsp;<b>unsigned</b>&nbsp;<b>int</b>&nbsp;xsd__unsignedShort</i> or
-<i><b>typedef</b>&nbsp;<b>long</b>&nbsp;xsd__unsignedLong</i>)</li>
+<li> No support for <i>LONG64</i>/<i>ULONG64</i> serialization (use <i><b>typedef</b>&nbsp;<b>long</b>&nbsp;xsd__long</i>)</li>
 </ul>
 Use <i>-DWITH_LEANER</i> to make the executable even smaller by removing DIME
-attachment handling.  Note that DIME attachments are not essential to achieve
+and MIME attachment handling, <i>wchar_t*</i> serialization, and support for XML DOM operations.
+Note that DIME/MIME attachments are not essential to achieve
 SOAP/XML interoperability.  DIME attachments are a convenient way to exchange
 non-text-based (i.e.&nbsp;binary) content, but are not required for basic SOAP/XML
-interoperability.  The DIME requirements are predictable.  That is,
-applications won't suddenly decide to use DIME instead of XML to exchange
+interoperability.  Attachment requirements are predictable.  That is,
+applications won't suddenly decide to use DIME or MIME instead of XML to exchange
 content.
 
 <p>
@@ -10806,7 +10844,7 @@ will run just fine.
 </a>
 
 <p>
-The <i>stdsoap2.c</i> and <i>stdsoap2.cpp</i> gSOAP runtime libraries should be linked with a BSD socket library in the project build, e.g. winsock for Win32. To eliminate the need to link a socket library, you should compile <i>stdsoap2.c</i> (for C) and <i>stdsoap2.cpp</i> (for C++) with the <i>-DWITH_NOIO</i> macro (i.e.&nbsp;<i>#define WITH_NOIO</i>). This eliminates the dependency on the BSD socket API, IO streams, and <i>errno</i>.
+The <i>stdsoap2.c</i> and <i>stdsoap2.cpp</i> gSOAP runtime libraries should be linked with a BSD socket library in the project build, e.g. winsock for Win32. To eliminate the need to link a socket library, you can compile <i>stdsoap2.c</i> (for C) and <i>stdsoap2.cpp</i> (for C++) with the <i>-DWITH_NOIO</i> macro set (i.e.&nbsp;<i>#define WITH_NOIO</i>). This eliminates the dependency on the BSD socket API, IO streams, <i>FILE</i> type, and <i>errno</i>.
 
 <p>
 As a consequence, you MUST define callbacks to replace the missing socket stack. To do so, add to your code the following definitions:
@@ -10833,6 +10871,9 @@ soap.faccept = my_accept;
 These functions are supposed to provide a (minimal) transport stack.
 See Section&nbsp;<a href="#sec:callback">17.7</a> for more details on the use of these callbacks.
 All callback function pointers should be non-NULL, except <i>fpoll</i>.
+
+<p>
+You cannot use <i>soap_print_fault</i> and <i>soap_print_fault_location</i> to print error diagnostics. Instead, the value of <i>soap.error</i>, which contains the gSOAP error code, can be used to determine the cause of a fault.
 
 <p>
 	     <h3><a name="tth_sEc17.32">
@@ -11366,5 +11407,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 23 Jan 2005, 16:30.</small>
+version 3.00.<br />On  1 Mar 2005, 10:11.</small>
 </html>

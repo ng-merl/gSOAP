@@ -93,6 +93,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 	-z		enables compression
 	-c		enables chunking
 	-k		enables keep-alive
+	-i		enables non-threaded iterative server
+	-v		enables verbose mode
 	-t<val>		sets I/O timeout value (seconds)
 	-s<val>		sets server timeout value (seconds)
 	-d<host>	sets cookie domain
@@ -132,6 +134,8 @@ static const struct option default_options[] =
 { { "z.compress", NULL, },
   { "c.chunking", NULL, },
   { "k.keepalive", NULL, },
+  { "i.iterative", NULL, },
+  { "v.verbose", NULL, },
   { "t.ioTimeout", "seconds", 6, "120"},
   { "s.serverTimeout", "seconds", 6, "3600"},
   { "d.cookieDomain", "host", 20, "localhost:8080"},
@@ -190,8 +194,8 @@ int main(int argc, char **argv)
   options = copy_options(default_options); /* must copy, so option values can be modified */
   if (parse_options(argc, argv, options))
     exit(0);
-  if (options[8].value)
-    port = atol(options[8].value);
+  if (options[10].value)
+    port = atol(options[10].value);
   if (!port)
     port = 8080;
   start = time(NULL);
@@ -201,8 +205,8 @@ int main(int argc, char **argv)
   fprintf(stderr, "[Note: you must enable Linux/Unix SIGPIPE handler to avoid broken pipe]\n");
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
   /* HTTP cookies (to enable: compile all sources with -DWITH_COOKIES) */
-  soap.cookie_domain = options[5].value; /* must be the current host name */
-  soap.cookie_path = options[6].value; /* the path which is used to filter/set cookies with this destination */
+  soap.cookie_domain = options[7].value; /* must be the current host name */
+  soap.cookie_path = options[8].value; /* the path which is used to filter/set cookies with this destination */
   /* SSL init (to enable: compile all sources with -DWITH_OPENSSL) */
 #ifdef WITH_OPENSSL
   if (CRYPTO_thread_setup())
@@ -238,16 +242,16 @@ int main(int argc, char **argv)
   /* soap.socket_flags = MSG_NOSIGNAL; */	/* others need this */
   /* signal(SIGPIPE, sigpipe_handle); */	/* and some older Unix systems may require a sigpipe handler */
   m = soap_bind(&soap, NULL, port, BACKLOG);
-  if (m < 0)
+  if (!soap_valid_socket(m))
   { soap_print_fault(&soap, stderr);
     exit(1);
   }
   fprintf(stderr, "Port bind successful: master socket = %d\n", m);
   for (i = 1; ; i++)
-  { if (options[4].value)
-      soap.accept_timeout = atol(options[4].value);
+  { if (options[6].value)
+      soap.accept_timeout = atol(options[6].value);
     s = soap_accept(&soap);
-    if (s < 0)
+    if (!soap_valid_socket(s))
     { if (soap.errnum)
       { soap_print_fault(&soap, stderr);
         exit(1);
@@ -255,16 +259,17 @@ int main(int argc, char **argv)
       fprintf(stderr, "gSOAP Web server timed out\n");
       break;
     }
-    fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
+    if (options[4].selected)
+      fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
     tsoap = soap_copy(&soap);
     if (options[1].selected)
       soap_set_omode(tsoap, SOAP_IO_CHUNK); /* use chunked HTTP content (fast) */
     if (options[2].selected)
       soap_set_omode(tsoap, SOAP_IO_KEEPALIVE);
-    if (options[3].value)
-      soap.send_timeout = soap.recv_timeout = atol(options[3].value);
-    logdata->inbound = (options[7].selected == 1 || options[7].selected == 3);
-    logdata->outbound = (options[7].selected == 2 || options[7].selected == 3);
+    if (options[5].value)
+      tsoap->send_timeout = tsoap->recv_timeout = atol(options[5].value);
+    logdata->inbound = (options[9].selected == 1 || options[9].selected == 3);
+    logdata->outbound = (options[9].selected == 2 || options[9].selected == 3);
 #ifdef WITH_OPENSSL
     if (secure && soap_ssl_accept(tsoap))
     { soap_print_fault(tsoap, stderr);
@@ -275,7 +280,21 @@ int main(int argc, char **argv)
       continue;
     }
 #endif
-    pthread_create(&tid, NULL, (void*(*)(void*))process_request, (void*)tsoap);
+    if (options[3].selected)
+    { if (soap_serve(tsoap))
+      { fprintf(stderr, "Thread %d completed with failure %d\n", i, tsoap->error);
+        soap_print_fault(tsoap, stderr);
+      }
+      soap_end(tsoap);
+      soap_done(tsoap);
+      if (options[4].selected)
+        fprintf(stderr, "Thread %d completed\n", i);
+      free(tsoap);
+    }
+    else
+    { tsoap->user = (void*)i;
+      pthread_create(&tid, NULL, (void*(*)(void*))process_request, (void*)tsoap);
+    }
   }
 #ifdef WITH_OPENSSL
   CRYPTO_thread_cleanup();
@@ -293,11 +312,17 @@ int main(int argc, char **argv)
 \******************************************************************************/
 
 void *process_request(void *soap)
-{ pthread_detach(pthread_self());
-  soap_serve((struct soap*)soap);
+{ struct soap *tsoap = (struct soap*)soap;
+  pthread_detach(pthread_self());
+  if (soap_serve(tsoap))
+  { fprintf(stderr, "Thread %d completed with failure %d\n", (int)tsoap->user, tsoap->error);
+    soap_print_fault(tsoap, stderr);
+  }
+  else if (options[4].selected)
+    fprintf(stderr, "Thread %d completed\n", (int)tsoap->user);
   /* soap_destroy((struct soap*)soap); */ /* cleanup class instances (but this is a C app) */
-  soap_end((struct soap*)soap);
-  soap_done((struct soap*)soap);
+  soap_end(tsoap);
+  soap_done(tsoap);
   free(soap);
   return NULL;
 }
@@ -366,7 +391,8 @@ int http_get_handler(struct soap *soap)
   soap->z_level = 9; /* best compression */
 #endif
   /* Use soap->path (from request URL) to determine request: */
-  fprintf(stderr, "Request: %s\n", soap->endpoint);
+  if (options[4].selected)
+    fprintf(stderr, "HTTP GET Request: %s\n", soap->endpoint);
   /* Note: soap->path always starts with '/' */
   if (strchr(soap->path + 1, '/') || strchr(soap->path + 1, '\\'))	/* we don't like snooping in dirs */
     return 403; /* HTTP forbidden */
@@ -493,7 +519,7 @@ int info(struct soap *soap)
   const char *t0, *t1, *t2, *t3, *t4, *t5, *t6, *t7;
   char buf[2048]; /* buffer large enough to hold HTML content */
   int r;
-  time_t now = time(NULL);
+  time_t elapsed = time(NULL) - start;
   query_options(soap, options);
   if (soap->omode & SOAP_IO_KEEPALIVE)
     t0 = "<td align='center' bgcolor='green'>YES</td>";
@@ -540,8 +566,8 @@ int info(struct soap *soap)
     t7 = "<td align='center' bgcolor='green'>YES</td>";
   else
     t7 = "<td align='center' bgcolor='red'>NO</td>";
-  soap->cookie_domain = options[5].value;
-  soap->cookie_path = options[6].value;
+  soap->cookie_domain = options[7].value;
+  soap->cookie_path = options[8].value;
   soap_set_cookie(soap, "visit", "true", NULL, NULL);
   soap_set_cookie_expire(soap, "visit", 600, NULL, NULL);
   if (soap_response(soap, SOAP_HTML))
@@ -564,8 +590,11 @@ int info(struct soap *soap)
   r = soap_send(soap, buf);
   if (r)
     return r;
-  html_hbar(soap, "Hours:", 80, (now-start)/3600, 0x000000);
-  html_hbar(soap, "Minutes:", 80, (now-start)/60%60, 0x000000);
+  if (elapsed >= 86400)
+    html_hbar(soap, "Days:", 80, elapsed/86400, 0x000000);
+  if (elapsed >= 3600)
+    html_hbar(soap, "Hours:", 80, elapsed/3600%24, 0x000000);
+  html_hbar(soap, "Minutes:", 80, elapsed/60%60, 0x000000);
   soap_send(soap, "<h2>Control Panel</h2>");
   r = html_form_options(soap, options);
   if (r)
@@ -655,7 +684,7 @@ int html_hbar(struct soap *soap, const char *title, size_t pix, size_t len, unsi
 # define MUTEX_CLEANUP(x)	CloseHandle(x)
 # define MUTEX_LOCK(x)		WaitForSingleObject((x), INFINITE)
 # define MUTEX_UNLOCK(x)	ReleaseMutex(x)
-# define THREAD_ID		GetCurrentThreadID()
+# define THREAD_ID		GetCurrentThreadId()
 #elif defined(_POSIX_THREADS)
 # define MUTEX_TYPE		pthread_mutex_t
 # define MUTEX_SETUP(x)		pthread_mutex_init(&(x), NULL)
