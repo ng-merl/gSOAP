@@ -1,4 +1,5 @@
 #include "soapH.h"
+#include "magic.nsmap"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -11,7 +12,7 @@
 // const char magicserver[] = "linprog2.cs.fsu.edu:18081";
 // const char magicserver[] = "http://diablo.cs.fsu.edu:18081";
 // const char magicserver[] = "http://";
-const char magicserver[] = "http://websrv.cs.fsu.edu/~engelen/magicserver.cgi";
+const char magicserver[] = "http://www.cs.fsu.edu/~engelen/magicserver.cgi";
 
 int main(int argc, char **argv)
 { struct soap soap;
@@ -78,7 +79,7 @@ void vector::resize(int size)
   __size = size;
 }
 
-int& vector::operator[](int idx)
+int& vector::operator[](int idx) const
 { if (!__ptr || idx < 0 || idx >= __size)
     fprintf(stderr, "Array index out of bounds\n");
   return __ptr[idx];
@@ -135,23 +136,8 @@ void matrix::resize(int rows, int cols)
       __ptr[i].resize(cols);
 }
 
-vector& matrix::operator[](int idx)
+vector& matrix::operator[](int idx) const
 { if (!__ptr || idx < 0 || idx >= __size)
     fprintf(stderr, "Array index out of bounds\n");
   return __ptr[idx];
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//
-//	Namespace Definition Table
-//
-////////////////////////////////////////////////////////////////////////////////
-
-struct Namespace namespaces[] =
-{ { "SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/" }, // must be first
-  { "SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/" }, // must be second
-  { "xsi", "http://www.w3.org/1999/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance" },
-  { "xsd", "http://www.w3.org/1999/XMLSchema", "http://www.w3.org/*/XMLSchema" },
-  { "ns1", "urn:MagicSquare" },
-  { NULL, NULL }
-};

@@ -24,7 +24,7 @@ Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.2.2" /* Current version */
+#define VERSION "2.2.3b" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -74,10 +74,10 @@ Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 #endif
 
 #ifndef SOAP_LONG_FORMAT
-#define SOAP_LONG_FORMAT "%lld"
+#define SOAP_LONG_FORMAT "%lld"		/* printf format for 64 bit ints */
 #endif
 #ifndef SOAP_ULONG_FORMAT
-#define SOAP_ULONG_FORMAT "%llu"
+#define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
 #endif
 
 extern int yylineno;
@@ -174,6 +174,7 @@ typedef	struct Tnode
 {	Type	type;
 	void	*ref;
 	Symbol	*id;	/* struct/class/union/enum name */
+	Symbol	*base;	/* base class name */
 	Symbol	*sym;	/* typedef name */
 	struct	Entry *response; /* funcs only: points to response struct */
 	int	width;

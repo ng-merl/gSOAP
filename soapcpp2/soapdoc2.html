@@ -15,13 +15,13 @@
 
 
 
-<title> gSOAP 2.2.2 User Guide</title>
+<title> gSOAP 2.2.3 User Guide</title>
     
-<h1 align="center">gSOAP 2.2.2 User Guide </h1>
+<h1 align="center">gSOAP 2.2.3 User Guide </h1>
 
-<h3 align="center">Robert A. van Engelen <br />Genivia inc. and Florida State University <br />engelen@acm.org </h3>
+<h3 align="center">Robert van Engelen <br />Genivia inc. and Florida State University <br />engelen@acm.org </h3>
 
-<h3 align="center">Jan 27, 2003
+<h3 align="center">Mar 18, 2003
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -248,49 +248,51 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.5"
 >13.5&nbsp; <font color="#0000FF">How to Declare User-Defined Serializers and Deserializers</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.6"
->13.6&nbsp; <font color="#0000FF">How to Serialize Data Without XSD Type Attributes</font></a><br />
+>13.6&nbsp; <font color="#0000FF">How to Serialize Data Without Generating XSD Type Attributes</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.7"
 >13.7&nbsp; <font color="#0000FF">Function Callbacks for Customized I/O and HTTP Handling</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.8"
->13.8&nbsp; <font color="#0000FF">HTTP 1.0 and 1.1</font></a><br />
+>13.8&nbsp; <font color="#0000FF">Speed Improvement Tips</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.9"
->13.9&nbsp; <font color="#0000FF">HTTP Keep-Alive</font></a><br />
+>13.9&nbsp; <font color="#0000FF">HTTP 1.0 and 1.1</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.10"
->13.10&nbsp; <font color="#0000FF">HTTP Chunked Transfer Encoding</font></a><br />
+>13.10&nbsp; <font color="#0000FF">HTTP Keep-Alive</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.11"
->13.11&nbsp; <font color="#0000FF">HTTP Buffered Sends</font></a><br />
+>13.11&nbsp; <font color="#0000FF">HTTP Chunked Transfer Encoding</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.12"
->13.12&nbsp; <font color="#0000FF">HTTP Authentication</font></a><br />
+>13.12&nbsp; <font color="#0000FF">HTTP Buffered Sends</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.13"
->13.13&nbsp; <font color="#0000FF">HTTP Proxy Authentication</font></a><br />
+>13.13&nbsp; <font color="#0000FF">HTTP Authentication</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.14"
->13.14&nbsp; <font color="#0000FF">Timeout Management for Non-Blocking Operations</font></a><br />
+>13.14&nbsp; <font color="#0000FF">HTTP Proxy Authentication</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.15"
->13.15&nbsp; <font color="#0000FF">Socket Options and Flags</font></a><br />
+>13.15&nbsp; <font color="#0000FF">Timeout Management for Non-Blocking Operations</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.16"
->13.16&nbsp; <font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></a><br />
+>13.16&nbsp; <font color="#0000FF">Socket Options and Flags</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.17"
->13.17&nbsp; <font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></a><br />
+>13.17&nbsp; <font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.18"
->13.18&nbsp; <font color="#0000FF">SSL Certificates</font></a><br />
+>13.18&nbsp; <font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.19"
->13.19&nbsp; <font color="#0000FF">Zlib Compressed Messages</font></a><br />
+>13.19&nbsp; <font color="#0000FF">SSL Certificates</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.20"
->13.20&nbsp; <font color="#0000FF">Client-Side Cookie Support</font></a><br />
+>13.20&nbsp; <font color="#0000FF">Zlib Compressed Messages</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.21"
->13.21&nbsp; <font color="#0000FF">Server-Side Cookie Support</font></a><br />
+>13.21&nbsp; <font color="#0000FF">Client-Side Cookie Support</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.22"
->13.22&nbsp; <font color="#0000FF">Connecting Clients Through Proxy Servers</font></a><br />
+>13.22&nbsp; <font color="#0000FF">Server-Side Cookie Support</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.23"
->13.23&nbsp; <font color="#0000FF">FastCGI Support</font></a><br />
+>13.23&nbsp; <font color="#0000FF">Connecting Clients Through Proxy Servers</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.24"
->13.24&nbsp; <font color="#0000FF">How to Create Separate Client/Server DLLs</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.24.1"
->13.24.1&nbsp; <font color="#0000FF">Create Base stdsoap2.dll</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.24.2"
->13.24.2&nbsp; <font color="#0000FF">Creating Client and Service DLLs</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.24.3"
->13.24.3&nbsp; <font color="#0000FF">gSOAP Plug-ins</font></a><br />
+>13.24&nbsp; <font color="#0000FF">FastCGI Support</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.25"
+>13.25&nbsp; <font color="#0000FF">How to Create Separate Client/Server DLLs</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.25.1"
+>13.25.1&nbsp; <font color="#0000FF">Create Base stdsoap2.dll</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.25.2"
+>13.25.2&nbsp; <font color="#0000FF">Creating Client and Service DLLs</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.25.3"
+>13.25.3&nbsp; <font color="#0000FF">gSOAP Plug-ins</font></a><br />
  
 </td></tr></table><br></span>
 <i>Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.</i>
@@ -1700,7 +1702,7 @@ The <i>host</i> name in <i>soap_bind</i> may be NULL to indicate that the curren
 
 <p>
 The <i>soap.accept_timeout</i> attribute of the gSOAP run-time environment specifies the timeout value for a non-blocking
-<i>soap_accept(&amp;soap)</i> call. See Section&nbsp;<a href="#sec:timeout">13.14</a> for more details on timeout management.
+<i>soap_accept(&amp;soap)</i> call. See Section&nbsp;<a href="#sec:timeout">13.15</a> for more details on timeout management.
 
 <p>
 See Section&nbsp;<a href="#sec:memory">7.11</a> for more details on memory management.
@@ -1717,7 +1719,7 @@ to the service.
 </a>
 
 <p>
-Multi-threading a Web Service is essential when the response times for handling requests by the service are (potentially) long or when keep-alive is enabled, see Section&nbsp;<a href="#sec:keepalive">13.9</a>.
+Multi-threading a Web Service is essential when the response times for handling requests by the service are (potentially) long or when keep-alive is enabled, see Section&nbsp;<a href="#sec:keepalive">13.10</a>.
 In case of long response times, the latencies introduced by the unrelated requests may become prohibitive for a successful
 deployment of a stand-alone service. When HTTP keep-alive is enabled, a client may not close the socket on time, thereby preventing other clients from connecting.
 
@@ -2264,8 +2266,8 @@ The following attributres can be set to control the destination and source for s
 <table>
 <tr><td><font color="#FF0000"><b>Variable</b></font> </td><td><font color="#FF0000"><b>Description</b></font> </td></tr>
 <tr><td><i>soap.socket</i> </td><td>socket file descriptor for input and output or -1 </td></tr>
-<tr><td><i>soap.sendfd</i> </td><td>when <i>soap_socket</i> &lt; 0 this is the file descriptor for send operations </td></tr>
-<tr><td><i>soap.recvfd</i> </td><td>when <i>soap_socket</i> &lt; 0 this is the file descriptor for receive operations </td></tr></table>
+<tr><td><i>soap.sendfd</i> </td><td>when <i>soap_socket</i> &lt; 0 this is the file descriptor used for send operations </td></tr>
+<tr><td><i>soap.recvfd</i> </td><td>when <i>soap_socket</i> &lt; 0 this is the file descriptor used for receive operations </td></tr></table>
 
 </td></tr></table><br></span>
 The following initializing and finalizing functions can be used:
@@ -2279,7 +2281,10 @@ The following initializing and finalizing functions can be used:
 <tr><td><i><b>int</b>&nbsp;soap_end_recv(<b>struct</b>&nbsp;soap*)</i> 	</td><td>perform a id/href consistancy check on deserialized data </td></tr></table>
 
 </td></tr></table><br></span>
-See also Section&nbsp;<a href="#sec:flags">7.10</a> to control the I/O buffering and content encoding such as compression and DIME encoding with flags.
+These operations do not open or close the connections. The application should open and close connections or files and set the <i>soap.socket</i>, <i>soap.sendfd</i>, <i>soap.recvfd</i> descriptors.
+
+<p>
+See also Section&nbsp;<a href="#sec:flags">7.10</a> to control the I/O buffering and content encoding such as compression and DIME encoding.
 
 <p>
 		      <h4><a name="tth_sEc6.4.1">
@@ -2300,7 +2305,7 @@ data types such as arrays, <i><b>struct</b></i>s, and <i><b>class</b></i> instan
 the gSOAP runtime environment as a first parameter.
 
 <p>
-The following table lists the type naming conventions used:
+The following table lists the type naming conventions used by gSOAP:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
 <table>
@@ -2402,7 +2407,7 @@ serializing instances of derived classes.
 <p>
 In principle, encoding MAY take place without calling the <i>soap_serialize</i> functions. However, as the following example
 demonstrates the resulting encoding is not SOAP 1.1 compliant.  However, the messages can still be used with gSOAP to save and
-restore data.
+restore data in XML.
 
 <p>
 Consider the following <i><b>struct</b></i>:
@@ -2441,9 +2446,12 @@ The resulting output is:
 which uses an independent element at the end to represent the multi-referenced integer.
 
 <p>
-To preserve the exact structure of the data, use the <i>SOAP_XML_GRAPH</i> flag to serialize the data in XML (see Section&nbsp;<a href="#sec:flags">7.10</a>)
+To preserve the exact structure of the data and create XML with one root, use the <i>SOAP_XML_GRAPH</i> flag to serialize the data in XML (see Section&nbsp;<a href="#sec:flags">7.10</a>)
 to serialize multi-referenced data
 embedded in the structure which assures the preservation of structure but is not SOAP 1.1 compliant.
+To save the data as an XML tree (with one root) use the <i>SOAP_XML_TREE</i> flag.
+
+<p>
 For example, the resulting output is:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0B0D0"><tr><td><tt>
 &lt;Tricky xsi:type="Tricky"&#62; <br />
@@ -2472,26 +2480,42 @@ soap_init(&amp;soap); // initialize at least once <br />
 soap_begin(&amp;soap); // begin new decoding phase <br />
 <font size="+1"><span class="roman">[</span></font>soap.recvfd = an_input_stream;<font size="+1"><span class="roman">]</span></font> <br />
 soap_begin_recv(&amp;soap); // if HTTP header is present, parse it <br />
-soap_get_<u><span class="roman">Type1</span></u>(&amp;soap, &amp;var1, "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>element-name1", "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1"); <br />
-soap_get_<u><span class="roman">Type2</span></u>(&amp;soap, &amp;var2, "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>element-name2", "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1"); <br />
+<b>if</b>&nbsp;(!soap_get_<u><span class="roman">Type1</span></u>(&amp;soap, &amp;var1, "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>element-name1", "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1")) <br />
+&nbsp;&nbsp;&nbsp;... error ... <br />
+<b>if</b>&nbsp;(!soap_get_<u><span class="roman">Type2</span></u>(&amp;soap, &amp;var2, "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>element-name2", "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1")) <br />
+&nbsp;&nbsp;&nbsp;... error ... <br />
 ... <br />
 soap_end_recv(&amp;soap); // check consistancy of id/hrefs <br />
 soap_destroy(&amp;soap); // remove deserialized class instances <br />
 soap_end(&amp;soap); // remove temporary data, including the decoded data on the heap <br />
 soap_done(&amp;soap); // finalize last use of the environment
 </td></tr></table><br></i>
-The strings <i><font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1</i> and <i><font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name2</i> are the schema types of the
-elements and should match the <tt>xsi:type</tt> attribute of the receiving message. To omit the match, use <i>NULL</i> as the type.
-For class instances, method invocation can be used instead of a function call if the object is already instantiated, i.e.
-<i>var.soap_get(&amp;soap, "...", "...")</i>.
+The strings <i><font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1</i> and
+<i><font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name2</i> are the schema types of the elements
+and should match the <tt>xsi:type</tt> attribute of the receiving message. To omit
+the match, use <i>NULL</i> as the type.  For class instances, method invocation
+can be used instead of a function call if the object is already instantiated,
+i.e. <i>obj.soap_get(&amp;soap, "...", "...")</i>.
 
 <p>
-The <i>soap_begin</i> call resets the deserializers. The <i>soap_destroy</i> and <i>soap_end</i> calls remove the temporary data structures <b>
-and</b> the decoded data that was placed on the heap.
+The <i>soap_begin</i> call resets the deserializers. The <i>soap_destroy</i>
+and <i>soap_end</i> calls remove the temporary data structures <b>and</b> the
+decoded data that was placed on the heap.
 
 <p>
-To remove temporary data while retaining the deserialized data on the heap, the function <i>soap_free</i> should be called instead
-of <i>soap_destroy</i> and <i>soap_end</i>.
+To remove temporary data while retaining the deserialized data on the heap, the
+function <i>soap_free</i> should be called instead of <i>soap_destroy</i> and
+<i>soap_end</i>.
+
+<p>
+One call to the <i>soap_get_Type</i> function of a type <i>Type</i> scans the
+entire input to process its XML content and to capture SOAP 1.1 independent
+elements (which contain multi-referenced objects). As a result, <i>soap.error</i> will set to <i>SOAP_EOF</i>.
+Also storing
+multiple objects into one file will fail to decode them properly with multiple <i>soap_get</i> calls. A well-formed XML document should
+only have one root anyway, so don't save multiple objects into one file. If you
+must save multiple objects, create a linked list or an array of objects and save
+the linked list or array. You could use the <i>soap_in_Type</i> function instead of the <i>soap_get_Type</i> function. The <i>soap_in_Type</i> function parses one XML element at a time.
 
 <p>
 		      <h4><a name="tth_sEc6.4.3">
@@ -2581,7 +2605,7 @@ The header file is processed and the application compiled on Linux/Unix with:
 <i>libxnet.a</i>, <i>libnsl.a</i>
 are required. Compiling on Linux typically does not require the inclusion of those
 libraries.)
-See&nbsp;<a href="#sec:compression">13.19</a> for details on compression with gSOAP.
+See&nbsp;<a href="#sec:compression">13.20</a> for details on compression with gSOAP.
 
 <p>
 Running the <i>person</i> application results in the compressed XML output:
@@ -7274,7 +7298,7 @@ The writing of the (de)serializer code requires the use of the low-level gSOAP A
 
 <p>
 		     <h3><a name="tth_sEc13.6">
-13.6</a>&nbsp;&nbsp;<font color="#0000FF">How to Serialize Data Without XSD Type Attributes</font></h3>
+13.6</a>&nbsp;&nbsp;<font color="#0000FF">How to Serialize Data Without Generating XSD Type Attributes</font></h3>
 
 <p>
 gSOAP serializes data in XML with <tt>xsi:type</tt> attributes when the types are
@@ -7308,10 +7332,10 @@ Input parameters <i>host</i> and <i>port</i> are micro-parsed from <i>endpoint</
 Should return a valid file descriptor, or -1 and soap<tt>-&gt;</tt>error set to an error code.
 Built-in gSOAP function: <i>tcp_connect</i>
 </td></tr>
-<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fpost)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*endpoint, <b>const</b>&nbsp;<b>char</b>&nbsp;*host, <b>const</b>&nbsp;<b>char</b>&nbsp;*path, <b>const</b>&nbsp;<b>char</b>&nbsp;*action, size_t
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fpost)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*endpoint, <b>const</b>&nbsp;<b>char</b>&nbsp;*host, <b>int</b>&nbsp;port, <b>const</b>&nbsp;<b>char</b>&nbsp;*path, <b>const</b>&nbsp;<b>char</b>&nbsp;*action, size_t
 count)</i> </td></tr>
 <tr><td width="602">Called from a client proxy to generate the HTTP header to connect to <i>endpoint</i>.
-Input parameters <i>host</i> and <i>path</i> are micro-parsed from <i>endpoint</i>, <i>action</i> is the SOAP action,
+Input parameters <i>host</i>, <i>port</i>, and <i>path</i> are micro-parsed from <i>endpoint</i>, <i>action</i> is the SOAP action,
 and <i>count</i> is the length of the SOAP message or 0 when <i>SOAP_ENC_XML</i> is set or when <i>SOAP_IO_LENGTH</i> is reset.
 Use function <i>soap_send(<b>struct</b>&nbsp;soap *soap, <b>char</b>&nbsp;*s)</i> to write the header contents.
 Should return SOAP_OK, or a gSOAP error code.
@@ -7581,7 +7605,24 @@ soap_end(&amp;soap); // clean up
 
 <p>
 	     <h3><a name="tth_sEc13.8">
-13.8</a>&nbsp;&nbsp;<font color="#0000FF">HTTP 1.0 and 1.1</font></h3>
+13.8</a>&nbsp;&nbsp;<font color="#0000FF">Speed Improvement Tips</font></h3>
+
+<p>
+Here are some tips you can use to speed up gSOAP. gSOAP's default settings are choosen to maximize portability and compatibility. The settings can be tweeked to optimize the performance as follows:
+
+<ul><p>
+<li> Increase the buffer size <i>SOAP_BUFLEN</i> by changing the <i>SOAP_BUFLEN</i> macro in <i>stdsoap2.h</i>. Use buffer size 65536 for example.</li>
+<p>
+<li> Use HTTP keep-alive at the client-side, see&nbsp;<a href="#sec:keepalive">13.10</a>, when the client needs to make a series of calls to the same server. Server-side keep-alive support can greatly improve performance of both client and server. But be aware that clients and services under Unix/Linux require signal handlers to catch dropped connections.</li>
+<p>
+<li> Use HTTP chunked transfers, see&nbsp;<a href="#sec:chunked">13.11</a>.</li>
+<p>
+<li> Do NOT use gzip compression, even when transferring data over a modem connection. Modems already compress data transfers.</li>
+</ul>
+
+<p>
+	     <h3><a name="tth_sEc13.9">
+13.9</a>&nbsp;&nbsp;<font color="#0000FF">HTTP 1.0 and 1.1</font></h3>
 
 <p>
 gSOAP uses HTTP 1.0 by default. gSOAP supports HTTP 1.1, but does not support all HTTP 1.1 transfer encodings such as gzipped
@@ -7595,8 +7636,8 @@ soap.http_version = "1.1";
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc13.9">
-13.9</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Keep-Alive</font></h3><a name="sec:keepalive">
+	     <h3><a name="tth_sEc13.10">
+13.10</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Keep-Alive</font></h3><a name="sec:keepalive">
 </a>
 
 <p>
@@ -7690,7 +7731,7 @@ each thread handles the client connection:
 </td></tr></table><br></i>
 To prevent a malicious client from keeping a thread waiting forever by keeping
 the connection open, timeouts are set in the <i>process_request</i> routine.
-See Section&nbsp;<a href="#sec:timeout">13.14</a> for more details on timeout settings.
+See Section&nbsp;<a href="#sec:timeout">13.15</a> for more details on timeout settings.
 
 <p>
 A gSOAP client call will automatically attempt to re-establish a connection to
@@ -7706,8 +7747,9 @@ server to close the connection after this last call. This will close the socket
 after the call and also informs the server to gracefully close the connection.
 
 <p>
-	     <h3><a name="tth_sEc13.10">
-13.10</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Chunked Transfer Encoding</font></h3>
+	     <h3><a name="tth_sEc13.11">
+13.11</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Chunked Transfer Encoding</font></h3><a name="sec:chunked">
+</a>
 
 <p>
 gSOAP supports HTTP chunked transfer encoding. Un-chunking of inbound messages
@@ -7716,8 +7758,8 @@ takes place automatically. Outbound messages are never chunked, except when the
 however, will not accept chunked inbound messages.
 
 <p>
-	     <h3><a name="tth_sEc13.11">
-13.11</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Buffered Sends</font></h3>
+	     <h3><a name="tth_sEc13.12">
+13.12</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Buffered Sends</font></h3>
 
 <p>
 The entire outbound message can be stored to determine the HTTP content length
@@ -7735,20 +7777,22 @@ This is accomplished by setting the <i>SOAP_IO_CHUNK</i> flag with
 <i>SOAP_ENC_ZLIB</i> for the output mode.
 
 <p>
-	     <h3><a name="tth_sEc13.12">
-13.12</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Authentication</font></h3>
+	     <h3><a name="tth_sEc13.13">
+13.13</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Authentication</font></h3>
 
 <p>
 HTTP authentication (basic) is enabled at the client-side by setting the
 <i>soap.userid</i> and <i>soap.passwd</i> strings to a username and password,
-respectively.  For example, a server may request user authentication.
-Otherwise, access is denied (HTTP 401 error).  Example client code fragment to
-set username and password:
+respectively.  A server may request user authentication
+and denies access (HTTP 401 error) when the client tries to connect without HTTP authentication (or with the wrong authentication information).
+
+<p>
+Here is an example client code fragment to set the HTTP authentication username and password:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>struct</b>&nbsp;soap soap; <br />
 soap_init(&amp;soap); <br />
 soap.userid = "guest"; <br />
-soap.passwd = "guest"; <br />
+soap.passwd = "visit"; <br />
 ...
 </td></tr></table><br></i>
 A client SOAP request will have the following HTTP header:
@@ -7761,10 +7805,28 @@ Content-Length: nnn <br />
 Authorization: Basic Z3Vlc3Q6Z3Vlc3Q= <br />
 ...
 </td></tr></table><br></tt>
+A client MUST set the <i>soap.userid</i> and <i>soap.passwd</i> strings for each call that requires client authentication. The strings are reset after each successful or unsuccessful call.
 
 <p>
-	     <h3><a name="tth_sEc13.13">
-13.13</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Proxy Authentication</font></h3>
+A stand-alone gSOAP Web Service can enforce HTTP authentication upon clients, by checking the <i>soap.userid</i> and <i>soap.passwd</i> strings. These strings are set when a client request contains HTTP authentication headers. The strings SHOULD be checked in each service method (that requires authentication to execute).
+
+<p>
+Here is an example service method implementation that enforced client authentication:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;ns__method(<b>struct</b>&nbsp;soap *soap, ...) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap<tt>-&gt;</tt>.userid || !soap<tt>-&gt;</tt>.passwd ||
+strcmp(soap<tt>-&gt;</tt>.userid, "guest") ||
+strcmp(soap<tt>-&gt;</tt>.passwd, "visit"))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_sender_fault(soap, "Not authorized to invoke ns_B method", "... details ...");
+... <br />
+}
+</td></tr></table><br></i>
+When the authentication fails, the service response with a SOAP Fault message and an generic HTTP error code (SOAP 1.1 gives HTTP 500 error). Note that this behavior is not consistent with the behavior of a Web server that produces a HTTP 401 error upon a failed HTTP authentication.
+
+<p>
+	     <h3><a name="tth_sEc13.14">
+13.14</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Proxy Authentication</font></h3>
 
 <p>
 HTTP proxy authentication (basic) is enabled at the client-side by setting the
@@ -7793,8 +7855,8 @@ Proxy-Authorization: Basic Z3Vlc3Q6Z3Vlc3Q= <br />
 </td></tr></table><br></tt>
 
 <p>
-	     <h3><a name="tth_sEc13.14">
-13.14</a>&nbsp;&nbsp;<font color="#0000FF">Timeout Management for Non-Blocking Operations</font></h3><a name="sec:timeout">
+	     <h3><a name="tth_sEc13.15">
+13.15</a>&nbsp;&nbsp;<font color="#0000FF">Timeout Management for Non-Blocking Operations</font></h3><a name="sec:timeout">
 </a>
 
 <p>
@@ -7849,8 +7911,8 @@ The macros improve readability.
 non-blocking <i>soap_call_ns__method</i> calls may not work under Linux.
 
 <p>
-	     <h3><a name="tth_sEc13.15">
-13.15</a>&nbsp;&nbsp;<font color="#0000FF">Socket Options and Flags</font></h3>
+	     <h3><a name="tth_sEc13.16">
+13.16</a>&nbsp;&nbsp;<font color="#0000FF">Socket Options and Flags</font></h3>
 
 <p>
 gSOAP's socket communications can be controlled with socket options and flags.
@@ -7881,8 +7943,8 @@ sharing (but be aware of the security issues when the port is not blocked by a
 firewall and open to the Internet).
 
 <p>
-	     <h3><a name="tth_sEc13.16">
-13.16</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></h3>
+	     <h3><a name="tth_sEc13.17">
+13.17</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></h3>
 
 <p>
 You need to install the OpenSSL library on your platform to enable secure SOAP clients to utilize HTTPS/SSL.
@@ -7925,8 +7987,8 @@ where, for example:
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc13.17">
-13.17</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></h3>
+	     <h3><a name="tth_sEc13.18">
+13.18</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></h3>
 
 <p>
 When a Web Service is installed as CGI, it uses standard I/O that is encryped/decrypted by the Web server that runs the CGI
@@ -7936,7 +7998,7 @@ Therefore, HTTPS/SSL support must be configured for the Web server (not Web Serv
 <p>
 SSL support for stand-alone gSOAP Web services is accomplished by calling <i>soap_ssl_accept</i> after <i>soap_accept</i>.
 In addition, a key file, CA file, DH file (if RSA is not used), and password need to be supplied. Instructions on how to do this can be found in the
-OpenSSL documentation <i>http://www.openssl.org</i>. See also Section&nbsp;<a href="#sec:ssl">13.18</a>.
+OpenSSL documentation <i>http://www.openssl.org</i>. See also Section&nbsp;<a href="#sec:ssl">13.19</a>.
 To enable OpenSSL, first install OpenSSL and use option <i>-DWITH_OPENSSL</i> to compile the sources with your C or C++ compiler, for example:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 <i>g++ -DWITH_OPENSSL -o myprog myprog.cpp stdsoap2.cpp soapC.cpp soapServer.cpp -lssl -lcrypto</i>
@@ -8014,8 +8076,8 @@ where, for example:
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc13.18">
-13.18</a>&nbsp;&nbsp;<font color="#0000FF">SSL Certificates</font></h3><a name="sec:ssl">
+	     <h3><a name="tth_sEc13.19">
+13.19</a>&nbsp;&nbsp;<font color="#0000FF">SSL Certificates</font></h3><a name="sec:ssl">
 </a>
 
 <p>
@@ -8115,8 +8177,8 @@ that if <i>require_server_auth=1</i> the client will exit before doing
 the handshake.
 
 <p>
-	     <h3><a name="tth_sEc13.19">
-13.19</a>&nbsp;&nbsp;<font color="#0000FF">Zlib Compressed Messages</font></h3><a name="sec:compression">
+	     <h3><a name="tth_sEc13.20">
+13.20</a>&nbsp;&nbsp;<font color="#0000FF">Zlib Compressed Messages</font></h3><a name="sec:compression">
 </a>
 
 <p>
@@ -8140,10 +8202,10 @@ To transmit gzip compressed SOAP/XML data, set the output mode flags to
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 soap_init(&amp;soap); <br />
 ... <br />
-soap_set_omode(&amp;soap, SOAP_ENC_ZLIB); // enable gzip <br />
+soap_set_omode(&amp;soap, SOAP_ENC_ZLIB); // enable Zlib's gzip <br />
 <b>if</b>&nbsp;(soap_call_ns__myMethod(&amp;soap, ...)) <br />
 ... <br />
-soap_clr_omode(&amp;soap, SOAP_ENC_ZLIB); // disable gzip <br />
+soap_clr_omode(&amp;soap, SOAP_ENC_ZLIB); // disable Zlib's gzip <br />
 ...
 </td></tr></table><br></i>
 This will send a compressed SOAP/XML request to a service, privided that Zlib is
@@ -8152,7 +8214,7 @@ Receiving compressed SOAP/XML over HTTP either in gzip or deflate formats is aut
 to be set at the server side to accept compressed messages. Reading and receiving gzip compressed SOAP/XML without HTTP headers (e.g. with other transport protocols) is also automatic.
 
 <p>
-To control the level of compression of outbound messages, set the <i>soap.z_level</i> to a value between 1 and 9, where 1 is the best speed and 9 is the best compression (default is 6).  For example
+To control the level of compression for outbound messages, you can set the <i>soap.z_level</i> to a value between 1 and 9, where 1 is the best speed and 9 is the best compression (default is 6).  For example
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 soap_init(&amp;soap); <br />
 ... <br />
@@ -8160,11 +8222,14 @@ soap_set_omode(&amp;soap, SOAP_ENC_ZLIB); <br />
 soap.z_level = 9; // best compression <br />
 ...
 </td></tr></table><br></i>
-
-<p>
-To restrict compression to the deflate format, compile the sources with <i>-DWITH_ZLIB</i>. This limits compression and decompression to the deflate format only. Only plain and deflated messages can be exchanged, gzip is not supported with this option.
-Receiving deflate compressed content is not automatic in the absence of HTTP headers and requires the flag
-<i>SOAP_ENC_ZLIB</i> to be set for the input mode to decompress deflated data.
+To verify and monitor compression rates, you can use the values <i>soap.z_ratio_in</i> and <i>soap.z_ratio_out</i>. These two float values lie between 0.0 and 1.0 and express the ratio of the compressed message length over uncompressed message length.
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+soap_call_ns__myMethod(&amp;soap, ...); <br />
+... <br />
+printf("Compression ratio: %f%% (in) %f%% (out)\n", 100*soap.z_ratio_out, 100*soap.z_ratio_in); <br />
+...
+</td></tr></table><br></i>
+Note: lower ratios mean higher compression rates.
 
 <p>
 Compressed transfers require buffering the entire output message to determine HTTP message length.
@@ -8176,8 +8241,14 @@ This is accomplished by setting the <i>SOAP_IO_CHUNK</i> flag with
 However, some Web servers do not accept HTTP chunked request messages (even when they return HTTP chunked messages!). Stand-alone gSOAP services always accept chunked request messages.
 
 <p>
-	     <h3><a name="tth_sEc13.20">
-13.20</a>&nbsp;&nbsp;<font color="#0000FF">Client-Side Cookie Support</font></h3><a name="sec:clientcookie">
+To restrict the compression to the deflate format only, compile the sources with <i>-DWITH_ZLIB</i>. This limits compression and decompression to the deflate format. Only plain and deflated messages can be exchanged, gzip is not supported with this option.
+Receiving gzip compressed content is automatic, even in the absence of HTTP headers.
+Receiving deflate compressed content is not automatic in the absence of HTTP headers and requires the flag
+<i>SOAP_ENC_ZLIB</i> to be set for the input mode to decompress deflated data.
+
+<p>
+	     <h3><a name="tth_sEc13.21">
+13.21</a>&nbsp;&nbsp;<font color="#0000FF">Client-Side Cookie Support</font></h3><a name="sec:clientcookie">
 </a>
 
 <p>
@@ -8229,8 +8300,8 @@ Since the cookie database is linked to a <i>soap</i> struct, each thread has a l
 implementation.
 
 <p>
-	     <h3><a name="tth_sEc13.21">
-13.21</a>&nbsp;&nbsp;<font color="#0000FF">Server-Side Cookie Support</font></h3><a name="sec:servercookie">
+	     <h3><a name="tth_sEc13.22">
+13.22</a>&nbsp;&nbsp;<font color="#0000FF">Server-Side Cookie Support</font></h3><a name="sec:servercookie">
 </a>
 
 <p>
@@ -8354,8 +8425,8 @@ The following example server adopts cookies for session control:
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc13.22">
-13.22</a>&nbsp;&nbsp;<font color="#0000FF">Connecting Clients Through Proxy Servers</font></h3>
+	     <h3><a name="tth_sEc13.23">
+13.23</a>&nbsp;&nbsp;<font color="#0000FF">Connecting Clients Through Proxy Servers</font></h3>
 
 <p>
 When a client needs to connect to a Web Service through a proxy server, set the <i>soap.proxy_host</i> string and
@@ -8374,8 +8445,8 @@ The attributes <i>soap.proxy_host</i> and <i>soap.proxy_port</i> keep their valu
 so they only need to be set once.
 
 <p>
-	     <h3><a name="tth_sEc13.23">
-13.23</a>&nbsp;&nbsp;<font color="#0000FF">FastCGI Support</font></h3>
+	     <h3><a name="tth_sEc13.24">
+13.24</a>&nbsp;&nbsp;<font color="#0000FF">FastCGI Support</font></h3>
 
 <p>
 To enable FastCGI support, install FastCGI and compile with option <i>-DWITH_FASTCGI</i> or add
@@ -8385,12 +8456,12 @@ To enable FastCGI support, install FastCGI and compile with option <i>-DWITH_FAS
 to <i>stdsoap2.h</i>.
 
 <p>
-	     <h3><a name="tth_sEc13.24">
-13.24</a>&nbsp;&nbsp;<font color="#0000FF">How to Create Separate Client/Server DLLs</font></h3>
+	     <h3><a name="tth_sEc13.25">
+13.25</a>&nbsp;&nbsp;<font color="#0000FF">How to Create Separate Client/Server DLLs</font></h3>
 
 <p>
-		      <h4><a name="tth_sEc13.24.1">
-13.24.1</a>&nbsp;&nbsp;<font color="#0000FF">Create Base stdsoap2.dll</font></h4>
+		      <h4><a name="tth_sEc13.25.1">
+13.25.1</a>&nbsp;&nbsp;<font color="#0000FF">Create Base stdsoap2.dll</font></h4>
 
 <p>
 The first step is to create <i>stdsoap2.dll</i> which consists of the file
@@ -8415,8 +8486,8 @@ all functions which are preceded by the macro <i>SOAP_FMAC1</i> in the source
 files.
 
 <p>
-		      <h4><a name="tth_sEc13.24.2">
-13.24.2</a>&nbsp;&nbsp;<font color="#0000FF">Creating Client and Service DLLs</font></h4>
+		      <h4><a name="tth_sEc13.25.2">
+13.25.2</a>&nbsp;&nbsp;<font color="#0000FF">Creating Client and Service DLLs</font></h4>
 
 <p>
 Client side DLL serves as the common code which all clients will use to
@@ -8447,8 +8518,8 @@ This DLL links to <i>stdsoap2.dll</i>.
 Also the namespaces table MUST be explicitly set in the service code.
 
 <p>
-		      <h4><a name="tth_sEc13.24.3">
-13.24.3</a>&nbsp;&nbsp;<font color="#0000FF">gSOAP Plug-ins</font></h4>
+		      <h4><a name="tth_sEc13.25.3">
+13.25.3</a>&nbsp;&nbsp;<font color="#0000FF">gSOAP Plug-ins</font></h4>
 
 <p>
 The gSOAP plug-in feature enables a convenient extension mechanism of gSOAP
@@ -8576,5 +8647,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 27 Jan 2003, 08:24.</small>
+version 3.00.<br />On 18 Mar 2003, 14:52.</small>
 </html>

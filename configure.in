@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(soapcpp2, 2.2.2)
-AM_INIT_AUTOMAKE(soapcpp2, 2.2.2)
+AC_INIT(soapcpp2, 2.2.3)
+AM_INIT_AUTOMAKE(soapcpp2, 2.2.3)
 AC_CONFIG_SRCDIR([soapcpp2/stdsoap2.cpp])
 AC_CANONICAL_HOST
 

@@ -6,7 +6,7 @@ int main()
 { struct soap soap;
   struct ns__getQuoteResponse r;
   soap_init(&soap);
-  if (soap_send_ns__getQuote(&soap, "http://services.xmethods.net/soap", NULL, "AOL"))
+  if (soap_send_ns__getQuote(&soap, "http://services.xmethods.net/soap", "", "AOL"))
     soap_print_fault(&soap, stderr);
   else if (soap_recv_ns__getQuoteResponse(&soap, &r))
     soap_print_fault(&soap, stderr);

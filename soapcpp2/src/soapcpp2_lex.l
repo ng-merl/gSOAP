@@ -29,11 +29,14 @@ YYSTYPE soapcpp2lval;
 	result = (c == EOF) ? YY_NULL : (buf[0] = c, 1); \
 	}
 #endif
+
+#ifndef WITH_LEX
 #define MAX_IMPORT_DEPTH 16
 static char fnstk[MAX_IMPORT_DEPTH][1024];
 static int lnstk[MAX_IMPORT_DEPTH];
 static YY_BUFFER_STATE instk[MAX_IMPORT_DEPTH];
 static int insp = 0;
+#endif
 static Token install_id();
 static Token install_int();
 static Token install_hex();
@@ -105,7 +108,7 @@ eof		<<EOF>>
 '[^'\n]*/\n	{ return error_chr(); }
 \"[^"\n]*/\n	{ return error_str(); }
 .		{ lexerror("Skipping unknown symbol"); }
-{eof}		{
+{eof}		{ /* in case Lex complains, remove this line */
 #ifndef WITH_LEX
 		  if (--insp < 0)
 		    yyterminate();

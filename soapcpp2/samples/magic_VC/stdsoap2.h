@@ -1,4 +1,4 @@
-/*	stdsoap2.h 2.2.2
+/*	stdsoap2.h 2.2.3d
 
 The contents of this file are subject to the gSOAP Public License Version 1.0
 (the "License"); you may not use this file except in compliance with the
@@ -74,6 +74,7 @@ Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 #if defined(UNDER_CE)
 #define SOAP_LONG_FORMAT "%I64d"
 #define SOAP_ULONG_FORMAT "%I64u"
+#define SOAP_BUFLEN 4096	/* use small buffer on small devices */
 #elif defined(WIN32)
 #define SOAP_LONG_FORMAT "%I64d"
 #define SOAP_ULONG_FORMAT "%I64u"
@@ -121,7 +122,6 @@ Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 #define HAVE_SYS_TIMEB_H
 #define HAVE_FTIME
 #define HAVE_RAND_R
-#define HAVE_GETHOSTBYNAME_R
 #define HAVE_GMTIME_R
 #define HAVE_LOCALTIME_R
 #elif defined(MAC_CARBON)
@@ -221,10 +221,11 @@ extern int h_errno;
 extern "C" {
 #endif
 
+#define soap_get0(soap) (((soap)->bufidx>=(soap)->buflen && soap_recv(soap)) ? EOF : (unsigned char)(soap)->buf[(soap)->bufidx])
 #define soap_get1(soap) (((soap)->bufidx>=(soap)->buflen && soap_recv(soap)) ? EOF : (unsigned char)(soap)->buf[(soap)->bufidx++])
-#define soap_unget(soap, c) ((soap)->ahead1 = c)
-#define soap_ungetchar(soap, c) ((soap)->ahead2 = c)
-#define soap_destroy(soap)	/* redefined in soapH.h when classes are used */
+#define soap_revget1(soap) ((soap)->bufidx--)
+#define soap_unget(soap, c) ((soap)->ahead = c)
+#define soap_destroy(soap)	/* dummy macro: redefined in soapH.h when classes are used */
 #define soap_register_plugin(soap, plugin) soap_register_plugin_arg(soap, plugin, NULL)
 #define soap_imode(soap, n) ((soap)->mode = (soap)->imode = (n))
 #define soap_set_imode(soap, n) ((soap)->mode = (soap)->imode |= (n))
@@ -300,7 +301,7 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #endif
 
 #ifndef SOAP_BUFLEN
-#define SOAP_BUFLEN    8192 /* buffer length for socket packets, also used by gethostbyname buffer so don't make this too small */
+#define SOAP_BUFLEN (32*1024) /* buffer length for socket packets, also used by gethostbyname_r so don't make this too small */
 #endif
 #ifndef SOAP_PTRHASH
 #define SOAP_PTRHASH   1024 /* size of pointer analysis hash table (must be power of 2) */
@@ -315,10 +316,10 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_TAGLEN     256 /* maximum length of XML tag/attribute name + 1 */
 #endif
 #ifndef SOAP_HDRLEN
-#define SOAP_HDRLEN    8192 /* maximum length of HTTP header line (>4096 to read cookies) */
+#define SOAP_HDRLEN    8192 /* maximum length of HTTP header line (must be >4096 to read cookies) */
 #endif
 #ifndef SOAP_MAXDIMS
-#define SOAP_MAXDIMS	 16 /* maximum array dimensions (array nestings) */
+#define SOAP_MAXDIMS	 16 /* maximum array dimensions (array nestings) must be less than 64 to protect soap->tmpbuf */
 #endif
 
 #ifndef SOAP_MAXLOGS
@@ -421,6 +422,7 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 
 #define SOAP_STOP		100	/* No HTTP response */
 #define SOAP_HTML		101	/* HTML response */
+#define SOAP_FILE		102	/* Custom file-based response */
 
 /* gSOAP HTTP request status codes */
 
@@ -448,7 +450,7 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_IO_FLUSH		0x0000	/* flush output immediately, no buffering */
 #define SOAP_IO_BUFFER		0x0001	/* buffer output in packets of size SOAP_BUFLEN */
 #define SOAP_IO_STORE		0x0002	/* store entire output to determine length for transport */
-#define SOAP_IO_CHUNK		0x0003	/* use HTTP chunked transfer */
+#define SOAP_IO_CHUNK		0x0003	/* use HTTP chunked transfer AND buffer packets */
 
 #define SOAP_IO_LENGTH		0x0004
 #define SOAP_IO_KEEPALIVE	0x0008
@@ -602,6 +604,7 @@ struct soap
   const char *double_format;	/* points to user-definable format string for doubles (<1024 chars) */
   const char *dime_id_format;	/* points to user-definable format string for integer DIME id (<SOAP_TAGLEN chars) */
   const char *http_version;	/* default = "1.0" */
+  const char *http_content;	/* optional custom response content type (with SOAP_FILE) */
   const char *encodingStyle;	/* default = NULL which means that SOAP encoding is used */
   const char *defaultNamespace;	/* default = NULL which means that no default namespace is set */
   const char *actor;
@@ -613,7 +616,8 @@ struct soap
   int connect_flags;		/* connect() SOL_SOCKET sockopt flags, e.g. set to SO_DEBUG to debug socket */
   int bind_flags;		/* bind() SOL_SOCKET sockopt flags, e.g. set to SO_REUSEADDR to enable reuse */
   int accept_flags;		/* accept() SOL_SOCKET sockopt flags */
-  struct Namespace *namespaces;	/* Namespace mapping table */
+  struct Namespace *namespaces;	/* Pointer to global namespace mapping table */
+  struct Namespace *local_namespaces;	/* Local namespace mapping table */
   struct soap_nlist *nlist;	/* namespace stack */
   struct soap_blist *blist;	/* block allocation stack */
   struct soap_clist *clist;	/* class instance allocation list */
@@ -624,9 +628,9 @@ struct soap
   struct SOAP_ENV__Fault *fault;
   void *user;			/* to pass user-defined data */
   struct soap_plugin *plugins;	/* linked list of plug-in data */
-  const char *userid;		/* HTTP Basic authorization userid */
-  const char *passwd;		/* HTTP Basic authorization passwd */
-  int (*fpost)(struct soap*, const char*, const char*, const char*, const char*, size_t);
+  char *userid;			/* HTTP Basic authorization userid */
+  char *passwd;			/* HTTP Basic authorization passwd */
+  int (*fpost)(struct soap*, const char*, const char*, int, const char*, const char*, size_t);
   int (*fget)(struct soap*, const char*, const char*, const char*, const char*, size_t);
   int (*fposthdr)(struct soap*, const char*, const char*);
   int (*fresponse)(struct soap*, int, size_t);
@@ -659,12 +663,14 @@ struct soap
   size_t bufidx;
   size_t buflen;
   char buf[SOAP_BUFLEN];/* send and receive buffer */
-  char msgbuf[1024];	/* buffer for (error) messages */
-  char tmpbuf[1024];	/* buffer for HTTP headers and combining XML element name and attributes */
+  wchar ahead;
+  short cdata;
+  short body;
+  char msgbuf[1024];	/* output buffer for (error) messages >=1024 bytes */
+  char tmpbuf[1024];	/* output buffer for HTTP headers and combining XML element name and attributes >=1024 bytes */
   size_t count;		/* message length counter */
   size_t length;	/* message length as set by HTTP header */
   unsigned int level;
-  short body;
   char tag[SOAP_TAGLEN];
   char id[SOAP_TAGLEN];
   char href[SOAP_TAGLEN];
@@ -683,7 +689,6 @@ struct soap
   short is_in_header;
   short alloced;
   short peeked;
-  short cdata;
   size_t dime_count;
   int dime_flags;
   size_t dime_size;
@@ -693,7 +698,7 @@ struct soap
   char *dime_id;
   char *dime_type;
   char *dime_options;
-  int chunksize;
+  size_t chunksize;
   size_t chunkbuflen;
   char path[SOAP_TAGLEN];
   char host[SOAP_TAGLEN];
@@ -710,8 +715,6 @@ struct soap
   int errmode;
   int errnum;
   int idnum;
-  wchar ahead1;
-  wchar ahead2;
   unsigned long ip;
   const char *logfile[SOAP_MAXLOGS];
   FILE *fdebug[SOAP_MAXLOGS];
@@ -732,12 +735,15 @@ struct soap
   const char *randfile;
 #endif
 #ifdef WITH_ZLIB
-  short zlib;			/* SOAP_ZLIB_DEFLATE or SOAP_ZLIB_GZIP */
+  short zlib_in;		/* SOAP_ZLIB_NONE, SOAP_ZLIB_DEFLATE or SOAP_ZLIB_GZIP */
+  short zlib_out;		/* SOAP_ZLIB_NONE, SOAP_ZLIB_DEFLATE or SOAP_ZLIB_GZIP */
   z_stream d_stream;		/* decompression stream */
   char z_buf[SOAP_BUFLEN];	/* buffer */
   size_t z_buflen;
-  unsigned short z_level;	/* compression level (0=none, 1=fast to 9=best) */
-  unsigned long z_crc;		/* gzip crc */
+  unsigned short z_level;	/* compression level to be used (0=none, 1=fast to 9=best) */
+  unsigned long z_crc;		/* internal gzip crc */
+  float z_ratio_in;		/* detected compression ratio compressed_length/length of inbound message */
+  float z_ratio_out;		/* detected compression ratio compressed_length/length of outbound message */
 #endif
 };
 
@@ -804,7 +810,6 @@ SOAP_FMAC1 unsigned char* SOAP_FMAC2 soap_getbase64(struct soap*, size_t*, int);
 SOAP_FMAC1 struct soap_ilist* SOAP_FMAC2 soap_lookup(struct soap*, const char*);
 SOAP_FMAC1 struct soap_ilist* SOAP_FMAC2 soap_enter(struct soap*, const char*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_resolve_ptr(struct soap_ilist*);
-SOAP_FMAC1 void SOAP_FMAC2 soap_resolve_copy(struct soap*, struct soap_ilist*);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_pointer_lookup(struct soap*, const void *p, int t, struct soap_plist**);
 SOAP_FMAC1 int SOAP_FMAC2 soap_array_pointer_lookup(struct soap*, const void *p, const struct soap_array *a, int n, int t, struct soap_plist**);
@@ -956,13 +961,14 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_s2LONG64(struct soap*, const char*, LONG64*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2float(struct soap*, const char*, float*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2double(struct soap*, const char*, double*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsignedByte(struct soap*, const char*, unsigned char*);
-SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsingedShort(struct soap*, const char*, unsigned short*);
-SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsingedInt(struct soap*, const char*, unsigned int*);
-SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsingedLong(struct soap*, const char*, unsigned long*);
+SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsignedShort(struct soap*, const char*, unsigned short*);
+SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsignedInt(struct soap*, const char*, unsigned int*);
+SOAP_FMAC1 int SOAP_FMAC2 soap_s2unsignedLong(struct soap*, const char*, unsigned long*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2ULONG64(struct soap*, const char*, ULONG64*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2dateTime(struct soap*, const char*, time_t*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2string(struct soap*, const char*, char**);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2QName(struct soap*, const char*, char**);
+SOAP_FMAC1 int SOAP_FMAC2 soap_s2base64(struct soap*, const char*, char*, size_t);
 
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_byte2s(struct soap*, char);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_short2s(struct soap*, short);
@@ -977,6 +983,7 @@ SOAP_FMAC1 const char* SOAP_FMAC2 soap_unsignedInt2s(struct soap*, unsigned int)
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_unsignedLong2s(struct soap*, unsigned long);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_ULONG642s(struct soap*, ULONG64);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_dateTime2s(struct soap*, time_t);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_base642s(struct soap*, const char*, char*, size_t, size_t*);
 
 SOAP_FMAC1 int* SOAP_FMAC2 soap_inint(struct soap*, const char *tag, int *p, const char *, int);
 SOAP_FMAC1 char* SOAP_FMAC2 soap_inbyte(struct soap*, const char *tag, char *p, const char *, int);

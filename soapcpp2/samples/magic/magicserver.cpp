@@ -1,4 +1,5 @@
 #include "soapH.h"
+#include "magic.nsmap"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -10,30 +11,36 @@
 // Alternatively, run from command line with arguments IP (which must be the
 // IP of the current machine you are using) and PORT to run this as a
 // stand-alone server on a port. For example:
-// > magicserver.cgi machine 18081 &
+// > magicserver.cgi 18081 &
 // To let 'magic' talk to this service, change the URL in magic.cpp into
-// "http://machine:18081"
-// where "machine" is the name of your machine or e.g. "localhost"
+// "http://localhost:18081"
 
 int main(int argc, char **argv)
 { struct soap soap;
   int m, s;
   soap_init(&soap);
   // soap.accept_timeout = 60; // die if no requests are made within 1 minute
-  if (argc < 3)
+  if (argc < 2)
   { soap_serve(&soap);
     soap_destroy(&soap);
     soap_end(&soap);	// clean up 
   }
   else
-  { m = soap_bind(&soap, argv[1], atoi(argv[2]), 100);
+  { m = soap_bind(&soap, NULL, atoi(argv[1]), 100);
     if (m < 0)
-      exit(-1);
+    { soap_print_fault(&soap, stderr);
+      exit(1);
+    }
     fprintf(stderr, "Socket connection successful %d\n", m);
     for (int i = 1; ; i++)
     { s = soap_accept(&soap);
       if (s < 0)
-        exit(-1);
+      { if (soap.errnum)
+          soap_print_fault(&soap, stderr);
+	else
+	  fprintf(stderr, "Server timed out\n");
+	break;
+      }
       fprintf(stderr, "%d: accepted %d IP=%d.%d.%d.%d ... ", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
       soap_serve(&soap);	// process RPC skeletons
       fprintf(stderr, "served\n");
@@ -41,6 +48,7 @@ int main(int argc, char **argv)
       soap_end(&soap);	// clean up 
     }
   }
+  soap_done(&soap);
   return 0;
 }
 
@@ -119,7 +127,7 @@ void vector::resize(int n)
   __ptr = p;
 }
 
-int& vector::operator[](int i)
+int& vector::operator[](int i) const
 { if (!__ptr || i < 0 || i >= __size)
     fprintf(stderr, "Array index out of bounds\n");
   return (__ptr)[i];
@@ -174,23 +182,8 @@ void matrix::resize(int rows, int cols)
       __ptr[i].resize(cols);
 }
 
-vector& matrix::operator[](int i)
+vector& matrix::operator[](int i) const
 { if (!__ptr || i < 0 || i >= __size)
     fprintf(stderr, "Array index out of bounds\n");
   return __ptr[i];
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//
-//	Namespace Definition Table
-//
-////////////////////////////////////////////////////////////////////////////////
-
-struct Namespace namespaces[] =
-{ { "SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/" }, // must be first
-  { "SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/" }, // must be second
-  { "xsi", "http://www.w3.org/1999/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance" },
-  { "xsd", "http://www.w3.org/1999/XMLSchema",          "http://www.w3.org/*/XMLSchema" },
-  { "ns1", "urn:MagicSquare" },		// "ns1" namespace prefix
-  { NULL, NULL }
-};

@@ -11,9 +11,10 @@
 	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 
 	Needs:
-	echo.h:		header file spec for client proxy and service components
+	base.h:		header file spec to create base run-time system
 	header.h:	SOAP Header spec
 	fault.h:	SOAP Fault spec
+	echo.h:		header file spec for client proxy and service components
 	echo.cpp:	application that uses the proxy and service components
 	echoProxyComponent.h:		header file of proxy component
 	echoProxyComponent.cpp:		proxy component implementation

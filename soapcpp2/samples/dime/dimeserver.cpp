@@ -63,10 +63,9 @@ int main(int argc, char **argv)
     { s = soap_accept(&soap);
       if (s < 0)
       { if (soap.errnum)
-        { soap_print_fault(&soap, stderr);
-	  exit(1);
-	}
-        fprintf(stderr, "Server timed out\n");
+          soap_print_fault(&soap, stderr);
+	else
+          fprintf(stderr, "Server timed out\n");
 	break;
       }
       fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
@@ -74,6 +73,7 @@ int main(int argc, char **argv)
       pthread_create(&tid, NULL, (void*(*)(void*))process_request, (void*)tsoap);
     }
   }
+  soap_done(&soap);
   return 0;
 }
 

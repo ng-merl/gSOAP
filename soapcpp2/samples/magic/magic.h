@@ -13,9 +13,9 @@ class vector
   struct soap *soap;
   vector();
   vector(int);
-  ~vector();
+  virtual ~vector();
   void resize(int);
-  int& operator[](int);
+  int& operator[](int) const;
 };
 
 class matrix
@@ -25,9 +25,9 @@ class matrix
   struct soap *soap;
   matrix();
   matrix(int, int);
-  ~matrix();
+  virtual ~matrix();
   void resize(int, int);
-  vector& operator[](int);
+  vector& operator[](int) const;
 };
 
 int ns1__magic(xsd__int rank, matrix *result);

@@ -609,7 +609,7 @@ create_header(struct soap *server, int method, const char *endpoint, const char 
     return server->error;
   soap_begin_send(server);
   server->status = method;
-  return server->error = server->fpost(server, server->endpoint, server->host, server->path, action, count);
+  return server->error = server->fpost(server, server->endpoint, server->host, server->port, server->path, action, count);
 }
 
 int

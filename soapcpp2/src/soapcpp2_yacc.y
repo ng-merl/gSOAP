@@ -244,12 +244,10 @@ dclr	: ptrs ID array occurs init
 			{ if ($3.sto & Stypedef)
 			  {	p = enter(typetable, $2);
 				p->info.typ = mksymtype($3.typ, $2);
-			  	if ($3.typ->transient)
-			  	{	if ($3.sto & Sextern)
-						p->info.typ->transient = -1;
-					else
-						p->info.typ->transient = 1;
-				}
+			  	if ($3.sto & Sextern)
+					p->info.typ->transient = -1;
+				else if ($3.typ->transient)
+					p->info.typ->transient = 1;
 			  	p->info.sto = $3.sto;
 				$2->token = TYPE;
 			  }
@@ -268,6 +266,8 @@ dclr	: ptrs ID array occurs init
 						case Tuint:
 						case Tlong:
 						case Tulong:
+						case Tllong:
+						case Tullong:
 						case Tenum:
 						case Ttime:
 							if ($5.typ->type == Tint || $5.typ->type == Tchar || $5.typ->type == Tenum)
@@ -310,27 +310,18 @@ dclr	: ptrs ID array occurs init
 			}
 	;
 fdclr	: ptrs name	{ if ($1.sto & Stypedef)
-			  {	p = enter(typetable, $2);
-				p->info.typ = mksymtype($1.typ, $2);
-			  	p->info.sto = $1.sto;
-				$2->token = TYPE;
+			  {	sprintf(errbuf, "invalid typedef qualifier for `%s'", $2->name);
+				semwarn(errbuf);
 			  }
-			  else
-			  {	p = enter(sp->table, $2);
-			  	p->info.typ = $1.typ;
-			  	p->info.sto = $1.sto;
-				p->info.hasval = False;
-			  	p->info.offset = sp->offset;
-				/*
-				if ($1.sto & Sextern)
-					p->level = GLOBAL;
-			  	else
-				*/
-				if (sp->grow)
-					sp->offset += p->info.typ->width;
-				else if (p->info.typ->width > sp->offset)
-					sp->offset = p->info.typ->width;
-			  }
+			  p = enter(sp->table, $2);
+			  p->info.typ = $1.typ;
+			  p->info.sto = $1.sto;
+			  p->info.hasval = False;
+			  p->info.offset = sp->offset;
+			  if (sp->grow)
+				sp->offset += p->info.typ->width;
+			  else if (p->info.typ->width > sp->offset)
+				sp->offset = p->info.typ->width;
 			  sp->entry = p;
 			}
 	;
@@ -376,10 +367,10 @@ name	: ID		{ $$ = $1; }
 			  strcat(s, s2);
 			  $$ = lookup(s);
 			  if (!$$)
-			    $$ = install(s, ID);
+				$$ = install(s, ID);
 			}
 	;
-constr	: TYPE		{ if ((p = entry(classtable, $1)) == (Entry*)0)
+constr	: TYPE		{ if (!(p = entry(classtable, $1)))
 			  	semerror("invalid constructor");
 			  sp->entry = enter(sp->table, $1);
 			  sp->entry->info.typ = mknone();
@@ -390,14 +381,14 @@ constr	: TYPE		{ if ((p = entry(classtable, $1)) == (Entry*)0)
 			}
 	;
 destr	: virtual '~' TYPE
-			{ if ((p = entry(classtable, $3)) == (Entry*)0)
+			{ if (!(p = entry(classtable, $3)))
 			  	semerror("invalid destructor");
-			  s = (char*)emalloc(strlen($3->name)+2);
+			  s = (char*)emalloc(strlen($3->name) + 2);
 			  strcpy(s, "~");
 			  strcat(s, $3->name);
 			  sym = lookup(s);
 			  if (!sym)
-			    sym = install(s, ID);
+				sym = install(s, ID);
 			  sp->entry = enter(sp->table, sym);
 			  sp->entry->info.typ = mknone();
 			  sp->entry->info.sto = $1;
@@ -524,7 +515,7 @@ texp	: tspec ptrs array
 	;
 spec	: /*empty */	{ $$.typ = mkint();
 			  $$.sto = Snone;
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			}
 	| store spec	{ $$.typ = $2.typ;
 			  $$.sto = $1 | $2.sto;
@@ -532,7 +523,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 			  {	semwarn("invalid attribute type");
 			  	$$.sto &= ~Sattribute;
 			  }
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			  if ($1 & Sextern)
 				transient--;
 			}
@@ -543,7 +534,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 				  case Tint:	$$.typ = $1; break;
 				  case Tlong:	$$.typ = $2.typ; break;
 				  case Tllong:	$$.typ = $2.typ; break;
-				  default:	semwarn("invalid use of `signed'");
+				  default:	semwarn("illegal use of `signed'");
 						$$.typ = $2.typ;
 				}
 			  else if ($1->type == Tuint)
@@ -553,7 +544,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 				  case Tint:	$$.typ = $1; break;
 				  case Tlong:	$$.typ = mkulong(); break;
 				  case Tllong:	$$.typ = mkullong(); break;
-				  default:	semwarn("invalid use of `unsigned'");
+				  default:	semwarn("illegal use of `unsigned'");
 						$$.typ = $2.typ;
 				}
 			  else if ($1->type == Tlong)
@@ -562,7 +553,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 				  case Tlong:	$$.typ = mkllong(); break;
 				  case Tuint:	$$.typ = mkulong(); break;
 				  case Tulong:	$$.typ = mkullong(); break;
-				  default:	semwarn("invalid use of `long'");
+				  default:	semwarn("illegal use of `long'");
 						$$.typ = $2.typ;
 				}
 			  else if ($1->type == Tulong)
@@ -571,24 +562,24 @@ spec	: /*empty */	{ $$.typ = mkint();
 				  case Tlong:	$$.typ = mkullong(); break;
 				  case Tuint:	$$.typ = $1; break;
 				  case Tulong:	$$.typ = mkullong(); break;
-				  default:	semwarn("invalid use of `long'");
+				  default:	semwarn("illegal use of `long'");
 						$$.typ = $2.typ;
 				}
 			  else
 				$$.typ = $1;
 			  $$.sto = $2.sto;
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			}
 	;
 tspec	: store		{ $$.typ = mkint();
 			  $$.sto = $1;
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			  if ($1 & Sextern)
 				transient--;
 			}
 	| type		{ $$.typ = $1;
 			  $$.sto = Snone;
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			}
 	| store tspec	{ $$.typ = $2.typ;
 			  $$.sto = $1 | $2.sto;
@@ -596,7 +587,7 @@ tspec	: store		{ $$.typ = mkint();
 			  {	semwarn("invalid attribute type");
 			  	$$.sto &= ~Sattribute;
 			  }
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			  if ($1 & Sextern)
 				transient--;
 			}
@@ -607,7 +598,7 @@ tspec	: store		{ $$.typ = mkint();
 				  case Tint:	$$.typ = $1; break;
 				  case Tlong:	$$.typ = $2.typ; break;
 				  case Tllong:	$$.typ = $2.typ; break;
-				  default:	semwarn("invalid use of `signed'");
+				  default:	semwarn("illegal use of `signed'");
 						$$.typ = $2.typ;
 				}
 			  else if ($1->type == Tuint)
@@ -617,7 +608,7 @@ tspec	: store		{ $$.typ = mkint();
 				  case Tint:	$$.typ = $1; break;
 				  case Tlong:	$$.typ = mkulong(); break;
 				  case Tllong:	$$.typ = mkullong(); break;
-				  default:	semwarn("invalid use of `unsigned'");
+				  default:	semwarn("illegal use of `unsigned'");
 						$$.typ = $2.typ;
 				}
 			  else if ($1->type == Tlong)
@@ -626,7 +617,7 @@ tspec	: store		{ $$.typ = mkint();
 				  case Tlong:	$$.typ = mkllong(); break;
 				  case Tuint:	$$.typ = mkulong(); break;
 				  case Tulong:	$$.typ = mkullong(); break;
-				  default:	semwarn("invalid use of `long'");
+				  default:	semwarn("illegal use of `long'");
 						$$.typ = $2.typ;
 				}
 			  else if ($1->type == Tulong)
@@ -635,13 +626,13 @@ tspec	: store		{ $$.typ = mkint();
 				  case Tlong:	$$.typ = mkullong(); break;
 				  case Tuint:	$$.typ = $1; break;
 				  case Tulong:	$$.typ = mkullong(); break;
-				  default:	semwarn("invalid use of `long'");
+				  default:	semwarn("illegal use of `long'");
 						$$.typ = $2.typ;
 				}
 			  else
 				$$.typ = $1;
 			  $$.sto = $2.sto;
-			  sp->node = $$;	/* set global `tmp1' for inheritance */
+			  sp->node = $$;
 			}
 	;
 type	: VOID		{ $$ = mkvoid(); }
@@ -661,11 +652,11 @@ type	: VOID		{ $$ = mkvoid(); }
 	| TIME		{ $$ = mktimet(); }
 	| CLASS '{' s2 decls '}'
 			{ sym = gensym("Struct");
-			  sprintf(errbuf, "Nameless class will be named %s", sym->name);
+			  sprintf(errbuf, "nameless class will be named `%s'", sym->name);
 			  semwarn(errbuf);
-			  if ((p = entry(classtable, sym)) != (Entry*) 0)
-			  {	if ((Table*) p->info.typ->ref != (Table*) 0)
-				{	sprintf(errbuf, "struct/class `%s' already defined", sym->name);
+			  if ((p = entry(classtable, sym)))
+			  {	if (p->info.typ->ref)
+				{	sprintf(errbuf, "class `%s' already defined", sym->name);
 					semerror(errbuf);
 				}
 			  }
@@ -686,35 +677,61 @@ type	: VOID		{ $$ = mkvoid(); }
 			  $1->info.typ->ref = sp->table;
 			  $1->info.typ->width = sp->offset;
 			  $1->info.typ->id = $1->sym;
+			  if ($1->info.typ->base)
+			  	sp->table->prev = (Table*)entry(classtable, $1->info.typ->base)->info.typ->ref;
 			  $$ = $1->info.typ;
 			  exitscope();
 			}
 	| class ':' super '{' s2 decls '}'
 			{ sp->table->sym = $1->sym;
-			  sp->table->prev = (Table*)$3->info.typ->ref;
+			  if (!$3)
+				semerror("invalid base class");
+			  else
+			  {	sp->table->prev = (Table*)$3->info.typ->ref;
+				if (!sp->table->prev && !$3->info.typ->transient)
+				{	sprintf(errbuf, "class `%s' has incomplete type", $3->sym->name);
+					semerror(errbuf);
+				}
+			  }
 			  $1->info.typ->ref = sp->table;
 			  $1->info.typ->width = sp->offset;
 			  $1->info.typ->id = $1->sym;
+			  $1->info.typ->base = $3->info.typ->id;
 			  $$ = $1->info.typ;
 			  exitscope();
 			}
 	| class		{ $1->info.typ->id = $1->sym;
 			  $$ = $1->info.typ;
 			}
+	| class ':' super
+			{ if (!$3)
+				semerror("invalid base class");
+			  else
+			  {	if (!$3->info.typ->ref && !$3->info.typ->transient)
+				{	sprintf(errbuf, "class `%s' has incomplete type", $3->sym->name);
+					semerror(errbuf);
+				}
+			  }
+			  $1->info.typ->id = $1->sym;
+			  $1->info.typ->base = $3->info.typ->id;
+			  $$ = $1->info.typ;
+			}
 	| STRUCT '{' s2 decls '}'
 			{ sym = gensym("Struct");
-			  sprintf(errbuf, "Nameless struct will be named %s", sym->name);
+			  sprintf(errbuf, "nameless struct will be named `%s'", sym->name);
 			  semwarn(errbuf);
-			  if ((p = entry(classtable, sym)) != (Entry*) 0)
-				if ((Table*) p->info.typ->ref != (Table*) 0) {
-					sprintf(errbuf, "struct/class `%s' already defined", sym->name);
+			  if ((p = entry(classtable, sym)))
+			  {	if (p->info.typ->ref)
+				{	sprintf(errbuf, "struct `%s' already defined", sym->name);
 					semerror(errbuf);
-				} else {
-					p->info.typ->ref = sp->table;
+				}
+				else
+				{	p->info.typ->ref = sp->table;
 					p->info.typ->width = sp->offset;
 				}
-			  else {
-			  	p = enter(classtable, sym);
+			  }
+			  else
+			  {	p = enter(classtable, sym);
 				p->info.typ = mkstruct(sp->table, sp->offset);
 			  }
 			  p->info.typ->id = sym;
@@ -723,8 +740,8 @@ type	: VOID		{ $$ = mkvoid(); }
 			}
 	| STRUCT ID '{' s2 decls '}'
 			{ if ((p = entry(classtable, $2)) != (Entry*)0)
-				if ((Table*)p->info.typ->ref != (Table*)0) {
-					sprintf(errbuf, "struct/class `%s' already defined (referenced from line %d)", $2->name, p->lineno);
+				if (p->info.typ->ref)
+				{	sprintf(errbuf, "struct `%s' already defined (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				} else {
 					p->info.typ->ref = sp->table;
@@ -780,7 +797,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			}
 	| ENUM '{' s2 dclrs s5 '}'
 			{ sym = gensym("Enum");
-			  sprintf(errbuf, "Nameless enum will be named %s", sym->name);
+			  sprintf(errbuf, "nameless enum will be named `%s'", sym->name);
 			  semwarn(errbuf);
 			  if ((p = entry(enumtable, sym)) != (Entry*) 0)
 				if ((Table*) p->info.typ->ref != (Table*) 0) {
@@ -816,44 +833,44 @@ type	: VOID		{ $$ = mkvoid(); }
 			  exitscope();
 			}
 	| ENUM '*' ID '{' s4 dclrs s5 '}'
-			{ if ((p = entry(enumtable, $3)) != (Entry*) 0)
-				if ((Table*) p->info.typ->ref != (Table*) 0) {
-					sprintf(errbuf, "enum `%s' already defined (referenced from line %d)", $3->name, p->lineno);
+			{ if ((p = entry(enumtable, $3)))
+				if (p->info.typ->ref)
+				{	sprintf(errbuf, "enum `%s' already defined (referenced from line %d)", $3->name, p->lineno);
 					semerror(errbuf);
 				} else {
 					p->info.typ->ref = sp->table;
 					p->info.typ->width = sp->offset;
 				}
-			  else {
-			  	p = enter(enumtable, $3);
+			  else
+			  {	p = enter(enumtable, $3);
 				p->info.typ = mkmask(sp->table);
 			  }
 			  p->info.typ->id = $3;
 			  $$ = p->info.typ;
 			  exitscope();
 			}
-	| ENUM ID	{ if ((p = entry(enumtable, $2)) != (Entry*) 0)
+	| ENUM ID	{ if ((p = entry(enumtable, $2)))
 			  	$$ = p->info.typ;
-			  else {
-			  	p = enter(enumtable, $2);
+			  else
+			  {	p = enter(enumtable, $2);
 			  	$$ = p->info.typ = mkenum((Table*)0);
 				p->info.typ->id = $2;
 			  }
 			}
-	| TYPE		{ if ((p = entry(typetable, $1)) != (Entry*) 0)
+	| TYPE		{ if ((p = entry(typetable, $1)))
 				$$ = p->info.typ;
-			  else if ((p = entry(classtable, $1)) != (Entry*) 0)
+			  else if ((p = entry(classtable, $1)))
 			  	$$ = p->info.typ;
-			  else {
-			  	sprintf(errbuf, "unknown type `%s'", $1->name);
+			  else
+			  {	sprintf(errbuf, "unknown type `%s'", $1->name);
 				semerror(errbuf);
 				$$ = mkint();
 			  }
 			}
 	;
-class	: CLASS ID	{ if ((p = entry(classtable, $2)) != (Entry*) 0)
-			  {	if ((Table*) p->info.typ->ref != (Table*) 0)
-				{	sprintf(errbuf, "struct/class `%s' already defined", $2->name);
+class	: CLASS ID	{ if ((p = entry(classtable, $2)))
+			  {	if (p->info.typ->ref)
+				{	sprintf(errbuf, "class `%s' already defined (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				}
 			  }
@@ -864,9 +881,9 @@ class	: CLASS ID	{ if ((p = entry(classtable, $2)) != (Entry*) 0)
 			  $2->token = TYPE;
 			  $$ = p;
 			}
-	| CLASS TYPE	{ if ((p = entry(classtable, $2)) != (Entry*) 0)
-			  {	if ((Table*) p->info.typ->ref != (Table*) 0)
-				{	sprintf(errbuf, "struct/class `%s' already defined", $2->name);
+	| CLASS TYPE	{ if ((p = entry(classtable, $2)))
+			  {	if (p->info.typ->ref)
+				{	sprintf(errbuf, "class `%s' already defined (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				}
 			  }
@@ -922,13 +939,34 @@ virtual : /* empty */	{ $$ = Snone; }
 	| VIRTUAL	{ $$ = Svirtual; }
 	;
 ptrs	: /* empty */	{ $$ = tmp = sp->node; }
-	| ptrs '*'	{ tmp.typ = mkpointer(tmp.typ); $$ = tmp; }
-	| ptrs '&'	{ tmp.typ = mkreference(tmp.typ); $$ = tmp; }
+	| ptrs '*'	{ tmp.typ = mkpointer(tmp.typ);
+			  tmp.typ->transient = transient;
+			  $$ = tmp;
+			}
+	| ptrs '&'	{ tmp.typ = mkreference(tmp.typ);
+			  tmp.typ->transient = transient;
+			  $$ = tmp;
+			}
 	;
-array	: /* empty */ 	{ $$ = tmp; }	/* tmp is inherited */
+array	: /* empty */ 	{ $$ = tmp;	/* tmp is inherited */
+			  switch (tmp.typ->type)
+			  {	case Tstruct:
+					if (!tmp.typ->ref && !tmp.typ->transient)
+			   		{	sprintf(errbuf, "struct `%s' has incomplete type", tmp.typ->id->name);
+						semerror(errbuf);
+					}
+					break;
+			   	case Tclass:
+					if (!tmp.typ->ref && !tmp.typ->transient)
+			   		{	sprintf(errbuf, "class `%s' has incomplete type", tmp.typ->id->name);
+						semerror(errbuf);
+						break;
+			  		}
+			  }
+			}
 	| '[' cexp ']' array
 			{ if ($4.typ->type == Tchar)
-			  {	sprintf(errbuf, "char [%d] will be (de)marshalled as an array of %d bytes: use char* for strings", $2.val.i, $2.val.i);
+			  {	sprintf(errbuf, "char[%d] will be encoded as an array of %d bytes: use char* for strings", $2.val.i, $2.val.i);
 			  	semwarn(errbuf);
 			  }
 			  if ($2.hasval && $2.typ->type == Tint && $2.val.i > 0 && $4.typ->width > 0)
@@ -1147,7 +1185,7 @@ op(const char *op, Node p, Node q)
 			case '/':	r.val.r = p.val.r / q.val.r; break;
 			default:	typerror(op);
 			}
-		else	semerror("invalid constant operation");
+		else	semerror("illegal constant operation");
 		r.hasval = True;
 	} else {
 		typ = mgtype(p.typ, q.typ);

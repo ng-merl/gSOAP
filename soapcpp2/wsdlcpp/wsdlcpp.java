@@ -11,6 +11,7 @@ for the specific language governing rights and limitations under the License.
 The Initial Developers of the Original Code are Kiran Kaja and Robert A. van Engelen.
 Copyright (C) 2000-2002 Kiran Kaja and Robert A. van Engelen. All Rights Reserved.
 
+Version : 1.9a
 */
 
 import java.io.IOException;
@@ -49,6 +50,7 @@ public class wsdlcpp
     Hashtable bindingsList = new Hashtable();
 
     Hashtable soapActions = new Hashtable();
+    Vector isBasicDataTypePointer = new Vector();
 
     
     //    Hashtable soapHeaders = new Hashtable();
@@ -108,7 +110,7 @@ public class wsdlcpp
 			nameSpaces.put(current.getNodeValue(),current.getNodeName());
 
 			if(current.getNodeName().startsWith("xmlns:")&&(globalNameSpaces.get(current.getNodeValue())==null))
-			    globalNameSpaces.put(current.getNodeValue(),current.getNodeName());
+				globalNameSpaces.put(current.getNodeValue(),current.getNodeName());
 		    }
 		else
 		    {
@@ -377,7 +379,7 @@ public class wsdlcpp
 		
 		if(fname.indexOf('.')!=-1)
 		    {
-			fname = fname.substring(0,fname.indexOf('.'));
+			fname = fname.substring(0,fname.lastIndexOf('.'));
 		    }
 		
 		outfilename = fname+".h";
@@ -414,9 +416,9 @@ public class wsdlcpp
 			key = (String)keyList.nextElement();
 			
 			pw.println("//gsoap "+(String)bindingsList.get(key)+" schema namespace: "+ key);
-		    }
+			}
 		
-		keyList = namespaces.keys();
+		/*		keyList = namespaces.keys();
 		while(keyList.hasMoreElements())
 		    {
 			key = (String)keyList.nextElement();
@@ -430,6 +432,32 @@ public class wsdlcpp
 				    }
 			    }
 		    }
+
+
+		    System.out.println("globalnameSpaces:"+globalNameSpaces);*/
+		
+		keyList = globalNameSpaces.keys();
+		while(keyList.hasMoreElements())
+		    {
+			String tValue;
+			key = (String)keyList.nextElement();
+			tValue = (String)globalNameSpaces.get(key);
+			name = getName(tValue)+":";
+			
+			if(tValue.startsWith("xmlns:"))
+			    {
+				if(!(name.equals(twsdlns)||name.equals(txsdns)||name.equals(tsoapns)||name.equals(defaultns)))
+				    {
+					//pw.println("//gsoap "+ getName(tValue)+" schema namespace:"+(String)globalNameSpaces.get(key));
+					pw.println("//gsoap "+ getName(tValue)+" schema namespace: "+key);
+				    }
+
+			    }
+		    }
+
+
+
+		
 		
 		pw.println("");
 		
@@ -1231,7 +1259,8 @@ public boolean getBindingInfo(Node node, String bindingName)
 		String soapact="";
 		if(soapOperationNode!=null)
 		    {
-			soapact = getAttrValue(soapOperationNode,"soapAction");
+			if(getAttrValue(soapOperationNode,"soapAction") != null )
+			    soapact = getAttrValue(soapOperationNode,"soapAction");
 			//System.out.println("soap action "+getAttrValue(soapOperationNode,"soapAction"));
 		    }
 
@@ -1461,12 +1490,12 @@ public boolean getBindingInfo(Node node, String bindingName)
 		String description="";
 		String returnDataType;
 		
-		if(elementflag)
-		    operationName = operationName+"-";
-
 
 		returnDataType = addDataType(defns+operationName+"Response",3,outArgs.toString().trim());
 		description=  inputArgs+returnDataType+"\t1\tout\t1\n";
+
+		if(elementflag)
+		    operationName = operationName+"-";
 
 
 		addOperation(defns,operationName,description,soapact);
@@ -1514,9 +1543,12 @@ public boolean getBindingInfo(Node node, String bindingName)
    String getNsEquivalent(Hashtable ht, String name)
     {
 	if(ht==null)
-	    return null;
-	else
+	    return "";
+	else if(ht.get(name)!=null)
 	    return (String)ht.get(name);
+	else
+	    return "";
+	
     }
 
     boolean isdefWsdl(Hashtable ht)
@@ -1761,6 +1793,15 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	
 	return false;
     }
+
+    boolean isPointerToBasicCType(String dataType)
+    {
+	if(isBasicDataTypePointer.contains(dataType))
+	    return true;
+	else
+	    return false;
+	
+    }
     
     boolean isXsd(String name,String currentXSDNS)
     {
@@ -1846,8 +1887,10 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 	allPrimitiveXSDDataType.put("anyType",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("anyType","typedef char * xsd__anyType;\n");
+	isBasicDataTypePointer.add("xsd:anyType");
 	allPrimitiveXSDDataType.put("anyURI",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("anyURI","typedef char * xsd__anyURI;\n");
+	isBasicDataTypePointer.add("xsd:anyURI");
 	allPrimitiveXSDDataType.put("base64Binary",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("base64Binary","class xsd__base64Binary {\npublic:\nunsigned char *__ptr;\nint __size;\n};\n");
 	allPrimitiveXSDDataType.put("boolean",new Boolean(false));
@@ -1861,14 +1904,18 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveXSDDataTypeEquivalent.put("byte","typedef char xsd__byte;\n");
 	allPrimitiveXSDDataType.put("dateTime",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("dateTime","typedef char * xsd__dateTime;\n");
+	isBasicDataTypePointer.add("xsd:dateTime");
 	allPrimitiveXSDDataType.put("date",new Boolean(false));	
 	allPrimitiveXSDDataTypeEquivalent.put("date","typedef char * xsd__date;\n");	
+	isBasicDataTypePointer.add("xsd:date");
 	allPrimitiveXSDDataType.put("decimal",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("decimal","typedef char * xsd__decimal;\n");
+	isBasicDataTypePointer.add("xsd:decimal");
 	allPrimitiveXSDDataType.put("double",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("double","typedef double xsd__double;\n");
 	allPrimitiveXSDDataType.put("duration",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("duration","typedef char * xsd__duration;\n");
+	isBasicDataTypePointer.add("xsd:duration");
 	allPrimitiveXSDDataType.put("float",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("float","typedef float xsd__float;\n");
 	allPrimitiveXSDDataType.put("hexBinary",new Boolean(false));
@@ -1876,27 +1923,37 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveXSDDataType.put("int",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("int","typedef int xsd__int;\n");
 	allPrimitiveXSDDataType.put("integer",new Boolean(false));
-	allPrimitiveXSDDataTypeEquivalent.put("integer","typedef char * xsd__nteger;\n");
+	allPrimitiveXSDDataTypeEquivalent.put("integer","typedef char * xsd__integer;\n");
+	isBasicDataTypePointer.add("xsd:integer");
 	allPrimitiveXSDDataType.put("long",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("long","typedef LONG64 xsd__long;\n");
 	allPrimitiveXSDDataType.put("negativeInteger",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("negativeInteger","typedef char * xsd__negativeInteger;\n");
+	isBasicDataTypePointer.add("xsd:negativeInteger");
 	allPrimitiveXSDDataType.put("nonNegativeInteger",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("nonNegativeInteger","typedef char * xsd__nonNegativeInteger;\n");
+	isBasicDataTypePointer.add("xsd:nonNegativeInteger");
 	allPrimitiveXSDDataType.put("nonPositiveInteger",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("nonPositiveInteger","typedef char * xsd__nonPositiveInteger;\n");
+	isBasicDataTypePointer.add("xsd:nonPositiveInteger");
 	allPrimitiveXSDDataType.put("normalizedString",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("normalizedString","typedef char *  xsd__normalizedString;\n");
+	isBasicDataTypePointer.add("xsd:normalizedString");
 	allPrimitiveXSDDataType.put("positiveInteger",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("positiveInteger","typedef char * xsd__positiveInteger;\n");
+	isBasicDataTypePointer.add("xsd:positiveInteger");
 	allPrimitiveXSDDataType.put("short",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("short","typedef char * xsd__short;\n");
+	isBasicDataTypePointer.add("xsd:short");
 	allPrimitiveXSDDataType.put("string",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("string","typedef char * xsd__string;\n");
+	isBasicDataTypePointer.add("xsd:string");
 	allPrimitiveXSDDataType.put("time",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("time","typedef char * xsd__time;\n");
+	isBasicDataTypePointer.add("xsd:time");
 	allPrimitiveXSDDataType.put("token",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("token","typedef char * xsd__token;\n");
+	isBasicDataTypePointer.add("xsd:token");
 	allPrimitiveXSDDataType.put("unsignedByte",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("unsignedByte","typedef unsigned char xsd__unsignedByte;\n");
 	allPrimitiveXSDDataType.put("unsignedInt",new Boolean(false));
@@ -1911,6 +1968,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 	allPrimitiveSOAPDataType.put("anyURI",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("anyURI","typedef char * soap_enc__anyURI;\n");
+	isBasicDataTypePointer.add("soap_enc:anyURI");
 	allPrimitiveSOAPDataType.put("base64Binary",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("base64Binary","class soap_enc__base64Binary {\npublic:\nunsigned char *__ptr;\nint __size;\n};\n");
 	allPrimitiveSOAPDataType.put("boolean",new Boolean(false));
@@ -1924,14 +1982,18 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveSOAPDataTypeEquivalent.put("byte","typedef char soap_enc__byte;\n");
 	allPrimitiveSOAPDataType.put("dateTime",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("dateTime","typedef char * soap_enc__dateTime;\n");
+	isBasicDataTypePointer.add("soap_enc:dateTime");
 	allPrimitiveSOAPDataType.put("date",new Boolean(false));	
 	allPrimitiveSOAPDataTypeEquivalent.put("date","typedef char * soap_enc__date;\n");	
+	isBasicDataTypePointer.add("soap_enc:date");
 	allPrimitiveSOAPDataType.put("decimal",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("decimal","typedef char * soap_enc__decimal;\n");
+	isBasicDataTypePointer.add("soap_enc:decimal");
 	allPrimitiveSOAPDataType.put("double",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("double","typedef double soap_enc__double;\n");
 	allPrimitiveSOAPDataType.put("duration",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("duration","typedef char * soap_enc__duration;\n");
+	isBasicDataTypePointer.add("soap_enc:duration");
 	allPrimitiveSOAPDataType.put("float",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("float","typedef float soap_enc__float;\n");
 	allPrimitiveSOAPDataType.put("hexBinary",new Boolean(false));
@@ -1940,26 +2002,37 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveSOAPDataTypeEquivalent.put("int","typedef int soap_enc__int;\n");
 	allPrimitiveSOAPDataType.put("integer",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("integer","typedef char * soap_enc__integer;\n");
+	isBasicDataTypePointer.add("soap_enc:integer");
 	allPrimitiveSOAPDataType.put("long",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("long","typedef LONG64 soap_enc__long;\n");
 	allPrimitiveSOAPDataType.put("negativeInteger",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("negativeInteger","typedef char * soap_enc__negativeInteger;\n");
+	isBasicDataTypePointer.add("soap_enc:negativeInteger");
 	allPrimitiveSOAPDataType.put("nonNegativeInteger",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("nonNegativeInteger","typedef char * soap_enc__nonNegativeInteger;\n");
+	isBasicDataTypePointer.add("soap_enc:nonNegativeInteger");
 	allPrimitiveSOAPDataType.put("nonPositiveInteger",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("nonPositiveInteger","typedef char * soap_enc__nonPositiveInteger;\n");
+	isBasicDataTypePointer.add("soap_enc:nonPositiveInteger");
 	allPrimitiveSOAPDataType.put("normalizedString",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("normalizedString","typedef char *  soap_enc__normalizedString;\n");
+	isBasicDataTypePointer.add("soap_enc:normalizedString");
 	allPrimitiveSOAPDataType.put("positiveInteger",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("positiveInteger","typedef char * soap_enc__positiveInteger;\n");
+	isBasicDataTypePointer.add("soap_enc:positiveInteger");
 	allPrimitiveSOAPDataType.put("short",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("short","typedef char * soap_enc__short;\n");
+	isBasicDataTypePointer.add("soap_enc:short");
 	allPrimitiveSOAPDataType.put("string",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("string","typedef char * soap_enc__string;\n");
+	isBasicDataTypePointer.add("soap_enc:short");
+	allPrimitiveSOAPDataType.put("string",new Boolean(false));
 	allPrimitiveSOAPDataType.put("time",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("time","typedef char * soap_enc__time;\n");
+	isBasicDataTypePointer.add("soap_enc:short");
 	allPrimitiveSOAPDataType.put("token",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("token","typedef char * soap_enc__token;\n");
+	isBasicDataTypePointer.add("soap_enc:token");
 	allPrimitiveSOAPDataType.put("unsignedByte",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("unsignedByte","typedef unsigned char soap_enc__unsignedByte;\n");
 	allPrimitiveSOAPDataType.put("unsignedInt",new Boolean(false));
@@ -2071,6 +2144,8 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	String wsdlNS = getNsEquivalent(nnode.getNameSpace(),"wsdlNS");
 	Hashtable referenceNameSpace=null;
 	Node node=null;
+
+	
 	
 	if(nnode!=null)
 	    node = nnode.getNode();
@@ -2086,7 +2161,9 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 
 
-	
+	if(tns==null)tns="";if(currentNS==null)currentNS="";if(schemaNS==null)schemaNS="";
+	if(localencodingNS==null)localencodingNS="";if(wsdlNS==null)wsdlNS="";
+
 	NsNodeSearch simpleType = new NsNodeSearch(node,schemaNS+"simpleType",nnode.getNameSpace());
 
 	NsNode nsimpleNode = simpleType.getNextNode();
@@ -2096,6 +2173,8 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	    simpleNode = nsimpleNode.getNode();
 
 	referenceNameSpace=null;
+
+	
 
 	for(int i=0;i<simpleType.getTotalMatches();i++)
 	    {
@@ -2130,13 +2209,23 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			if((nrestrictionNode!=null)&&(nenumerationNode!=null))
 			    {
 				if(nlistNode!=null)
-				    dataType = 1;
+				    dataType = 1; //enum mask
 				
 				//enumEquivalent =dataType("enum "+maskStr+currentNS+getAttrValue(simpleNode,"name"))+" { ";
 				for(int j=0;j<enumeration.getTotalMatches();j++)
 				    {
-					enumEquivalent
-					    +=convertToCpp(getAttrValue(nenumerationNode.getNode(),"value"),true)+", ";
+					String enumValue =getAttrValue(nenumerationNode.getNode(),"value");
+					if(isNumericConstant(enumValue))
+					    enumValue="_"+enumValue; /*append
+								       a _ for  numeric constants so that
+								       there is no
+								       compilation
+								       errors*/
+					else
+					    enumValue = convertToCpp(enumValue,true);
+
+							       
+					enumEquivalent +=enumValue+", ";
 					nenumerationNode = enumeration.getNextNode();
 				    }
 				if(enumEquivalent.lastIndexOf(',')!=-1)
@@ -2148,6 +2237,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			    }
 			else 
 			    {
+				//typedefs using simple type
 				restriction = new NsNodeSearch(simpleNode,schemaNS+"restriction",nsimpleNode.getNameSpace());
 				//NsNodeSearch(simpleNode,schemaNS+"restriction",attrib,nsimpleNode.getNameSpace());
 				nrestrictionNode = restriction.getNextNode();
@@ -2201,6 +2291,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			    simpleNode = nsimpleNode.getNode();
 		    }
 	    }
+	//end simple types
 
 
 
@@ -2278,7 +2369,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 			if(arrayType==null)
 			    {
-				System.out.println("No Type attribute found for element "+arrayName);
+				System.out.println("No Type attribute found for element "+arrayName+ "while looking in WSDLNS:"+wsdlNS+"   "+wsdlNS+"arrayType");
 				ncomplexNode = complexType.getNextNode();
 				if(ncomplexNode!=null)
 				    complexNode = ncomplexNode.getNode();
@@ -2292,6 +2383,10 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			String curlocalSoapNS = getNsEquivalent(referenceNameSpace,"soapNS");
 			String curlocalencodingNS = getNsEquivalent(referenceNameSpace,"encodingNS");
 			int isStruct =0;
+
+			String type = arrayType.substring(0,arrayType.indexOf('['));
+			String ifArrayType = getName(type);
+			boolean isArrayType = false;
 
 			/*if(getNS(arrayType).compareToIgnoreCase(curlocalXSDNS)==0)*/
 
@@ -2313,30 +2408,46 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 				    isStruct=1;
 				}
 			    }
+			else if(isEnumType(type))
+			    {
+				arrayType =getNS(arrayType)+getName(arrayType);
+				isStruct = 2;
+			    }
+			else if(isArrayType(ifArrayType))
+			    {
+				isStruct = 1;
+				isArrayType = true;
+				
+			    }
 			else
 			    {
 				arrayType = getNS(arrayType,nnode.getNameSpace())+getName(arrayType);
 				isStruct = 1;
 			    }
 
-
 			if(singleLevelArray(arrayType))
 			    {
 				String description;
 				int dim = getArrayDimension(arrayType);
+				String eqArrayType="" ;
 
-				String type = arrayType.substring(0,arrayType.indexOf('['));
+
+				if(!isArrayType)
+				    eqArrayType = arrayType.substring(0,arrayType.indexOf('['));
+				else
+				    eqArrayType = ifArrayType;
+				
 				
 				if(dim==1)
 				    {
 					//description = "struct "+dataType(type)+"\t*__ptr;\nint\t__size;\nint\t__offset;\n};";
-					description=type+"\t1\t__ptr\t"+isStruct+"\n"+
+					description=eqArrayType+"\t1\t__ptr\t"+isStruct+"\n"+
 					    "int\t0\t__size\t3\n"+
 					    "int\t0\t__offset\t3\n";
 				    }
 				else
 				    {
-					description=type+"\t1\t__ptr\t"+isStruct+"\n"+
+					description=eqArrayType+"\t1\t__ptr\t"+isStruct+"\n"+
 					    "int\t0\t__size["+dim+"]\t3\n"+
 					    "int\t0\t__offset["+dim+"]\t3\n";
 				    }
@@ -2475,7 +2586,6 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 		/*String schemaNS =null;*/
 		Hashtable referenceNameSpace=null;
 		String description = "";
-
 		String structName =null;
 
 		String occursString = "__size";
@@ -2652,7 +2762,13 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			int isPtr=0;
 			
 			if(ptr.equals("*"))
-			    isPtr=1;
+			    {
+				if(isPointerToBasicCType(typeStr))
+				    isPtr=0;
+				else
+				    isPtr=1;
+
+			    }
 			
 			description+=typeStr+"\t"+isPtr+"\t"+convertToCpp(nameStr,true)+"\t"+isStructure+"\n";
 
@@ -2744,7 +2860,16 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	    return new String("char *");
     }
     
-    
+
+    boolean isNumericConstant(String number)
+    {
+	try
+	    {Integer.decode(number);}
+	catch(NumberFormatException e)
+	    {return false; }
+	return true;
+
+    }
 
     boolean isEnumType(String name)
     {

@@ -322,7 +322,7 @@ receiving side flags into separate sets. Depricated soap.enable_X and soap.disab
 </ul>
 <li>Version 2.2.1 (12/18/2002)</li>
 <ul>
-<li>Added callbacks to enable custom streaming of DIME attachments.<li>
+<li>Added callbacks to enable custom streaming of DIME attachments.</li>
 <li>Fixed broken serialization of pointers to dynamic arrays with NULL
 __ptr</li>
 <li>Fixed some WSDL issues.</li>
@@ -337,6 +337,21 @@ __ptr</li>
 <li>Fixed UTF8 decoding of a subset of characters (2-octet UTF).</li>
 <li>Fixed 'operator==' parsing.</li>
 <li>Fixed a couple of WSDL issues.</li>
+</ul>
+<li>Version 2.2.3 (3/2/2003)</li>
+<ul>
+<li>Added server-side HTTP basic authentication.</li>
+<li>Improved speed.</li>
+<li>Improved Tru64 portability.</li>
+<li>Changed fpost() function callback signature: added 'int port' argument and
+added port number to the Host: HTTP header.</li>
+<li>Fixed memory leak in SSL connect when using OpenSSL DH.</li>
+<li>Fixed custom (de)serializer definitions parsing.</li>
+<li>Fixed a gzip/deflate bug with large transfers.</li>
+<li>Fixed use of ftime() for time_t (de)serialization with timezones.</li>
+<li>Fixed a problem with concurrent access to global namespace table by multiple threads.</li>
+<li>Fixed crash with //gsoap name directive.</li>
+<li>Fixed deserialization bug with multi-ref object encoding by Apache Axis.</li>
 </ul>
 </ul>
 

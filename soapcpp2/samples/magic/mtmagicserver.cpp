@@ -19,12 +19,13 @@
 // controlled.
 
 #include "soapH.h"
+#include "magic.nsmap"
 #include <unistd.h>	// import sleep()
 #include <pthread.h>
 
 #define BACKLOG (100)	// Max. request backlog
 #define MAX_THR (8)	// Max. threads to serve requests
-#define SLEEP	(1)	// make each thread sleep to mimic work load latency
+#define SLEEP	(0)	// use this to make each thread sleep to mimic work load latency
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -37,6 +38,7 @@ void *process_request(void*);
 int main(int argc, char **argv)
 { struct soap soap;
   soap_init(&soap);
+  // soap.accept_timeout = 60; // die if no requests are made within 1 minute
   if (argc < 2)		// no args: assume this is a CGI application
   { soap_serve(&soap);	// serve request
     soap_destroy(&soap);// cleanup class instances
@@ -49,12 +51,19 @@ int main(int argc, char **argv)
     port = atoi(argv[1]);
     m = soap_bind(&soap, NULL, port, BACKLOG);
     if (m < 0)
-      exit(-1);
+    { soap_print_fault(&soap, stderr);
+      exit(1);
+    }
     fprintf(stderr, "Socket connection successful %d\n", m);
     for (i = 0; ; i++)
     { s = soap_accept(&soap);
       if (s < 0)
+      { if (soap.errnum)
+          soap_print_fault(&soap, stderr);
+	else
+	  fprintf(stderr, "Server timed out\n");
         break;
+      }
       fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
       pthread_create(&tid, NULL, (void*(*)(void*))process_request, (void*)soap_copy(&soap));
     }
@@ -149,7 +158,7 @@ void vector::resize(int n)
   __ptr = p;
 }
 
-int& vector::operator[](int i)
+int& vector::operator[](int i) const
 { if (!__ptr || i < 0 || i >= __size)
     fprintf(stderr, "Array index out of bounds\n");
   return __ptr[i];
@@ -204,23 +213,8 @@ void matrix::resize(int rows, int cols)
       __ptr[i].resize(cols);
 }
 
-vector& matrix::operator[](int i)
+vector& matrix::operator[](int i) const
 { if (!__ptr || i < 0 || i >= __size)
     fprintf(stderr, "Array index out of bounds\n");
   return __ptr[i];
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//
-//	Namespace Definition Table
-//
-////////////////////////////////////////////////////////////////////////////////
-
-struct Namespace namespaces[] =
-{ { "SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/" }, // must be first
-  { "SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/" }, // must be second
-  { "xsi", "http://www.w3.org/1999/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance" },
-  { "xsd", "http://www.w3.org/1999/XMLSchema",          "http://www.w3.org/*/XMLSchema" },
-  { "ns1", "urn:MagicSquare" },		// "ns1" namespace prefix
-  { NULL, NULL }
-};

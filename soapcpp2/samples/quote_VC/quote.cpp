@@ -9,7 +9,7 @@ int main(int argc, char **argv)
   else
     sym = argv[1];
   soap_init(&soap);	// must initialize
-  if (soap_call_ns__getQuote(&soap, "http://services.xmethods.net/soap", NULL, sym, &q) == 0)
+  if (soap_call_ns__getQuote(&soap, "http://services.xmethods.net/soap", "", sym, &q) == 0)
     printf("\nCompany - %s    Quote - %f\n", sym, q);
   else
   { soap_print_fault(&soap, stderr);
