@@ -69,7 +69,7 @@ static Token install_num();
 static Token install_chr();
 static Token install_str();
 static Token install_pragma();
-static void comment(), directive(), option();
+static void directive(), option();
 static Token error_chr();
 static Token error_str();
 static int convchar(int*);
@@ -91,70 +91,75 @@ str		\"(\\\"|\\\n|[^"])*\"
 module		#module[ \t]*{str}.*\n
 import		#import[ \t]*{str}.*\n
 eof		<<EOF>>
+%x MLCOMMENT
 %%
-[ \t\v\n\f\r\x1A\xA0]	{ /* skip white space (\x1A is ^Z and \xA0 is HTML non-breakable space) */ }
-"/*"		{ comment(); }
+[ \t\v\n\f\r\x1A\xA0]   { /* skip white space (\x1A is ^Z and \xA0 is HTML non-breakable space) */ }
+"/*"			{ BEGIN(MLCOMMENT); }
+<MLCOMMENT>[^*]		{ /* eat anything that's not a '*' */ }
+<MLCOMMENT>"*"[^/]	{ /* eat up '*'s not followed by '/'s */ }
+<MLCOMMENT>"*/"		{ BEGIN(INITIAL); }
+<MLCOMMENT><<EOF>>	{ execerror("Unclosed multiline comment at the end of file"); }
 "//gsoapopt".*\n	{ option(); }
-"//gsoap".*\n	{ directive(); }
-"//".*\n	{ /* skip comment */ }
-"+="		{ return PA; }
-"-="		{ return NA; }
-"*="		{ return TA; }
-"/="		{ return DA; }
-"%="		{ return MA; }
-"&="		{ return AA; }
-"^="		{ return XA; }
-"|="		{ return OA; }
-"<<="		{ return LA; }
-">>="		{ return RA; }
-"||"		{ return OR; }
-"&&"		{ return AN; }
-"=="		{ return EQ; }
-"!="		{ return NE; }
-"<="		{ return LE; }
-">="		{ return GE; }
-"<<"		{ return LS; }
-">>"		{ return RS; }
-"++"		{ return PP; }
-"--"		{ return NN; }
-"->"		{ return AR; }
+"//gsoap".*\n		{ directive(); }
+"//".*\n		{ /* skip single line comment */ }
+"+="			{ return PA; }
+"-="			{ return NA; }
+"*="			{ return TA; }
+"/="			{ return DA; }
+"%="			{ return MA; }
+"&="			{ return AA; }
+"^="			{ return XA; }
+"|="			{ return OA; }
+"<<="			{ return LA; }
+">>="			{ return RA; }
+"||"			{ return OR; }
+"&&"			{ return AN; }
+"=="			{ return EQ; }
+"!="			{ return NE; }
+"<="			{ return LE; }
+">="			{ return GE; }
+"<<"			{ return LS; }
+">>"			{ return RS; }
+"++"			{ return PP; }
+"--"			{ return NN; }
+"->"			{ return AR; }
 [;,:=|^&<>+\-*/%!?~(){}\[\].@]	{ return yytext[0]; }
-{id}		{ return install_id(); }
-{int}		{ return install_int(); }
-{hex}		{ return install_hex(); }
-{num}		{ return install_num(); }
-{chr}		{ return install_chr(); }
-{str}		{ return install_str(); }
-{module}	{ char *s, buf[1024];
-		  s = strchr(yytext, '"');
-		  strcpy(buf, s+1);
-		  s = strchr(buf, '"');
-		  *s = '\0';
-		  module(buf);
-		}
-{import}	{ char *s, buf[1024];
-		  s = strchr(yytext, '"');
-		  strcpy(buf, s+1);
-		  s = strchr(buf, '"');
-		  *s = '\0';
-		  import(buf);
-		}
-#.*\n		{ return install_pragma(); }
-'[^'\n]*/\n	{ return error_chr(); }
-\"[^"\n]*/\n	{ return error_str(); }
-.		{ lexerror("Skipping unknown symbol"); }
-{eof}		{ /* in case Lex complains, remove this line */
+{id}			{ return install_id(); }
+{int}			{ return install_int(); }
+{hex}			{ return install_hex(); }
+{num}			{ return install_num(); }
+{chr}			{ return install_chr(); }
+{str}			{ return install_str(); }
+{module}		{ char *s, buf[1024];
+			  s = strchr(yytext, '"');
+			  strcpy(buf, s+1);
+			  s = strchr(buf, '"');
+			  *s = '\0';
+			  module(buf);
+			}
+{import}		{ char *s, buf[1024];
+			  s = strchr(yytext, '"');
+			  strcpy(buf, s+1);
+			  s = strchr(buf, '"');
+			  *s = '\0';
+			  import(buf);
+			}
+#.*\n			{ return install_pragma(); }
+'[^'\n]*/\n		{ return error_chr(); }
+\"[^"\n]*/\n		{ return error_str(); }
+.			{ lexerror("Skipping unknown symbol"); }
+{eof}			{ /* in case Lex complains, remove this line */
 #ifndef WITH_LEX
-		  if (--imports < 0)
-		    yyterminate();
-		  else
-		  { yy_delete_buffer(YY_CURRENT_BUFFER);
-		    yy_switch_to_buffer(instk[imports]);
-		    strcpy(filename, fnstk[imports]);
-		    yylineno = lnstk[imports];
-		  }
+			  if (--imports < 0)
+			    yyterminate();
+			  else
+			  { yy_delete_buffer(YY_CURRENT_BUFFER);
+			    yy_switch_to_buffer(instk[imports]);
+			    strcpy(filename, fnstk[imports]);
+			    yylineno = lnstk[imports];
+			  }
 #endif
-		}
+			}
 %%
 
 /*
@@ -251,15 +256,6 @@ install_pragma()
 	strncpy(yylval.s, yytext, strlen(yytext)-1);
 	yylval.s[strlen(yytext)-1] = '\0';
 	return PRAGMA;
-}
-
-static void comment()
-{	char c, c1;
-loop:
-        while ((c = input()) != '*' && c != 0 && c != EOF)
-                ;
-        if ((c1 = input()) != '/' && c != 0 && c != EOF)
-                goto loop;
 }
 
 static void directive()

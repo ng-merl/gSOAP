@@ -1569,6 +1569,7 @@ add_fault(Table *gt)
     p3 = enter(t, lookup("__any"));
     p3->info.typ = xml;
     p3->info.minOccurs = 0;
+    custom_fault = 0;
   }
   s3 = lookup("SOAP_ENV__Fault");
   p3 = entry(classtable, s3);
@@ -1598,7 +1599,6 @@ add_fault(Table *gt)
     p3 = enter(t, lookup("SOAP_ENV__Detail"));
     p3->info.typ = mkpointer(p2->info.typ);
     p3->info.minOccurs = 0;
-    custom_fault = 0;
   }
 }
 

@@ -813,7 +813,7 @@ int wsdl__import::traverse(wsdl__definitions& definitions)
 	  }
 	}
 	*/
-        // merge <types>, check for duplications
+        // merge <types>, check for duplicates
         for (vector<xs__schema*>::const_iterator importschema = definitionsRef->types->xs__schema_.begin(); importschema != definitionsRef->types->xs__schema_.end(); ++importschema)
 	{ bool found = false;
 	  for (vector<xs__schema*>::const_iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)

@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.6.0
+stdsoap2.h 2.6.1
 
 Runtime environment.
 
@@ -122,7 +122,7 @@ engelen@genivia.com / engelen@acm.org
 
 /* WR[ */
 #if (defined(__vxworks) || defined(__VXWORKS__))
-#define VXWORKS
+# define VXWORKS
 #endif
 /* ]WR */
 
@@ -176,6 +176,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_STRTOUL
 #  define HAVE_SYS_TIMEB_H
 #  define HAVE_FTIME
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(CYGWIN)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -186,6 +188,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(__APPLE__)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -195,6 +199,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
 #  define HAVE_TIMEGM
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(_AIXVERSION_431)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -205,6 +211,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(HP_UX)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -215,6 +223,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(FREEBSD)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -224,6 +234,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(__VMS)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -234,6 +246,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(__GLIBC__)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -245,6 +259,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
 #  define HAVE_TIMEGM
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(TRU64)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -255,6 +271,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(MAC_CARBON)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -265,6 +283,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_GETHOSTBYNAME_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # elif defined(PALM)
 #  define HAVE_STRTOD	/* strtod() is defined in palmmissing.h */
 #  ifndef CONST2
@@ -324,6 +344,7 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_MKTIME
 /* ]WR */
 # else
+/* Default asumptions on supported functions */
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
 #  define HAVE_STRTOL
@@ -334,6 +355,8 @@ engelen@genivia.com / engelen@acm.org
 #  define HAVE_GETHOSTBYNAME_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # endif
 #endif
 
@@ -376,7 +399,7 @@ engelen@genivia.com / engelen@acm.org
 
 #if defined(__cplusplus) && !defined(UNDER_CE)
 # include <iostream>
-using namespace std;
+  using namespace std;
 #endif
 
 #ifndef UNDER_CE
@@ -606,6 +629,13 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #  define SOAP_BUFLEN   (2048)
 # endif
 #endif
+#ifndef SOAP_LABLEN
+# ifndef WITH_LEAN
+#  define SOAP_LABLEN  (256) /* initial look-aside buffer length */
+# else
+#  define SOAP_LABLEN   (64)
+# endif
+#endif
 #ifndef SOAP_PTRHASH
 # ifndef WITH_LEAN
 #  define SOAP_PTRHASH  (1024) /* size of pointer analysis hash table (must be power of 2) */
@@ -649,7 +679,7 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #endif
 
 #ifndef SOAP_MAXARRAYSIZE
-# define SOAP_MAXARRAYSIZE (10000) /* "trusted" max size of inbound SOAP array (per dimension) for compound array allocation */
+# define SOAP_MAXARRAYSIZE (100000) /* "trusted" max size of inbound SOAP array for compound array allocation */
 #endif
 
 /* WR[ */
@@ -817,7 +847,8 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 
 #define SOAP_C_NOIOB		0x010000
 #define SOAP_C_UTFSTRING	0x020000
-#define SOAP_C_LATIN		0x040000
+#define SOAP_C_MBSTRING		0x040000
+#define SOAP_C_LATIN		0x080000
 
 #define SOAP_DOM_TREE		0x100000
 #define SOAP_DOM_NODE		0x200000
@@ -915,6 +946,7 @@ struct soap_array
   int __size;
 };
 
+/* pointer serialization management */
 struct soap_plist
 { struct soap_plist *next;
   const void *ptr;
@@ -925,6 +957,7 @@ struct soap_plist
   char mark2;
 };
 
+/* class allocation list */
 struct soap_clist
 { struct soap_clist *next;
   void *ptr;
@@ -933,13 +966,14 @@ struct soap_clist
   void (*fdelete)(struct soap_clist*);
 };
 
+/* id-ref forwarding list */
 struct soap_ilist
 { struct soap_ilist *next;
   int type;
   size_t size;
   void *link;
   void *copy;
-  struct soap_clist *clist;
+  struct soap_flist *flist;
   void *ptr;
   unsigned int level;
   char id[1]; /* the actual id string value overflows into allocated region below this struct */
@@ -1128,9 +1162,12 @@ struct soap
   unsigned int level;
   size_t count;		/* message length counter */
   size_t length;	/* message length as set by HTTP header */
+  char *labbuf;		/* look-aside buffer */
+  size_t lablen;	/* look-aside buffer allocated length */
+  size_t labidx;	/* look-aside buffer index to available part */
   char buf[SOAP_BUFLEN];/* send and receive buffer */
   char msgbuf[1024];	/* output buffer for (error) messages <=1024 bytes */
-  char tmpbuf[1024];	/* output buffer for HTTP headers and DIME >=1024 bytes */
+  char tmpbuf[1024];	/* output buffer for HTTP headers, simpleType values, attribute names, and DIME >=1024 bytes */
   char tag[SOAP_TAGLEN];
   char id[SOAP_TAGLEN];
   char href[SOAP_TAGLEN];
@@ -1240,6 +1277,15 @@ struct soap
 struct soap_code_map
 { long code;
   const char *string;
+};
+
+/* forwarding list for container elements */
+struct soap_flist
+{ struct soap_flist *next;
+  int type;
+  void *ptr;
+  unsigned int level;
+  void (*finsert)(struct soap*, int, void*, void*);
 };
 
 struct soap_plugin

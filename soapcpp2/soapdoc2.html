@@ -21,7 +21,7 @@
 
 <h3 align="center">Robert van Engelen <br />Genivia, Inc., <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Mar 29, 2004
+<h3 align="center">Jun  6, 2004
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -226,23 +226,25 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9"
 >11.9&nbsp; <font color="#0000FF">Dynamic Arrays</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.1"
->11.9.1&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays</font></a><br />
+>11.9.1&nbsp; <font color="#0000FF">SOAP Array Bounds Limits</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.2"
->11.9.2&nbsp; <font color="#0000FF">Example</font></a><br />
+>11.9.2&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.3"
->11.9.3&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></a><br />
+>11.9.3&nbsp; <font color="#0000FF">Example</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.4"
->11.9.4&nbsp; <font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></a><br />
+>11.9.4&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.5"
->11.9.5&nbsp; <font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></a><br />
+>11.9.5&nbsp; <font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.6"
->11.9.6&nbsp; <font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></a><br />
+>11.9.6&nbsp; <font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.7"
->11.9.7&nbsp; <font color="#0000FF">STL Containers</font></a><br />
+>11.9.7&nbsp; <font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.8"
->11.9.8&nbsp; <font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></a><br />
+>11.9.8&nbsp; <font color="#0000FF">STL Containers</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.9"
->11.9.9&nbsp; <font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></a><br />
+>11.9.9&nbsp; <font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.9.10"
+>11.9.10&nbsp; <font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.10"
 >11.10&nbsp; <font color="#0000FF">Base64Binary XML Schema Type Encoding</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc11.11"
@@ -3747,7 +3749,7 @@ There are certain limitations for the following C++ language constructs:
 
 <dl compact="compact">
  <dt><b>STL and STL templates</b></dt>
-	<dd> The gSOAP compiler does not yet fully support STL. It supports STL strings <i>std::string</i> and <i>std::wstring</i> (see Section&nbsp;<a href="#sec:strings">11.2.6</a>) and the STL containers <i>std::deque</i>, <i>std::list</i>, <i>std::vector</i>, and <i>std::set</i>, (see Section&nbsp;<a href="#sec:templates">11.9.7</a>).</dd>
+	<dd> The gSOAP compiler does not yet fully support STL. It supports STL strings <i>std::string</i> and <i>std::wstring</i> (see Section&nbsp;<a href="#sec:strings">11.2.6</a>) and the STL containers <i>std::deque</i>, <i>std::list</i>, <i>std::vector</i>, and <i>std::set</i>, (see Section&nbsp;<a href="#sec:templates">11.9.8</a>).</dd>
  <dt><b>Templates</b></dt>
 	<dd> The gSOAP compiler is a preprocessor that cannot determine the template instantations used by the main program, nor can it generate templated code. You can however implement containers similar to the STL containers.</dd>
  <dt><b>Multiple inheritance</b></dt>
@@ -3805,6 +3807,7 @@ The following macros (<i>#define</i>s) can be used to enable certain optional fe
 <tr><td><i>WITH_FASTCGI</i>	</td><td>enables FastCGI, see Sections&nbsp;<a href="#sec:fastcgi">15.31</a> </td></tr>
 <tr><td><i>WITH_GZIP</i>	</td><td>enables gzip and deflate compression, see Section&nbsp;<a href="#sec:compression">15.27</a> </td></tr>
 <tr><td><i>WITH_ZLIB</i>	</td><td>enables deflate compression only, see Section&nbsp;<a href="#sec:compression">15.27</a> </td></tr>
+<tr><td><i>WITH_FAST</i>	</td><td>(experimental) may yield faster executables </td></tr>
 <tr><td><i>WITH_LEAN</i>	</td><td>creates a small-footprint executable, see Section&nbsp;<a href="#sec:lean">15.32</a> </td></tr>
 <tr><td><i>WITH_LEANER</i>	</td><td>creates an even smaller footprint executable, see Section&nbsp;<a href="#sec:lean">15.32</a> </td></tr>
 <tr><td><i>WITH_NONAMESPACES</i></td><td>omit initialization of soap struct with global <i>namespaces</i> table </td></tr>
@@ -3859,7 +3862,8 @@ messages.  The flags are:
 <tr><td><i>SOAP_XML_GRAPH</i> </td><td>Serialize data as an XML graph with inline multi-ref (SOAP 1.2 default) </td></tr>
 <tr><td><i>SOAP_XML_NIL</i> </td><td>Serialize NULL data as XML nil elements (omit by default) </td></tr>
 <tr><td><i>SOAP_C_NOIOB</i> </td><td>Do not fault with <i>SOAP_IOB</i> </td></tr>
-<tr><td><i>SOAP_C_UTFSTRING</i> </td><td>(De)serialize 8-bit strings ``as is'' (strings MUST have UTF-8 encoded content) </td></tr></table>
+<tr><td><i>SOAP_C_UTFSTRING</i> </td><td>(De)serialize 8-bit strings ``as is'' (strings MUST have UTF-8 encoded content) </td></tr>
+<tr><td><i>SOAP_C_MBSTRING</i> </td><td>Activate multibyte character support (depends on locale) </td></tr></table>
 
 </td></tr></table><br></span>
 The flags can be selectively turned on/off at any time, for example when
@@ -3913,7 +3917,7 @@ encoding used for an inbound message. The flags that do have an effect on
 handling inbound messages are <i>SOAP_IO_KEEPALIVE</i>, <i>SOAP_ENC_SSL</i>
 (but automatic when "https:" endpoints are used or <i>soap_ssl_accept</i>),
 <i>SOAP_XML_NIL</i> will fault on receiving nil elements for non-nillable
-data, <i>SOAP_C_NOIOB</i>, and <i>SOAP_C_UTFSTRING</i>.
+data, <i>SOAP_C_NOIOB</i>, <i>SOAP_C_UTFSTRING</i>, and <i>SOAP_C_MBSTRING</i>.
 
 <p>
 <font color="#FF0000"><b>Caution</b></font>: The <i>SOAP_XML_TREE</i> serialization flag can be used to
@@ -5866,7 +5870,7 @@ Classes should be declared ``volatile'' if you don't want gSOAP to add serializa
 
 <p>
 Class templates are not supported by the gSOAP compiler, but you can use STL containers,
-see Section&nbsp;<a href="#sec:templates">11.9.7</a>. You can also define your own
+see Section&nbsp;<a href="#sec:templates">11.9.8</a>. You can also define your own
 containers similar to STL containers.
 
 <p>
@@ -5875,7 +5879,7 @@ See&nbsp;<a href="#sec:attributes">11.5.7</a> for more details.
 
 <p>
 Arrays may be embedded within a class (and struct) using a pointer field and
-size information, see Section&nbsp;<a href="#sec:list">11.9.6</a>. This defines what is sometimes
+size information, see Section&nbsp;<a href="#sec:list">11.9.7</a>. This defines what is sometimes
 referred to in SOAP as ``generics''.
 
 <p>
@@ -6649,7 +6653,14 @@ pointer and array size information within a <i><b>struct</b></i> or <i><b>class<
 
 <p>
 		      <h4><a name="tth_sEc11.9.1">
-11.9.1</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays</font></h4>
+11.9.1</a>&nbsp;&nbsp;<font color="#0000FF">SOAP Array Bounds Limits</font></h4>
+
+<p>
+SOAP encoded arrays use the <tt>SOAP-ENC:Array</tt> type and the <tt>SOAP-ENC:arrayType</tt> attribute to define the array dimensionality and size. As a security measure to avoid denial of service attacks based on sending a huge array size value requiring the allocation of large chunks of memory, the total number of array elements set by the <tt>SOAP-ENC:arrayType</tt> attribute cannot exceed <i>SOAP_MAXARRAYSIZE</i>, which is set to 100,000 by default. This constant is defined in <i>stdsoap2.h</i>. This constant <b>only</b> affects multi-dimensional arrays and the dimensionality of the receiving array will be lost when the number of elements exceeds 100,000. One-dimensional arrays will be populated in sequential order as expected.
+
+<p>
+		      <h4><a name="tth_sEc11.9.2">
+11.9.2</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays</font></h4>
 
 <p>
 A special form of <i><b>struct</b></i> or <i><b>class</b></i> is used for one-dimensional
@@ -6668,7 +6679,7 @@ The general form of the <i><b>struct</b></i> declaration for one-dimensional dyn
 };
 </td></tr></table><br></i>
 where <i><u><span class="roman">Type</span></u></i> MUST be a type associated with an XML schema or MUST be a primitive type.
-If these conditions are not met, a vector-like XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">11.9.6</a>).
+If these conditions are not met, a vector-like XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">11.9.7</a>).
 A primitive type can be used with or without a <i><b>typedef</b></i>.
 If the array elements are structs or classes, then the <i>struct</i>/<i>class</i> type names should have a namespace prefix for schema
 association, or they should be other (nested) dynamic arrays. 
@@ -6690,7 +6701,7 @@ An alternative to a <i><b>struct</b></i> is to use a <i><b>class</b></i> with op
 </td></tr></table><br></i>
 To encode the data type as an array, the name of the <i><b>struct</b></i> or
 <i><b>class</b></i> SHOULD NOT have a namespace prefix, otherwise the data type will
-be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">11.9.6</a>.
+be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">11.9.7</a>.
 
 <p>
 The deserializer of a dynamic array can decode partially transmitted and/or
@@ -6701,8 +6712,8 @@ into a one-dimensional array with row-major ordering.
 <font color="#FF0000"><b>Caution</b></font>: SOAP 1.2 does not support partially transmitted arrays. So the <i>__offset</i> field of a dynamic array is ignored.
 
 <p>
-		      <h4><a name="tth_sEc11.9.2">
-11.9.2</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4>
+		      <h4><a name="tth_sEc11.9.3">
+11.9.3</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4>
 
 <p>
 The following example header file specifies the XMethods Service Listing service <i>getAllSOAPServices</i> remote method and an array of <i>SOAPService</i> data structures:
@@ -6776,8 +6787,8 @@ ServiceArray::~ServiceArray() <br />
 </td></tr></table><br></i>
 
 <p>
-		      <h4><a name="tth_sEc11.9.3">
-11.9.3</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></h4>
+		      <h4><a name="tth_sEc11.9.4">
+11.9.4</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></h4>
 
 <p>
 The declaration of a dynamic array as described in&nbsp;<a href="#sec:dynarray">11.9</a> MAY
@@ -6855,8 +6866,8 @@ Note that the size of the encoded array is necessarily set to 4 and that the enc
 The decoding of a dynamic array with an <i>__offset</i> field is more efficient than decoding a dynamic array without an <i>__offset</i> field, because the <i>__offset</i> field will be assigned the value of the <tt>SOAP-ENC:offset</tt> attribute instead of padding the initial part of the array with default values.
 
 <p>
-		      <h4><a name="tth_sEc11.9.4">
-11.9.4</a>&nbsp;&nbsp;<font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></h4><a name="sec:nested">
+		      <h4><a name="tth_sEc11.9.5">
+11.9.5</a>&nbsp;&nbsp;<font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></h4><a name="sec:nested">
 </a>
 
 <p>
@@ -6880,8 +6891,8 @@ The Matrix type is essentially an array of pointers to arrays which make up the 
 The encoding of the two-dimensional dynamic array in SOAP will be in nested form.
 
 <p>
-		      <h4><a name="tth_sEc11.9.5">
-11.9.5</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></h4>
+		      <h4><a name="tth_sEc11.9.6">
+11.9.6</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></h4>
 
 <p>
 The general form of the <i><b>struct</b></i> declaration for K-dimensional (K &gt; 1) dynamic arrays is:
@@ -6895,7 +6906,7 @@ The general form of the <i><b>struct</b></i> declaration for K-dimensional (K &g
 };
 </td></tr></table><br></i>
 where <i><u><span class="roman">Type</span></u></i> MUST be a type associated with an XML schema, which means that it must be a <i><b>typedef</b></i>ed type
-in case of a primitive type, or a <i><b>struct</b></i>/<i><b>class</b></i> name with a namespace prefix for schema association, or another dynamic array. If these conditions are not met, a generic vector XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">11.9.6</a>).
+in case of a primitive type, or a <i><b>struct</b></i>/<i><b>class</b></i> name with a namespace prefix for schema association, or another dynamic array. If these conditions are not met, a generic vector XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">11.9.7</a>).
 
 <p>
 An alternative is to use a <i><b>class</b></i> with optional methods:
@@ -6915,7 +6926,7 @@ In the above, K is a constant denoting the number of dimensions of the multi-dim
 
 <p>
 To encode the data type as an array, the name of the <i><b>struct</b></i> or <i><b>class</b></i> SHOULD NOT have a namespace prefix, otherwise
-the data type will be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">11.9.6</a>.
+the data type will be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">11.9.7</a>.
 
 <p>
 The deserializer of a dynamic array can decode partially transmitted multi-dimensional arrays.
@@ -6932,14 +6943,14 @@ For example, the following declaration specifies a matrix class:
 &nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;__offset[2]; <br />
 }; 
 </td></tr></table><br></i>
-In contrast to the matrix class of Section&nbsp;<a href="#sec:nested">11.9.4</a> that defined a matrix as an array of pointers to matrix rows, this
+In contrast to the matrix class of Section&nbsp;<a href="#sec:nested">11.9.5</a> that defined a matrix as an array of pointers to matrix rows, this
 class has one pointer to a matrix stored in row-major order.  The size of the matrix is determined by the <i>__size</i> field:
 <i>__size[0]</i> holds the number of rows and <i>__size[1]</i> holds the number of columns of the matrix.  Likewise, <i>__
 offset[0]</i> is the row offset and <i>__offset[1]</i> is the columns offset.
 
 <p>
-		      <h4><a name="tth_sEc11.9.6">
-11.9.6</a>&nbsp;&nbsp;<font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></h4><a name="sec:list">
+		      <h4><a name="tth_sEc11.9.7">
+11.9.7</a>&nbsp;&nbsp;<font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></h4><a name="sec:list">
 </a>
 
 <p>
@@ -7037,8 +7048,8 @@ The XML serialization of an example <i>ns__Contact</i> is:
 </td></tr></table><br></tt>
 
 <p>
-		      <h4><a name="tth_sEc11.9.7">
-11.9.7</a>&nbsp;&nbsp;<font color="#0000FF">STL Containers</font></h4><a name="sec:templates">
+		      <h4><a name="tth_sEc11.9.8">
+11.9.8</a>&nbsp;&nbsp;<font color="#0000FF">STL Containers</font></h4><a name="sec:templates">
 </a>
 
 <p>
@@ -7048,7 +7059,7 @@ gSOAP supports the STL containers <i>std::deque</i>, <i>std::list</i>,
 <p>
 STL containers can only be used within classes to declare members that contain
 multiple values.  This is somewhat similar to the embedding of arrays in
-structs in C as explained in Section&nbsp;<a href="#sec:list">11.9.6</a>, but the STL container
+structs in C as explained in Section&nbsp;<a href="#sec:list">11.9.7</a>, but the STL container
 approach is more flexible.
 
 <p>
@@ -7170,8 +7181,8 @@ Therefore, your application should not rely on the preservation of the order of
 elements in a container.
 
 <p>
-		      <h4><a name="tth_sEc11.9.8">
-11.9.8</a>&nbsp;&nbsp;<font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></h4>
+		      <h4><a name="tth_sEc11.9.9">
+11.9.9</a>&nbsp;&nbsp;<font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></h4>
 
 <p>
 Polymorphic arrays (arrays of polymorphic element types) can be encoded when
@@ -7200,8 +7211,8 @@ The pointers in the array can point to the <i>ns__Object</i> base class or
 deserialized accordingly in SOAP.  That is, the array elements are polymorphic.
 
 <p>
-		      <h4><a name="tth_sEc11.9.9">
-11.9.9</a>&nbsp;&nbsp;<font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></h4>
+		      <h4><a name="tth_sEc11.9.10">
+11.9.10</a>&nbsp;&nbsp;<font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></h4>
 
 <p>
 The <i>__ptr</i> field in a <i><b>struct</b></i> or <i><b>class</b></i> declaration of a dynamic array may have an optional suffix part that
@@ -7727,7 +7738,7 @@ The SOAP Web service response can include a SOAP Header with a transaction numbe
 ... <br />
 &lt;SOAP-ENV:Envelope ...&#62; <br />
 &lt;SOAP-ENV:Header&#62; <br />
-&lt;t:transaction xsi:type="int"&#62;12345&lt;/t:transaction&#62; <br />
+&lt;transaction xmlns="..." xsi:type="int"&#62;12345&lt;/transaction&#62; <br />
 &lt;/SOAP-ENV:Header&#62; <br />
 &lt;SOAP-ENV:Body&#62; <br />
 ... <br />
@@ -7786,9 +7797,9 @@ When both fields are set and <i>soap.actor="http://some/actor"</i> then the mess
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0B0D0"><tr><td><tt>
 &lt;SOAP-ENV:Envelope ...&#62; <br />
 &lt;SOAP-ENV:Header&#62; <br />
-&lt;t:transaction&#62;5&lt;/t:transaction&#62; <br />
-&lt;t:authentication SOAP-ENV:actor="http://some/actor" SOAP-ENV:mustUnderstand="1"&#62;XX <br />
-&lt;/t:authentication&#62; <br />
+&lt;transaction xmlns="...&#187;5&lt;/transaction&#62; <br />
+&lt;authentication xmlns="..." SOAP-ENV:actor="http://some/actor" SOAP-ENV:mustUnderstand="1"&#62;XX <br />
+&lt;/authentication&#62; <br />
 &lt;/SOAP-ENV:Header&#62; <br />
 &lt;SOAP-ENV:Body&#62; <br />
 ... <br />
@@ -8136,10 +8147,11 @@ can be declared as a wide-character string and used subsequently:
 <b>int</b>&nbsp;ns__myMethod(xsd__string input, xsd__string *output);
 </td></tr></table><br></i>
 Second, regular strings can be used to hold wide-character content in UTF-8
-format.  This is accomplished with the <i>SOAP_C_UTFSTRING</i> flag, see Section&nbsp;<a href="#sec:flags">9.12</a>.  With
-this flag set, gSOAP will deserialize XML into
+format.  This is accomplished with the <i>SOAP_C_UTFSTRING</i> flag (for both input/output mode), see Section&nbsp;<a href="#sec:flags">9.12</a>.
+With this flag set, gSOAP will deserialize XML into
 regular strings in UTF-8 format.  An application is responsible for filling
 regular strings with UTF-8 content to ensure that strings can be correctly serialized XML.
+Third, the <i>SOAP_C_MBSTRING</i> flag (for both input/output mode) can be used to activate multibyte character support. Multibyte support depends on the locale settings for dealing with extended natural language encodings.
 
 <p>
 Both regular strings and wide-character strings can be used together within an application.
@@ -9793,7 +9805,10 @@ The <i>.pem</i> files in the gSOAP distribution are examples.
 Developers will have to generate certificates as needed (client
 only, server only or both).
 There is more than one way to generate pem files for clients and servers.
-Here is the simplest/quickest one:
+See <i>http://www.openssl.org</i> for information on OpenSSL and <i>http://sial.org/howto/openssl/ca/</i> on how to setup and manage a local CA and <i>http://sial.org/howto/openssl/sel-signed/</i> on how to setup self-signed test certificates.
+
+<p>
+Here is the simplest way to setup self-signed certificates:
 
 <p>
 Create a private Certificate Authority (CA).
@@ -10812,5 +10827,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 29 Mar 2004, 12:08.</small>
+version 3.00.<br />On  6 Jun 2004, 15:18.</small>
 </html>

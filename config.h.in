@@ -39,6 +39,9 @@
 /* Define if your system has a working `malloc' function. */
 #undef HAVE_MALLOC
 
+/* Define if you have the `mbtowc' function. */
+#undef HAVE_MBTOWC
+
 /* Define if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -116,6 +119,9 @@
 
 /* Define if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define if you have the `wctomb' function. */
+#undef HAVE_WCTOMB
 
 /* Name of package */
 #undef PACKAGE
