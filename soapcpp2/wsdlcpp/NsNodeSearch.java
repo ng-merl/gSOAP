@@ -11,6 +11,7 @@ for the specific language governing rights and limitations under the License.
 The Initial Developers of the Original Code are Kiran Kaja and Robert A. van Engelen.
 Copyright (C) 2000-2002 Kiran Kaja and Robert A. van Engelen. All Rights Reserved.
 
+Version 1.1 ( 03/08/03)
 */
 
 
@@ -234,19 +235,19 @@ public class NsNodeSearch
 
 
 
-	if(wsdlNS!=null)
+	if((wsdlNS!=null)&&(ns.get(new String("wsdlNS"))==null))
 	    ns.put(new String("wsdlNS"),wsdlNS);
 	
-	if(xsdNS!=null)
+	if((xsdNS!=null)&&(ns.get("xsdNS")==null))
 	    ns.put("xsdNS",xsdNS);
 	
-	if(soapNS!=null)
+	if((soapNS!=null)&&(ns.get("soapNS")==null))
 	    ns.put("soapNS",soapNS);
 	
-	if(docNS!=null)
+	if((docNS!=null)&&(ns.get("docNS")==null))
 	    ns.put("docNS",docNS);
 	
-	if(encodingNS!=null)
+	if((encodingNS!=null)&&(ns.get("encodingNS")==null))
 	    ns.put("encodingNS",encodingNS);
 	
 	if(tns!=null)

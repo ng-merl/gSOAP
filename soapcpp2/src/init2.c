@@ -1,7 +1,7 @@
 /*	init2.c
 	Symbol table initialization
 
-The contents of this file are subject to the Mozilla Public License Version 1.1
+The contents of this file are subject to the gSOAP Public License Version 1.2
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
 http://www.cs.fsu.edu/~engelen/gsoapcompilerlicense.html
@@ -38,6 +38,7 @@ static Keyword keywords[] =
 	"double",	DOUBLE,
 	"else",		ELSE,
 	"enum",		ENUM,
+	"explicit",	EXPLICIT,
 	"extern",	EXTERN,
 	"false",	CFALSE,
 	"float",	FLOAT,
@@ -63,6 +64,7 @@ static Keyword keywords[] =
 	"static",	STATIC,
 	"struct",	STRUCT,
 	"switch",	SWITCH,
+	"template",	TEMPLATE,
 	"time_t",	TIME,
 	"true",		CTRUE,
 	"typedef",	TYPEDEF,
@@ -76,6 +78,8 @@ static Keyword keywords[] =
 	"wchar_t",	WCHAR,
 	"while",	WHILE,
 
+	"operator!",	NONE,
+	"operator~",	NONE,
 	"operator=",	NONE,
 	"operator+=",	NONE,
 	"operator-=",	NONE,
@@ -128,9 +132,13 @@ static Keyword keywords[] =
 	"faultactor",		ID,
 	"detail",		ID,
 
-	"/**/",		NONE,
+	"_QName",		TYPE,
+	"std::string",		TYPE,
+	"std::wstring",		TYPE,
 
-	0,		0
+	"/*?*/",		NONE,
+
+	0,			0
 };
 
 /*

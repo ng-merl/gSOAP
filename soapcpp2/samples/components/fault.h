@@ -6,8 +6,6 @@
 
 */
 
-//gsoap f schema namespace: http://websrv.cs.fsu.edu/~engelen/f.xsd
-
 struct SOAP_ENV__Fault
 { // SOAP 1.1 Fault definitions:
   char *faultcode;

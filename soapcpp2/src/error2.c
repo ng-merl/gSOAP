@@ -1,10 +1,10 @@
 /*	error2.c
 	Error handling routines
 
-The contents of this file are subject to the Mozilla Public License Version 1.1
+The contents of this file are subject to the gSOAP Public License Version 1.2
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
-http://www.cs.fsu.edu/~engelen/gsoapcompilerlicense.html
+http://www.cs.fsu.edu/~engelen/soaplicense.html
 Software distributed under the License is distributed on an "AS IS" basis,
 WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
@@ -107,15 +107,15 @@ int errstat()
 			fprintf(stderr, "\n\n", semwarno, semwarno>1?"s":"");
 		return 0;
 	}
-	fprintf(stderr, "\nThere were error(s):\n");
+	fprintf(stderr, "\nThere were errors:\n");
 	if (lexerrno)
-		fprintf(stderr, "%d lexical error(s)\n", lexerrno);
+		fprintf(stderr, "%d lexical error%s\n", lexerrno, lexerrno>1?"s":"");
 	if (synerrno)
-		fprintf(stderr, "%d syntax error(s)\n", synerrno);
+		fprintf(stderr, "%d syntax error%s\n", synerrno, synerrno>1?"s":"");
 	if (semerrno)
-		fprintf(stderr, "%d semantic error(s)\n", semerrno);
+		fprintf(stderr, "%d semantic error%s\n", semerrno, semerrno>1?"s":"");
 	if (semwarno)
-		fprintf(stderr, "%d warning(s)\n", semwarno);
+		fprintf(stderr, "%d warning%s\n", semwarno, semwarno>1?"s":"");
 	fprintf(stderr, "\n");
 	return -1;
 }

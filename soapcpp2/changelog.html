@@ -303,7 +303,7 @@ reading/writing from/to files or string buffers, etc.</li>
 message relay server).</li>
 <li>Added keep-alive support for asynchronous one-way messages.</li>
 <li>Improved parsing and handling of function prototypes and class methods.</li>
-<li>Improved modular design to enable separate client and service modules.</li>
+<li>Improved modular design to enable the compilation and linkage of multiple client and service modules.</li>
 <li>Improved user-defined SOAP Fault detail handling.</li>
 <li>Fixed SSL_accept bug.</li>
 <li>Fixed serialization of pointers to dynamic arrays with multi-references.</li>
@@ -352,6 +352,56 @@ added port number to the Host: HTTP header.</li>
 <li>Fixed a problem with concurrent access to global namespace table by multiple threads.</li>
 <li>Fixed crash with //gsoap name directive.</li>
 <li>Fixed deserialization bug with multi-ref object encoding by Apache Axis.</li>
+</ul>
+<li>Version 2.3.1-8 (9/24/2003)</li>
+<ul>
+<li>Updated SOAP 1.2 support (implements the SOAP 1.2 recommendation).</li>
+<li>Added STL container support and built-in std::string encoding.</li>
+<li>Added stand-alone Web server example to serve static and dynamic pages
+with a new HTTP GET plugin.</li>
+<li>Added void* (de)serialization, e.g. useful to support polymorphism with C
+applications and as an alternative to union types.</li>
+<li>Added XML DOM parser to support SOAP document encoding and for mixing of application data (de)serialization within an XML DOM.</li>
+<li>Added WITH_LEAN and WITH_LEANER compilation flags to improve support for
+small-memory devices such as WinCE and Palm.</li>
+<li>Added SOAP_XML_CANONICAL flag for canonical XML output (XML-C14N support
+and SOAP 1.2 normalization support).</li>
+<li>Added '//gsoap ns method-encoding:' directive.</li>
+<li>Added '//gsoap ns schema import:' directive.</li>
+<li>Added optional class getter and setter methods for object (de)serialization.</li>
+<li>Added 'volatile' qualifier to indicate that certain type declarations
+should be treated 'as-is' when types are declared externally (e.g. part of a
+library).</li>
+<li>Added a new string notation for declarations to specify simpleType restriction patterns.</li>
+<li>Added soapcpp2 -I option to indicate #import path.</li>
+<li>Added support for (de)serialization of application data to C++ iostreams.</li>
+<li>Added fsslauth() callback.</li>
+<li>Added HTTP code error values.</li>
+<li>Added SOAP_MALLOC and SOAP_FREE macros to replace malloc() and free().</li>
+<li>Added soap_strdup(soap, string) to copy strings in gSOAP's memory space.</li>
+<li>Added chunked streaming DIME output (thanks to J. Li for his
+suggestions).</li>
+<li>Added SOAP_SOCKET for win32 support (thanks to B. Gille for his suggestions).</li>
+<li>Added SO_LINGER support (soap.connect_flags).</li>
+<li>Added support for iso-8859-1 encoded XML parsing (default is utf8).</li>
+<li>Added #module directive to build shared libraries.</li>
+<li>Added C++ namespaces support to enable the compilation and linkage of
+multiple client and service codes.</li>
+<li>Added WITH_CASEINSENSITIVETAGS compilation flag to enable case insensitive
+XML parsing.</li>
+<li>Improved WSDL types schema output.</li>
+<li>Improved custom (de)serialization (note: extras/stringtest example
+has been changed).</li>
+<li>Improved SOAP literal encoding.</li>
+<li>Improved speed.</li>
+<li>Improved HTTP1.0/1.1 support.</li>
+<li>Removed soap.defaultNamespace in favor of automatic SOAP literal output based on soap.encodingStyle value.</li>
+<li>Fixed GMT to DST localtime conversion, but still issues with Sun Solaris.</li>
+<li>Fixed dynamic array __offset handling.</li>
+<li>Fixed class definition order.</li>
+<li>Fixed sporadic memory leak in HTTP cookie reader.</li>
+<li>Fixed multi-threaded server-side OpenSSL initialization.</li>
+<li>Fixed enumeration-based XML attribute deserialiation.</li>
 </ul>
 </ul>
 

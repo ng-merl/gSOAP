@@ -4,7 +4,7 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = \
-	quote quote2 quote3 quotex calc factory factorytest \
+	quote quote2 quote3 quote4 quotex calc factory factorytest \
 	dime mybubble localtime listing \
 	uddi polytest magic lu ck googleapi varparam router events
 

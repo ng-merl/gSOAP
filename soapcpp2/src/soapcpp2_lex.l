@@ -1,8 +1,8 @@
-/*	soapcpp2_lex.l
+/*      soapcpp2_lex.l
 
-	Flex/Lex tokenizer
+        Flex/Lex tokenizer
 
-The contents of this file are subject to the Mozilla Public License Version 1.1
+The contents of this file are subject to the gSOAP Public License Version 1.2
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
 http://www.cs.fsu.edu/~engelen/gsoapcompilerlicense.html
@@ -32,10 +32,11 @@ YYSTYPE soapcpp2lval;
 
 #ifndef WITH_LEX
 #define MAX_IMPORT_DEPTH 16
+static struct imported { struct imported *next; char name[1]; } *imported = NULL;
 static char fnstk[MAX_IMPORT_DEPTH][1024];
 static int lnstk[MAX_IMPORT_DEPTH];
 static YY_BUFFER_STATE instk[MAX_IMPORT_DEPTH];
-static int insp = 0;
+int imports = 0;
 #endif
 static Token install_id();
 static Token install_int();
@@ -50,8 +51,9 @@ static Token error_str();
 static int convchar(int*);
 static int hexchar(int*);
 static int octchar(int*);
-static void import(const char *file);
+static void module(const char *name), import(const char *file);
 static void endimport();
+static int magic(const char *name);
 %}
 digit		[0-9]
 alpha		[a-zA-Z_]
@@ -61,7 +63,8 @@ int		{digit}+
 hex		0[xX][0-9a-fA-F]+
 num		{int}(\.{int}([Ee][+-]?{int})?|(\.{int})?[Ee][+-]?{int})
 chr		'(\\'|[^'\n])*'
-str		\"(\\\"|\\\n|.)*\"
+str		\"(\\\"|\\\n|[^"])*\"
+module		#module[ \t]*{str}.*\n
 import		#import[ \t]*{str}.*\n
 eof		<<EOF>>
 %%
@@ -97,6 +100,13 @@ eof		<<EOF>>
 {num}		{ return install_num(); }
 {chr}		{ return install_chr(); }
 {str}		{ return install_str(); }
+{module}	{ char *s, buf[1024];
+		  s = strchr(yytext, '"');
+		  strcpy(buf, s+1);
+		  s = strchr(buf, '"');
+		  *s = '\0';
+		  module(buf);
+		}
 {import}	{ char *s, buf[1024];
 		  s = strchr(yytext, '"');
 		  strcpy(buf, s+1);
@@ -110,13 +120,13 @@ eof		<<EOF>>
 .		{ lexerror("Skipping unknown symbol"); }
 {eof}		{ /* in case Lex complains, remove this line */
 #ifndef WITH_LEX
-		  if (--insp < 0)
+		  if (--imports < 0)
 		    yyterminate();
 		  else
 		  { yy_delete_buffer(YY_CURRENT_BUFFER);
-		    yy_switch_to_buffer(instk[insp]);
-		    strcpy(filename, fnstk[insp]);
-		    yylineno = lnstk[insp];
+		    yy_switch_to_buffer(instk[imports]);
+		    strcpy(filename, fnstk[imports]);
+		    yylineno = lnstk[imports];
 		  }
 #endif
 		}
@@ -258,6 +268,7 @@ static void directive()
 		sp->WSDL = NULL;
 		sp->encoding = NULL;
 		sp->executable = NULL;
+		sp->import = NULL;
 		sp->documentation = NULL;
 		sp->list = NULL;
 		services = sp;
@@ -313,7 +324,7 @@ static void directive()
 			sp->documentation = s;
 		}
 		else if (!strncmp(yytext+i, "location:", 9) || !strncmp(yytext+i, "port:", 5))
-		{	if (s[strlen(s)-1] == '/')
+		{	if (s[strlen(s)-1] == '/' && s[strlen(s)-2] != '/')
 				s[strlen(s)-1] = '\0';
 			sp->URL = s;
 		}
@@ -328,8 +339,33 @@ static void directive()
 			else
 				sp->URI = s;
 		}
+		else if (!strncmp(yytext+i, "import:", 7))
+		{	if (!sp->URI)
+				sp->URI = s;
+			sp->import = s;
+		}
 		else if (!strncmp(yytext+i, "encoding:", 9))
 			sp->encoding = s;
+		else if (!strncmp(yytext+i, "method-encoding:", 16))
+		{	m = (Method*)emalloc(sizeof(Method));
+			m->name = s;
+			m->mess = ENCODING;
+			m->part = NULL;
+			m->next = sp->list;
+			sp->list = m;
+			for (j = k; yytext[j]; j++)
+				if (yytext[j] > 32)
+					break;
+			for (k = j; yytext[k]; k++)
+				if (yytext[k] == 10 || yytext[k] == 13)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			m->part = s;
+		}
 		else if (!strncmp(yytext+i, "method-documentation:", 21))
 		{	m = (Method*)emalloc(sizeof(Method));
 			m->name = s;
@@ -502,22 +538,78 @@ octchar(int *p)
 	return c;
 }
 
+static void module(const char *name)
+{ if (imports)
+  { if (!lflag)
+    { Pragma **pp;
+      char *s = emalloc(256);
+      sprintf(s, "#include \"%sH.h\"", name);
+      for (pp = &pragmas; *pp; pp = &(*pp)->next)
+        ;
+      *pp = (Pragma*)emalloc(sizeof(Pragma));
+      (*pp)->pragma = s;
+      (*pp)->next = NULL;
+      xflag = 1;
+      fprintf(stderr, "Importing module %s\n", name);
+    }
+  }
+  else
+  { lflag = 1;
+    typeNO = magic(name);
+    prefix = emalloc(strlen(name)+1);
+    strcpy(prefix, name);
+    fprintf(stderr, "Module %s\n", name);
+  }
+}
+
+static int magic(const char *name)
+{ int i, n;
+  if (strlen(name) > 4)
+    semerror("#module name length cannot exceed 4 characters");
+  n = 0;
+  for (i = 0; i < strlen(name); i++)
+    if (name[i] >= 'a' && name[i] <= 'z')
+      n = 26*n + name[i] - 'a';
+    else if (name[i] >= 'A' && name[i] <= 'Z')
+      n = 26*n + name[i] - 'A';
+    else
+      semerror("#module name must be alphabetic");
+  return 4699*n;
+}
+
 #ifdef WITH_LEX
 static void import(const char *file)
 { execerror("Cannot #import: soapcpp2 not compiled with flex");
 }
 #else
 static void import(const char *file)
-{ if (insp >= MAX_IMPORT_DEPTH)
+{ char buf[1024];
+  struct imported *p;
+  for (p = imported; p; p = p->next)
+    if (!strcmp(p->name, file))
+      return;
+  if (imports >= MAX_IMPORT_DEPTH)
     execerror("Imports nested too deeply");
-  instk[insp] = YY_CURRENT_BUFFER;
-  strcpy(fnstk[insp], filename);
-  lnstk[insp] = yylineno;
-  insp++;
+  instk[imports] = YY_CURRENT_BUFFER;
+  strcpy(fnstk[imports], filename);
+  lnstk[imports] = yylineno;
+  imports++;
   if (!(yyin = fopen(file, "r")))
-  { sprintf(errbuf, "#import: Cannot open file \"%s\" for reading", file);
-    execerror(errbuf);
+  { if (importpath)
+    { strcpy(buf, importpath);
+      strcat(buf, "/");
+      strcat(buf, file);
+      yyin = fopen(buf, "r");
+    }
+    if (!yyin)
+    { sprintf(errbuf, "#import: Cannot open file \"%s\" for reading", file);
+      execerror(errbuf);
+    }
   }
+  p = (struct imported*)malloc(sizeof(struct imported) + strlen(file));
+  strcpy(p->name, file);
+  p->next = imported;
+  imported = p;
   strcpy(filename, file);
   yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
 }

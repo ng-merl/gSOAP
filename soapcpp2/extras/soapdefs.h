@@ -6,6 +6,7 @@
 //	
 //	Runtime/Customer logging by Mike Helmick
 //	Copyright (c) 2002 - Mike Helmick. Convergys IMG. All Rights Reserved.
+//	This contributed code si covered under the MPL 1.1 license
 
 #ifndef SOAPDEFS_H
 #define SOAPDEFS_H

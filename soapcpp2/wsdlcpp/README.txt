@@ -1,5 +1,5 @@
-gSOAP WSDL Importer tool 0.11
-=============================
+gSOAP WSDL Importer
+===================
 
 INSTALLATION
 ============
@@ -48,3 +48,10 @@ The creation of proxies (stubs) from WSDL is a two step process.
 
    Compile the client program as explained in the gSOAP documentation, e.g.
    g++ <file>.c stdoap2.cpp soapC.cpp soapClient.cpp
+
+LICENSE
+=======
+
+The WSDL importer is contributed code and covered by the gSOAP public license
+as Contributed Code. Copyright (C) 2002-2003 Kiran Kaja and Robert van
+Engelen. All Rights Reserved.

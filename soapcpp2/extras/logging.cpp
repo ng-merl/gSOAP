@@ -6,6 +6,7 @@
 //
 //	Runtime/Customer logging by Mike Helmick
 //	Copyright (c) 2002 - Mike Helmick. Convergys IMG. All Rights Reserved.
+//	This contributed code is covered under the MPL 1.1 license
 
 #include "stdsoap2.h"	// includes "soapdefs.h" when compiled with -DWITH_SOAPDEFS_H
 
@@ -36,7 +37,7 @@ soap_dispatch_callback(struct soap *soap, int idx, const char *msg, size_t len)
 	}
 }
 
-// Note: 'msg' may not be 0-terminated!
+// Note: 'msg' is not 0-terminated!
 void
 soap_recv_callback(struct soap *soap, const char *msg, size_t len)
 { char tmp[SOAP_BUFLEN+1];

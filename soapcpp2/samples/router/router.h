@@ -7,8 +7,10 @@
 */
 
 struct t__Routing
-{ char *key;
+{ char *key;		// key matches SOAPAction or query string or endpoint URL
   char *endpoint;
+  char *userid;		// optional HTTP Authorization userid
+  char *passwd;		// optional HTTP Authorization passwd
 };
 
 struct RoutingTable

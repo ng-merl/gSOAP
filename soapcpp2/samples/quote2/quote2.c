@@ -11,7 +11,7 @@ int main()
   else if (soap_recv_ns__getQuoteResponse(&soap, &r))
     soap_print_fault(&soap, stderr);
   else
-    printf("AOL: %f\n", r.result);
+    printf("AOL: %f\n", r.Result);
   soap_end(&soap);
   soap_done(&soap);
   return 0;

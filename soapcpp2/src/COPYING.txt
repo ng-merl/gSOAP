@@ -4,8 +4,8 @@ gSOAP is copyrighted by Robert A. van Engelen, Genivia inc.
 Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 
 USE RESTRICTIONS
-You may not: (i) transfer rights to gSOAP or claim authorship; or (ii) remove
-any product identification, copyright, proprietary notices or labels from gSOAP.
+You may not remove any product identification, copyright, proprietary notices
+or labels from gSOAP.
 
 MAINTENANCE, SUPPORT AND UPDATES
 There is no obligation to maintain or support or update the Software in any

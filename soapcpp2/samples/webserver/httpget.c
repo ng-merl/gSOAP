@@ -1,0 +1,248 @@
+/*	httpget.c
+
+	gSOAP HTTP GET plug-in
+
+	Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc.
+	All Rights Reserved.
+
+	Compile & link with stand-alone gSOAP server for HTTP GET support.
+	Compile & link with gSOAP clients for client-side HTTP GET requests.
+
+	Usage (server side):
+	struct soap soap;
+	soap_init(&soap);
+	soap_register_plugin_arg(&soap, http_get, http_get_handler);
+	...
+	... = soap_copy(&soap); // copies plugin too
+	...
+	soap_done(&soap); // detach plugin
+
+	You need to define a HTTP GET handling function at the server-side:
+	int http_get_handler(struct soap*)
+	which will be called from the plugin upon an HTTP GET request.
+	The function should return an error code or SOAP_OK;
+	This function should produce a valid HTTP response, for example:
+	soap_begin_send(soap);
+	soap_response(soap, SOAP_HTML); // use this to return HTML ...
+	soap_response(soap, SOAP_OK); // or use this to return a SOAP message
+	...
+	soap_send(soap, "<HTML>...</HTML>"); // example HTML
+	...
+	soap_end_send(soap);
+	To get query string key-value pairs within a service routine, use:
+	char *s;
+	s = query(soap);
+	while (s)
+	{ char *key = query(soap, &s);
+	  char *val = query(soap, &s);
+	  ...
+	}
+	This will garble soap->path, which contains the HTTP path of the form:
+	/path?query
+	where path and/or ?query may be absent. The path info is obtained from
+	the HTTP request URL: http://domain/path?query
+	The URL should not exceed the length of SOAP_TAGLEN. Adjust SOAP_TAGLEN
+	in stdsoap2.h if necessary.
+
+	Usage (client side):
+	For SOAP calls, declare a one-way response message in the header file,
+	for example:
+	int ns__methodResponse(... params ..., void);
+	The params will hold the return values returned by the server's SOAP
+	response message.
+	Client code:
+	struct soap soap;
+	soap_init(&soap);
+	soap_register_plugin(&soap, http_get); // register plugin
+	...
+	if (soap_get_connect(&soap, endpoint, action))
+	  ... connect error ...
+        else if (soap_recv_ns__methodResponse(&soap, ... params ...))
+	  ... error ...
+        else
+	  ... ok ...
+        soap_end(&soap);
+	soap_done(&soap);
+	To use general HTTP GET, for example to retrieve an HTML document, use
+	struct soap soap;
+	soap_init(&soap);
+	soap_register_plugin(&soap, http_get); // register plugin
+	if (soap_get_connect(&soap, endpoint, action))
+	  ... connect error ...
+	else
+	  ... get the document from the soap.socket fd until EOF ...
+        soap_end(&soap);
+	soap_done(&soap);
+
+*/
+
+#include "httpget.h"
+
+const char http_get_id[13] = HTTP_GET_ID;
+
+static int http_get_init(struct soap *soap, struct http_get_data *data, int (*handler)(struct soap*));
+static int http_get_copy(struct soap *soap, struct soap_plugin *dst, struct soap_plugin *src);
+static void http_get_delete(struct soap *soap, struct soap_plugin *p);
+static int http_get_parse(struct soap *soap);
+static int http_connect(struct soap*, const char*, const char*, int, const char*, const char*, size_t);
+
+int http_get(struct soap *soap, struct soap_plugin *p, void *arg)
+{ p->id = http_get_id;
+  p->data = (void*)malloc(sizeof(struct http_get_data));
+  p->fcopy = http_get_copy;
+  p->fdelete = http_get_delete;
+  if (p->data)
+    if (http_get_init(soap, (struct http_get_data*)p->data, (int (*)(struct soap*))arg))
+    { free(p->data); /* error: could not init */
+      return SOAP_EOM; /* return error */
+    }
+  return SOAP_OK;
+}
+
+int soap_get_connect(struct soap *soap, const char *endpoint, const char *action)
+{ struct http_get_data *data = (struct http_get_data*)soap_lookup_plugin(soap, http_get_id);
+  if (!data)
+    return soap->error = SOAP_PLUGIN_ERROR;
+  soap_begin(soap);
+  data->fpost = soap->fpost;
+  soap->fpost = http_connect;
+  return soap_connect(soap, endpoint, action);
+}
+
+static int http_connect(struct soap *soap, const char *endpoint, const char *host, int port, const char *path, const char *action, size_t count)
+{ struct http_get_data *data = (struct http_get_data*)soap_lookup_plugin(soap, http_get_id);
+  if (!data)
+    return SOAP_PLUGIN_ERROR;
+  soap->status = SOAP_GET;
+  soap->fpost = data->fpost;
+  return soap->fpost(soap, endpoint, host, port, path, action, count);
+}
+
+static int http_get_init(struct soap *soap, struct http_get_data *data, int (*handler)(struct soap*))
+{ data->fparse = soap->fparse; /* save old HTTP header parser callback */
+  data->fget = handler;
+  data->stat_get = 0;
+  data->stat_post = 0;
+  data->stat_fail = 0;
+  soap->fparse = http_get_parse; /* replace HTTP header parser callback with ours */
+  return SOAP_OK;
+}
+
+static int http_get_copy(struct soap *soap, struct soap_plugin *dst, struct soap_plugin *src)
+{ *dst = *src;
+  return SOAP_OK;
+}
+
+static void http_get_delete(struct soap *soap, struct soap_plugin *p)
+{ free(p->data); /* free allocated plugin data (this function is not called for shared plugin data) */
+}
+
+static int http_get_parse(struct soap *soap)
+{ struct http_get_data *data = (struct http_get_data*)soap_lookup_plugin(soap, http_get_id);
+  if (!data)
+    return SOAP_PLUGIN_ERROR;
+  soap->error = data->fparse(soap); /* parse HTTP header */
+  if (soap->error == SOAP_OK)
+    data->stat_post++;
+  else if (soap->error == SOAP_GET_METHOD && data->fget)
+  { soap->error = SOAP_OK;
+    if ((soap->error = data->fget(soap))) /* call user-defined HTTP GET handler */
+    { data->stat_fail++;
+      return soap->error;
+    }
+    data->stat_get++;
+    return SOAP_STOP; /* stop processing the request and do not return SOAP Fault */
+  }
+  else
+    data->stat_fail++;
+  return soap->error;
+}
+
+char *query(struct soap *soap)
+{ return strchr(soap->path, '?');
+}
+
+char *query_key(struct soap *soap, char **s)
+{ char *t = *s;
+  if (t && *t)
+  { *s = (char*)soap_decode_string(t, soap->path - t, t + 1);
+    return t;
+  }
+  return *s = NULL;
+}
+
+char *query_val(struct soap *soap, char **s)
+{ char *t = *s;
+  if (t && *t == '=')
+  { *s = (char*)soap_decode_string(t, soap->path - t, t + 1);
+    return t;
+  }
+  return NULL;
+}
+
+int soap_encode_string(const char *s, char *t, int len)
+{ register int c;
+  register int n = len;
+  while ((c = *s++) && --n > 0)
+  { if (c == ' ') 
+      *t++ = '+';
+    else if (c == '!'
+          || c == '$'
+          || (c >= '(' && c <= '.')
+          || (c >= '0' && c <= '9')
+          || (c >= 'A' && c <= 'Z')
+          || c == '_'
+          || (c >= 'a' && c <= 'z'))
+      *t++ = c;
+    else if (n > 2)
+    { *t++ = '%';
+      *t++ = (c >> 4) + (c > 159 ? '7' : '0');
+      c &= 0xF;
+      *t++ = c + (c > 9 ? '7' : '0');
+      n -= 2;
+    }
+    else
+      break;
+  }
+  *t = '\0';
+  return len - n;
+}
+
+const char* soap_decode_string(char *buf, int len, const char *val)
+{ const char *s;
+  char *t;
+  for (s = val; *s; s++)
+    if (*s != ' ' && *s != '=')
+      break;
+  if (*s == '"')
+  { t = buf;
+    s++;
+    while (*s && *s != '"' && --len)
+      *t++ = *s++;
+    *t = '\0';
+    do s++;
+    while (*s && *s != '&' && *s != '=');
+  }
+  else
+  { t = buf;
+    while (*s && *s != '&' && *s != '=' && --len)
+      switch (*s)
+      { case '+':
+          *t++ = ' ';
+        case ' ':
+          s++;
+          break;
+        case '%':
+          *t++ = ((s[1] >= 'A' ? (s[1]&0x7) + 9 : s[1] - '0') << 4) + (s[2] >= 'A' ? (s[2]&0x7) + 9 : s[2] - '0');
+          s += 3;
+          break;
+        default:
+          *t++ = *s++;
+      }
+    *t = '\0';
+  }
+  return s;
+}
+
+/******************************************************************************/
+

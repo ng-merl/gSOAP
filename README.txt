@@ -1,4 +1,5 @@
-See soapcpp2/README.txt for more info on the gSOAP package.
+Please see soapcpp2/README.txt for more info on the gSOAP package.
+
 This file explains how gSOAP is build on your platform.
 
 Win32 users can start right away. A soapcpp2.exe binary compiler is included

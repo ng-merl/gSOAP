@@ -1,17 +1,28 @@
 /*	wsdlcpp.java
+The contents of this file are subject to the gSOAP public license (the
+* "License");you may not use this file except in compliance with the
+* License.You may obtain a copy of the License at
+* http://www.cs.fsu.edu/~engelen/soaplicense.html Software distributed under
+* the License is distributed on an "AS IS" basis,WITHOUT WARRANTY OF ANY
+* KIND, either express or implied. See the License for the specific language governing rights and limitations under the License.
 
-The contents of this file are subject to the MPL 1.1 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://www.cs.fsu.edu/~engelen/wsdllicense.html
-Software distributed under the License is distributed on an "AS IS" basis,
-WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-for the specific language governing rights and limitations under the License.
+The Initial Developers of the Original Code is Robert A. van Engelen.
+Portions created by Robert van Engelen and Kiran Kaja are Copyright (C)
+* 2001--2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 
-The Initial Developers of the Original Code are Kiran Kaja and Robert A. van Engelen.
-Copyright (C) 2000-2002 Kiran Kaja and Robert A. van Engelen. All Rights Reserved.
+Contributor(s): Kiran Kaja
 
-Version : 1.9a
+Version : 1.9.1 (03/08/2003)
+Version : 1.9.2 (04/12/03)
+Change Log :
+1)Change * to ** for all classes which have derived classes
+2)Changed the gsoap name space directive to be unique
+3)Fixed name space problems in finding portType and operations nodes
+4)Add support for pattern nodes(enumeration) in simple type nodes
+Version : 1.9.2.5 (04/27/03)
+1)Fixed bug generation of unbounds in classes
+2)Added handling for same enum values.
+3)Changed the xsd:short to short
 */
 
 import java.io.IOException;
@@ -42,6 +53,8 @@ public class wsdlcpp
     Vector processedTypeDefs = new Vector();
 
     Vector allArrays = new Vector();
+
+    Vector allEnumValues = new Vector();
     
     Hashtable structureNodes = new Hashtable();
 
@@ -110,7 +123,10 @@ public class wsdlcpp
 			nameSpaces.put(current.getNodeValue(),current.getNodeName());
 
 			if(current.getNodeName().startsWith("xmlns:")&&(globalNameSpaces.get(current.getNodeValue())==null))
+			    {
+
 				globalNameSpaces.put(current.getNodeValue(),current.getNodeName());
+			    }
 		    }
 		else
 		    {
@@ -409,14 +425,14 @@ public class wsdlcpp
 		printedClasses.add("soap_enc:base64Binary");
 		String name;
 		
-		
+		/*
 		keyList = bindingsList.keys();
 		while(keyList.hasMoreElements())
 		    {
 			key = (String)keyList.nextElement();
 			
 			pw.println("//gsoap "+(String)bindingsList.get(key)+" schema namespace: "+ key);
-			}
+		    }*/
 		
 		/*		keyList = namespaces.keys();
 		while(keyList.hasMoreElements())
@@ -435,7 +451,8 @@ public class wsdlcpp
 
 
 		    System.out.println("globalnameSpaces:"+globalNameSpaces);*/
-		
+
+		/*print gsoap directives*/
 		keyList = globalNameSpaces.keys();
 		while(keyList.hasMoreElements())
 		    {
@@ -446,18 +463,14 @@ public class wsdlcpp
 			
 			if(tValue.startsWith("xmlns:"))
 			    {
-				if(!(name.equals(twsdlns)||name.equals(txsdns)||name.equals(tsoapns)||name.equals(defaultns)))
-				    {
+				/*	if(!(name.equals(twsdlns)||name.equals(txsdns)||name.equals(tsoapns)||name.equals(defaultns)))
+					{*/
 					//pw.println("//gsoap "+ getName(tValue)+" schema namespace:"+(String)globalNameSpaces.get(key));
 					pw.println("//gsoap "+ getName(tValue)+" schema namespace: "+key);
-				    }
+					/*}*/
 
 			    }
 		    }
-
-
-
-		
 		
 		pw.println("");
 		
@@ -470,6 +483,8 @@ public class wsdlcpp
 		
 		pw.println("//gsoap "+defaultns+" service location: "+serviceAddrLocation);
 		pw.println("//gsoap "+defaultns+" service name: "+"soap"+serviceName);
+
+		/*end printing gsoap directives*/
 		
 		pw.println("\n/*start primitive data types*/");
 		
@@ -556,8 +571,10 @@ public class wsdlcpp
 			    }
 			pw.println("\t};");
 		    }
-		
+		/*end printign header strucutre*/
+
 		//System.out.println(allDataType);
+
 		String dataName;
 		String description;		
 
@@ -567,7 +584,7 @@ public class wsdlcpp
 			Hashtable extendedClasses = new Hashtable();
 
 			keyList = allDataType.keys();
-			
+			/*print enums*/
 			while(keyList.hasMoreElements())
 			    {
 				dataName = (String)keyList.nextElement();
@@ -585,6 +602,24 @@ public class wsdlcpp
 				    case 2://ENUM
 					pw.println("enum "+dataType(dataName)+" { "+description.substring(description.indexOf('\n')+1)+" };\n");
 					break;
+				    }
+			    }
+			
+
+			keyList = allDataType.keys();
+			
+			while(keyList.hasMoreElements())
+			    {
+				dataName = (String)keyList.nextElement();
+				description= (String)allDataType.get(dataName);
+				
+				StringTokenizer lineToken = new StringTokenizer(description,"\n");
+				
+				int dataType = Integer.parseInt((String)lineToken.nextElement());
+				
+				switch(dataType)
+				    {
+
 				    case 4://array same as class for now 
 				    case 3://class
 					printedClasses.add(dataName);
@@ -600,6 +635,10 @@ public class wsdlcpp
 						
 						String varName = (String)tabToken.nextElement();
 						int type = Integer.parseInt((String)tabToken.nextElement());
+
+						if((type==1)&&hasDerivedClass(dType))
+						  ptr = "**";
+
 
 						switch(type)
 						    {
@@ -635,6 +674,7 @@ public class wsdlcpp
 					break;
 				    }
 			    }
+
 			printExtendedClasses(extendedClasses,pw);		
 			
 		    }
@@ -663,6 +703,26 @@ public class wsdlcpp
 				    case 2://ENUM
 					pw.println("enum "+dataType(dataName)+" { "+description.substring(description.indexOf('\n')+1)+" };\n");
 					break;
+				    }
+			    }
+
+
+
+			extendedClasses = new Hashtable();
+
+			keyList = allDataType.keys();
+
+			while(keyList.hasMoreElements())
+			    {
+				dataName = (String)keyList.nextElement();
+				description= (String)allDataType.get(dataName);
+				
+				StringTokenizer lineToken = new StringTokenizer(description,"\n");
+			
+				int dataType = Integer.parseInt((String)lineToken.nextElement());
+				
+				switch(dataType)
+				    {
 				    case 4://array same as class for now 
 				    case 3://class
 					pw.println("struct "+dataType(dataName)+" {");
@@ -677,6 +737,9 @@ public class wsdlcpp
 						    ptr="*";
 						String varName = (String)tabToken.nextElement();
 						int type = Integer.parseInt((String)tabToken.nextElement());
+
+						if((ptr.compareTo("*")==0)&&hasDerivedClass(dType))
+						  ptr = "**";
 						
 						switch(type)
 						    {
@@ -688,7 +751,7 @@ public class wsdlcpp
 							break;
 						    case 2://enumerations
 							pw.print("\tenum "+dataType(dType)+" "+ptr+" "+varName+";\n");
-						break;
+							break;
 						
 						    case 3://print as such (reserve)
 							pw.print("\t"+dType+" "+ptr+" "+varName+";\n");
@@ -783,30 +846,6 @@ public class wsdlcpp
 		pw.println("{\n\tstruct soap soap;");
 		pw.println("\tsoap_init(&soap);");
 		pw.println("\n");
-		/*keyList = allOperation.keys();
-		String functionName="";
-		String parameters="";
-		int index1=0,index2=0;
-		String saction="";
-		
-		while(keyList.hasMoreElements())
-		    {
-			key = (String)keyList.nextElement();
-			description = (String)allOperation.get(key);
-
-			saction = (String)soapActions.get(key);
-
-			index1 = description.indexOf('(');
-			index2= description.lastIndexOf(')');
-			functionName = description.substring(0,index1).trim();
-			parameters = description.substring(index1+1,index2).trim();
-
-			pw.print("\tif (soap_call_"+functionName+" ( &soap, \""+serviceAddrLocation+"\", \"");
-			pw.println(saction+"\",/* "+parameters+"*//*))");
-			pw.println("\t\tsoap_print_fault(&soap,stderr);\n\n");
-			
-		    }
-								  */
 		    
 		//new operations handling
 		keyList = allOperation.keys();
@@ -1392,21 +1431,37 @@ public boolean getBindingInfo(Node node, String bindingName)
 	NsNodeSearch bindings = new NsNodeSearch(node,docNS+"portType",bindattrib,new Hashtable());
 	NsNode binding = bindings.getNextNode();
 
-	NsNodeSearch operations = new NsNodeSearch(binding.getNode(),docNS+"operation",operattrib,binding.getNameSpace());
-    
-					       
-	NsNode noperation = operations.getNextNode();
-	Node operation = noperation.getNode();
-	
-	if((operation==null)&&(defWsdl))
+	if((binding==null)&&(defWsdl))
 	    {
 		bindings = new NsNodeSearch(node,"portType",bindattrib,new Hashtable());
 		binding = bindings.getNextNode();
-		operations = new NsNodeSearch(binding.getNode(),"operation",operattrib,binding.getNameSpace());
-		noperation = operations.getNextNode();
-		operation = noperation.getNode();
 	    }
 
+	/*
+	if(binding == null)
+	    {
+		bindings = new NsNodeSearch(node,"portType",bindattrib,new Hashtable());
+	        binding = bindings.getNextNode();
+
+		if(binding == null)
+		    {
+			System.out.println("could not find the portType for operation "+operationName );
+			return 0;
+		    }
+	    }
+	*/
+
+	NsNodeSearch operations = new NsNodeSearch(binding.getNode(),docNS+"operation",operattrib,binding.getNameSpace());
+	NsNode noperation = operations.getNextNode();
+	
+	if((noperation==null)&&(defWsdl))
+	    {
+		operations = new NsNodeSearch(binding.getNode(),"operation",operattrib,binding.getNameSpace());
+		noperation = operations.getNextNode();
+	    }
+
+	Node operation = noperation.getNode();
+	
 	while(noperation!=null)
 	    {
 		operation = noperation.getNode();
@@ -1422,16 +1477,13 @@ public boolean getBindingInfo(Node node, String bindingName)
 		NsNodeSearch input = new NsNodeSearch(operation,docNS+"input",noperation.getNameSpace());
 		NsNode ninputNode = input.getNextNode();
 
-		Node inputNode = ninputNode.getNode();
-
-
-		if((inputNode==null)&&(defWsdl))
+		if((ninputNode==null)&&(defWsdl))
 		    {
 			input = new NsNodeSearch(operation,"input",noperation.getNameSpace());
 			ninputNode = input.getNextNode();
-			inputNode = ninputNode.getNode();
 		    }
-
+		
+		Node inputNode = ninputNode.getNode();
 		
 		StringBuffer inputArgs = new StringBuffer();
 		StringBuffer outArgs = new StringBuffer();
@@ -1442,7 +1494,7 @@ public boolean getBindingInfo(Node node, String bindingName)
 		    {
 			if(inputNode==null)
 			    {
-				System.out.println("INput node for operation " +
+				System.out.println("Input node for operation " +
 						   convertToCpp(operationName,true)+" Not found");
 				return;
 			    }
@@ -1518,6 +1570,12 @@ public boolean getBindingInfo(Node node, String bindingName)
     {
 	boolean inserted=false;
 	String opString="";
+
+	if(allDataType.containsKey(ldefNS+operationName+opString))
+	    {
+		opString = "-";
+	    }
+	    
 
 	while(!inserted)
 	    {
@@ -1642,7 +1700,9 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 		partType = getAttrValue(partNode,"type");
 		partElement = getAttrValue(partNode,"element");/*not need in
 								* soap encoding*/
-		
+		/*partElement = getNS(partElement,npartNode.getNameSpace())+getName(partElement);
+		  partType = getNS(partType,npartNode.getNameSpace())+getName(partType);*/
+
 		if(partName == null)
 		    System.out.println("name field for part is NOT found");
 
@@ -1655,6 +1715,9 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 		    {
 			if(partElement!=null)//type of element is specified 
 			    {
+				partElement =
+				    getNS(partElement,npartNode.getNameSpace())+getName(partElement);
+				
 				int isStruct=0;
 				
 				elementflag = true;
@@ -1713,12 +1776,13 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 				
 				equivalentString.append(eleEq);
-			    }
+		    }
 			else
 			    System.out.println("Type not specified by element or type!!");
 		    }
 		else//specified by part type 
 		    {
+			partType = getNS(partType,npartNode.getNameSpace())+getName(partType);
 			int isStruct =0;
 
 			if(isArrayType(getName(partType)))
@@ -1888,6 +1952,9 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveXSDDataType.put("anyType",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("anyType","typedef char * xsd__anyType;\n");
 	isBasicDataTypePointer.add("xsd:anyType");
+	allPrimitiveXSDDataType.put("QName",new Boolean(false));
+	allPrimitiveXSDDataTypeEquivalent.put("QName","typedef char * xsd__QName;\n");
+	isBasicDataTypePointer.add("xsd:QName");
 	allPrimitiveXSDDataType.put("anyURI",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("anyURI","typedef char * xsd__anyURI;\n");
 	isBasicDataTypePointer.add("xsd:anyURI");
@@ -1943,7 +2010,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveXSDDataTypeEquivalent.put("positiveInteger","typedef char * xsd__positiveInteger;\n");
 	isBasicDataTypePointer.add("xsd:positiveInteger");
 	allPrimitiveXSDDataType.put("short",new Boolean(false));
-	allPrimitiveXSDDataTypeEquivalent.put("short","typedef char * xsd__short;\n");
+	allPrimitiveXSDDataTypeEquivalent.put("short","typedef short xsd__short;\n");
 	isBasicDataTypePointer.add("xsd:short");
 	allPrimitiveXSDDataType.put("string",new Boolean(false));
 	allPrimitiveXSDDataTypeEquivalent.put("string","typedef char * xsd__string;\n");
@@ -2021,7 +2088,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 	allPrimitiveSOAPDataTypeEquivalent.put("positiveInteger","typedef char * soap_enc__positiveInteger;\n");
 	isBasicDataTypePointer.add("soap_enc:positiveInteger");
 	allPrimitiveSOAPDataType.put("short",new Boolean(false));
-	allPrimitiveSOAPDataTypeEquivalent.put("short","typedef char * soap_enc__short;\n");
+	allPrimitiveSOAPDataTypeEquivalent.put("short","typedef short soap_enc__short;\n");
 	isBasicDataTypePointer.add("soap_enc:short");
 	allPrimitiveSOAPDataType.put("string",new Boolean(false));
 	allPrimitiveSOAPDataTypeEquivalent.put("string","typedef char * soap_enc__string;\n");
@@ -2199,6 +2266,10 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			NsNodeSearch enumeration = new
 			    NsNodeSearch(simpleNode,schemaNS+"enumeration",nsimpleNode.getNameSpace());
 			NsNode nenumerationNode = enumeration.getNextNode();
+
+			NsNodeSearch pattern = new
+			    NsNodeSearch(simpleNode,schemaNS+"pattern",nsimpleNode.getNameSpace());
+			NsNode npatternNode = pattern.getNextNode();
 			
 			NsNodeSearch list = new
 			    NsNodeSearch(simpleNode,schemaNS+"list",nsimpleNode.getNameSpace());
@@ -2206,7 +2277,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			
 		
 			//case for enum and enum mask.
-			if((nrestrictionNode!=null)&&(nenumerationNode!=null))
+			if((nrestrictionNode!=null)&&((nenumerationNode!=null)||(npatternNode!=null)))
 			    {
 				if(nlistNode!=null)
 				    dataType = 1; //enum mask
@@ -2224,10 +2295,35 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 					else
 					    enumValue = convertToCpp(enumValue,true);
 
-							       
+					while(allEnumValues.contains(enumValue))
+					    enumValue="_"+enumValue;
+					allEnumValues.add(enumValue);
+
 					enumEquivalent +=enumValue+", ";
 					nenumerationNode = enumeration.getNextNode();
 				    }
+
+				for(int j=0;j<pattern.getTotalMatches();j++)
+				    {
+					String enumValue =getAttrValue(npatternNode.getNode(),"value");
+					if(isNumericConstant(enumValue))
+					    enumValue="_"+enumValue; /*append
+								       a _ for  numeric constants so that
+								       there is no
+								       compilation
+								       errors*/
+					else
+					    enumValue = convertToCpp(enumValue,true);
+
+					
+					while(allEnumValues.contains(enumValue))
+					    enumValue="_"+enumValue;
+					allEnumValues.add(enumValue);
+
+					enumEquivalent +=enumValue+", ";
+					npatternNode = pattern.getNextNode();
+				    }
+				
 				if(enumEquivalent.lastIndexOf(',')!=-1)
 				    enumEquivalent = enumEquivalent.substring(0,enumEquivalent.lastIndexOf(','));
 				
@@ -2247,7 +2343,8 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 				if(nrestrictionNode != null)
 				    {
 					String enumType = getAttrValue(nrestrictionNode.getNode(),"base");
-
+					enumType = getNS(enumType,nrestrictionNode.getNameSpace())+getName(enumType);
+					
 					if(isXsd(enumType,localXSDNS))
 					    {
 						enumType ="xsd:"+getName(enumType);
@@ -2384,10 +2481,12 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			String curlocalencodingNS = getNsEquivalent(referenceNameSpace,"encodingNS");
 			int isStruct =0;
 
-			String type = arrayType.substring(0,arrayType.indexOf('['));
+			String type;
+			    type =arrayType.substring(0,arrayType.indexOf('['));
+			type=getNS(type,referenceNameSpace)+getName(type);
 			String ifArrayType = getName(type);
 			boolean isArrayType = false;
-
+			
 			/*if(getNS(arrayType).compareToIgnoreCase(curlocalXSDNS)==0)*/
 
 			if(isXsd(arrayType,curlocalXSDNS))
@@ -2415,6 +2514,7 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			    }
 			else if(isArrayType(ifArrayType))
 			    {
+				
 				isStruct = 1;
 				isArrayType = true;
 				
@@ -2745,9 +2845,14 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			    }
 
 			if(isStructure == 1) ptr = "*";
+
+			if(isPointerToBasicCType(typeStr))
+			    ptr = "";
 			
 			String maxOccurs = getAttrValue(elementNode,"maxOccurs");
 
+
+			
 			if((maxOccurs!=null)&&(maxOccurs.equals("unbounded")))
 			    {
 				ptr = "*";
@@ -2758,17 +2863,12 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			/*max occurs is unbound*/
 			if(maxoccursFlag)
 			    description+="int\t0\t"+occursString+"\t3\n";
-
-			int isPtr=0;
 			
+			int isPtr=0;			
 			if(ptr.equals("*"))
-			    {
-				if(isPointerToBasicCType(typeStr))
-				    isPtr=0;
-				else
-				    isPtr=1;
-
-			    }
+			    isPtr=1;
+			else
+			    isPtr=0;
 			
 			description+=typeStr+"\t"+isPtr+"\t"+convertToCpp(nameStr,true)+"\t"+isStructure+"\n";
 
@@ -2810,6 +2910,58 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 		count++;
 	return count;
     }
+
+
+    boolean isStructure(String name)	
+    {
+	if(!allDataType.containsKey(name))
+	    return false;
+	
+	String description= (String)allDataType.get(name);
+	StringTokenizer lineToken = new StringTokenizer(description,"\n");
+	int dataType = Integer.parseInt((String)lineToken.nextElement());
+
+	if((dataType==3)||(dataType==4))
+	    return true;
+	if(printedClasses.contains(name))
+	    return true;
+
+	return false;
+    }
+
+    boolean hasDerivedClass(String name)
+    {
+	Enumeration keyList = allDataType.keys();
+	String dataName;
+	String description;
+	
+	while(keyList.hasMoreElements())
+	    {
+		dataName = (String)keyList.nextElement();
+		description= (String)allDataType.get(dataName);
+		StringTokenizer lineToken = new StringTokenizer(description,"\n");
+		 
+		int structType = Integer.parseInt((String)lineToken.nextToken());
+		
+		if(structType==5)
+		    {
+			String baseName =  (String)lineToken.nextElement();
+			StringTokenizer tabToken = new StringTokenizer(baseName,"\t");
+
+			baseName = (String)tabToken.nextElement();
+			if(name.compareToIgnoreCase(baseName)==0)
+			    {
+				return true;
+			    }
+		    }
+	    }
+
+	return false;
+    }
+
+
+
+    
 
     boolean isArrayType(String name)
     {
@@ -2916,7 +3068,6 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 			int dim = getArrayDimension(arrType);
 
 			String arrayType = baseName;
-
 
 
 			/*always the array of arrays elements will be a
@@ -3031,6 +3182,9 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
     private String getNS(String name)
     {
+	/*if(name==null)
+	  return null;*/
+
         if(name.indexOf(':')==-1)
             return "";
         return name.substring(0,name.indexOf(':')+1);
@@ -3041,6 +3195,8 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
     int lcnt=0;
     private String getNS(String name,Hashtable localHashTable)
     {
+	/*if(name==null)
+	  return null;*/
 	lcnt++;
 	if(name.indexOf(':')==-1)
 	    return "";
@@ -3053,13 +3209,18 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
 
 	if(uri==null)
 	    {
-		try{
-		System.out.println("ERROR : the name space "+nameSpace+" "+lcnt+" not found in the local Hash Table "+localHashTable);
-		throw new Exception("");
+		uri = (String)globalNameSpaces.get("xmlns:"+nameSpace);
+		if(uri==null)
+		    {
+			/*	try{
+			    System.out.println("ERROR : the name space "+nameSpace+" "+lcnt+" not found in the local Hash Table "+localHashTable);
+			    throw new Exception("");
 
-		}catch(Exception e){e.printStackTrace();System.exit(0);}
+			}catch(Exception e){e.printStackTrace();System.exit(0);}
+			*/
+			return getNS(name);
+		    }
 	    }
-
 	String curGlobalNameSpaceForURI = (String)globalNameSpaces.get(uri);
 	
 	if(curGlobalNameSpaceForURI!=null)
@@ -3078,6 +3239,8 @@ String getMessageEquivalent(Node node, String messageName,boolean isreturn)
     
     private String getName(String name)
     {
+	/*if(name == null)
+	  return null;*/
 	if(name.indexOf(':')==-1)
 	    return name;
 	return name.substring(name.indexOf(':')+1);

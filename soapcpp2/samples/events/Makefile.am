@@ -12,7 +12,7 @@ include ../Makefile.c_rules
 
 event_SOURCES=event.c $(SOAPHEADER) $(SOAP_C_CLIENT)
 event_LDADD=$(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
-handler_SOURCES=handler.c $(SOAPHEADER) $(SOAP_C_SERVER)
+handler_SOURCES=handler.c $(SOAPHEADER) $(SOAP_C_CLIENT) $(SOAP_C_SERVER)
 handler_LDADD=$(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread
 
 

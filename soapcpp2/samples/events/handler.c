@@ -83,9 +83,20 @@ void *process_request(void *soap)
 
 int ns__handle(struct soap *soap, enum ns__event event)
 { switch (event)
-  { case EVENT_A: fprintf(stderr, "Event: A\n"); break;
-    case EVENT_B: fprintf(stderr, "Event: B\n"); break;
-    case EVENT_C: fprintf(stderr, "Event: C\n"); break;
+  { /* each event is just consumed without server response */
+    case EVENT_A: fprintf(stderr, "Server Event: A\n"); break;
+    case EVENT_B: fprintf(stderr, "Server Event: B\n"); break;
+    case EVENT_C: fprintf(stderr, "Server Event: C\n"); break;
+    /* after receiving event Z, we echo events A to C back to the client */
+    case EVENT_Z: fprintf(stderr, "Server Event: Z\n");
+    { struct soap *resp = soap_copy(soap);
+      /* these multiple sends assume that the client enabled keep-alive */
+      soap_send_ns__handle(resp, "http://", NULL, EVENT_A);
+      soap_send_ns__handle(resp, "http://", NULL, EVENT_B);
+      soap_send_ns__handle(resp, "http://", NULL, EVENT_C);
+      soap_end(resp);
+      soap_done(resp);
+    }
   }
   return SOAP_OK;
 }

@@ -10,7 +10,7 @@ for the specific language governing rights and limitations under the License.
 
 The Initial Developers of the Original Code are Kiran Kaja and Robert A. van Engelen.
 Copyright (C) 2000-2002 Kiran Kaja and Robert A. van Engelen. All Rights Reserved.
-
+Version : 1.1 (03/08/03)
 */
 
 import java.util.*;

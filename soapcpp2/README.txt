@@ -8,9 +8,15 @@ development of networked applications.
 
 * The gSOAP WSDL importer tool is BETA 0.9.1
 
+* Numerous examples can be found in the 'samples' directory. See also
+  NOTES.txt
+
 The software is provided "as is", without any warranty. However, gSOAP
 has received a lot of support from users and has been extensively tested
 in the real world. We also continue to improve gSOAP and add new features.
+
+INSTALLATION:
+See NOTES.txt
 
 DISCLAIMER:
 WE TRY OUR BEST TO PROVIDE YOU WITH "REAL-WORLD" EXAMPLES BUT WE CANNOT
@@ -18,17 +24,17 @@ GUARANTEE THAT ALL CLIENT EXAMPLES CAN CONNECT TO THIRD PARTY WEB SERVICES
 WHEN THESE SERVICES ARE DOWN OR HAVE BEEN REMOVED.
 
 LICENSE:
-gSOAP is distributed under a public open source license based on the Mozilla
-public license 1.1. See license.html or license.pdf for further details.
-The license allows for commercial use of gSOAP. It also allows products to be
-built on top and distributed under any license (including commercial).
-Products developed with gSOAP should include a notice of copyright and a
-disclaimer of warranty in the product's documentation (License Exhibit B).
-Modifications made to the gSOAP source codes and that are distributed part of
-an open source product need to be submitted back to us for quality control.
-(Note: modifications to the gSOAP runtime source codes are not required to
-build applications so this requirement does not prohibit (commercial) product
-development in any way.)
+gSOAP is distributed under the gSOAP public open source license which is based
+on the Mozilla public license 1.1.  See license.html or license.pdf for
+further details.  The license allows for commercial use of gSOAP. It also
+allows products to be built on top and distributed under any license
+(including commercial).  Products developed with gSOAP should include a notice
+of copyright and a disclaimer of warranty in the product's documentation
+(License Exhibit B).  gSOAP source code modifications that are distributed
+part of an open source product should be submitted back to us for quality
+control. Please note that modifications to the gSOAP runtime source codes are
+not required to build applications so this requirement should not prohibit
+(commercial) product development in any way.
 
 COPYRIGHT:
 gSOAP is copyrighted by Robert A. van Engelen, Genivia inc.
@@ -39,8 +45,8 @@ You may not: (i) transfer rights to gSOAP or claim authorship; or (ii) remove
 any product identification, copyright, proprietary notices or labels from gSOAP.
 
 DOCS:
-See INSTALL.txt for installation instructions.
-See soapdoc2.html or soapdoc2.pdf for the gSOAP documentation.
+See NOTES.txt for installation instructions.
+See soapdoc2.html or soapdoc2.pdf with the gSOAP documentation.
 
 LIBS:
 Win32 build of clients and services requires winsock.dll. To do this in

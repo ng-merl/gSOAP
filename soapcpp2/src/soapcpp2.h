@@ -1,6 +1,6 @@
 /*	soapcpp2.h
 
-The contents of this file are subject to the Mozilla Public License Version 1.1
+The contents of this file are subject to the gSOAP Public License Version 1.2
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
 http://www.cs.fsu.edu/~engelen/gsoapcompilerlicense.html
@@ -24,7 +24,7 @@ Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.2.3b" /* Current version */
+#define VERSION "2.3.8" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -110,6 +110,7 @@ typedef	enum Type
 	Tpointer,
 	Treference,
 	Tarray,
+	Ttemplate,
 	Tfun
 } Type;
 
@@ -129,7 +130,9 @@ typedef	enum Storage
 	Sconstobj	= 0x0200,
 	Sabstract	= 0x0400,
 	SmustUnderstand	= 0x0800,
-	Sattribute	= 0x1000
+	Sreturn		= 0x1000,
+	Sattribute	= 0x2000,
+	Sexplicit	= 0x4000
 } Storage;
 
 typedef	enum Level { INTERNAL, GLOBAL, PARAM, LOCAL } Level;
@@ -179,9 +182,11 @@ typedef	struct Tnode
 	struct	Entry *response; /* funcs only: points to response struct */
 	int	width;
 	int	transient;
+	int	imports;
 	struct	Tnode *next;
         Bool generated;
         Bool wsdl;
+	int	num;
 } Tnode;
 
 typedef	union Value {
@@ -198,6 +203,7 @@ typedef	struct IDinfo {
 	int	offset;
 	int	minOccurs;
 	int	maxOccurs;
+	char	*pattern;
 } IDinfo;
 
 typedef	struct Entry {
@@ -228,17 +234,19 @@ typedef	struct Node {
 	Value	val;		/* ... this is the value */
 	int	minOccurs;
 	int	maxOccurs;
+	char	*pattern;
 } Node;
 
 #define ACTION 0
-#define HDRIN 1
+#define HDRIN 1		/* bits 0 and 1 are reserved for hdr ops */
 #define HDROUT 2
 #define COMMENT 4
+#define ENCODING 8
 
 typedef struct Method
 {	struct Method *next;
 	char *name;
-	short mess;
+	short mess; /* see #defines above */
 	char *part;
 } Method;
 
@@ -249,6 +257,7 @@ typedef struct Service
 	char *port;
 	char *URL;
 	char *executable;
+	char *import;
 	char *URI;
 	char *WSDL;
 	char *encoding;
@@ -261,7 +270,7 @@ typedef struct Pragma
 	char *pragma;
 } Pragma;
 
-extern Entry *enter(Table*, Symbol*), *entry(Table*, Symbol*), *enumentry(Symbol*);
+extern Entry *enter(Table*, Symbol*), *entry(Table*, Symbol*), *reenter(Table*, Symbol*), *enumentry(Symbol*);
 
 extern Table *mktable(Table*);
 
@@ -271,30 +280,39 @@ extern char *emalloc(unsigned int);
 
 extern Tnode *mktype(Type, void*, int);
 extern Tnode *mksymtype(Tnode*, Symbol*);
+extern Tnode *mktemplate(Tnode*, Symbol*);
 
 extern int is_transient(Tnode*);
 extern int is_response(Tnode*);
 
-extern Table *typetable, *uniontable, *enumtable, *classtable, *booltable;
+extern Table *typetable, *uniontable, *enumtable, *classtable, *booltable, *templatetable;
 
 extern void compile(Table*);
 extern void freetable(Table*);
 extern Entry *unlinklast(Table*); 
 
+extern int vflag;
 extern int cflag;
 extern int iflag;
 extern int mflag;
+extern int nflag;
+extern int lflag;
+extern int xflag;
 extern char dirpath[1024];
 extern char filename[1024];
 extern char *prefix;
+extern char *importpath;
 extern int custom_header;
 extern int custom_fault;
 extern Pragma *pragmas;
 extern Service *services;
-extern Symbol *namespaceid;
+extern char *namespaceid;
 extern int transient;
+extern int imports;
+extern int typeNO;
 
 extern char *envURI;
 extern char *encURI;
+extern char *rpcURI;
 extern char *xsiURI;
 extern char *xsdURI;

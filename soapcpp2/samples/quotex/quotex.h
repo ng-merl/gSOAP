@@ -1,8 +1,8 @@
 //gsoap ns1 service namespace:	urn:xmethods-delayed-quotes
-int ns1__getQuote(char *symbol, float &result);
+int ns1__getQuote(char *symbol, float &Result);
 
 //gsoap ns2 service namespace:	urn:xmethods-CurrencyExchange
-int ns2__getRate(char *country1, char *country2, float &result);
+int ns2__getRate(char *country1, char *country2, float &Result);
 
 //gsoap ns3 service name:	quotex
 //gsoap ns3 service location:	http://www.cs.fsu.edu/~engelen

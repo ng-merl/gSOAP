@@ -142,6 +142,15 @@
 	table. Run the router on port 18000.  Router requests with endpoint
 	"http://zulu:18000/quote" will be relayed to zulu:18080
 
+	Gateway keeper
+	--------------
+
+	When the routing table contains userid and passwd information, the
+	client requests are only tunnelled when the proper HTTP Authorization
+	userid and passwd are provided in the client request message. It is
+	possible to provide different service endpoint in the table depending
+	on the client's HTTP Authorization information.
+
 	Notes
 	-----
 
@@ -156,6 +165,10 @@
 	* When a match is found but the endpoint is NULL in the table, the
 	  search is terminated. This can be used to prevent searches in the
 	  routing file for specific patterns.
+	* Optional HTTP Authorization userid and passwd are checked if present
+	  in the routing table. The userid and passwd may be patterns with '*'
+	  and '-' wildcards. An endpoint in the table is selected for which
+	  the userid and passwd match.
 	* <timeout> is TCP connect and I/O timeout for router-server connection
 	  in seconds (use negative value for timeout in microseconds).
 	* When an external routing table is once read by a stand-alone router,
@@ -181,7 +194,7 @@
 
 /* Internal routine table (fast) */
 static struct t__Routing routing[] =
-/* SOAPAction/endpoint	-> target endpoint */
+/* SOAPAction/endpoint	-> target endpoint [userid, passwd] */
 { {"dime",		"http://websrv.cs.fsu.edu/~engelen/dimesrv.cgi"},
   {"http://*/dime",	"http://websrv.cs.fsu.edu/~engelen/dimesrv.cgi"},
   {"factory",		"http://localhost:18085"},
@@ -209,11 +222,13 @@ static int method = SOAP_POST;
 
 void options(int, char**);
 void *process_request(void*);
-const char *lookup(struct RoutingTable*, const char*);
+const char *lookup(struct RoutingTable*, const char*, const char*, const char*);
 int copy_header(struct soap*, struct soap*, const char*, const char*);
 int create_header(struct soap*, int, const char*, const char*, size_t);
 int buffer_body(struct soap*);
 int copy_body(struct soap*, struct soap*);
+int server_connect(struct soap*, const char*, const char*, const char*, const char*);
+int make_connect(struct soap*, const char*);
 
 int
 main(int argc, char **argv)
@@ -427,7 +442,7 @@ process_request(void *soap)
 }
 
 const char*
-lookup(struct RoutingTable *route, const char *key)
+lookup(struct RoutingTable *route, const char *key, const char *userid, const char *passwd)
 { static struct RoutingTable routing_table = {NULL, 0}; /* file-based routing table cache */
   if (!key)
     return NULL; /* can't do lookup on nil key */
@@ -443,6 +458,10 @@ lookup(struct RoutingTable *route, const char *key)
   { if (route->__ptr)
     { while (route->__size && route->__ptr->key)
       { if (!soap_tag_cmp(key, route->__ptr->key))
+	  if (!route->__ptr->userid
+	   || !route->__ptr->passwd
+	   || !soap_tag_cmp(userid, route->__ptr->userid)
+	   || !soap_tag_cmp(passwd, route->__ptr->passwd))
           return route->__ptr->endpoint;
         route->__ptr++;
         route->__size--;
@@ -501,14 +520,14 @@ make_connect(struct soap *server, const char *endpoint)
 }
 
 int
-server_connect(struct soap *server, const char *endpoint, const char *action)
+server_connect(struct soap *server, const char *endpoint, const char *action, const char *userid, const char *passwd)
 { short c = 0;
   if (action && *action)
   { struct RoutingTable route;
     route.__ptr = NULL;
     route.__size = 0;
     fprintf(stderr, "Searching services on action %s...\n", action);
-    while (lookup(&route, action))
+    while (lookup(&route, action, userid, passwd))
     { fprintf(stderr, "Attempting to connect to '%s'\n", route.__ptr->endpoint);
       if (!make_connect(server, route.__ptr->endpoint))
       { c = 1;
@@ -521,7 +540,7 @@ server_connect(struct soap *server, const char *endpoint, const char *action)
     route.__ptr = NULL;
     route.__size = 0;
     fprintf(stderr, "Searching services on endpoint %s...\n", endpoint);
-    while (lookup(&route, endpoint))
+    while (lookup(&route, endpoint, userid, passwd))
     { fprintf(stderr, "Attempting to connect to '%s'\n", route.__ptr->endpoint);
       if (!make_connect(server, route.__ptr->endpoint))
       { c = 1;
@@ -585,7 +604,7 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
     endpoint = sender->endpoint;
   if (!action || !*action)
     action = sender->action;
-  if (server_connect(receiver, endpoint, action))
+  if (server_connect(receiver, endpoint, action, receiver->userid, receiver->passwd))
     return receiver->error;
   soap_begin_send(receiver);
   while (h)
@@ -605,7 +624,7 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
 
 int
 create_header(struct soap *server, int method, const char *endpoint, const char *action, size_t count)
-{ if (server_connect(server, endpoint, action))
+{ if (server_connect(server, endpoint, action, NULL, NULL))
     return server->error;
   soap_begin_send(server);
   server->status = method;

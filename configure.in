@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(soapcpp2, 2.2.3)
-AM_INIT_AUTOMAKE(soapcpp2, 2.2.3)
+AC_INIT(soapcpp2, 2.3)
+AM_INIT_AUTOMAKE(soapcpp2, 2.3)
 AC_CONFIG_SRCDIR([soapcpp2/stdsoap2.cpp])
 AC_CANONICAL_HOST
 
@@ -22,6 +22,55 @@ AC_PROG_INSTALL
 
 # AC_DECL_YYTEXT
 
+SAMPLE_EXTRA_LIBS=
+
+dnl Platform-specific Makefile setup
+case "${host}" in
+        *-*-solaris*)   platform=SUN_OS 
+			SAMPLE_EXTRA_LIBS="-lxnet -lsocket -lnsl"
+			;;
+        *-*-sysv5*)     platform=UNIXWARE ;;
+        *-*-UnixWare*)  platform=UNIXWARE ;;
+        *-*-unixware*)  platform=UNIXWARE ;;
+	*-*-sco3.2v5*)  platform=OPENSERVER
+	                SAMPLE_EXTRA_LIBS="-lsocket"
+			;;
+        *-*-linux*)     platform=LINUX
+dnl			if test x$debug = xtrue; then 
+dnl			    CFLAGS="-g" #don't want the -O2 for debugging.
+dnl			else
+dnl			    CFLAGS="-O2" #don't want the -g for release compile.
+dnl			fi			
+			;;
+	*-*-cygwin*)	platform=CYGWIN
+			;;
+        *-*-freebsd*)   platform=FREEBSD ;;
+        *-*-irix*)      platform=IRIX ;;
+        *-*-aix*)       platform=AIX
+                      case "${host}" in
+                         *-*-aix4.1*)   osver=AIX41;;
+                         *-*-aix4.2*)   osver=AIX42;;
+                         *-*-aix4.3*)   osver=AIX43;;
+                         *-*-aix4.*)    osver=AIX43;;
+                      esac;;
+        *-sequent-*)    platform=PTX ;;
+        *-*-hp*)        platform=HP_UX ;
+                        case "${host}" in
+                            *-*-hpux11*)  osver=HPUX11;;
+                            *-*-hpux10*)  osver=HPUX10;;
+                            *)            osver=HPUX11;;
+                        esac;;
+        *-*-mvs*)       platform=OS390 ;;
+        *-*-os400*)     platform=OS400 ;;
+        *-*-OS400*)     platform=OS400 ;;
+        *-*-osf*)	platform=TRU64 ;;
+        *-apple-*)	platform=MACOSX ;;
+        *)              platform=UNKNOWN ;;
+esac
+
+AC_SUBST(SAMPLE_EXTRA_LIBS)
+AC_SUBST(platform)
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h])
@@ -33,13 +82,18 @@ AC_HEADER_TIME
 AC_STRUCT_TM
 
 # Checks for library functions.
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([rand_r gethostbyname_r ftime localtime_r timegm gmtime gmtime_r memset pow select socket strchr strerror strrchr strstr strtol strtoul])
+AC_CHECK_FUNCS([rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul])
 
+dnl Function test depending on platform
+dnl AIX Has incompatible gethostbyname_r
+if test $platform != AIX; test $platform != TRU64; then
+  AC_CHECK_FUNCS([gethostbyname_r])
+  AC_FUNC_MALLOC
+fi
 
 dnl the debug build options adds symbols to compiler output (-g for g++)
 AC_ARG_ENABLE(debug,
@@ -75,55 +129,6 @@ else
 fi
 AC_SUBST(SAMPLE_DIRS)
 
-SAMPLE_EXTRA_LIBS=
-
-dnl Platform-specific Makefile setup
-case "${host}" in
-        *-*-solaris*)   platform=SUN_OS 
-			SAMPLE_EXTRA_LIBS="-lxnet -lsocket -lnsl"
-			;;
-        *-*-sysv5*)     platform=UNIXWARE ;;
-        *-*-UnixWare*)  platform=UNIXWARE ;;
-        *-*-unixware*)  platform=UNIXWARE ;;
-	*-*-sco3.2v5*)  platform=OPENSERVER
-	                SAMPLE_EXTRA_LIBS="-lsocket"
-			;;
-        *-*-linux*)     platform=LINUX
-dnl			if test x$debug = xtrue; then 
-dnl			    CFLAGS="-g" #don't want the -O2 for debugging.
-dnl			else
-dnl			    CFLAGS="-O2" #don't want the -g for release compile.
-dnl			fi			
-			;;
-	 	*-*-cygwin*)	platform=CYGWIN
-			;;
-        *-*-freebsd*)   platform=FREEBSD ;;
-        *-*-irix*)      platform=IRIX ;;
-        *-*-aix*)       platform=AIX
-                      case "${host}" in
-                         *-*-aix4.1*)   osver=AIX41;;
-                         *-*-aix4.2*)   osver=AIX42;;
-                         *-*-aix4.3*)   osver=AIX43;;
-                         *-*-aix4.*)    osver=AIX43;;
-                      esac;;
-        *-sequent-*)    platform=PTX ;;
-        *-*-hp*)        platform=HP_UX ;
-                        case "${host}" in
-                            *-*-hpux11*)  osver=HPUX11;;
-                            *-*-hpux10*)  osver=HPUX10;;
-                            *)            osver=HPUX11;;
-                        esac;;
-        *-*-mvs*)       platform=OS390 ;;
-        *-*-os400*)     platform=OS400 ;;
-        *-*-OS400*)     platform=OS400 ;;
-        *-*-osf*)		platform=TRU64 ;;
-        *-apple-*)		platform=MACOSX ;;
-        *)              platform=UNKNOWN ;;
-esac
-
-AC_SUBST(SAMPLE_EXTRA_LIBS)
-AC_SUBST(platform)
-
 if test x$LEX = xflex; then
    LEX_DEFINE=-DWITH_FLEX
    LEX_FLAGS="-l"
@@ -148,7 +153,8 @@ AC_SUBST(YACC_LIB)
 
 AC_CONFIG_FILES([ Makefile soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/samples/Makefile \
     soapcpp2/samples/quote/Makefile  soapcpp2/samples/quote2/Makefile \
-    soapcpp2/samples/quote3/Makefile soapcpp2/samples/quotex/Makefile \
+    soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile \
+    soapcpp2/samples/quotex/Makefile \
     soapcpp2/samples/calc/Makefile \
     soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile \
     soapcpp2/samples/dime/Makefile soapcpp2/samples/mybubble/Makefile \

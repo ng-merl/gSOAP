@@ -1,7 +1,7 @@
 /*	soapcpp2.c
 	Main program
 
-The contents of this file are subject to the Mozilla Public License Version 1.1
+The contents of this file are subject to the gSOAP Public License Version 1.2
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
 http://www.cs.fsu.edu/~engelen/gsoapcompilerlicense.html
@@ -22,12 +22,17 @@ extern int init();
 extern int yyparse();
 extern FILE *yyin;
 
+int vflag = 1;		/* SOAP version, 1=1.1 2=1.2 */
 int iflag = 0;		/* when set, enable #include and #define directives */
 int cflag = 0;		/* when set, generate files with .c extension */
 int mflag = 0;		/* when set, generate code that requires array/binary classes to explicitly remove malloced array */
+int nflag = 0;		/* when set, names the namespaces global struct '%NAME%_namespaces */
+int lflag = 0;		/* when set, create library */
+int xflag = 0;		/* when set, excludes imported types */
 char dirpath[1024];	/* directory path for generated source files */
 char *prefix = "soap";	/* file name prefix for generated source files */
 char filename[1024];	/* current file name */
+char *importpath = NULL;/* file import path */
 
 /*
 IMPORTANT:
@@ -75,13 +80,32 @@ main(int argc, char **argv)
 						break;
 					case '?':
 					case 'h':
-						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-d<path>] [-p<name>] [-c] [-i] [-m] [file]\n");
+						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-I<path>] [-d<path>] [-p<name>] [-c] [-i] [-m] [-n] [file]\n");
 						exit(0);
+					case 'I':
+						a++;
+						g = 0;
+						if (*a)
+							importpath = a;
+						else if (i < argc && argv[++i])
+							importpath = argv[i];
+						else
+							execerror("Option -I requires an import path");
+						break;
 					case 'i':
 						iflag = 1;
 						break;
 					case 'm':
 						mflag = 1;
+						break;
+					case 'n':
+						nflag = 1;
+						break;
+					case 'l':
+						lflag = 1;
+						break;
+					case 'x':
+						xflag = 1;
 						break;
 					case 'p':
 						a++;
@@ -94,12 +118,14 @@ main(int argc, char **argv)
 							execerror("Option -p requires an output file name prefix");
 						break;
 					case '1':
+						vflag = 1;
 						envURI = "http://schemas.xmlsoap.org/soap/envelope/";
 						encURI = "http://schemas.xmlsoap.org/soap/encoding/";
 						break;
 					case '2':
-						envURI = "http://www.w3.org/2002/06/soap-envelope";
-						encURI = "http://www.w3.org/2002/06/soap-encoding";
+						vflag = 2;
+						envURI = "http://www.w3.org/2002/12/soap-envelope";
+						encURI = "http://www.w3.org/2002/12/soap-encoding";
 						break;
 					default:
 						execerror("Unknown option");

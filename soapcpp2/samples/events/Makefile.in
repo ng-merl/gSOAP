@@ -128,7 +128,7 @@ CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
 event_SOURCES = event.c $(SOAPHEADER) $(SOAP_C_CLIENT)
 event_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
-handler_SOURCES = handler.c $(SOAPHEADER) $(SOAP_C_SERVER)
+handler_SOURCES = handler.c $(SOAPHEADER) $(SOAP_C_CLIENT) $(SOAP_C_SERVER)
 handler_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread
 subdir = soapcpp2/samples/events
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -144,7 +144,8 @@ event_OBJECTS = $(am_event_OBJECTS)
 event_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap.a
 event_LDFLAGS =
 am__objects_3 = soapServer.$(OBJEXT) soapC.$(OBJEXT)
-am_handler_OBJECTS = handler.$(OBJEXT) $(am__objects_1) $(am__objects_3)
+am_handler_OBJECTS = handler.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
+	$(am__objects_3)
 handler_OBJECTS = $(am_handler_OBJECTS)
 handler_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap.a
 handler_LDFLAGS =
