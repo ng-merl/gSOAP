@@ -1,0 +1,42 @@
+## This is the input file for automake, which will generate Makefile.in ##
+## not a GNU package. You can remove this line, if
+## you have all needed files, that a GNU package needs
+AUTOMAKE_OPTIONS = foreign 1.4
+
+SUBDIRS=src @SAMPLE_DIRS@
+CLEANFILES=soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp
+
+##	*~ *.req.xml *.res.xml *.nsmap *.wsdl *.xsd *Proxy.h \
+##	*.o soapH.h soapStub.h soapC.cpp soapC.c soapClient.cpp soapClient.c soapServer.cpp soapServer.c
+
+BUILT_SOURCES=stdsoap2_cpp.cpp
+
+AM_CXXFLAGS=$(SOAPCPP2_DEBUG) -D$(platform)
+AM_CFLAGS=$(SOAPCPP2_DEBUG) -D$(platform)
+
+## we cannot build stdsoap2.o from 2 different sources (stdsoap2.cpp and stdsoap2.c), so we need an intermediate target:
+stdsoap2_ck.c: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_ck.c
+
+stdsoap2_cpp.cpp: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_cpp.cpp
+
+stdsoap2_ck_cpp.cpp: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_ck_cpp.cpp
+
+
+lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a
+libgsoap_a_SOURCES=stdsoap2.c
+libgsoap___a_SOURCES=stdsoap2_cpp.cpp
+libgsoapck_a_SOURCES=stdsoap2_ck.c
+libgsoapck_a_CFLAGS=$(SOAPCPP2_DEBUG) -D$(platform) -DWITH_COOKIES
+libgsoapck___a_SOURCES=stdsoap2_ck_cpp.cpp
+libgsoapck___a_CXXFLAGS=$(SOAPCPP2_DEBUG) -D$(platform) -DWITH_COOKIES
+
+include_HEADERS = stdsoap2.h
+
+install-data-hook:
+	$(LN_S) $(top_builddir)/soapcpp2/src/soapcpp2 $(top_builddir)/soapcpp2/soapcpp2 || echo "ok, link already exists".
+
+
+

@@ -1,0 +1,6 @@
+<router>
+ <item>
+  <key>magic</key>
+  <endpoint>http://websrv.cs.fsu.edu/~engelen/magic.cgi</endpoint>
+ </item>
+</router>
