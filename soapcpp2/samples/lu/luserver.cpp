@@ -48,7 +48,7 @@ int ns1__ludcmp(struct soap *soap, matrix *a, struct ns1__ludcmpResponse &result
 { result.a = a;
   result.i = soap_new_ivector(soap, -1);
   if (ludcmp(soap, *result.a, *result.i, result.d))
-    return soap_receiver_fault(soap, "Singular matrix in routine ludcmp", NULL);
+    return soap_sender_fault(soap, "Singular matrix in routine ludcmp", NULL);
   return SOAP_OK;
 }
 
@@ -192,7 +192,7 @@ int ns1__lusol(struct soap *soap, matrix *a, vector *b, vector *x)
 { ivector indx(soap);
   double d;
   if (ludcmp(soap, *a, indx, d))
-    return soap_receiver_fault(soap, "Singular matrix in routine ludcmp", NULL);
+    return soap_sender_fault(soap, "Singular matrix in routine ludcmp", NULL);
   lubksb(*a, indx, *b);
   *x = *b;
   return SOAP_OK;
@@ -208,7 +208,7 @@ int ns1__lusols(struct soap *soap, matrix *a, matrix *b, matrix *x)
 { ivector indx(soap);
   double d;
   if (ludcmp(soap, *a, indx, d))
-    return soap_receiver_fault(soap, "Singular matrix in routine ludcmp", NULL);
+    return soap_sender_fault(soap, "Singular matrix in routine ludcmp", NULL);
   for (int i = 1; i <= b->size(); i++)
     lubksb(*a, indx, (*b)[i]);
   *x = *b;
@@ -227,7 +227,7 @@ int ns1__luinv(struct soap *soap, matrix *a, matrix *b)
   double d;
   int i, j, k, n;
   if (ludcmp(soap, *a, indx, d))
-    return soap_receiver_fault(soap, "Singular matrix in routine ludcmp", NULL);
+    return soap_sender_fault(soap, "Singular matrix in routine ludcmp", NULL);
   n = a->size();
   col.resize(n);
   b->resize(n, n);
@@ -260,7 +260,7 @@ int ns1__luinv(struct soap *soap, matrix *a, matrix *b)
 int ns1__ludet(struct soap *soap, matrix *a, double &d)
 { ivector indx(soap);
   if (ludcmp(soap, *a, indx, d))
-    return soap_receiver_fault(soap, "Singular matrix in routine ludcmp", NULL);
+    return soap_sender_fault(soap, "Singular matrix in routine ludcmp", NULL);
   for (int i = 1; i <= a->__size; i++)
     d *= (*a)[i][i];
   return SOAP_OK;

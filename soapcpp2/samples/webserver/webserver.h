@@ -3,7 +3,7 @@
 webserver.h
 
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
 --------------------------------------------------------------------------------
 This program is free software; you can redistribute it and/or modify it under
@@ -26,8 +26,10 @@ engelen@genivia.com / engelen@acm.org
 
 //gsoap ns service name: webserver
 //gsoap ns service namespace: http://www.cs.fsu.edu/~engelen/webserver.wsdl
+//gsoap ns service location: http://localhost:8080
+//gsoap ns service encoding: encoded
+
 //gsoap ns schema namespace: urn:demowebserver
-//gsoap ns schema location: http://localhost:8080
 
 int ns__add(double, double, double*);		// HTTP POST request - response
 int ns__sub(double, double, double*);		// HTTP POST request - response

@@ -78,6 +78,7 @@ int	custom_header = 1;
 int	custom_fault = 1;
 Pragma	*pragmas = NULL;
 Tnode	*qname = NULL;
+Tnode	*xml = NULL;
 
 /* function prototypes for support routine section */
 static Entry	*undefined(Symbol*);
@@ -85,8 +86,8 @@ static Tnode	*mgtype(Tnode*, Tnode*);
 static Node	op(const char*, Node, Node), iop(const char*, Node, Node), relop(const char*, Node, Node);
 static void	mkscope(Table*, int), enterscope(Table*, int), exitscope();
 static int	integer(Tnode*), real(Tnode*), numeric(Tnode*), pointer(Tnode*);
-static void	add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
-extern char	*c_storage(Storage), *c_type(Tnode*);
+static void	add_XML(), add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
+extern char	*c_storage(Storage), *c_type(Tnode*), *c_ident(Tnode*);
 extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*);
 
 /* temporaries used in semantic rules */
@@ -203,6 +204,10 @@ s1	: /* empty */	{ classtable = mktable((Table*)0);
 			  p->info.typ = mkint();
 			  p->info.val.i = 1;
 			  mkscope(mktable(mktable((Table*)0)), 0);
+			  if (!lflag)
+			  {	add_XML();
+				add_qname();
+			  }
 			}
 	;
 exts	: NAMESPACE ID '{' exts1 '}'
@@ -303,7 +308,7 @@ dclr	: ptrs ID array occurs init
 			  	p->info.typ = $3.typ;
 			  	p->info.sto = $3.sto;
 				if (!($3.sto & Stypedef) && (($3.typ->type == Tclass && $3.typ->transient > 0) || $3.typ->type == Ttemplate))
-				{	sprintf(errbuf, "declare '%s' as a pointer to '%s' to avoid copying of '%s' instances at run time", $2->name, $3.typ->id->name, $3.typ->id->name);
+				{	sprintf(errbuf, "must declare '%s' pointer to '%s' to avoid copying '%s' instances at run time", $2->name, $3.typ->id->name, $3.typ->id->name);
 					semwarn(errbuf);
 				}
 				if ($5.hasval)
@@ -540,6 +545,10 @@ farg	: tspec ptrs arg array init
 			  p = enter(sp->table, $3);
 			  p->info.typ = $4.typ;
 			  p->info.sto = $4.sto;
+			  if (($4.typ->type == Tclass && $4.typ->transient > 0) || $4.typ->type == Ttemplate)
+			  {	sprintf(errbuf, "must declare '%s' pointer to '%s' to avoid copying '%s' instances at run time", $3->name, $4.typ->id->name, $4.typ->id->name);
+				semwarn(errbuf);
+			  }
 			  if ($5.hasval)
 			  {	p->info.hasval = True;
 				switch ($4.typ->type)
@@ -591,10 +600,10 @@ farg	: tspec ptrs arg array init
 			  sp->entry = p;
 			}
 	;
-arg	: /* empty */	{ if (vflag == 1)
+arg	: /* empty */	{ if (eflag && vflag == 1)
 				$$ = gensymidx("_param", ++sp->val);
 			  else
-				$$ = gensymidx("param", ++sp->val);
+				$$ = gensym("param");
 			}
 	| ID		{ if (vflag != 1 && *$1->name == '_')
 			  { sprintf(errbuf, "SOAP 1.2 does not support anonymous parameters '%s'", $1->name);
@@ -1045,6 +1054,7 @@ class	: CLASS ID	{ if ((p = entry(classtable, $2)))
 			  else
 			  {	p = enter(classtable, $2);
 				p->info.typ = mkclass((Table*)0, 0);
+				p->info.typ->id = p->sym;
 			  }
 			  $2->token = TYPE;
 			  $$ = p;
@@ -1512,9 +1522,12 @@ pointer(Tnode *typ)
 static void
 add_fault(Table *gt)
 { Table *t;
-  Entry *p1, *p2;
-  Symbol *s1, *s2;
+  Entry *p1, *p2, *p3;
+  Symbol *s1, *s2, *s3;
+  /*
+  add_XML();
   add_qname();
+  */
   s1 = lookup("SOAP_ENV__Code");
   p1 = entry(classtable, s1);
   if (!p1 || !p1->info.typ->ref)
@@ -1536,36 +1549,65 @@ add_fault(Table *gt)
     p2->info.typ = mkstring();
     p2->info.minOccurs = 0;
   }
-  s2 = lookup("SOAP_ENV__Fault");
+  s2 = lookup("SOAP_ENV__Detail");
   p2 = entry(classtable, s2);
-  if (!p2)
+  if (!p2 || !p2->info.typ->ref)
   { t = mktable((Table*)0);
-    p2 = enter(classtable, s2);
-    p2->info.typ = mkstruct(t, 9*4);
-    p2->info.typ->id = s2;
-    p2 = enter(t, lookup("faultcode"));
-    p2->info.typ = qname;
-    p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("faultstring"));
-    p2->info.typ = mkstring();
-    p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("faultactor"));
-    p2->info.typ = mkstring();
-    p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("detail"));
-    p2->info.typ = mkstring();
-    p2->info.minOccurs = 0;
-    p2 = enter(t, s1);
-    p2->info.typ = mkpointer(p1->info.typ);
-    p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("SOAP_ENV__Reason"));
-    p2->info.typ = mkstring();
-    p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("SOAP_ENV__Detail"));
-    p2->info.typ = mkstring();
-    p2->info.minOccurs = 0;
+    if (!p2)
+    { p2 = enter(classtable, s2);
+      p2->info.typ = mkstruct(t, 3*4);
+      p2->info.typ->id = s2;
+    }
+    else
+      p2->info.typ->ref = t;
+    p3 = enter(t, lookup("__type"));
+    p3->info.typ = mkint();
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("value"));
+    p3->info.typ = mkpointer(mkvoid());
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("__any"));
+    p3->info.typ = xml;
+    p3->info.minOccurs = 0;
+  }
+  s3 = lookup("SOAP_ENV__Fault");
+  p3 = entry(classtable, s3);
+  if (!p3)
+  { t = mktable((Table*)0);
+    p3 = enter(classtable, s3);
+    p3->info.typ = mkstruct(t, 9*4);
+    p3->info.typ->id = s3;
+    p3 = enter(t, lookup("faultcode"));
+    p3->info.typ = qname;
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("faultstring"));
+    p3->info.typ = mkstring();
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("faultactor"));
+    p3->info.typ = mkstring();
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("detail"));
+    p3->info.typ = mkpointer(p2->info.typ);
+    p3->info.minOccurs = 0;
+    p3 = enter(t, s1);
+    p3->info.typ = mkpointer(p1->info.typ);
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("SOAP_ENV__Reason"));
+    p3->info.typ = mkstring();
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("SOAP_ENV__Detail"));
+    p3->info.typ = mkpointer(p2->info.typ);
+    p3->info.minOccurs = 0;
     custom_fault = 0;
   }
+}
+
+static void
+add_XML()
+{ Symbol *s = lookup("_XML");
+  p = enter(typetable, s);
+  xml = p->info.typ = mksymtype(mkpointer(mkchar()), s);
+  p->info.sto = Stypedef;
 }
 
 static void

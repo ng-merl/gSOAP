@@ -26,5 +26,17 @@ s	= "http://www.soapinterop.org/xsd"
 #	Example XML schema and C/C++ type bindings:
 
 xsd__int	= | int
+
+#	To use regular char* strings instead of std::string, use:
+
+# xsd__string	= | char* | char*
+
+#	To use regular char* strings serialized with xsi:type attributes, use:
+
+# xsd__string	= typedef char *xsd__string; | xsd__string | xsd__string
+
+#	More examples:
+
 # xsd__boolean = enum xsd__boolean { false_, true_ }; | enum xsd__boolean
+
 # xsd__base64Binary = class xsd__base64Binary { unsigned char *__ptr; int __size; }; | xsd__base64Binary | xsd__base64Binary

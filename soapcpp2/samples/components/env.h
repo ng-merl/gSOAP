@@ -16,5 +16,5 @@
 
 */
 
-// #import "header.h"		// optional user-defined headers
-// #import "fault.h"		// optional user-defined faults
+#import "header.h"		// optional user-defined headers
+#import "fault.h"		// optional user-defined fault details

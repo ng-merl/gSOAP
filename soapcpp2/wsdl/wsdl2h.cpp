@@ -8,6 +8,8 @@ WSDL parser and converter to gSOAP header file format
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -76,6 +78,8 @@ char licensenotice[]   = "\n\
 --------------------------------------------------------------------------------\n\
 gSOAP XML Web services tools\n\
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.\n\
+\n\
+GPL license.\n\
 \n\
 This program is free software; you can redistribute it and/or modify it under\n\
 the terms of the GNU General Public License as published by the Free Software\n\

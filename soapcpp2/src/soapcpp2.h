@@ -3,7 +3,7 @@
 soapcpp2.h
 
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2000-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
 --------------------------------------------------------------------------------
 gSOAP public license.
@@ -48,7 +48,7 @@ engelen@genivia.com / engelen@acm.org
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.4.1" /* Current version */
+#define VERSION "2.5.2" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -68,7 +68,7 @@ engelen@genivia.com / engelen@acm.org
 #endif
 
 #ifdef WITH_BISON
-#ifdef WIN32
+#ifdef WIN32_WITHOUT_SOLARIS_FLEX
 #define yyparse soapcpp2parse
 #define yylex soapcpp2lex
 #define yyerror soapcpp2error
@@ -268,6 +268,7 @@ typedef	struct Node {
 #define ENCODING 8
 #define RESPONSE_ENCODING 16
 #define STYLE 32
+#define FAULT 64
 
 typedef struct Method
 {	struct Method *next;
@@ -321,6 +322,7 @@ extern Entry *unlinklast(Table*);
 extern int vflag;
 extern int wflag;
 extern int cflag;
+extern int eflag;
 extern int mflag;
 extern int nflag;
 extern int lflag;

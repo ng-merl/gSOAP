@@ -182,9 +182,11 @@ int main(int argc, char **argv)
     exit(0);
   port = atol(options[8].value);
   if (!port)
-    port = 80;
+    port = 8080;
   start = time(NULL);
   fprintf(stderr, "Starting Web server on port %d\n", port);
+  if (port != 8080)
+    fprintf(stderr, "[Note: use port 8080 to test server from browser with test.html and calc.html]\n");
   fprintf(stderr, "[Note: you must enable Linux/Unix SIGPIPE handler to avoid broken pipe]\n");
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
   /* HTTP cookies (to enable: compile all sources with -DWITH_COOKIES) */
@@ -342,8 +344,9 @@ int ns__divResponse_(struct soap *soap, double a)
 \******************************************************************************/
 
 int http_get_handler(struct soap *soap)
-{ if ((soap->omode & SOAP_IO) != SOAP_IO_CHUNK)
-    soap_set_omode(soap, SOAP_IO_STORE); /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
+{ /* gSOAP 2.5 soap_response() will do this automatically for us, when sending SOAP_HTML or SOAP_FILE:
+  if ((soap->omode & SOAP_IO) != SOAP_IO_CHUNK)
+    soap_set_omode(soap, SOAP_IO_STORE); */ /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
 #ifdef WITH_ZLIB
   if (options[0].selected && soap->zlib_out == SOAP_ZLIB_GZIP) /* client accepts gzip */
     soap_set_omode(soap, SOAP_ENC_ZLIB); /* so we can compress content (gzip) */
@@ -441,28 +444,22 @@ int calc(struct soap *soap)
         b = strtol(val, NULL, 10);
     }
   }
-  if (soap_response(soap, SOAP_OK))
-    return soap->error;
+  /* since the HTTP response header must be produced and output before the SOAP/XML message, we have to make sure that chunking is used or the message is stored for transmission */
+  if ((soap->omode & SOAP_IO) != SOAP_IO_CHUNK)
+    soap_set_omode(soap, SOAP_IO_STORE); /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
+  soap_response(soap, SOAP_OK);
   switch (o)
   { case 'a':
-      if (soap_send_ns__addResponse_(soap, NULL, NULL, a + b))
-        return soap->error;
-      break;
+      return soap_send_ns__addResponse_(soap, "", NULL, a + b);	/* URL="" ensures current socket is used and no HTTP header is produced */
     case 's':
-      if (soap_send_ns__subResponse_(soap, NULL, NULL, a - b))
-        return soap->error;
+      return soap_send_ns__subResponse_(soap, "", NULL, a - b);	/* URL="" ensures current socket is used and no HTTP header is produced */
       break;
     case 'm':
-      if (soap_send_ns__mulResponse_(soap, NULL, NULL, a * b))
-        return soap->error;
-      break;
+      return soap_send_ns__mulResponse_(soap, "", NULL, a * b);	/* URL="" ensures current socket is used and no HTTP header is produced */
     case 'd':
-      if (soap_send_ns__divResponse_(soap, NULL, NULL, a / b))
-        return soap->error;
-      break;
+      return soap_send_ns__divResponse_(soap, "", NULL, a / b);	/* URL="" ensures current socket is used and no HTTP header is produced */
     default:
-      soap_sender_fault(soap, "Unknown operation", NULL);
-      soap_send_fault(soap);
+      return soap_sender_fault(soap, "Unknown operation", NULL);
   }
   return SOAP_OK;
 }

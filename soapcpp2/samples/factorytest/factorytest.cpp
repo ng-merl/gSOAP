@@ -47,7 +47,7 @@ class Root
 
 Root::Root()
 { endpoint = NULL;
-  status = OK;
+  status = FACTORY_OK;
   soap = NULL;
 }
 
@@ -55,15 +55,15 @@ Root::Root(const char *factory, enum t__object object, char *name)
 { soap = soap_new();
   endpoint = (char*)soap_malloc(soap, strlen(factory)+1);
   strcpy(endpoint, factory);
-  status = NOTFOUND;
+  status = FACTORY_NOTFOUND;
   if (name)
     if (soap_call_ns__lookup(soap, endpoint, "", object, name, status))
       soap_print_fault(soap, stderr);	// for demo, just print
-  if (status == NOTFOUND)
+  if (status == FACTORY_NOTFOUND)
     do
     { if (soap_call_ns__create(soap, endpoint, "", object, name, status))
         soap_print_fault(soap, stderr);	// for demo, just print
-    } while (status == RETRY);
+    } while (status == FACTORY_RETRY);
 }
 
 Root::~Root()
@@ -151,5 +151,20 @@ int main(int argc, char **argv)
   counter1.inc();
   cout << "Adder=" << adder.get() << endl;
   cout << "Counter=" << counter2.get() << endl;		// counter2 is an alias for counter1 so this prints the value of counter1
+  cout << "Sleep for 90 seconds to test factory server purging objects:" << endl;
+  // counter is periodically incremented which keeps it alive
+  sleep(30);
+  counter1.inc();
+  cout << "Counter=" << counter2.get() << endl;
+  sleep(30);
+  counter1.inc();
+  cout << "Counter=" << counter2.get() << endl;
+  sleep(30);
+  counter1.inc();
+  cout << "Counter=" << counter2.get() << endl;
+  // after 90 secs, the adder should be gone
+  cout << "Adder is no longer available:" << endl;
+  adder.add(3.0);
+  cout << "Adder status = " << adder.status << endl;
   return 0;
 }

@@ -22,7 +22,7 @@ $(SOAP_CPP_SRC) : $(SOAPHEADER)
 bin_PROGRAMS=wsdl2h
 
 wsdl2h_CFLAGS=$(C_DEBUG_FLAGS) -D$(platform)
-wsdl2h_SOURCES=wsdl2h.cpp wsdl.cpp schema.cpp types.cpp service.cpp
+wsdl2h_SOURCES=wsdl2h.cpp wsdl.cpp schema.cpp types.cpp service.cpp soap.cpp
 wsdl2h_LDADD=$(SOAP_CPP_SRC) $(SOAP_CPP_LIB) $(SAMPLE_EXTRA_LIBS)
 
 CLEANFILES= *~

@@ -111,7 +111,7 @@ BUILT_SOURCES = $(SOAP_CPP_SRC)
 bin_PROGRAMS = wsdl2h
 
 wsdl2h_CFLAGS = $(C_DEBUG_FLAGS) -D$(platform)
-wsdl2h_SOURCES = wsdl2h.cpp wsdl.cpp schema.cpp types.cpp service.cpp
+wsdl2h_SOURCES = wsdl2h.cpp wsdl.cpp schema.cpp types.cpp service.cpp soap.cpp
 wsdl2h_LDADD = $(SOAP_CPP_SRC) $(SOAP_CPP_LIB) $(SAMPLE_EXTRA_LIBS)
 
 CLEANFILES = *~
@@ -123,7 +123,7 @@ bin_PROGRAMS = wsdl2h$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am_wsdl2h_OBJECTS = wsdl2h.$(OBJEXT) wsdl.$(OBJEXT) schema.$(OBJEXT) \
-	types.$(OBJEXT) service.$(OBJEXT)
+	types.$(OBJEXT) service.$(OBJEXT) soap.$(OBJEXT)
 wsdl2h_OBJECTS = $(am_wsdl2h_OBJECTS)
 wsdl2h_DEPENDENCIES = wsdlC.cpp $(top_builddir)/soapcpp2/libgsoap++.a
 wsdl2h_LDFLAGS =
@@ -135,8 +135,8 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/schema.Po ./$(DEPDIR)/service.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/types.Po ./$(DEPDIR)/wsdl.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/wsdl2h.Po
+@AMDEP_TRUE@	./$(DEPDIR)/soap.Po ./$(DEPDIR)/types.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/wsdl.Po ./$(DEPDIR)/wsdl2h.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -195,6 +195,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/schema.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/service.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/types.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsdl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wsdl2h.Po@am__quote@

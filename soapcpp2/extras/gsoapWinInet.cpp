@@ -1,5 +1,5 @@
 /*
- * File:    gsoapWinInet.cpp
+ * File:    gsoapWinInet2.cpp
  *
  *  See the header file for details.
  *
@@ -18,7 +18,7 @@
 #include <stdsoap2.h>
 
 /* local */
-#include "gsoapWinInet.h"
+#include "gsoapWinInet2.h"
 
 /* ensure that the wininet library is linked */
 #pragma comment( lib, "wininet.lib" )
@@ -274,8 +274,9 @@ wininet_connect(
     struct wininet_data * pData = 
         (struct wininet_data *) soap_lookup_plugin( soap, wininet_id );
 
-    /* we parse this ourselves to ensure that the port is set correctly
-       for HTTPS connections */
+    soap->error = SOAP_OK;
+
+    /* we parse the URL ourselves so we don't use these parameters */
     UNUSED_ARG( a_pszHost );
     UNUSED_ARG( a_nPort );
 
@@ -371,6 +372,8 @@ wininet_post_header(
     struct wininet_data * pData = 
         (struct wininet_data *) soap_lookup_plugin( soap, wininet_id );
 
+    soap->error = SOAP_OK;
+
     /* ensure that our connection hasn't been disconnected */
     if ( !wininet_have_connection( soap, pData ) )
     {
@@ -453,6 +456,8 @@ wininet_fsend(
     int         nResult = SOAP_OK;
     struct wininet_data * pData = 
         (struct wininet_data *) soap_lookup_plugin( soap, wininet_id );
+
+    soap->error = SOAP_OK;
 
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
         "wininet %p: fsend, data len = %lu bytes\n", soap, a_uiBufferLen ));
@@ -688,6 +693,8 @@ wininet_frecv(
     size_t      uiTotalBytesRead = 0;
     BOOL        bResult;
 
+    soap->error = SOAP_OK;
+
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
         "wininet %p: frecv, available buffer len = %lu\n", 
         soap, a_uiBufferLen ));
@@ -744,6 +751,8 @@ wininet_disconnect(
 {
     struct wininet_data * pData = 
         (struct wininet_data *) soap_lookup_plugin( soap, wininet_id );
+
+    soap->error = SOAP_OK;
 
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, "wininet %p: disconnect\n", soap ));
 

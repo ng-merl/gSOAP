@@ -6,6 +6,8 @@ includes.h
 gSOAP XML Web services tools
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -31,7 +33,7 @@ engelen@genivia.com / engelen@acm.org
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.0.2"
+#define VERSION "1.0.4"
 
 #include <utility>
 #include <iterator>

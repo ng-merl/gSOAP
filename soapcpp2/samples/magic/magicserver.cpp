@@ -61,9 +61,9 @@ int main(int argc, char **argv)
 int ns1__magic(struct soap *soap, int n, matrix *square)
 { int i, j, k, l, key = 2;
   if (n < 1)
-    return soap_receiver_fault(soap, "Negative or zero size", "The input parameter must be positive");
+    return soap_sender_fault(soap, "Negative or zero size", "<error xmlns=\"http://tempuri.org/\">The input parameter must be positive</error>");
   if (n > 100)
-    return soap_receiver_fault(soap, "size > 100", "The input parameter must not be too large");
+    return soap_sender_fault(soap, "size > 100", "<error xmlns=\"http://tempuri.org/\">The input parameter must not be too large</error>");
   square->resize(n, n);
   for (i = 0; i < n; i++)
     for (j = 0; j < n; j++)

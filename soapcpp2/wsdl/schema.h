@@ -8,6 +8,8 @@ XSD binding schema interface
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -63,6 +65,8 @@ class xs__element
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type or = simpleType above
   	xs__complexType			*complexTypeRef;	// traverse() finds type or = complexType above
   public:
+					xs__element();
+					~xs__element();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				elementPtr(xs__element*);
@@ -396,10 +400,10 @@ class xs__schema
 	const SetOfString&		builtinTypes() const;
 	const SetOfString&		builtinElements() const;
 	const SetOfString&		builtinAttributes() const;
-	friend std::ostream&		operator<<(std::ostream&, const xs__schema&);
-	friend std::istream&		operator>>(std::istream&, xs__schema&);
+	friend ostream&			operator<<(ostream&, const xs__schema&);
+	friend istream&			operator>>(istream&, xs__schema&);
 };
 
-extern std::ostream &operator<<(std::ostream &o, const xs__schema &e);
-extern std::istream &operator>>(std::istream &i, xs__schema &e);
+extern ostream &operator<<(ostream &o, const xs__schema &e);
+extern istream &operator>>(istream &i, xs__schema &e);
 

@@ -3,6 +3,7 @@
 //gsoap api service name: googleapi
 //gsoap api service location: http://api.google.com/search/beta2
 //gsoap api service namespace: urn:GoogleSearch
+//gsoap api service encoding: encoded
 
 typedef char *	xsd__string;
 

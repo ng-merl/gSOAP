@@ -13,7 +13,7 @@ struct t__Routing
   char *passwd;		// optional HTTP Authorization passwd
 };
 
-struct RoutingTable
-{ struct t__Routing *__ptr;
-  int __size;
+struct t__RoutingTable
+{ int __size;
+  struct t__Routing *__ptr;
 };

@@ -222,7 +222,7 @@ static int method = SOAP_POST;
 
 void options(int, char**);
 void *process_request(void*);
-const char *lookup(struct RoutingTable*, const char*, const char*, const char*);
+const char *lookup(struct t__RoutingTable*, const char*, const char*, const char*);
 int copy_header(struct soap*, struct soap*, const char*, const char*);
 int create_header(struct soap*, int, const char*, const char*, size_t);
 int buffer_body(struct soap*);
@@ -442,8 +442,8 @@ process_request(void *soap)
 }
 
 const char*
-lookup(struct RoutingTable *route, const char *key, const char *userid, const char *passwd)
-{ static struct RoutingTable routing_table = {NULL, 0}; /* file-based routing table cache */
+lookup(struct t__RoutingTable *route, const char *key, const char *userid, const char *passwd)
+{ static struct t__RoutingTable routing_table = {0, NULL}; /* file-based routing table cache */
   if (!key)
     return NULL; /* can't do lookup on nil key */
   if (!route->__ptr)
@@ -479,7 +479,7 @@ lookup(struct RoutingTable *route, const char *key, const char *userid, const ch
 	  break;
 	}
         if (!soap_begin_recv(&soap))
-	  if (!soap_get_RoutingTable(&soap, &routing_table, "router", NULL))
+	  if (!soap_get_t__RoutingTable(&soap, &routing_table, "router", NULL))
 	  { close(soap.recvfd);
 	    soap_done(&soap);
 	    break;
@@ -523,7 +523,7 @@ int
 server_connect(struct soap *server, const char *endpoint, const char *action, const char *userid, const char *passwd)
 { short c = 0;
   if (action && *action)
-  { struct RoutingTable route;
+  { struct t__RoutingTable route;
     route.__ptr = NULL;
     route.__size = 0;
     fprintf(stderr, "Searching services on action %s...\n", action);
@@ -536,7 +536,7 @@ server_connect(struct soap *server, const char *endpoint, const char *action, co
     }
   }
   if (!c && endpoint && *endpoint)
-  { struct RoutingTable route;
+  { struct t__RoutingTable route;
     route.__ptr = NULL;
     route.__size = 0;
     fprintf(stderr, "Searching services on endpoint %s...\n", endpoint);

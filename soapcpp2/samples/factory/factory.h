@@ -25,8 +25,8 @@
 
 //gsoap ns service name: factory
 //gsoap ns service namespace: http://websrv.cs.fsu.edu/~engelen/factory.wsdl
-//gsoap ns service location: http://websrv.cs.fsu.edu/~engelen
-//gsoap ns service executable: factory.cgi
+//gsoap ns service location: http://localhost:18085
+//gsoap ns service encoding: encoded
 
 //gsoap ns schema namespace: urn:factoryService
 //gsoap t schema namespace: urn:factoryTypes
@@ -55,10 +55,10 @@ enum t__object				// object types:
 };
 
 enum t__status				// remote object status:
-{ OK,					// ok
-  INVALID,				// invalid handle (wrong type of object or lease expired)
-  NOTFOUND,				// lookup operation not successful
-  RETRY					// cannot create new object: try later
+{ FACTORY_OK,					// ok
+  FACTORY_INVALID,				// invalid handle (wrong type of object or lease expired)
+  FACTORY_NOTFOUND,				// lookup operation not successful
+  FACTORY_RETRY					// cannot create new object: try later
 };
 
 class t__root

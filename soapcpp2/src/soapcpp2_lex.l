@@ -373,7 +373,11 @@ static void directive()
 			sp->import = s;
 		}
 		else if (!strncmp(yytext+i, "encoding:", 9))
-			sp->encoding = s;
+		{	if (strcmp(s, "encoded"))
+				sp->encoding = s;
+			else
+				sp->encoding = "";
+		}
 		else if (!strncmp(yytext+i, "style:", 6))
 		{	sp->style = s;
 	        	if (!wflag && strcmp(s, "document"))
@@ -419,7 +423,10 @@ static void directive()
 			s = (char*)emalloc(k-j+1);
 			strncpy(s, yytext+j, k-j);
 			s[k-j] = '\0';
-			m->part = s;
+		 	if (strcmp(s, "encoded"))
+				m->part = s;
+			else
+				m->part = "";
 		}
 		else if (!strncmp(yytext+i, "method-response-encoding:", 25))
 		{	m = (Method*)emalloc(sizeof(Method));
@@ -439,7 +446,10 @@ static void directive()
 			s = (char*)emalloc(k-j+1);
 			strncpy(s, yytext+j, k-j);
 			s[k-j] = '\0';
-			m->part = s;
+		 	if (strcmp(s, "encoded"))
+				m->part = s;
+			else
+				m->part = "";
 		}
 		else if (!strncmp(yytext+i, "method-documentation:", 21))
 		{	m = (Method*)emalloc(sizeof(Method));
@@ -533,6 +543,26 @@ static void directive()
 					break;
 			for (k = j; yytext[k]; k++)
 				if (yytext[k] <= 32)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			m->part = s;
+		}
+		else if (!strncmp(yytext+i, "method-fault:", 13))
+		{	m = (Method*)emalloc(sizeof(Method));
+			m->name = s;
+			m->mess = FAULT;
+			m->part = NULL;
+			m->next = sp->list;
+			sp->list = m;
+			for (j = k; yytext[j]; j++)
+				if (yytext[j] > 32)
+					break;
+			for (k = j; yytext[k]; k++)
+				if (yytext[k] == 10 || yytext[k] == 13)
 					break;
 			if (j == k)
 				return;

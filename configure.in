@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(soapcpp2, 2.4)
-AM_INIT_AUTOMAKE(soapcpp2, 2.4)
+AC_INIT(soapcpp2, 2.5)
+AM_INIT_AUTOMAKE(soapcpp2, 2.5)
 AC_CONFIG_SRCDIR([soapcpp2/stdsoap2.cpp])
 AC_CANONICAL_HOST
 
@@ -86,7 +86,7 @@ AC_FUNC_MKTIME
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul])
+AC_CHECK_FUNCS([rand_r gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtod])
 
 dnl Function test depending on platform
 dnl AIX Has incompatible gethostbyname_r
@@ -157,7 +157,7 @@ AC_CONFIG_FILES([ Makefile soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl
     soapcpp2/samples/quotex/Makefile \
     soapcpp2/samples/calc/Makefile \
     soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile \
-    soapcpp2/samples/dime/Makefile soapcpp2/samples/mybubble/Makefile \
+    soapcpp2/samples/dime/Makefile \
     soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile \
     soapcpp2/samples/uddi/Makefile soapcpp2/samples/polytest/Makefile \
     soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile \

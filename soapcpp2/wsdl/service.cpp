@@ -6,7 +6,9 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -24,6 +26,9 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+
+TODO:	may want to add support for HTTP operations (non-SOAP access)
+	add headerfault output definitions
 
 */
 
@@ -50,7 +55,8 @@ void Definitions::collect(const wsdl__definitions &definitions)
 }
 
 void Definitions::analyze(const wsdl__definitions &definitions)
-{ for (vector<wsdl__service>::const_iterator service = definitions.service.begin(); service != definitions.service.end(); ++service)
+{ // Analyze WSLD and build Service information
+  for (vector<wsdl__service>::const_iterator service = definitions.service.begin(); service != definitions.service.end(); ++service)
   { // /definitions/service/documentation
     const char *service_name = (*service).name;
     const char *service_documentation = (*service).documentation;
@@ -159,15 +165,28 @@ void Definitions::analyze(const wsdl__definitions &definitions)
 	          if ((*operation).soap__operation_)
 		    o->soapAction = (*operation).soap__operation_->soapAction;
 		  else
-		    o->soapAction = NULL;
+		  { o->soapAction = "";
+                    // determine if we use SOAP 1.2 in which case soapAction is absent, this is a bit of a hack due to the lack of WSDL1.1/SOAP1.2 support and better alternatives
+                    for (Namespace *p = definitions.soap->local_namespaces; p && p->id; p++)
+                    { if (p->out && !strcmp(p->id, "soap"))
+		      { o->soapAction = NULL;
+		        break;
+		      }
+		    }
+		  }
 		  o->input = new Message();
 		  o->input->name = (*operation).name; // RPC uses operation/@name
-		  o->input->URI = ext_input->soap__body_->namespace_;
+		  if (soap__operation_style == rpc && !ext_input->soap__body_->namespace_)
+		  { o->input->URI = "";
+		    fprintf(stderr, "No soap:body namespace attribute\n");
+		  }
+                  else
+		    o->input->URI = ext_input->soap__body_->namespace_;
                   o->input->use = ext_input->soap__body_->use;
                   o->input->encodingStyle = ext_input->soap__body_->encodingStyle;
 		  o->input->message = input->messagePtr();
+		  o->input->part = NULL;
 		  o->input->header = ext_input->soap__header_;
-		  o->input->headerfault = ext_input->soap__headerfault_;
 		  o->input->documentation = input->documentation;
 		  o->input->ext_documentation = ext_input->documentation;
 	          wsdl__output *output = wsdl__operation_->output;
@@ -177,13 +196,17 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                     o->input_name = types.oname(NULL, o->input->URI, o->input->name);
 	          if (output && ext_output && ext_output->soap__body_)
 		  { o->output = new Message();
-		    o->output->name = (*operation).name; // RPC uses operation/@name with suffix 'Response'
-		    o->output->URI = ext_output->soap__body_->namespace_;
+		    o->output->name = (*operation).name; // RPC uses operation/@name with suffix 'Response' as set below
                     o->output->use = ext_output->soap__body_->use;
+		    // the code below is a hack around the RPC encoded response message element tag mismatch with Axis:
+		    if (!ext_output->soap__body_->namespace_ || o->output->use == encoded)
+		      o->output->URI = o->input->URI; // encoded seems (?) to require the request's namespace
+                    else
+		      o->output->URI = ext_output->soap__body_->namespace_;
                     o->output->encodingStyle = ext_output->soap__body_->encodingStyle;
 		    o->output->message = output->messagePtr();
+		    o->output->part = NULL;
 		    o->output->header = ext_output->soap__header_;
-		    o->output->headerfault = ext_output->soap__headerfault_;
 		    o->output->documentation = output->documentation;
 		    o->output->ext_documentation = ext_output->documentation;
                     char *s = (char*)soap_malloc(definitions.soap, strlen(o->output->name) + 9);
@@ -198,15 +221,67 @@ void Definitions::analyze(const wsdl__definitions &definitions)
 		  { o->output_name = NULL;
 		    o->output = NULL;
 		  }
+		  // collect input headers and headerfaults
+	          if (ext_input)
+		  { for (vector<soap__header>::const_iterator header = ext_input->soap__header_.begin(); header != ext_input->soap__header_.end(); ++header)
+                    { Message *h = new Message();
+		      h->message = (*header).messagePtr();
+		      h->part = (*header).partPtr();
+		      h->URI = (*header).namespace_;
+		      if (h->part && h->part->element)
+		        h->name = types.aname(NULL, NULL, h->part->element);
+		      else if (h->URI && h->part && h->part->name && h->part->type)
+		        h->name = types.aname(NULL, h->URI, h->part->name);
+		      else
+		      { fprintf(stderr, "Error in SOAP Header part definition\n");
+		        h->name = "";
+		      }
+		      h->encodingStyle = (*header).encodingStyle;
+		      h->use = (*header).use;
+		      h->ext_documentation = NULL;	// TODO: add document content
+		      h->documentation = NULL;		// TODO: add document content
+		      s->header[h->name] = h;
+		      for (vector<soap__headerfault>::const_iterator headerfault = (*header).headerfault.begin(); headerfault != (*header).headerfault.end(); ++headerfault)
+		      { // TODO: complete headerfault processing
+		      }
+		    }
+		  }
+		  // collect output headers and headerfaults
+	          if (ext_output)
+		  { for (vector<soap__header>::const_iterator header = ext_output->soap__header_.begin(); header != ext_output->soap__header_.end(); ++header)
+                    { Message *h = new Message();
+		      h->message = (*header).messagePtr();
+		      h->part = (*header).partPtr();
+		      h->URI = (*header).namespace_;
+		      if (h->part && h->part->element)
+		        h->name = types.aname(NULL, NULL, h->part->element);
+		      else if (h->URI && h->part && h->part->name && h->part->type)
+		        h->name = types.aname(NULL, h->URI, h->part->name);
+		      else
+		      { fprintf(stderr, "Error in SOAP Header part definition\n");
+		        h->name = "";
+		      }
+		      h->encodingStyle = (*header).encodingStyle;
+		      h->use = (*header).use;
+		      h->ext_documentation = NULL;	// TODO: add document content
+		      h->documentation = NULL;		// TODO: add document content
+		      s->header[h->name] = h;
+		      for (vector<soap__headerfault>::const_iterator headerfault = (*header).headerfault.begin(); headerfault != (*header).headerfault.end(); ++headerfault)
+		      { // TODO: complete headerfault processing
+		      }
+		    }
+		  }
+		  // collect faults
 	          for (vector<wsdl__ext_fault>::const_iterator ext_fault = (*operation).fault.begin(); ext_fault != (*operation).fault.end(); ++ext_fault)
 		  { if ((*ext_fault).soap__fault_ && (*ext_fault).messagePtr())
 		    { Message *f = new Message();
 		      f->message = (*ext_fault).messagePtr();
-		      f->encodingStyle = NULL;
+		      f->part = NULL;
+		      f->encodingStyle = (*ext_fault).soap__fault_->encodingStyle;
 		      f->URI = (*ext_fault).soap__fault_->namespace_;
 		      f->use = (*ext_fault).soap__fault_->use;
 		      f->ext_documentation = (*ext_fault).documentation;
-                      f->name = types.oname("__", f->URI, f->message->name);
+                      f->name = types.aname("_", f->URI, f->message->name);
 		      f->documentation = f->message->documentation;
 		      o->fault.push_back(f);
 		      s->fault[f->name] = f;
@@ -237,14 +312,13 @@ void Definitions::analyze(const wsdl__definitions &definitions)
 
 void Definitions::compile(const wsdl__definitions& definitions)
 { // compile the definitions and generate gSOAP header file
-  if (definitions.name)
-    fprintf(stream, "/*  %s definitions */\n\n", definitions.name);
+  fprintf(stream, "/*  Web Services Definitions %s */\n\n", definitions.name?definitions.name:"");
   if (definitions.documentation)
     fprintf(stream, "/*  %s\n*/\n\n", definitions.documentation);
   if (!lflag)
     fprintf(stream, "/*\n%s%s*/\n\n", copyrightnotice, licensenotice);
   // copy documentation from WSDL definitions
-  // gsoap compiler options
+  // gsoap compiler options: 'w' disables WSDL/schema output
   if (cflag)
     fprintf(stream, "//gsoapopt cw\n");
   else
@@ -253,14 +327,14 @@ void Definitions::compile(const wsdl__definitions& definitions)
   for (Namespace *p = definitions.soap->local_namespaces; p && p->id; p++)
   { if (p->out && !strcmp(p->id, "soap"))
     { fprintf(stream, "// This service uses SOAP 1.2 namespaces:\n");
-      fprintf(stream, "//gsoap SOAP-ENV schema namespace:\thttp://www.w3.org/2003/05/soap-envelope\n");
-      fprintf(stream, "//gsoap SOAP-ENC schema namespace:\thttp://www.w3.org/2003/05/soap-encoding\n");
+      fprintf(stream, schemaformat, "SOAP-ENV", "namespace", "http://www.w3.org/2003/05/soap-envelope");
+      fprintf(stream, schemaformat, "SOAP-ENC", "namespace", "http://www.w3.org/2003/05/soap-encoding");
       break;
     }
   }
   if (!cflag && !sflag)
     fprintf(stream, "#import \"stl.h\"\n");
-  fprintf(stream, "#import \"xml.h\"\n");
+  // fprintf(stream, "#import \"xml.h\"\n"); // replaced with built-in _XML
   if (mflag)
     fprintf(stream, "#import \"base.h\"\n");
   // generate the prototypes first: these should allow use before def, e.g. class names then generate the defs
@@ -350,7 +424,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
     else
     { if (!mflag)
       { fprintf(stream, "// built-in element \"%s\"\n", t);
-        fprintf(stream, "typedef XML %s;\n", t);
+        fprintf(stream, "typedef _XML %s;\n", t);
       }
       else
 	fprintf(stream, "// base.h must define element: %s\n", t);
@@ -380,45 +454,44 @@ void Definitions::compile(const wsdl__definitions& definitions)
   }
   // produce types
   if (definitions.types)
-  { if (definitions.types->documentation)
-      fprintf(stream, "/*  Types documentation:\n    %s\n*/\n", definitions.types->documentation);
-    for (vector<xs__schema>::const_iterator schema1 = definitions.types->xs__schema_.begin(); schema1 != definitions.types->xs__schema_.end(); ++schema1)
-      fprintf(stream, schemaformat, types.nsprefix(NULL, (*schema1).targetNamespace), "namespace", (*schema1).targetNamespace);
+  { comment("Definitions", definitions.name?definitions.name:"", "types", definitions.types->documentation);
+    for (vector<xs__schema*>::const_iterator schema1 = definitions.types->xs__schema_.begin(); schema1 != definitions.types->xs__schema_.end(); ++schema1)
+      fprintf(stream, schemaformat, types.nsprefix(NULL, (*schema1)->targetNamespace), "namespace", (*schema1)->targetNamespace);
     // define class/struct types first
-    for (vector<xs__schema>::const_iterator schema2 = definitions.types->xs__schema_.begin(); schema2 != definitions.types->xs__schema_.end(); ++schema2)
-    { for (vector<xs__complexType>::const_iterator complexType = (*schema2).complexType.begin(); complexType != (*schema2).complexType.end(); ++complexType)
-        types.define((*schema2).targetNamespace, NULL, *complexType);
-      for (vector<xs__element>::const_iterator element = (*schema2).element.begin(); element != (*schema2).element.end(); ++element)
+    for (vector<xs__schema*>::const_iterator schema2 = definitions.types->xs__schema_.begin(); schema2 != definitions.types->xs__schema_.end(); ++schema2)
+    { for (vector<xs__complexType>::const_iterator complexType = (*schema2)->complexType.begin(); complexType != (*schema2)->complexType.end(); ++complexType)
+        types.define((*schema2)->targetNamespace, NULL, *complexType);
+      for (vector<xs__element>::const_iterator element = (*schema2)->element.begin(); element != (*schema2)->element.end(); ++element)
         if (!(*element).type && (*element).complexTypePtr())
-          types.define((*schema2).targetNamespace, (*element).name, *(*element).complexTypePtr());
+          types.define((*schema2)->targetNamespace, (*element).name, *(*element).complexTypePtr());
     }  
     // visit types with lowest base level first
     int baseLevel = 1;
     bool found;
     do
     { found = (baseLevel == 1);
-      for (vector<xs__schema>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
-      { for (vector<xs__simpleType>::iterator simpleType = (*schema).simpleType.begin(); simpleType != (*schema).simpleType.end(); ++simpleType)
+      for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
+      { for (vector<xs__simpleType>::iterator simpleType = (*schema)->simpleType.begin(); simpleType != (*schema)->simpleType.end(); ++simpleType)
         { if ((*simpleType).baseLevel() == baseLevel)
           { found = true;
-	    types.gen((*schema).targetNamespace, NULL, *simpleType);
+	    types.gen((*schema)->targetNamespace, NULL, *simpleType);
 	  }
 	}
-        for (vector<xs__element>::iterator element = (*schema).element.begin(); element != (*schema).element.end(); ++element)
+        for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
         { if (!(*element).type && (*element).simpleTypePtr() && (*element).simpleTypePtr()->baseLevel() == baseLevel)
           { found = true;
-	    types.gen((*schema).targetNamespace, (*element).name, *(*element).simpleTypePtr());
+	    types.gen((*schema)->targetNamespace, (*element).name, *(*element).simpleTypePtr());
 	  }
           if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
             found = true;
 	}
-        for (vector<xs__attribute>::const_iterator attribute = (*schema).attribute.begin(); attribute != (*schema).attribute.end(); ++attribute)
+        for (vector<xs__attribute>::const_iterator attribute = (*schema)->attribute.begin(); attribute != (*schema)->attribute.end(); ++attribute)
         { if (!(*attribute).type && (*attribute).simpleTypePtr() && (*attribute).simpleTypePtr()->baseLevel() == baseLevel)
           { found = true;
 	    types.gen(NULL, (*attribute).name, *(*attribute).simpleTypePtr()); // URI = NULL won't generate type in schema (type without namespace qualifier)
 	  }
 	}
-        for (vector<xs__complexType>::iterator complexType = (*schema).complexType.begin(); complexType != (*schema).complexType.end(); ++complexType)
+        for (vector<xs__complexType>::iterator complexType = (*schema)->complexType.begin(); complexType != (*schema)->complexType.end(); ++complexType)
         { if ((*complexType).baseLevel() == baseLevel)
 	    found = true;
         }
@@ -428,14 +501,14 @@ void Definitions::compile(const wsdl__definitions& definitions)
     // generate complex type defs. Problem: what if a simpleType restriction/extension depends on a complexType simpleContent restriction/extension?
     int maxLevel = baseLevel;
     for (baseLevel = 1; baseLevel < maxLevel; ++baseLevel)
-    { for (vector<xs__schema>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
-      { for (vector<xs__complexType>::iterator complexType = (*schema).complexType.begin(); complexType != (*schema).complexType.end(); ++complexType)
+    { for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
+      { for (vector<xs__complexType>::iterator complexType = (*schema)->complexType.begin(); complexType != (*schema)->complexType.end(); ++complexType)
         { if ((*complexType).baseLevel() == baseLevel)
-	    types.gen((*schema).targetNamespace, NULL, *complexType);
+	    types.gen((*schema)->targetNamespace, NULL, *complexType);
         }
-        for (vector<xs__element>::iterator element = (*schema).element.begin(); element != (*schema).element.end(); ++element)
+        for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
         { if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
-	    types.gen((*schema).targetNamespace, (*element).name, *(*element).complexTypePtr());
+	    types.gen((*schema)->targetNamespace, (*element).name, *(*element).complexTypePtr());
 	}
       }
     }
@@ -448,28 +521,103 @@ void Definitions::compile(const wsdl__definitions& definitions)
   }
   collect(definitions);
   generate();
-  fprintf(stream, "\n/*  end of %s definitions */\n", definitions.name?definitions.name:"");
+  fprintf(stream, "\n/*  End of Web Services Definitions %s */\n", definitions.name?definitions.name:"");
 }
 
 void Definitions::generate()
-{ bool found = false;
+{ MapOfStringToMessage headers;
+  MapOfStringToMessage faults;
   for (MapOfStringToService::const_iterator service1 = services.begin(); service1 != services.end(); ++service1)
-  { for (MapOfStringToMessage::const_iterator fault = (*service1).second->fault.begin(); fault != (*service1).second->fault.end(); ++fault)
-    { found = true;
-      fprintf(stream, "// SOAP Fault\n");
-      if (cflag)
-        fprintf(stream, "struct %s\n{\n", (*fault).second->name);
-      else
-        fprintf(stream, "class %s\n{ public:", (*fault).second->name);
-      (*fault).second->generate(types, ";", false, true);
-      fprintf(stream, "\n};\n");
+  { if ((*service1).second)
+    { for (MapOfStringToMessage::const_iterator header = (*service1).second->header.begin(); header != (*service1).second->header.end(); ++header)
+        headers[(*header).first] = (*header).second;
+      for (MapOfStringToMessage::const_iterator fault = (*service1).second->fault.begin(); fault != (*service1).second->fault.end(); ++fault)
+        faults[(*fault).first] = (*fault).second;
     }
   }
-  if (found)
-  { // TODO: compose Fault struct
+  if (!headers.empty())
+  { fprintf(stream, "// SOAP Header\n");
+    if (cflag)
+      fprintf(stream, "struct SOAP_ENV__Header\n{\n");
+    else
+      fprintf(stream, "class SOAP_ENV__Header\n{ public:\n");
+    for (MapOfStringToMessage::const_iterator header = headers.begin(); header != headers.end(); ++header)
+    { if ((*header).second->URI && !types.uris[(*header).second->URI])
+        fprintf(stream, schemaformat, types.nsprefix(NULL, (*header).second->URI), "namespace", (*header).second->URI);
+      comment("Header", (*header).first, "WSDL", (*header).second->ext_documentation);
+      comment("Header", (*header).first, "SOAP", (*header).second->documentation);
+      if ((*header).second->part && (*header).second->part->elementPtr())
+      { fprintf(stream, "// %s header part element:\n", (*header).second->part->name);
+        types.gen((*header).second->part->elementPtr()->schemaPtr()->targetNamespace, *(*header).second->part->elementPtr());
+      }
+      else if ((*header).second->part && (*header).second->part->name && (*header).second->part->type)
+      { fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), (*header).first);
+        fprintf(stream, ";\n");
+      }
+      else
+        fprintf(stderr, "Error in SOAP Header part\n");
+    }
+    if (!cflag)
+    { fprintf(stream, "\n");
+      fprintf(stream, pointerformat, "struct soap", "soap");
+      fprintf(stream, ";");
+    }
+    fprintf(stream, "\n};\n");
   }
+  for (MapOfStringToMessage::const_iterator fault = faults.begin(); fault != faults.end(); ++fault)
+  { fprintf(stream, "// SOAP Fault Detail element\n");
+    if ((*fault).second->URI && !types.uris[(*fault).second->URI])
+      fprintf(stream, schemaformat, types.nsprefix(NULL, (*fault).second->URI), "namespace", (*fault).second->URI);
+    comment("Fault", (*fault).first, "WSDL", (*fault).second->ext_documentation);
+    comment("Fault", (*fault).first, "SOAP", (*fault).second->documentation);
+    if (cflag)
+      fprintf(stream, "struct %s\n{\n", (*fault).first);
+    else
+      fprintf(stream, "class %s\n{ public:", (*fault).first);
+    (*fault).second->generate(types, ";", false, true);
+    if (!cflag)
+    { fprintf(stream, "\n");
+      fprintf(stream, pointerformat, "struct soap", "soap");
+      fprintf(stream, ";");
+    }
+    fprintf(stream, "\n};\n");
+  }
+  /* The SOAP Fault struct below is autogenerated by soapcpp2 (kept here for future mods)
+  if (!mflag && !faults.empty())
+  { fprintf(stream, "struct SOAP_ENV__Code\n{\n"); 
+    fprintf(stream, elementformat, "_QName", "SOAP_ENV__Value");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "char", "SOAP_ENV__Node");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "char", "SOAP_ENV__Role");
+    fprintf(stream, ";\n};\n");
+    fprintf(stream, "struct SOAP_ENV__Detail\n{\n"); 
+    fprintf(stream, elementformat, "int", "__type");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "void", "value");
+    fprintf(stream, ";\n");
+    fprintf(stream, elementformat, "_XML", "__any");
+    fprintf(stream, ";\n};\n");
+    fprintf(stream, "struct SOAP_ENV__Fault\n{\n"); 
+    fprintf(stream, elementformat, "_QName", "faultcode");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "char", "faultstring");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "char", "faultactor");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "struct SOAP_ENV__Detail", "detail");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "struct SOAP_ENV__Code", "SOAP_ENV__Code");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "char", "SOAP_ENV__Reason");
+    fprintf(stream, ";\n");
+    fprintf(stream, pointerformat, "struct SOAP_ENV__Detail", "SOAP_ENV__Detail");
+    fprintf(stream, ";\n};\n");
+  }
+  */
   for (MapOfStringToService::const_iterator service2 = services.begin(); service2 != services.end(); ++service2)
-    (*service2).second->generate(types);
+    if ((*service2).second)
+      (*service2).second->generate(types);
 } 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -503,11 +651,11 @@ void Service::generate(Types& types)
     fprintf(stream, serviceformat, prefix, "port", (*port), "");
   fprintf(stream, serviceformat, prefix, "namespace", URI, "");
   for (vector<Operation*>::const_iterator op2 = operation.begin(); op2 != operation.end(); ++op2)
-  { if (*op2)
+  { if (*op2 && (*op2)->input)
     { fprintf(stream, "\n/* Service %s operation %s\n\n  C stub function (defined in soapClient.c[pp]):\n", name, (*op2)->input_name);
       fprintf(stream, "  int soap_call_%s(struct soap *soap,\n    NULL, (char *endpoint = NULL)\n    NULL, (char *action = NULL)", (*op2)->input_name);
       (*op2)->input->generate(types, ",", false, false);
-      if ((*op2)->output_name)
+      if ((*op2)->output && (*op2)->output_name)
       { fprintf(stream, "\n  struct %s {", (*op2)->output_name);
         (*op2)->output->generate(types, ";", false, false);
         if (cflag)
@@ -533,25 +681,17 @@ void Service::generate(Types& types)
 ////////////////////////////////////////////////////////////////////////////////
 
 void Operation::generate(Types &types)
-{ // TODO: Need to order params according to *parameterOrder
-  // TODO: Collect header and fault information
-  bool anonymous = parameterOrder != NULL;
+{ bool anonymous = parameterOrder != NULL;
   const char *method_name = strstr(input_name + 1, "__") + 2;
   if (!method_name)
     method_name = input_name;
-  if (documentation)
-    comment("Operation", name, "", documentation);
-  if (operation_documentation)
-    comment("Operation", name, "binding", operation_documentation);
-  if (input->documentation)
-    comment("Operation", name, "input", input->documentation);
-  if (input->ext_documentation)
-    comment("Operation", name, "input binding", input->ext_documentation);
+  comment("Operation", name, "", documentation);
+  comment("Operation", name, "binding", operation_documentation);
+  comment("Operation", name, "input", input->documentation);
+  comment("Operation", name, "input binding", input->ext_documentation);
   if (output)
-  { if (output->documentation)
-      comment("Operation", name, "output", output->documentation);
-    if (output->ext_documentation)
-      comment("Operation", name, " output binding", output->ext_documentation);
+  { comment("Operation", name, "output", output->documentation);
+    comment("Operation", name, " output binding", output->ext_documentation);
   }
   if (style == document)
     fprintf(stream, serviceformat, prefix, "method-style", method_name, "document");
@@ -577,14 +717,22 @@ void Operation::generate(Types &types)
       else
         fprintf(stream, serviceformat, prefix, "method-response-encoding", method_name, "encoded");
     }
+    if (style == rpc && input->URI && output->URI && strcmp(input->URI, output->URI))
+      fprintf(stream, schemaformat, types.nsprefix(NULL, output->URI), "namespace", output->URI);
   }
   for (vector<Message*>::const_iterator message = fault.begin(); message != fault.end(); ++message)
     if ((*message)->message && (*message)->message->name)
       fprintf(stream, serviceformat, prefix, "method-fault", method_name, (*message)->name);
-  // TODO: complete fault directives
-  // TODO: add header directives
+  // TODO: add headerfault directives
+  for (vector<soap__header>::const_iterator inputheader = input->header.begin(); inputheader != input->header.end(); ++inputheader)
+    if ((*inputheader).part)
+      fprintf(stream, serviceformat, prefix, "method-input-header-part", method_name, types.aname(NULL, (*inputheader).namespace_, (*inputheader).part));
+  if (output)
+    for (vector<soap__header>::const_iterator outputheader = output->header.begin(); outputheader != output->header.end(); ++outputheader)
+      if ((*outputheader).part)
+        fprintf(stream, serviceformat, prefix, "method-output-header-part", method_name, types.aname(NULL, (*outputheader).namespace_, (*outputheader).part));
   fprintf(stream, "int %s(", input_name);
-  input->generate(types, ",", anonymous, true); // need to handle parameterOrder
+  input->generate(types, ",", anonymous, true);
   if (output_name)
   { fprintf(stream, "\n  struct %s {", output_name);
     output->generate(types, ";", anonymous, true);
@@ -621,10 +769,10 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
           else
 	  /* */
             type = name;
-          //if (!URI || strcmp(URI, (*part).elementPtr()->schemaPtr()->targetNamespace))
+          if ((*part).elementPtr()->schemaPtr())
             URI = (*part).elementPtr()->schemaPtr()->targetNamespace;
-	  //else
-	    //URI = NULL;
+	  else
+	    URI = NULL;
           fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, URI, type), types.aname(NULL, URI, name), sep);
 	}
         else if ((*part).type)
@@ -641,10 +789,18 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
     fprintf(stderr, "No definitions/message\n");
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Miscellaneous
+//
+////////////////////////////////////////////////////////////////////////////////
+
 static void comment(const char *start, const char *middle, const char *end, const char *text)
-{ if (strchr(text, '\r') || strchr(text, '\n'))
-    fprintf(stream, "\n/*  %s %s %s documentation:\n%s\n*/\n\n", start, middle, end, text);
-  else
-    fprintf(stream, "\n// %s %s %s: %s\n", start, middle, end, text);
+{ if (text)
+  { if (strchr(text, '\r') || strchr(text, '\n'))
+      fprintf(stream, "\n/*  %s %s %s documentation:\n%s\n*/\n\n", start, middle, end, text);
+    else
+      fprintf(stream, "\n// %s %s %s: %s\n", start, middle, end, text);
+  }
 }
 

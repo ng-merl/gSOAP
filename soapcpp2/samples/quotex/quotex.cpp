@@ -44,7 +44,7 @@ int ns3__getQuote(struct soap *soap, char *symbol, char *country, float &result)
   { result = q*r;
     return SOAP_OK;
   }
-  soap_receiver_fault(soap, *soap_faultstring((struct soap*)soap->user), *soap_faultdetail((struct soap*)soap->user));
+  soap_receiver_fault(soap, *soap_faultstring((struct soap*)soap->user), NULL);
   return SOAP_FAULT;	// pass soap fault messages on to the client of this app
 }
 

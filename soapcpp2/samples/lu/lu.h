@@ -2,6 +2,7 @@
 //gsoap ns1 service namespace: http://websrv.cs.fsu.edu/~engelen/lu.wsdl
 //gsoap ns1 service location: http://websrv.cs.fsu.edu/~engelen
 //gsoap ns1 service executable: luserver.cgi
+//gsoap ns1 service encoding: encoded
 //gsoap ns1 schema namespace: urn:lu
 typedef double xsd__double;
 typedef int xsd__int;

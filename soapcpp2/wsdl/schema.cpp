@@ -8,6 +8,8 @@ XSD binding schema implementation
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -46,6 +48,7 @@ xs__schema::xs__schema()
   soap_default(soap);
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
+  targetNamespace = NULL;
 }
 
 xs__schema::xs__schema(struct soap *copy)
@@ -53,6 +56,7 @@ xs__schema::xs__schema(struct soap *copy)
   soap_default(soap);
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
+  targetNamespace = NULL;
 }
 
 xs__schema::xs__schema(struct soap *copy, const char *location)
@@ -64,6 +68,7 @@ xs__schema::xs__schema(struct soap *copy, const char *location)
   soap_default(soap);
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
+  targetNamespace = NULL;
   read(location);
 }
 
@@ -73,6 +78,8 @@ xs__schema::~xs__schema()
 int xs__schema::traverse()
 { if (vflag)
     cerr << "schema " << (targetNamespace?targetNamespace:"") << endl;
+  if (!targetNamespace)
+    fprintf(stderr, "Warning: Schema has no targetNamespace\n");
   // process include, but should check if not already included!
   for (vector<xs__include>::iterator in = include.begin(); in != include.end(); ++in)
   { (*in).traverse(*this);
@@ -153,6 +160,8 @@ int xs__schema::read(const char *location)
     soap_print_fault_location(soap, stderr);
     exit(1);
   }
+  else if (soap->error == 307) // HTTP redirect, socket was closed
+    return read(soap->endpoint);
   soap_end_recv(soap);
   if (soap->recvfd >= 0)
   { close(soap->recvfd);
@@ -334,16 +343,16 @@ int xs__attribute::traverse(xs__schema &schema)
     { if (is_builtin_qname(ref))
         schema.builtinAttribute(ref);
       else
-        cerr << "Warning: could not find attribute " << (name?name:"") << " ref " << ref << " in schema " << schema.targetNamespace << endl;
+        cerr << "Warning: could not find attribute " << (name?name:"") << " ref " << ref << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
     else if (type)
     { if (is_builtin_qname(type))
         schema.builtinType(type);
       else
-        cerr << "Warning: could not find attribute " << (name?name:"") << " type " << type << " in schema " << schema.targetNamespace << endl;
+        cerr << "Warning: could not find attribute " << (name?name:"") << " type " << type << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
     else
-      cerr << "Warning: could not find attribute " << (name?name:"") << " ref or type" << " in schema " << schema.targetNamespace << endl;
+      cerr << "Warning: could not find attribute " << (name?name:"") << " ref or type" << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
   }
   return SOAP_OK;
 }
@@ -371,6 +380,16 @@ xs__attribute *xs__attribute::attributePtr() const
 xs__simpleType *xs__attribute::simpleTypePtr() const
 { return simpleTypeRef;
 }
+
+xs__element::xs__element()
+{ schemaRef = NULL;
+  elementRef = NULL;
+  simpleTypeRef = NULL;
+  complexTypeRef = NULL;
+}
+
+xs__element::~xs__element()
+{ }
 
 int xs__element::traverse(xs__schema &schema)
 { if (vflag)
@@ -480,16 +499,16 @@ int xs__element::traverse(xs__schema &schema)
     { if (is_builtin_qname(ref))
         schema.builtinElement(ref);
       else
-        cerr << "Warning: could not find element " << (name?name:"") << " ref " << ref << " in schema " << schema.targetNamespace << endl;
+        cerr << "Warning: could not find element " << (name?name:"") << " ref " << ref << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
     else if (type)
     { if (is_builtin_qname(type))
         schema.builtinType(type);
       else
-        cerr << "Warning: could not find element " << (name?name:"") << " type " << type << " in schema " << schema.targetNamespace << endl;
+        cerr << "Warning: could not find element " << (name?name:"") << " type " << type << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
     else
-      cerr << "Warning: could not find element " << (name?name:"") << " ref or type" << " in schema " << schema.targetNamespace << endl;
+      cerr << "Warning: could not find element " << (name?name:"") << " ref or type" << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
   }
   return SOAP_OK;
 }
@@ -760,7 +779,7 @@ int xs__extension::traverse(xs__schema &schema)
     { if (is_builtin_qname(base))
         schema.builtinType(base);
       else
-        cerr << "Warning: could not find extension base type " << base << " in schema " << schema.targetNamespace << endl;
+        cerr << "Warning: could not find extension base type " << base << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
     else
       cerr << "Extension has no base" << endl;
@@ -864,7 +883,7 @@ int xs__restriction::traverse(xs__schema &schema)
     { if (is_builtin_qname(base))
         schema.builtinType(base);
       else
-        cerr << "Warning: could not find restriction base type " << base << " in schema " << schema.targetNamespace << endl;
+        cerr << "Warning: could not find restriction base type " << base << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
     else
       cerr << "Restriction has no base" << endl;
@@ -928,7 +947,7 @@ int xs__list::traverse(xs__schema &schema)
   { if (is_builtin_qname(itemType))
       schema.builtinType(itemType);
     else
-      cerr << "Warning: could not find list itemType " << itemType << " in schema " << schema.targetNamespace << endl;
+      cerr << "Warning: could not find list itemType " << itemType << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
   }
   return SOAP_OK;
 }
@@ -1058,7 +1077,7 @@ int xs__group::traverse(xs__schema &schema)
     }
   }
   if (!groupRef)
-    cerr << "Warning: could not find group " << (name?name:"") << " ref " << (ref?ref:"") << " in schema " << schema.targetNamespace << endl;
+    cerr << "Warning: could not find group " << (name?name:"") << " ref " << (ref?ref:"") << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
   return SOAP_OK;
 }
 

@@ -41,7 +41,7 @@ class Factory
   unsigned int lookup(enum t__object object, char *name);
   unsigned int rename(unsigned int handle, char *name);
   void release(unsigned int handle);
-  void purge();
+  void purge(struct soap* soap);
   t__root *get(unsigned int handle);
   t__root *root(unsigned int handle);
   t__adder *adder(unsigned int handle);
@@ -165,40 +165,30 @@ t__counter *Factory::counter(unsigned int handle)
 }
 
 // remove all objects from pool whose lease has expired
-void Factory::purge()
+void Factory::purge(struct soap *soap)
 { time_t t = time(NULL);		// current time
-  fprintf(stderr, "Purging objects...");
+  int flag = 1;
   for (int i = 0; i < POOLSIZE; i++)
   { t__root *r = ref[i];
     if (r && r->lease < t)		// expired?
-    { if (r->name)
-        fprintf(stderr, " %s(%u)", r->name, r->handle);
+    { if (flag)
+        fprintf(stderr, "\nPurging objects:");
+      if (r->name)
+        fprintf(stderr, "%s(%u)\n", r->name, r->handle);
       else
-        fprintf(stderr, " (%u)", r->handle);
-      delete r;
+        fprintf(stderr, "(%u)\n", r->handle);
+      soap_delete(soap, r);
       ref[i] = NULL;
+      flag = 0;
     }
   }
-  fprintf(stderr, "\nKeeping objects...");
-  for (int i = 0; i < POOLSIZE; i++)
-  { t__root *r = ref[i];
-    if (r)
-    { if (r->name)
-        fprintf(stderr, " %s(%u)", r->name, r->handle);
-      else
-        fprintf(stderr, " (%u)", r->handle);
-    }
-  }
-  fprintf(stderr, "\n");
 }
 
 // remove object from pool and release slot
 void Factory::release(unsigned int handle)
 { t__root *r = get(handle);
   if (r)
-  { delete r;
     ref[handle % POOLSIZE] = NULL;
-  }
 }
 
 // save object pool to file (or stdout)
@@ -268,13 +258,13 @@ int Factory::load(const char *file)
 int main(int argc, char **argv)
 { int m, s;
   struct soap soap;
-  Factory factory;			// creat factory and simple ORB
+  Factory factory;			// create factory and simple ORB
   soap_init(&soap);
   soap.user = (void*)&factory;		// associate factory with run-time
-  soap.accept_timeout = LEASETERM;	// term before leases runs out is used as a rate to purge objects
+  soap.accept_timeout = 1;		// check every second, if not too busy for purging objects
   if (argc < 2)
   { factory.load("factory.dat");	// if CGI is used, load the entire pool (not very efficient and there may be a competition for access to this file! This is just to demonstrate load/save of the entire pool)
-    factory.purge();
+    factory.purge(&soap);
     soap_serve(&soap);
     factory.save("factory.dat");	// ... and save afterwards
   }
@@ -291,7 +281,7 @@ int main(int argc, char **argv)
       { if (soap.errnum)
           soap_print_fault(&soap, stderr);
 	else			// errnum is 0, which means a timeout has occurred
-	{ factory.purge();	// purge objects whose lease has ran out
+	{ factory.purge(&soap);	// purge objects whose lease has ran out
 	  continue;
 	}
 	exit(1);
@@ -318,12 +308,12 @@ int ns__create(struct soap *soap, enum t__object object, char *name, enum t__sta
   if (soap->header)
   { soap->header->h__handle = factory->create(soap, object, name);
     if (soap->header->h__handle)
-      status = OK;
+      status = FACTORY_OK;
     else
-      status = INVALID;
+      status = FACTORY_INVALID;
   }
   else
-    status = RETRY;
+    status = FACTORY_RETRY;
   return SOAP_OK;
 }
 
@@ -334,12 +324,12 @@ int ns__lookup(struct soap *soap, enum t__object object, char *name, enum t__sta
   if (soap->header)
   { soap->header->h__handle = factory->lookup(object, name);
     if (soap->header->h__handle)
-      status = OK;
+      status = FACTORY_OK;
     else
-      status = NOTFOUND;
+      status = FACTORY_NOTFOUND;
   }
   else
-    status = RETRY;
+    status = FACTORY_RETRY;
   return SOAP_OK;
 }
 
@@ -348,12 +338,12 @@ int ns__rename(struct soap *soap, char *name, enum t__status &status)
   if (soap->header)
   { soap->header->h__handle = factory->rename(soap->header->h__handle, name);
     if (soap->header->h__handle)
-      status = OK;
+      status = FACTORY_OK;
     else
-      status = INVALID;
+      status = FACTORY_INVALID;
   }
   else
-    status = INVALID;
+    status = FACTORY_INVALID;
   return SOAP_OK;
 }
 
@@ -361,10 +351,10 @@ int ns__release(struct soap *soap, enum t__status &status)
 { Factory *factory = (Factory*)soap->user;	// get factory from gSOAP environment
   if (soap->header && soap->header->h__handle)
   { factory->release(soap->header->h__handle);
-    status = OK;
+    status = FACTORY_OK;
   }
   else
-    status = INVALID;
+    status = FACTORY_INVALID;
   return SOAP_OK;
 }
 
@@ -380,13 +370,13 @@ int ns__set(struct soap *soap, double val, enum t__status &status)
   { t__adder *adder = factory->adder(soap->header->h__handle);
     if (adder)
     { adder->set(val);
-      status = OK;
+      status = FACTORY_OK;
     }
     else
-      status = INVALID;
+      status = FACTORY_INVALID;
   }
   else
-    status = INVALID;
+    status = FACTORY_INVALID;
   return SOAP_OK;
 }
 
@@ -407,13 +397,13 @@ int ns__add(struct soap *soap, double val, enum t__status &status)
   { t__adder *adder = factory->adder(soap->header->h__handle);
     if (adder)
     { adder->add(val);
-      status = OK;
+      status = FACTORY_OK;
     }
     else
-      status = INVALID;
+      status = FACTORY_INVALID;
   }
   else
-    status = INVALID;
+    status = FACTORY_INVALID;
   return SOAP_OK;
 }
 
@@ -429,13 +419,13 @@ int ns__inc(struct soap *soap, enum t__status &status)
   { t__counter *counter = factory->counter(soap->header->h__handle);
     if (counter)
     { counter->inc();
-      status = OK;
+      status = FACTORY_OK;
     }
     else
-      status = INVALID;
+      status = FACTORY_INVALID;
   }
   else
-    status = INVALID;
+    status = FACTORY_INVALID;
   return SOAP_OK;
 }
 

@@ -53,6 +53,7 @@ extern lexerror(const char*);
 extern synerror(const char *);
 extern semerror(const char *);
 extern semwarn(const char *);
+extern compliancewarn(const char *);
 extern typerror(const char*);
 extern execerror(const char*);
 extern progerror(const char*, const char*, int);

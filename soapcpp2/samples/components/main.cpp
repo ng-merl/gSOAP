@@ -1,3 +1,4 @@
+
 #include "quoteServiceProxy.h"
 #include "rateServiceProxy.h"
 #include "calcServiceObject.h"
@@ -15,13 +16,13 @@ int main(int argc, char *argv[])
   }
   quote::Service quote;
   float q;
-  if (quote.getQuote(argv[1], q))
+  if (quote.ns__getQuote(argv[1], q))
     soap_print_fault(quote.soap, stderr);
   else
   { if (argc > 2)
     { rate::Service rate;
       float r;
-      if (rate.getRate("us", argv[2], r))
+      if (rate.ns__getRate("us", argv[2], r))
         soap_print_fault(rate.soap, stderr);
       else
         q *= r;

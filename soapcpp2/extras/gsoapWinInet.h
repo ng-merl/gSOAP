@@ -1,11 +1,14 @@
 /*
- * File:    gsoapWinInet.h
+ * File:    gsoapWinInet2.h
  *
  * Authors: 26 May 2003: Jack Kustanowitz (jackk@atomica.com)
  *          Original version
  *
  *          29 September 2003: Brodie Thiesfield (bt@jellycan.com)
  *          Rewritten as C plugin for gsoap. Bugs fixed and features added.
+ *
+ *          14 January 2004: Brodie Thiesfield (bt@jellycan.com)
+ *          Bug fix.
  *
  * Purpose: Allow gsoap clients (not servers) to direct all communications 
  *          through the WinInet API. This automatically provides all of the 
@@ -43,8 +46,8 @@
  *              SOAP_IO_CHUNK mode is being used then the entire message will 
  *              be buffered)
  *
- * Usage:   Add the gsoapWinInet.h and gsoapWinInet.cpp files to your project 
- *          (if you have a C project, rename gsoapWinInet.cpp to .c and use
+ * Usage:   Add the gsoapWinInet2.h and gsoapWinInet2.cpp files to your project 
+ *          (if you have a C project, rename gsoapWinInet2.cpp to .c and use
  *          it as is). Ensure that you turn off precompiled headers for the 
  *          .cpp file.
  *
@@ -107,7 +110,7 @@
  *          errors programmatically, or supply the appropriate flags in
  *          soap_register_plugin_arg() to disable the unwanted warnings.
  *
- *          Because messages are buffered internally to gsoapWinInet plugin
+ *          Because messages are buffered internally to gsoapWinInet2 plugin
  *          it is recommended that the SOAP_IO_STORE flag is not used otherwise
  *          the message may be buffered twice on every send. Use the default
  *          flag SOAP_IO_BUFFER, or SOAP_IO_FLUSH.
@@ -117,8 +120,8 @@
  *          notification of any bugs found/fixed, or improvements made. This 
  *          code has not been extensively tested, so use at your own risk.  
  */
-#ifndef INCLUDED_gsoapWinInet_h
-#define INCLUDED_gsoapWinInet_h
+#ifndef INCLUDED_gsoapWinInet2_h
+#define INCLUDED_gsoapWinInet2_h
 
 #include <stdsoap2.h>
 
@@ -136,4 +139,4 @@ wininet_plugin(
 }
 #endif 
 
-#endif // INCLUDED_gsoapWinInet_h
+#endif // INCLUDED_gsoapWinInet2_h

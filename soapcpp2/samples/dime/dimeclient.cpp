@@ -144,7 +144,7 @@ static void putData(struct soap *soap, int argc, char **argv)
   { printf("Data stored with keys:\n");
     for (int j = 0; j < names.size(); j++)
       printf("\t%s\n", names[j]);
-    printf("Use these keyes to retrieve the data\n");
+    printf("Use these keys to retrieve the data\n");
   }
 }
 
@@ -230,15 +230,22 @@ static size_t dime_read(struct soap *soap, void *handle, char *buf, size_t len)
 static void *dime_write_open(struct soap *soap, const char *id, const char *type, const char *options)
 { // we can return NULL without setting soap->error if we don't want to use the streaming callback for this DIME attachment
   FILE *handle = NULL;
-  const char *name;
-  assert(soap->user);
-  name = *((char**)soap->user)++;
-  handle = fopen(name, "wb");
-  if (!handle)
-  { soap->error = SOAP_EOF; // could not open file for writing
-    soap->errnum = errno; // get reason
-    return NULL;
+  char *name;
+  // get file name from options (not '\0' terminated)
+  if (options)
+  { size_t len = ((size_t)options[2] << 8) | ((size_t)options[3]); // option string length
+    name = (char*)soap_malloc(soap, len + 1);
+    strncpy(name, options + 4, len);
+    name[len] = '\0';
+    handle = fopen(name, "wb");
+    if (!handle)
+    { soap->error = SOAP_EOF; // could not open file for writing
+      soap->errnum = errno; // get reason
+      return NULL;
+    }
   }
+  else 
+    soap->error = soap_receiver_fault(soap, "Cannot save to file, because no file name was present in attachment", NULL);
   return (void*)handle;
 }
 

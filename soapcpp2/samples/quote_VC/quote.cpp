@@ -5,7 +5,7 @@ int main(int argc, char **argv)
   char *sym;
   float q;
   if (argc <= 1)
-    sym = "AOL";
+    sym = "IBM";
   else
     sym = argv[1];
   soap_init(&soap);	// must initialize

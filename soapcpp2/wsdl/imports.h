@@ -6,6 +6,8 @@ imports.h
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -36,8 +38,8 @@ typedef char	*xsd__anyURI,
 		*xsd__string;
 typedef bool	xsd__boolean;
 
-extern class std::ostream;
-extern class std::istream;
+extern class ostream;
+extern class istream;
 
 #include "includes.h"
 

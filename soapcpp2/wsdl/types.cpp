@@ -8,6 +8,8 @@ WSDL parser and converter to gSOAP header file format
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -65,6 +67,7 @@ static const char *keywords[] =
   "int",
   "long",
   "LONG64",
+  "mustUnderstand",
   "namespace",
   "operator",
   "private",
@@ -214,12 +217,10 @@ void Types::init()
   if (cflag || sflag)
   { deftypemap["xsd__string"] = "";
     usetypemap["xsd__string"] = "char*";
-    ptrtypemap["xsd__string"] = "char*";
   }
   else
   { deftypemap["xsd__string"] = "";
     usetypemap["xsd__string"] = "std::string*";
-    ptrtypemap["xsd__string"] = "std::string*";
   }
   deftypemap["xsd__unsignedByte"] = "";
   usetypemap["xsd__unsignedByte"] = "unsigned char";
@@ -274,12 +275,10 @@ void Types::init()
   if (cflag || sflag)
   { deftypemap["SOAP_ENC__string"] = "";
     usetypemap["SOAP_ENC__string"] = "char*";
-    ptrtypemap["SOAP_ENC__string"] = "char*";
   }
   else
   { deftypemap["SOAP_ENC__string"] = "";
     usetypemap["SOAP_ENC__string"] = "std::string*";
-    ptrtypemap["SOAP_ENC__string"] = "std::string*";
   }
   deftypemap["SOAP_ENC__string"] = "";
   usetypemap["SOAP_ENC__string"] = "char*";
@@ -303,7 +302,7 @@ const char * Types::nsprefix(const char *prefix, const char *URI)
   { const char *s = uris[URI];
     if (!s)
     { size_t n;
-      if (!prefix || !*prefix)
+      if (!prefix || !*prefix || *prefix == '_')
         s = prefix_name;
       else
         s = estrdup(prefix);
@@ -311,7 +310,7 @@ const char * Types::nsprefix(const char *prefix, const char *URI)
         n = syms[s] = 1;
       else
         n = ++syms[s];
-      if (n != 1 || !prefix || !*prefix)
+      if (n != 1 || !prefix || !*prefix || *prefix == '_')
       { char *t = (char*)emalloc(strlen(s) + 16);
         sprintf(t, "%s%lu", s, (unsigned long)n);
 	s = t;
@@ -621,10 +620,14 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
         fprintf(stream, elementformat, tname(NULL, NULL, simpleType.restriction->base), "");
         fprintf(stream, "\n");
       }
-      for (vector<xs__pattern>::const_iterator pattern = simpleType.restriction->pattern.begin(); pattern != simpleType.restriction->pattern.end(); ++pattern)
-      { if (pattern != simpleType.restriction->pattern.begin())
-          fprintf(stream, " \"|\"");
-        fprintf(stream, " \"%s\"", (*pattern).value);
+      if (!simpleType.restriction->pattern.empty())
+      { fprintf(stream, " \"");
+        for (vector<xs__pattern>::const_iterator pattern = simpleType.restriction->pattern.begin(); pattern != simpleType.restriction->pattern.end(); ++pattern)
+        { if (pattern != simpleType.restriction->pattern.begin())
+            fprintf(stream, "|");
+          fprintf(stream, "%s", (*pattern).value);
+        }
+        fprintf(stream, "\"");
       }
       if (name)
       { fprintf(stream, ";\n");
@@ -933,7 +936,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
     gen(NULL, *complexType.anyAttribute);
   if (name)
   { if (!cflag && !pflag)
-    { fprintf(stream, elementformat, "struct soap*", "soap");
+    { fprintf(stream, pointerformat, "struct soap", "soap");
       fprintf(stream, ";\n");
     }
     fprintf(stream, "};\n");
@@ -952,10 +955,10 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
   if (attribute.attributePtr()) // attribute ref
   { const char *typeURI = NULL;
     name = attribute.attributePtr()->name;
+    if (attribute.schemaPtr() != attribute.attributePtr()->schemaPtr())
+      URI = attribute.attributePtr()->schemaPtr()->targetNamespace;
     if (attribute.attributePtr()->type)
     { type = attribute.attributePtr()->type;
-      if (attribute.schemaPtr() != attribute.attributePtr()->schemaPtr())
-        URI = attribute.attributePtr()->schemaPtr()->targetNamespace;
     }
     else
     { type = name;
@@ -1046,6 +1049,11 @@ void Types::gen(const char *URI, const vector<xs__sequence>& sequences)
     gen(URI, *sequence);
 }
 
+void Types::gen(const char *URI, const vector<xs__sequence*>& sequences)
+{ for (vector<xs__sequence*>::const_iterator sequence = sequences.begin(); sequence != sequences.end(); ++sequence)
+    gen(URI, **sequence);
+}
+
 void Types::gen(const char *URI, const xs__sequence& sequence)
 { gen(URI, sequence.element);
   gen(URI, sequence.group);
@@ -1065,10 +1073,10 @@ void Types::gen(const char *URI, const xs__element& element)
   if (element.elementPtr()) // element ref
   { const char *typeURI = NULL;
     name = element.elementPtr()->name;
+    if (element.schemaPtr() != element.elementPtr()->schemaPtr())
+      URI = element.elementPtr()->schemaPtr()->targetNamespace;
     if (element.elementPtr()->type)
     { type = element.elementPtr()->type;
-      if (element.schemaPtr() != element.elementPtr()->schemaPtr())
-        URI = element.elementPtr()->schemaPtr()->targetNamespace;
     }
     else
     { type = name;
@@ -1177,9 +1185,12 @@ void Types::gen(const char *URI, const xs__group& group)
   else if (group.sequence)
     gen(URI, group.sequence->element);
   else if (group.choice)
-  { // TODO: choice, now handled by generating elements
-    fprintf(stream, "// choice of elements\n");
+  { // TODO: improve choice, now handled by generating elements
+    fprintf(stream, "// choice of elements:\n");
     gen(URI, group.choice->element);
+    gen(URI, group.choice->group);
+    gen(URI, group.choice->sequence);
+    gen(URI, group.choice->any);
     fprintf(stream, "// end choice\n");
   }
 }
@@ -1190,8 +1201,13 @@ void Types::gen(const char *URI, const vector<xs__choice>& choices)
 }
 
 void Types::gen(const char *URI, const xs__choice& choice)
-{ // TODO: choice
-  fprintf(stream, "// TODO: choice is not handled in this release\n");
+{ // TODO: improve choice
+  fprintf(stream, "// choice of elements:\n");
+  gen(URI, choice.element);
+  gen(URI, choice.group);
+  gen(URI, choice.sequence);
+  gen(URI, choice.any);
+  fprintf(stream, "// end choice\n");
 }
 
 void Types::gen(const char *URI, const vector<xs__any>& anys)

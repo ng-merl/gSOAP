@@ -6,7 +6,9 @@ WSDL/SOAP binding schema
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+GPL license.
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -31,6 +33,10 @@ engelen@genivia.com / engelen@acm.org
 //gsoap soap schema namespace:		http://schemas.xmlsoap.org/wsdl/soap/
 
 #import "imports.h"
+
+class wsdl__definitions;		// forward declaration
+class wsdl__message;			// forward declaration
+class wsdl__part;			// forward declaration
 
 enum soap__styleChoice { rpc, document };
 
@@ -71,6 +77,15 @@ class soap__headerfault
 	@enum soap__useChoice		use;
 	@xsd__anyURI			encodingStyle;
 	@xsd__anyURI			namespace_;
+  private:
+  	wsdl__message			*messageRef;
+  	wsdl__part			*partRef;
+  public:
+  	int				traverse(wsdl__definitions&);
+	void				messagePtr(wsdl__message*);
+	void				partPtr(wsdl__part*);
+	wsdl__message			*messagePtr() const;
+	wsdl__part			*partPtr() const;
 };
 
 class soap__header
@@ -81,6 +96,15 @@ class soap__header
 	@xsd__anyURI			encodingStyle;
 	@xsd__anyURI			namespace_;
 	std::vector<soap__headerfault>	headerfault;		// <soap:headerfault>*
+  private:
+  	wsdl__message			*messageRef;
+  	wsdl__part			*partRef;
+  public:
+  	int				traverse(wsdl__definitions&);
+	void				messagePtr(wsdl__message*);
+	void				partPtr(wsdl__part*);
+	wsdl__message			*messagePtr() const;
+	wsdl__part			*partPtr() const;
 };
 
 class soap__address

@@ -1,3 +1,4 @@
+//gsoap ns service encoding: encoded
 // xsd:string schema type.
 typedef char *xsd__string;
 // xsd:boolean schema type.

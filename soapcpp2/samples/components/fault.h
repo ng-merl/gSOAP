@@ -1,19 +1,23 @@
 /*	fault.h
 
-	Defines SOAP Fault data structure shared by client and service modules
+	Defines optional SOAP Fault derail data structures
 
-	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
+	Copyright (C) 2000-2004 Robert A. van Engelen. All Rights Reserved.
 
 */
 
-struct SOAP_ENV__Fault
-{ // SOAP 1.1 Fault definitions:
-  char *faultcode;
-  char *faultstring;
-  char *faultactor;
-  char *detail;			// detail field type is user-definable
-  // SOAP 1.2 Fault definitions:
-  struct SOAP_ENV__Code *SOAP_ENV__Code;
-  char *SOAP_ENV__Reason;
-  char *SOAP_ENV__Detail;	// SOAP_ENV__Detail field type is user-definable
+/*
+
+Add any data structure you want to serialize as part of the SOAP Fault detail
+element. The detail element '__type' and 'value' fields should be set to
+transmit data. The fields are set when data of corresponding types are received.
+
+For example, we define an <element> of name <f:myData> with a string vector
+(note the leading _ in the following declaration):
+
+class _f__myData
+{ public:
+  std::vector<std::string*> *data;
 };
+
+*/

@@ -7,7 +7,7 @@ client, and peer Web service applications in C and C++.
 * The gSOAP 'soapcpp2' compiler and 'stdsoap2' runtime are stable since
   version release 2.1.3.
 
-* The gSOAP 'wsdl2h' WSDL parser is BETA 1.0.1. The WSDL parser 
+* The gSOAP 'wsdl2h' WSDL parser is stable beta 1.0.3. The WSDL parser 
   fully supports WSDL 1.1 and XML schemas. See also 'PROJECT STATUS' below.
 
 The software is provided "as is", without any warranty.  However, gSOAP
@@ -48,7 +48,7 @@ For examle:
 
 $ wsdl2h -o Amazon.h http://soap.amazon.com/schemas/AmazonWebServices.wsdl
 
-$ soapcpp2 -i Amazon.h
+$ soapcpp2 Amazon.h
 
 This generates the Amazon.h header file.  This file contains a translation of
 the services and XML schemas to C/C++ and other useful information copied from

@@ -294,7 +294,7 @@ int html_options(struct soap *soap, struct option *options)
 int html_form_options(struct soap *soap, struct option *options)
 { soap_send(soap, "<form action='' method='get' name='form'>");
   html_options(soap, options);
-  soap_send(soap, "</form>");
+  return soap_send(soap, "</form>");
 }
 
 static int set_option(const char *key, const char *val, struct option *options)

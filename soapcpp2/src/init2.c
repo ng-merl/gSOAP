@@ -158,8 +158,12 @@ static Keyword keywords[] =
 	"faultstring",		ID,
 	"faultactor",		ID,
 	"detail",		ID,
+	"__type",		ID,
+	"value",		ID,
+	"__any",		ID,
 
 	"_QName",		TYPE,
+	"_XML",			TYPE,
 	"std::string",		TYPE,
 	"std::wstring",		TYPE,
 

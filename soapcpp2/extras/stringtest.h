@@ -20,5 +20,8 @@ class ArrayOfstring
   xsd__string &operator[](int) const;
 };
 
+//gsoap ns service encoding: encoded
+//gsoap ns schema namespace: http://soapinterop.org/
+
 int ns__echoString(xsd__string inputString, struct ns__echoStringResponse { xsd__string _return; } &out);
 int ns__echoStringArray(ArrayOfstring *_inputStringArray, ArrayOfstring *_return);

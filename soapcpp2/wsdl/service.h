@@ -40,8 +40,8 @@ class Message
     soap__useChoice use;
     const char *encodingStyle;
     wsdl__message *message;
-    vector<soap__header> header; // name, use, and parts
-    vector<soap__headerfault> headerfault; // name, use, and parts
+    wsdl__part *part;
+    vector<soap__header> header;
     const char *documentation;
     const char *ext_documentation;
     void generate(Types&, const char *sep, bool anonymous, bool remark);
@@ -75,6 +75,8 @@ class Service
     const char *type;			// portType
     SetOfString location;		// WSDL may specify multiple locations via <Port> -> <Binding>
     vector<Operation*> operation;
+    MapOfStringToMessage header;
+    MapOfStringToMessage headerfault;
     MapOfStringToMessage fault;
     MapOfStringToString service_documentation;
     MapOfStringToString port_documentation;
@@ -87,14 +89,14 @@ typedef map<const char*, Service*, ltstr> MapOfStringToService;
 
 class Definitions
 { public:
-    Types types;
-    MapOfStringToService services;
+    Types types;				// to process schema type information
+    MapOfStringToService services;		// service information gathered
     Definitions();
     void collect(const wsdl__definitions&);
-    void generate();
     void compile(const wsdl__definitions&);
   private:
     void analyze(const wsdl__definitions&);
+    void generate();
 };
 
 #endif

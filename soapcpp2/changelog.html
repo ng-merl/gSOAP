@@ -5,7 +5,7 @@
    <meta name="Author" content="Robert A. van Engelen">
    <meta name="GENERATOR" content="Mozilla/4.76 [en] (X11; U; SunOS 5.8 sun4u) [Netscape]">
 </head>
-<body background="canvas.gif">
+<body bgcolor="#e6e6e6">
 
 <h1>Changelog</h1>
 
@@ -422,6 +422,40 @@ mapping.</li>
 <li>Updated DOM parser (integrated into core gSOAP library).</li>
 <li>Improved WSDL parser and included several new features.</li>
 <li>Fixed WSDL schema import and WSDL literal output.</li>
+</ul>
+<li>Version 2.5 (01/28/2004)</li>
+<ul>
+<li>Changed default encoding to SOAP RPC literal, as mandated by WS-I Basic
+Profile 1.0a and best practices.</li>
+<li>Added soapcpp2 compiler option -e for backward compatibility to gSOAP
+2.4.1 and earlier that use SOAP RPC
+encoding defaults (helpful when migrating gSOAP projects to 2.5).</li>
+<li>Added automatic compiler-side WS-I Basic Profile 1.0a compliance warnings
+(warns before deployment).</li>
+<li>Added fget() callback for HTTP GET responses.</li>
+<li>Added IPv6 support contributed by Wind River Systems.</li>
+<li>Added VxWorks support contributed by Wind River Systems.</li>
+<li>Improved SOAP Fault handling.</li>
+<li>Improved interop with Axis RPC encoded response messages.</li>
+<li>Fixed std::string xsi:type attribute value.</li>
+<li>Fixed gSOAP 2.4 problems with serialization of enumeration values outside enumeration range.</li>
+<li>Fixed gSOAP 2.4 Pocket PC build problem.</li>
+<li>Fixed wsdl2h SOAP Fault and Header output.</li>
+</ul>
+<li>Version 2.5.1 (02/12/2004)</li>
+<ul>
+<li>Improved WSDL output and WS-I BP1.0a compliance.</li>
+<li>Improved WSDL parser stability.</li>
+<li>Fixed problem parsing empty xsd:base64Binary elements.</li>
+<li>Fixed VxWorks and TRU64 portability issues.</li>
+<li>Fixed HTTP 400 error problem.</li>
+<li>Fixed soapcpp2 2.5 stability problem with one-way messages.</li>
+</ul>
+<li>Version 2.5.2 (02/23/2004)</li>
+<ul>
+<li>Fixed WSDL generation warnings.</li>
+<li>Fixed LONG64 problem for PalmOS.</li>
+<li>Fixed module build link problem and 'components' example.</li>
 </ul>
 </ul>
 

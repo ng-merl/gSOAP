@@ -37,15 +37,16 @@ Command line options:
 -v	verbose output
 -?	help
 
-TYPE MAP FILE
+TYPE TYPE MAP FILE
 
 The 'typemap.dat' file can be used to provide custom type mappings for binding
 XML schema types to C and/or C++ types. The WSDL parser 'wsdl2h' can be used
 without the 'typemap.dat' file, because and internal table is used to associate
-XML schema types to C or C++ types (-c option). An example 'typemapDIMEC.dat'
-and 'typemapDIMECPP.dat' files provide bindings for DIME attachment support.
-The 'typemap.dat' file allows you to change the generation of the 'ns1', 'ns2',
-'ns3', ... namespace prefixes with custom names.
+XML schema types to C or C++ types (for C, use the -c option). An example
+'typemapDIMEC.dat' and 'typemapDIMECPP.dat' files provide bindings for DIME
+attachment support.  The 'typemap.dat' file also allows you to change the
+generation of the 'ns1', 'ns2', 'ns3', ... namespace prefixes with custom
+names.
 
 INSTALLATION
 

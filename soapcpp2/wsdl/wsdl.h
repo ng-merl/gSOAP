@@ -8,6 +8,8 @@ WSDL 1.1 binding schema interface
 gSOAP XML Web services tools
 Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
+GPL license.
+
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 2 of the License, or (at your option) any later
@@ -55,7 +57,7 @@ class wsdl__import
 class wsdl__types
 { public:
 	xsd__string			documentation;		// <wsdl:documentation>?
-	std::vector<xs__schema>		xs__schema_; 		// <xs:schema>*
+	std::vector<xs__schema*>	xs__schema_; 		// <xs:schema>*
   public:
 	int				traverse(wsdl__definitions&);
 };
@@ -154,7 +156,6 @@ class wsdl__ext_input			// extensibility element
 	xsd__string			documentation;		// <wsdl:documentation>?
 	soap__body			*soap__body_;		// <soap:body>?
 	std::vector<soap__header>	soap__header_;		// <soap:header>*
-	std::vector<soap__headerfault>	soap__headerfault_;	// <soap:headerfault>*
   public:
   	int				traverse(wsdl__definitions&);
 };
@@ -164,7 +165,6 @@ class wsdl__ext_output			// extensibility element
 	xsd__string			documentation;		// <wsdl:documentation>?
 	soap__body			*soap__body_;		// <soap:body>?
 	std::vector<soap__header>	soap__header_;		// <soap:header>*
-	std::vector<soap__headerfault>	soap__headerfault_;	// <soap:headerfault>*
   public:
   	int				traverse(wsdl__definitions&);
 };
@@ -243,7 +243,7 @@ class wsdl__service
 class wsdl__definitions
 { public:
 	@xsd__NMTOKEN			name;
-	@xsd__anyURI			targetNamespace;
+	@xsd__anyURI			targetNamespace		= "";
 	std::vector<wsdl__import>	import;			// <wsdl:import>*
 	xsd__string			documentation;		// <wsdl:documentation>?
 	wsdl__types			*types;			// <wsdl:types>?
@@ -275,9 +275,9 @@ class wsdl__definitions
 	const SetOfString&		builtinTypes() const;
 	const SetOfString&		builtinElements() const;
 	const SetOfString&		builtinAttributes() const;
-	friend std::ostream&		operator<<(std::ostream&, const wsdl__definitions&);
-	friend std::istream&		operator>>(std::istream&, wsdl__definitions&);
+	friend ostream&		operator<<(ostream&, const wsdl__definitions&);
+	friend istream&		operator>>(istream&, wsdl__definitions&);
 };
 
-extern std::ostream &operator<<(std::ostream &o, const wsdl__definitions &e);
-extern std::istream &operator>>(std::istream &i, wsdl__definitions &e);
+extern ostream &operator<<(ostream &o, const wsdl__definitions &e);
+extern istream &operator>>(istream &i, wsdl__definitions &e);

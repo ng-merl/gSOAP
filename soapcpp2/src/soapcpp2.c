@@ -50,6 +50,7 @@ extern FILE *yyin;
 int vflag = 1;		/* SOAP version, 1=1.1 2=1.2 */
 int wflag = 0;		/* when set, don't generate WSDL and schema files */
 int cflag = 0;		/* when set, generate files with .c extension */
+int eflag = 0;		/* when set, use SOAP RPC encoding by default */
 int mflag = 0;		/* when set, generate code that requires array/binary classes to explicitly remove malloced array */
 int nflag = 0;		/* when set, names the namespaces global struct '%NAME%_namespaces */
 int lflag = 0;		/* when set, create library */
@@ -101,6 +102,9 @@ main(int argc, char **argv)
 #else
 							strcat(dirpath, "/");
 #endif
+						break;
+					case 'e':
+						eflag = 1;
 						break;
 					case '?':
 					case 'h':

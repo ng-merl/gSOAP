@@ -2,7 +2,7 @@
 
 dom.c[pp]
 
-gSOAP XML DOM extensions
+gSOAP DOM implementation
 
 gSOAP XML Web services tools
 Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
@@ -535,32 +535,6 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
 }
 
 /*
-**	DOM attribute custom (de)serializers (to enable linkage)
-*/
-
-/*
-SOAP_FMAC1
-void
-SOAP_FMAC2
-soap_mark_xsd__anyAttribute(struct soap *soap, soap_dom_attribute const *a)
-{ }
-
-SOAP_FMAC1
-soap_dom_attribute *
-SOAP_FMAC2
-soap_in_xsd__anyAttribute(struct soap *soap, char const *tag, soap_dom_attribute *a, char const *type)
-{ return NULL;
-}
-
-SOAP_FMAC1
-int
-SOAP_FMAC2
-soap_out_xsd__anyAttribute(struct soap *soap, char const *tag, int id, soap_dom_attribute const *a, char const *type)
-{ return SOAP_EOF;
-}
-*/
-
-/*
 **	Namespace lookup/store routines
 */
 
@@ -578,11 +552,12 @@ soap_enter_ns(struct soap *soap, const char *prefix, const char *nstr)
 { int h;
   register struct soap_ilist *ip;
   for (ip = soap->iht[soap_hash(nstr)]; ip; ip = ip->next)
-    if (!strcmp((char*)ip->ptr, nstr) && !ip->level)
+  { if (!strcmp((char*)ip->ptr, nstr) && !ip->level)
     { strcpy(ip->id, prefix);
       ip->level = 1;
       return ip;
     }
+  }
   ip = (struct soap_ilist*)malloc(sizeof(struct soap_ilist) + strlen(nstr) + SOAP_TAGLEN);
   if (ip)
   { h = soap_hash(nstr);
@@ -598,11 +573,11 @@ soap_enter_ns(struct soap *soap, const char *prefix, const char *nstr)
   return NULL;
 }
 
+#ifdef __cplusplus
+
 /*
 **	Class soap_dom_element
 */
-
-#ifdef __cplusplus
 
 soap_dom_element::soap_dom_element()
 { soap = NULL;
@@ -768,13 +743,9 @@ void soap_dom_element::unlink()
   type = 0;
 }
 
-#endif
-
 /*
 **	Class soap_dom_attribute
 */
-
-#ifdef __cplusplus
 
 soap_dom_attribute::soap_dom_attribute()
 { soap = NULL;
@@ -811,13 +782,9 @@ void soap_dom_attribute::unlink()
     next->unlink();
 }
 
-#endif
-
 /*
 **	Class soap_dom_iterator
 */
-
-#ifdef __cplusplus
 
 soap_dom_iterator::soap_dom_iterator()
 { elt = NULL;
@@ -882,13 +849,11 @@ soap_dom_iterator &soap_dom_iterator::operator++()
   return *this;
 }
 
-#endif
-
 /*
-**	I/O
+**	IO
 */
 
-#ifdef __cplusplus
+#ifndef UNDER_CE
 
 std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
 { if (!e.soap)
@@ -928,5 +893,7 @@ std::istream &operator>>(std::istream &i, struct soap_dom_element &e)
   e.soap->is = is;
   return i;
 }
+
+#endif
 
 #endif

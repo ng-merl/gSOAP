@@ -384,7 +384,7 @@ void array::print(std::ostream &s) const
     if (__ptr[i])
       __ptr[i]->print(s);
     else
-      s << "<null>";
+      s << "<[none]>";
   s << ">";
 }
 

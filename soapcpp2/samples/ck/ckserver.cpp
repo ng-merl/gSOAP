@@ -28,17 +28,14 @@ int main(int argc, char **argv)
   else
   { m = soap_bind(&soap, NULL, atoi(argv[1]), 100);
     if (m < 0)
-      exit(-1);
+      exit(1);
     fprintf(stderr, "Socket connection successful %d\n", m);
     for (int i = 1; ; i++)
-    { // soap.keep_alive = 1;	// try to keep connection open (see below)
-      s = soap_accept(&soap);
+    { s = soap_accept(&soap);
       if (s < 0)
         exit(-1);
       fprintf(stderr, "%d: accepted %d IP=%d.%d.%d.%d ... ", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
-      soap_serve(&soap); // process RPC skeletons, delete this line and use these 2 lines:
-      // while (soap_serve(&soap) == SOAP_OK && soap.keep_alive)	// to enable keep-alive support
-        // soap_free_cookies(&soap);
+      soap_serve(&soap);
       fprintf(stderr, "served\n");
       soap_end(&soap);		// clean up 
       soap_free_cookies(&soap);	// remove all old cookies from database so no interference when new requests with new cookies arrive
@@ -58,9 +55,9 @@ int ck__demo(struct soap *soap, char **r)
 { int n;
   char *s, buf[16];
   // The host and path are set by soap_cookie_domain and soap_cookie_path
-  // which MUST be the current domain and path of the CGI app in order
-  // to accept cookies intended for this service
-  s = soap_cookie_value(soap, "demo", NULL, NULL); // cookie returned by client?
+  // which MUST be the current domain and path of the CGI app or stand-alone
+  // server in order to accept cookies intended for this service
+  s = soap_cookie_value(soap, "demo", NULL, NULL); // cookie was returned by client?
   if (s)
     n = atoi(s)+1; // yes: increment int value as demo example session
   else

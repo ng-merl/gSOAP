@@ -228,12 +228,12 @@ int soap_encode_string(const char *s, char *t, int len)
           || (c >= 'A' && c <= 'Z')
           || c == '_'
           || (c >= 'a' && c <= 'z'))
-      *t++ = c;
+      *t++ = (char)c;
     else if (n > 2)
     { *t++ = '%';
-      *t++ = (c >> 4) + (c > 159 ? '7' : '0');
+      *t++ = (char)((c >> 4) + (c > 159 ? '7' : '0'));
       c &= 0xF;
-      *t++ = c + (c > 9 ? '7' : '0');
+      *t++ = (char)(c + (c > 9 ? '7' : '0'));
       n -= 2;
     }
     else

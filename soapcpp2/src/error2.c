@@ -98,6 +98,13 @@ semwarn(const char *s)
 }
 
 /*
+compliancewarn - report compliance warning
+*/
+compliancewarn(const char *s)
+{	fprintf(stderr, "Compliance Warning: %s\n", s);
+}
+
+/*
 typerror - report type error (a semantic error)
 */
 typerror(const char *s)
