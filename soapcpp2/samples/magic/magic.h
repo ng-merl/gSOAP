@@ -1,7 +1,7 @@
 //gsoap ns1 service name: magic
+//gsoap ns1 service documentation: Demo Magic Squares service
 //gsoap ns1 service namespace: http://websrv.cs.fsu.edu/~engelen/magic.wsdl
-//gsoap ns1 service location: http://websrv.cs.fsu.edu/~engelen
-//gsoap ns1 service executable: magicserver.cgi
+//gsoap ns1 service port: http://websrv.cs.fsu.edu/~engelen
 //gsoap ns1 schema namespace: urn:MagicSquare
 
 typedef int xsd__int;

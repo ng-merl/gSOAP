@@ -171,11 +171,11 @@ exts	: NAMESPACE ID '{' exts1 '}'	/* for future use */
 			{ namespaceid = $2; }
 	| exts1		{ namespaceid = NULL; }
 	;
-exts1	: /* empty */
-	| exts1 ext
+exts1	: /* empty */	{ }
+	| exts1 ext	{ }
 	;
-ext	: dclrs ';'	/* declaration */
-	| pragma
+ext	: dclrs ';'	{ }
+	| pragma	{ }
 	| error ';'	{ synerror("input before ; skipped");
 			  while (sp > stack)
 			  {	freetable(sp->table);
@@ -183,13 +183,8 @@ ext	: dclrs ';'	/* declaration */
 			  }
 			  yyerrok;
 			}
-	| '['		{ transient++; }
-	| ']'		{ transient--;
-			  if (transient < 0)
-			  { semwarn("Too many ']'");
-			    transient = 0;
-			  }
-			}
+	| t1		{ }
+	| t2		{ }
 	;
 pragma	: PRAGMA	{ if (iflag && $1[1] >= 'a' && $1[1] <= 'z')
 			  {	for (pp = &pragmas; *pp; pp = &(*pp)->next)
@@ -214,37 +209,47 @@ pragma	: PRAGMA	{ if (iflag && $1[1] >= 'a' && $1[1] <= 'z')
 
 \******************************************************************************/
 
-decls	: /* empty */
-	| dclrs ';' decls	{ }
-	| PRIVATE   ':' decls	{ }
-	| PROTECTED ':' decls	{ }
-	| PUBLIC    ':' decls	{ }
-	| '[' t1 decls ']' t2 decls
-				{ }
+decls	: /* empty */	{ }
+	| dclrs ';' decls
+			{ }
+	| PRIVATE ':' decls
+			{ }
+	| PROTECTED ':' decls
+			{ }
+	| PUBLIC ':' decls
+			{ }
+	| t1 decls t2 decls
+			{ }
 	;
-t1	: /* empty */		{ transient++; }
+t1	: '['		{ transient++; }
 	;
-t2	: /* empty */		{ transient--;
-				  if (transient < 0)
-				  { semwarn("Too many ']'");
-				    transient = 0;
-				  }
-				}
+t2	: ']'		{ transient--;
+			  if (transient < 0)
+			  {	semwarn("Too many ']'");
+				transient = 0;
+			  }
+			}
 	;
-dclrs	: spec fdclr func	{ }
-	| spec dclr		{ }
-	| spec			{ }
-	| dclrs ',' fdclr func	{ }
-	| dclrs ',' dclr	{ }
-	| constr func		{ }
-	| destr func		{ }
+dclrs	: spec		{ }
+	| spec dclr	{ }
+	| spec fdclr func
+			{ }
+	| constr func	{ }
+	| destr func	{ }
+	| dclrs ',' dclr{ }
+	| dclrs ',' fdclr func
+			{ }
 	;
 dclr	: ptrs ID array occurs init
 			{ if ($3.sto & Stypedef)
 			  {	p = enter(typetable, $2);
 				p->info.typ = mksymtype($3.typ, $2);
-			  	if (($3.sto & Sextern) || $3.typ->transient)
-				  p->info.typ->transient = -1;
+			  	if ($3.typ->transient)
+			  	{	if ($3.sto & Sextern)
+						p->info.typ->transient = -1;
+					else
+						p->info.typ->transient = 1;
+				}
 			  	p->info.sto = $3.sto;
 				$2->token = TYPE;
 			  }
@@ -446,15 +451,15 @@ func	: fname '(' s2 fargso ')' constobj abstract
 	;
 fname	:		{ $$ = sp->entry; }
 	;
-fargso	: /* empty */		{ }
-	| fargs			{ }
+fargso	: /* empty */	{ }
+	| fargs		{ }
 	;
-fargs	: farg			{ }
-	| farg ',' fargs	{ }
+fargs	: farg		{ }
+	| farg ',' fargs{ }
 	;
 farg	: tspec ptrs arg array init
 			{ if ($4.sto & Stypedef)
-			    semwarn("typedef in function argument");
+			  	semwarn("typedef in function argument");
 			  p = enter(sp->table, $3);
 			  p->info.typ = $4.typ;
 			  p->info.sto = $4.sto;
@@ -529,7 +534,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 			  }
 			  sp->node = $$;	/* set global `tmp1' for inheritance */
 			  if ($1 & Sextern)
-			    transient--;
+				transient--;
 			}
 	| type spec	{ if ($1->type == Tint)
 				switch ($2.typ->type)
@@ -579,7 +584,7 @@ tspec	: store		{ $$.typ = mkint();
 			  $$.sto = $1;
 			  sp->node = $$;	/* set global `tmp1' for inheritance */
 			  if ($1 & Sextern)
-			    transient--;
+				transient--;
 			}
 	| type		{ $$.typ = $1;
 			  $$.sto = Snone;
@@ -593,7 +598,7 @@ tspec	: store		{ $$.typ = mkint();
 			  }
 			  sp->node = $$;	/* set global `tmp1' for inheritance */
 			  if ($1 & Sextern)
-			    transient--;
+				transient--;
 			}
 	| type tspec	{ if ($1->type == Tint)
 				switch ($2.typ->type)
@@ -974,7 +979,7 @@ occurs	: /* empty */	{ $$.minOccurs = 1;
 \******************************************************************************/
 
 expr	: expr ',' expr	{ $$ = $3; }
-	| cexp
+	| cexp		{ $$ = $1; }
 	;
 /* cexp : conditional expression */
 cexp	: obex '?' qexp ':' cexp
@@ -988,20 +993,18 @@ cexp	: obex '?' qexp ':' cexp
 qexp	: expr		{ $$ = $1; }
 	;
 /* oexp : or-expression */
-oexp	: obex OR aexp
-			{ $$.hasval = False;
+oexp	: obex OR aexp	{ $$.hasval = False;
 			  $$.typ = mkint();
 			}
-	| aexp
+	| aexp		{ $$ = $1; }
 	;
 obex	: oexp		{ $$ = $1; }
 	;
 /* aexp : and-expression */
-aexp	: abex AN rexp
-			{ $$.hasval = False;
+aexp	: abex AN rexp	{ $$.hasval = False;
 			  $$.typ = mkint();
 			}
-	| rexp
+	| rexp		{ $$ = $1; }
 	;
 abex	: aexp		{ $$ = $1; }
 	;
@@ -1022,7 +1025,7 @@ rexp	: rexp '|' rexp	{ $$ = iop("|", $1, $3); }
 	| rexp '*' rexp	{ $$ = op("*", $1, $3); }
 	| rexp '/' rexp	{ $$ = op("/", $1, $3); }
 	| rexp '%' rexp	{ $$ = iop("%", $1, $3); }
-	| lexp
+	| lexp		{ $$ = $1; }
 	;
 /* lexp : lvalue kind of expression with optional prefix contructs */
 lexp	: '!' lexp	{ if ($2.hasval)
@@ -1062,7 +1065,7 @@ lexp	: '!' lexp	{ if ($2.hasval)
 			  $$.typ = mkint();
 			  $$.val.i = $3.typ->width;
 			}
-	| pexp
+	| pexp		{ $$ = $1; }
 	;
 /* pexp : primitive expression with optional postfix constructs */
 pexp	: '(' expr ')'	{ $$ = $2; }
@@ -1106,8 +1109,7 @@ pexp	: '(' expr ')'	{ $$ = $2; }
  */
 int
 yywrap()
-{
-  return 1;
+{	return 1;
 }
 
 /******************************************************************************\

@@ -1,4 +1,4 @@
-/*	stdsoap2.h 2.2
+/*	stdsoap2.h 2.2.1a
 
 The contents of this file are subject to the gSOAP Public License Version 1.0
 (the "License"); you may not use this file except in compliance with the
@@ -356,20 +356,27 @@ extern struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_FATAL_ERROR	11
 #define SOAP_FAULT		12
 #define SOAP_NO_METHOD		13
-#define SOAP_EOM		14
-#define SOAP_NULL		15
-#define SOAP_MULTI_ID		16
-#define SOAP_MISSING_ID		17
-#define SOAP_HREF		18
-#define SOAP_TCP_ERROR		19
-#define SOAP_HTTP_ERROR		20
-#define SOAP_SSL_ERROR		21
-#define SOAP_ZLIB_ERROR		22
-#define SOAP_DIME_ERROR		23
-#define SOAP_EOD		24
-#define SOAP_VERSIONMISMATCH	25
-#define SOAP_DIME_MISMATCH	26
-#define SOAP_PLUGIN_ERROR	27
+#define SOAP_GET_METHOD		14
+#define SOAP_EOM		15
+#define SOAP_NULL		16
+#define SOAP_MULTI_ID		17
+#define SOAP_MISSING_ID		18
+#define SOAP_HREF		19
+#define SOAP_TCP_ERROR		20
+#define SOAP_HTTP_ERROR		21
+#define SOAP_SSL_ERROR		22
+#define SOAP_ZLIB_ERROR		23
+#define SOAP_DIME_ERROR		24
+#define SOAP_EOD		25
+#define SOAP_VERSIONMISMATCH	26
+#define SOAP_DIME_MISMATCH	27
+#define SOAP_PLUGIN_ERROR	28
+
+/* gSOAP status codes */
+
+#define SOAP_POST		100
+#define SOAP_STOP		101
+#define SOAP_HTML		102
 
 /* gSOAP DIME */
 
@@ -575,6 +582,12 @@ struct soap
   size_t (*frecv)(struct soap*, char*, size_t);
   int (*fignore)(struct soap*, const char*);
   void *(*fplugin)(struct soap*, const char*);
+  void *(*fdimereadopen)(struct soap*, void*, const char*, const char*, const char*);
+  void *(*fdimewriteopen)(struct soap*, const char*, const char*, const char*);
+  void (*fdimereadclose)(struct soap*, void*);
+  void (*fdimewriteclose)(struct soap*, void*);
+  size_t (*fdimeread)(struct soap*, void*, char*, size_t);
+  int (*fdimewrite)(struct soap*, void*, const char*, size_t);
   int master;
   int socket;
 #ifndef UNDER_CE
@@ -681,6 +694,7 @@ struct soap_plugin
 extern struct Namespace namespaces[];
 #endif
 
+SOAP_FMAC1 int SOAP_FMAC2 soap_poll(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect(struct soap*, const char*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_bind(struct soap*, const char*, int, int);
 SOAP_FMAC1 int SOAP_FMAC2 soap_accept(struct soap*);
@@ -849,8 +863,8 @@ SOAP_FMAC1 size_t SOAP_FMAC2 soap_size_block(struct soap*, size_t);
 SOAP_FMAC1 char* SOAP_FMAC2 soap_first_block(struct soap*);
 SOAP_FMAC1 char* SOAP_FMAC2 soap_next_block(struct soap*);
 SOAP_FMAC1 size_t SOAP_FMAC2 soap_block_size(struct soap*);
-SOAP_FMAC1 char* SOAP_FMAC2 soap_save_block(struct soap*, char *);
-SOAP_FMAC1 char* SOAP_FMAC2 soap_store_block(struct soap*, char *);
+SOAP_FMAC1 char* SOAP_FMAC2 soap_save_block(struct soap*, char*);
+SOAP_FMAC1 char* SOAP_FMAC2 soap_store_block(struct soap*, char*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_end_block(struct soap*);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_envelope_begin_out(struct soap*);
@@ -952,9 +966,12 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_register_plugin_arg(struct soap*, int (*fcreate)(
 SOAP_FMAC1 void* SOAP_FMAC2 soap_lookup_plugin(struct soap*, const char*);
 
 SOAP_FMAC1 struct soap_attribute * SOAP_FMAC2 soap_attr(struct soap *soap, const char *name);
-SOAP_FMAC1 const char * SOAP_FMAC2 soap_attr_value(struct soap *soap, const char *name);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_attr_value(struct soap *soap, const char *name);
 SOAP_FMAC1 int SOAP_FMAC2 soap_set_attr(struct soap *soap, const char *name, const char *value);
 SOAP_FMAC1 void SOAP_FMAC2 soap_clr_attr(struct soap *soap);
+
+SOAP_FMAC1 int SOAP_FMAC2 soap_encode_string(const char*, char*, int);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_decode_string(char*, int, const char*);
 
 #ifdef WITH_COOKIES
 SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_set_cookie(struct soap*, const char*, const char*, const char*, const char*);

@@ -157,7 +157,7 @@ Symbol	*sym;
 { Entry	*p, *q = (Entry*) 0;
   for (p = table->list; p != (Entry*) 0; q = p, p = p->next)
     if (p->sym == sym && p->info.typ->type != Tfun)
-    { sprintf(errbuf, "Duplicate declaration for %s (line %d)", sym->name, p->lineno);
+    { sprintf(errbuf, "Duplicate declaration of %s (line %d)", sym->name, p->lineno);
       semerror(errbuf);
       return p;
     }
@@ -184,14 +184,13 @@ entry - return pointer to table entry of a symbol
 Entry	*entry(table, sym)
 Table	*table;
 Symbol	*sym;
-{
-  Table	*t;
+{ Table	*t;
   Entry	*p;
-  for (t = table; t != (Table *) 0; t = t->prev)
-    for (p = t->list; p != (Entry *) 0; p = p->next)
+  for (t = table; t; t = t->prev)
+    for (p = t->list; p; p = p->next)
       if (p->sym == sym)
 	return p;
-  return (Entry *) 0;
+  return NULL;
 }
 
 Entry *
@@ -909,11 +908,13 @@ generate_schema(Table *t)
   	name = "Service";
     if (!URL)
   	URL = "http://location";
+    /*
     if (!executable)
     { executable = emalloc(strlen(name)+5);
       strcpy(executable, name);
       strcat(executable, ".cgi");
     }
+    */
     if (t)
       for (p = t->list; p; p = p->next)
       { if (p->info.typ->type == Tfun && has_ns_eq(ns->name, p->sym->name))
@@ -1105,7 +1106,10 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
       fprintf(fd, "</message>\n\n");
     }
     fflush(fd);
-    fprintf(fd, "<portType name=\"%s\">\n", name);
+    if (sp && sp->port)
+      fprintf(fd, "<portType name=\"%s\">\n", sp->port);
+    else
+      fprintf(fd, "<portType name=\"%sPortType\">\n", name);
     for (p = t->list; p; p = p->next)
       if (p->info.typ->type == Tfun && has_ns_eq(ns, p->sym->name))
       { fprintf(fd, " <operation name=\"%s\">\n", ns_remove(p->sym->name));
@@ -1136,9 +1140,15 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
       }
     fprintf(fd, "</portType>\n\n");
     if (encoding && !strcmp(encoding, "literal"))
-      fprintf(fd, "<binding name=\"%sBinding\" type=\"tns:%sPortType\">\n <SOAP:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, name);
+      if (sp && sp->port)
+        fprintf(fd, "<binding name=\"%sBinding\" type=\"tns:%s\">\n <SOAP:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, sp->port);
+      else
+        fprintf(fd, "<binding name=\"%sBinding\" type=\"tns:%sPortType\">\n <SOAP:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, name);
     else
-      fprintf(fd, "<binding name=\"%sBinding\" type=\"tns:%sPortType\">\n <SOAP:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, name);
+      if (sp && sp->port)
+        fprintf(fd, "<binding name=\"%sBinding\" type=\"tns:%s\">\n <SOAP:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, sp->port);
+      else
+        fprintf(fd, "<binding name=\"%sBinding\" type=\"tns:%sPortType\">\n <SOAP:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n", name, name);
     fflush(fd);
     for (p = t->list; p; p = p->next)
       if (p->info.typ->type == Tfun && has_ns_eq(ns, p->sym->name))
@@ -1214,12 +1224,15 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
       }
     fprintf(fd, "</binding>\n\n");
   }
-  fprintf(fd, "<service name=\"%sService\">\n", name);
+  fprintf(fd, "<service name=\"%s\">\n", name);
   if (sp && sp->documentation)
     fprintf(fd, " <documentation>%s</documentation>\n", sp->documentation);
   else
     fprintf(fd, " <documentation>gSOAP "VERSION" generated service definition</documentation>\n");
-  fprintf(fd, " <port name=\"%s\" binding=\"tns:%sBinding\">\n  <SOAP:address location=\"%s/%s\"/>\n </port>\n</service>\n\n</definitions>\n", name, name, URL, executable);
+  if (executable)
+    fprintf(fd, " <port name=\"%s\" binding=\"tns:%sBinding\">\n  <SOAP:address location=\"%s/%s\"/>\n </port>\n</service>\n\n</definitions>\n", name, name, URL, executable);
+  else
+    fprintf(fd, " <port name=\"%s\" binding=\"tns:%sBinding\">\n  <SOAP:address location=\"%s\"/>\n </port>\n</service>\n\n</definitions>\n", name, name, URL);
 }
 
 char *
@@ -1358,19 +1371,19 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
 	          cbuf[i] = ',';
 	        cbuf[i] = '\0';
 		if (q->info.maxOccurs == 1)
-	          fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"%s\" type=\"%s\" minOccurs=\"%d\" maxOccurs=\"unbounded\"/>\n     <attribute ref=\"SOAP-ENC:arrayType\" WSDL:arrayType=\"%s[%s]\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n\n", wsdl_type(p->info.typ, NULL), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1), q->info.minOccurs, wsdl_type(q->info.typ, ns1), cbuf);
+	          fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"%s\" type=\"%s\" minOccurs=\"0\" maxOccurs=\"unbounded\"/>\n     <attribute ref=\"SOAP-ENC:arrayType\" WSDL:arrayType=\"%s[%s]\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n\n", wsdl_type(p->info.typ, NULL), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1), wsdl_type(q->info.typ, ns1), cbuf);
                 else
 	          fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"%s\" type=\"%s\" minOccurs=\"%d\" maxOccurs=\"%d\"/>\n     <attribute ref=\"SOAP-ENC:arrayType\" WSDL:arrayType=\"%s[%s]\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n\n", wsdl_type(p->info.typ, NULL), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1), q->info.minOccurs, q->info.maxOccurs, wsdl_type(q->info.typ, ns1), cbuf);
 	      }
               else
 		if (q->info.maxOccurs == 1)
-	          fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"%s\" type=\"%s\" minOccurs=\"%d\" maxOccurs=\"unbounded\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n\n", wsdl_type(p->info.typ, NULL), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1), q->info.minOccurs);
+	          fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"%s\" type=\"%s\" minOccurs=\"0\" maxOccurs=\"unbounded\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n\n", wsdl_type(p->info.typ, NULL), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1));
                 else
 	          fprintf(fd, "  <complexType name=\"%s\">\n   <complexContent>\n    <restriction base=\"SOAP-ENC:Array\">\n     <element name=\"%s\" type=\"%s\" minOccurs=\"%d\" maxOccurs=\"%d\"/>\n    </restriction>\n   </complexContent>\n  </complexType>\n\n", wsdl_type(p->info.typ, NULL), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1),  q->info.minOccurs, q->info.maxOccurs);
           }
 	  else
 	    if (q->info.maxOccurs == 1)
-	      fprintf(fd, "  <complexType name=\"%s\">\n   <sequence>\n    <element name=\"%s\" type=\"%s\" minOccurs=\"%d\" maxOccurs=\"unbounded\" nillable=\"true\"/>\n   </sequence>\n  </complexType>\n\n", ns_remove(p->sym->name), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1), q->info.minOccurs);
+	      fprintf(fd, "  <complexType name=\"%s\">\n   <sequence>\n    <element name=\"%s\" type=\"%s\" minOccurs=\"0\" maxOccurs=\"unbounded\" nillable=\"true\"/>\n   </sequence>\n  </complexType>\n\n", ns_remove(p->sym->name), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1));
             else
 	      fprintf(fd, "  <complexType name=\"%s\">\n   <sequence>\n    <element name=\"%s\" type=\"%s\" minOccurs=\"%d\" maxOccurs=\"%d\" nillable=\"true\"/>\n   </sequence>\n  </complexType>\n\n", ns_remove(p->sym->name), q->sym->name[5]?ns_convert(q->sym->name+5):"item", wsdl_type(q->info.typ, ns1), q->info.minOccurs, q->info.maxOccurs);
         else if (p->info.typ->type == Tstruct && (!has_ns(p->info.typ) && all || has_ns_eq(ns, p->sym->name)))
@@ -2310,7 +2323,7 @@ generate_server(Table *table, Entry *param)
 
 int
 is_qname(Tnode *p)
-{ return p->sym && is_string(p) && !strcmp(p->sym->name, "xsd__QName");
+{ return p->sym && is_string(p) && (!strcmp(p->sym->name, "xsd__QName") || !strcmp(p->sym->name, "QName"));
 }
 
 int
@@ -3867,9 +3880,9 @@ mark(Tnode *typ)
 	if (p = is_dynamic_array(typ->ref))
         { d = get_Darraydims(typ->ref);
           if (d)
-	    fprintf(fout,"\n\tif (!soap_array_reference(soap, *a, (struct soap_array*)(*a)->%s, soap_size((*a)->__size, d), SOAP_TYPE_%s))", p->sym->name, d, c_ident(typ->ref));
+	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, soap_size((*a)->__size, d), SOAP_TYPE_%s))", p->sym->name, d, c_ident(typ->ref));
 	  else
-	    fprintf(fout,"\n\tif (!soap_array_reference(soap, *a, (struct soap_array*)(*a)->%s, (*a)->__size, SOAP_TYPE_%s))", p->sym->name, c_ident(typ->ref));
+	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, (*a)->__size, SOAP_TYPE_%s))", p->sym->name, c_ident(typ->ref));
 	}
 	else
 	  fprintf(fout,"\n\tif (!soap_reference(soap, *a, SOAP_TYPE_%s))", c_ident(typ->ref));
@@ -3888,9 +3901,9 @@ mark(Tnode *typ)
 	else if (p = is_dynamic_array(typ->ref))
         { d = get_Darraydims(typ->ref);
           if (d)
-	    fprintf(fout,"\n\tif (!soap_array_reference(soap, *a, (struct soap_array*)(*a)->%s, soap_size((*a)->__size, %d), SOAP_TYPE_%s))", p->sym->name, d, c_ident(typ->ref));
+	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, soap_size((*a)->__size, %d), SOAP_TYPE_%s))", p->sym->name, d, c_ident(typ->ref));
 	  else
-	    fprintf(fout,"\n\tif (!soap_array_reference(soap, *a, (struct soap_array*)(*a)->%s, (*a)->__size, SOAP_TYPE_%s))", p->sym->name, c_ident(typ->ref));
+	    fprintf(fout,"\n\tif (*a && !soap_array_reference(soap, *a, (struct soap_array*)&(*a)->%s, (*a)->__size, SOAP_TYPE_%s))", p->sym->name, c_ident(typ->ref));
 	  fprintf(fout,"\n\t\tsoap_mark_%s(soap, *a);\n}", c_ident(typ->ref));
 	}
 	else
@@ -4849,9 +4862,7 @@ soap_out_Darray(Tnode *typ)
   }
   p = is_dynamic_array(typ);
   q = table->list;
-  if (has_ns(typ) || is_untyped(typ) || is_binary(typ))
-    fprintf(fout,"\n\tif (!a->%s)\n\t{\tsoap_element_null(soap, tag, id, type);\n\t\treturn SOAP_OK;\n\t}", p->sym->name);
-  else
+  if (!has_ns(typ) && !is_untyped(typ) && !is_binary(typ))
   { if (is_untyped(p->info.typ))
       if (typ->type == Tclass)
       { if (has_offset(typ))
@@ -4895,9 +4906,12 @@ soap_out_Darray(Tnode *typ)
       fprintf(fout,"\n\tchar *t = soap_putsizes(soap, type, a->__size, %d);", d); 
     else
       fprintf(fout,"\n\tchar *t = soap_putsize(soap, type, a->__size);"); 
-    fprintf(fout,"\n\tif (!a->%s)\n\t{\tsoap_element_null(soap, tag, id, t);\n\t\treturn SOAP_OK;\n\t}", p->sym->name);
   }
   fprintf(fout,"\n\ti = soap_array_pointer_lookup(soap, a, (struct soap_array*)&a->%s, n, SOAP_TYPE_%s, &pp);",p->sym->name,c_ident(typ));
+  if (!has_ns(typ) && !is_untyped(typ) && !is_binary(typ))
+    fprintf(fout,"\n\tif (!a->%s)\n\t{\tsoap_element_null(soap, tag, i, t);\n\t\treturn SOAP_OK;\n\t}", p->sym->name);
+  else
+    fprintf(fout,"\n\tif (!a->%s)\n\t{\tsoap_element_null(soap, tag, i, type);\n\t\treturn SOAP_OK;\n\t}", p->sym->name);
   if (is_attachment(typ))
   { fprintf(fout,"\n\tif (a->id || a->type)\n\t{\tif (i && !a->id)\n\t\t{\tsprintf(soap->tmpbuf, soap->dime_id_format, i);\n\t\t\tsoap_element_href(soap, tag, id, soap->tmpbuf);\n\t\t\tsoap_set_attached(soap, pp, soap->tmpbuf, a->type, a->options, n);\n\t\t}\n\t\telse\n\t\t{\tsoap_element_href(soap, tag, id, a->id);\n\t\t\tif (i)\n\t\t\t\tsoap_set_attached(soap, pp, a->id, a->type, a->options, n);\n\t\t}\n\t\treturn SOAP_OK;\n\t}");
   }

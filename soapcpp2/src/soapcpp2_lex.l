@@ -250,6 +250,7 @@ static void directive()
 		sp->next = services;
 		sp->ns = s;
 		sp->name = NULL;
+		sp->port = NULL;
 		sp->URL = NULL;
 		sp->URI = NULL;
 		sp->WSDL = NULL;
@@ -296,14 +297,26 @@ static void directive()
 			s[k-j] = '\0';
 			sp->documentation = s;
 		}
-		else if (!strncmp(yytext+i, "location:", 9))
+		else if (!strncmp(yytext+i, "portType:", 9))
+			sp->port = s;
+		else if (!strncmp(yytext+i, "documentation:", 14))
+		{	for (k = j; yytext[k]; k++)
+				if (yytext[k] == 10 || yytext[k] == 13)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			sp->documentation = s;
+		}
+		else if (!strncmp(yytext+i, "location:", 9) || !strncmp(yytext+i, "port:", 5))
 		{	if (s[strlen(s)-1] == '/')
 				s[strlen(s)-1] = '\0';
 			sp->URL = s;
 		}
 		else if (!strncmp(yytext+i, "executable:", 11))
-		{	sp->executable = s;
-		}
+			sp->executable = s;
 		else if (!strncmp(yytext+i, "namespace:", 10))
 		{	if (service)
 			{	if (!sp->URI)
@@ -314,8 +327,7 @@ static void directive()
 				sp->URI = s;
 		}
 		else if (!strncmp(yytext+i, "encoding:", 9))
-		{	sp->encoding = s;
-		}
+			sp->encoding = s;
 		else if (!strncmp(yytext+i, "method-documentation:", 21))
 		{	m = (Method*)emalloc(sizeof(Method));
 			m->name = s;

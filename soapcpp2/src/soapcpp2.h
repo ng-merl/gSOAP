@@ -24,7 +24,7 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.2"	/* Current version */
+#define VERSION "2.2.1a" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -230,6 +230,7 @@ typedef struct Service
 {	struct Service *next;
 	char *ns;
 	char *name;
+	char *port;
 	char *URL;
 	char *executable;
 	char *URI;

@@ -375,7 +375,7 @@ process_request(void *soap)
   soap_begin(client);
   c = soap_get2(client);
   client->bufidx--; /* instead of unget: enables copying buffer */
-  if (c == 'P') /* simple check to see if HTTP header is present */
+  if (c == 'G' || c == 'P') /* simple check to see if HTTP header is present */
   { if (copy_header(client, &server, NULL, NULL))
       client->error = server.error;
   }

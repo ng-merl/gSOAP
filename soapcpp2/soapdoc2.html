@@ -15,13 +15,13 @@
 
 
 
-<title> The gSOAP Stub and Skeleton Compiler for C and C++ 2.2</title>
+<title> The gSOAP Stub and Skeleton Compiler for C and C++ 2.2.1</title>
     
-<h1 align="center">The gSOAP Stub and Skeleton Compiler for C and C++ 2.2 </h1>
+<h1 align="center">The gSOAP Stub and Skeleton Compiler for C and C++ 2.2.1 </h1>
 
-<h3 align="center">Robert A. van Engelen <br />Department of Computer Science <br />Florida State University <br />Tallahassee, FL32306-4530 <br />engelen@cs.fsu.edu </h3>
+<h3 align="center">Robert A. van Engelen <br />Department of Computer Science <br />Florida State University <br />engelen@acm.edu </h3>
 
-<h3 align="center">Dec 11, 2002
+<h3 align="center">Dec 24, 2002
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -231,6 +231,10 @@
 >11&nbsp; <font color="#0000FF">SOAP Header Processing</font></a><br />
 <a href="#tth_sEc12"
 >12&nbsp; <font color="#0000FF">DIME Attachment Processing</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc12.1"
+>12.1&nbsp; <font color="#0000FF">Non-Streaming DIME</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc12.2"
+>12.2&nbsp; <font color="#0000FF">Streaming DIME</font></a><br />
 <a href="#tth_sEc13"
 >13&nbsp; <font color="#0000FF">Advanced Features</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.1"
@@ -3766,20 +3770,21 @@ The error codes returned by the stub and skeleton routines are listed below.
 <tr><td align="right">11 </td><td><i>SOAP_FATAL_ERROR</i> </td><td>Internal error </td></tr>
 <tr><td align="right">12 </td><td><i>SOAP_FAULT</i> </td><td>An exception raised by the service </td></tr>
 <tr><td align="right">13 </td><td><i>SOAP_NO_METHOD</i> </td><td>Skeleton error: the skeleton cannot serve the method </td></tr>
-<tr><td align="right">14 </td><td><i>SOAP_EOM</i> </td><td>Out of memory </td></tr>
-<tr><td align="right">15 </td><td><i>SOAP_NULL</i> </td><td>An element was null, while it is not supposed to be null </td></tr>
-<tr><td align="right">16 </td><td><i>SOAP_MULTI_ID</i> </td><td>Multiple occurrences of the same element ID on the input </td></tr>
-<tr><td align="right">17 </td><td><i>SOAP_MISSING_ID</i> </td><td>Element ID missing for an HREF on the input </td></tr>
-<tr><td align="right">18 </td><td><i>SOAP_HREF</i> </td><td>Reference to object is incompatible with the object refered to </td></tr>
-<tr><td align="right">19 </td><td><i>SOAP_TCP_ERROR</i> </td><td>A TCP connection error occured </td></tr>
-<tr><td align="right">20 </td><td><i>SOAP_HTTP_ERROR</i> </td><td>An HTTP error occured </td></tr>
-<tr><td align="right">21 </td><td><i>SOAP_SSL_ERROR</i> </td><td>An SSL error occured </td></tr>
-<tr><td align="right">22 </td><td><i>SOAP_ZLIB_ERROR</i> </td><td>A Zlib error occured </td></tr>
-<tr><td align="right">23 </td><td><i>SOAP_DIME_ERROR</i> </td><td>DIME parsing error </td></tr>
-<tr><td align="right">24 </td><td><i>SOAP_EOD</i> </td><td>End of DIME error </td></tr>
-<tr><td align="right">25 </td><td><i>SOAP_VERSIONMISMATCH</i>* </td><td>SOAP version mismatch or no SOAP message </td></tr>
-<tr><td align="right">26 </td><td><i>SOAP_DIME_MISMATCH</i> </td><td>DIME version mismatch </td></tr>
-<tr><td align="right">27 </td><td><i>SOAP_PLUGIN_ERROR</i> </td><td>Failed to register plugin </td></tr>
+<tr><td align="right">14 </td><td><i>SOAP_GET_METHOD</i> </td><td>Unsupported HTTP GET </td></tr>
+<tr><td align="right">15 </td><td><i>SOAP_EOM</i> </td><td>Out of memory </td></tr>
+<tr><td align="right">16 </td><td><i>SOAP_NULL</i> </td><td>An element was null, while it is not supposed to be null </td></tr>
+<tr><td align="right">17 </td><td><i>SOAP_MULTI_ID</i> </td><td>Multiple occurrences of the same element ID on the input </td></tr>
+<tr><td align="right">18 </td><td><i>SOAP_MISSING_ID</i> </td><td>Element ID missing for an HREF on the input </td></tr>
+<tr><td align="right">19 </td><td><i>SOAP_HREF</i> </td><td>Reference to object is incompatible with the object refered to </td></tr>
+<tr><td align="right">20 </td><td><i>SOAP_TCP_ERROR</i> </td><td>A TCP connection error occured </td></tr>
+<tr><td align="right">21 </td><td><i>SOAP_HTTP_ERROR</i> </td><td>An HTTP error occured </td></tr>
+<tr><td align="right">22 </td><td><i>SOAP_SSL_ERROR</i> </td><td>An SSL error occured </td></tr>
+<tr><td align="right">23 </td><td><i>SOAP_ZLIB_ERROR</i> </td><td>A Zlib error occured </td></tr>
+<tr><td align="right">24 </td><td><i>SOAP_DIME_ERROR</i> </td><td>DIME parsing error </td></tr>
+<tr><td align="right">25 </td><td><i>SOAP_EOD</i> </td><td>End of DIME error </td></tr>
+<tr><td align="right">26 </td><td><i>SOAP_VERSIONMISMATCH</i>* </td><td>SOAP version mismatch or no SOAP message </td></tr>
+<tr><td align="right">27 </td><td><i>SOAP_DIME_MISMATCH</i> </td><td>DIME version mismatch </td></tr>
+<tr><td align="right">28 </td><td><i>SOAP_PLUGIN_ERROR</i> </td><td>Failed to register plugin </td></tr>
 <tr><td align="right">-1 </td><td><i>SOAP_EOF</i> </td><td>Unexpected end of file, no input, or timeout receiving data </td></tr></table>
 
 </td></tr></table><br></span>
@@ -6616,10 +6621,25 @@ When both fields are set and <i>soap.actor="http://some/actor"</i> then the mess
 </a>
 
 <p>
-gSOAP can transmit binary data with DIME attachments. The binary data is stored in augmented <tt>xsd:base64Binary</tt> and
-<tt>xsd:hexBinary</tt> structs/classes. These structs/classes have three additional fields: an <i>id</i> field for attachment
-referencing (typically a CID or UUID), a <i>type</i> field to specify the MIME type of the binary data, and an <i>options</i> field to piggy-back additional
-information with a DIME attachment. DIME attachment support is fully automatic, which means that gSOAP will test for the presence
+gSOAP can transmit binary data with DIME attachments with or without streaming.
+With DIME output streaming, the binary data is retrieved from an application's
+data source at run time in parts without storing the entire content. With DIME
+input streaming, the binary data will be handed to the application in parts.
+DIME streaming is implemented with function callbacks. See
+Section&nbsp;<a href="#sec:DIMEstreaming">12.2</a> for more details.
+
+<p>
+	     <h3><a name="tth_sEc12.1">
+12.1</a>&nbsp;&nbsp;<font color="#0000FF">Non-Streaming DIME</font></h3>
+
+<p>
+Without streaming, the binary data is stored in augmented
+<tt>xsd:base64Binary</tt> and <tt>xsd:hexBinary</tt> structs/classes.  These
+structs/classes have three additional fields: an <i>id</i> field for attachment
+referencing (typically a content id (CID) or UUID), a <i>type</i> field to
+specify the MIME type of the binary data, and an <i>options</i> field to
+piggy-back additional information with a DIME attachment. DIME attachment
+support is fully automatic, which means that gSOAP will test for the presence
 of attachments at run time and use SOAP in DIME accordingly.
 
 <p>
@@ -6634,13 +6654,17 @@ A <tt>xsd:base64Binary</tt> type with DIME attachment support is declared by
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*options; <br />
 };
 </td></tr></table><br></i>
-The specification order of the fields is important. In addition, no other fields or methods may be declared before any of these
-fields in the struct/class.
-A <i>xsd:hexBinary</i> declaration is similar. If the <i>id</i> field and/or <i>type</i> field is non-NULL during serialization of
-the data, DIME attachment transmission is used for the <em>entire</em> SOAP message, as per SOAP in DIME specifications.
-If only the <i>type</i> field is set, gSOAP will assign a default DIME id to the attachment (see also below).
-The <i>options</i> field is an optional string with a special layout: the first two bytes are reserved for the option type, the next two
-bytes store the size of the option data, followed by the option data. The function
+The specification order of the fields is significant. In addition, no other
+fields or methods may be declared before any of these fields in the
+struct/class, but additional fields and methods can appear after the field
+declarations.  A <i>xsd:hexBinary</i> declaration is similar. When the <i>id</i>
+field and/or <i>type</i> field is non-NULL during run-time serialization of the
+data, DIME attachment transmission is used for the <em>entire</em> SOAP message,
+as per SOAP in DIME specifications.  When only the <i>type</i> field is set,
+gSOAP will assign a default DIME id to the attachment (see also below).  The
+<i>options</i> field is an optional string with a special layout: the first two
+bytes are reserved for the option type, the next two bytes store the size of
+the option data, followed by the option data. The function
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>char</b>&nbsp;*soap_option(<b>struct</b>&nbsp;soap *soap, <b>unsigned</b>&nbsp;<b>short</b>&nbsp;type, <b>const</b>&nbsp;<b>char</b>&nbsp;*option)
 </td></tr></table><br></i>
@@ -6653,15 +6677,20 @@ image.id = "uuid:09233523-345b-4351-b623-5dsf35sgs5d6"; <br />
 image.type = "image/jpeg"; <br />
 image.options = soap_option(soap, 0, "My wedding picture");
 </td></tr></table><br></i>
-When receiving DIME attachments, the fields will be set according to the DIME attachment data. If binary data is received without
-attachments, the <i>id</i>, <i>type</i>, <i>options</i> fields are NULL. Note that SOAP messages may contain binary data that
-references external resources not provided as attachments. In that case, the <i>__ptr</i> field is NULL and the <i>id</i> field
-refers to the external data source. Non-augmented binary data types <tt>xsd:base64Binary</tt> and <tt>xsd:hexBinary</tt> can be used to receive DIME attachments, but the <i>id</i>,
-<i>type</i>, and <i>options</i> information cannot be processed due to the absence of these fields. Also strings can be received as
-DIME attachments, but not send.
+When receiving DIME attachments, the fields will be set according to the DIME
+attachment content. If binary data is received without attachments, the
+<i>id</i>, <i>type</i>, <i>options</i> fields are all NULL. Note that SOAP
+messages may contain binary data that references external resources not
+provided as attachments. In that case, the <i>__ptr</i> field is NULL and the
+<i>id</i> field refers to the external data source. Non-augmented binary data
+types <tt>xsd:base64Binary</tt> and <tt>xsd:hexBinary</tt> can be used to receive
+DIME attachments, but the <i>id</i>, <i>type</i>, and <i>options</i> information
+are absent. Also DIME attachments can be received and stored in strings, but
+not send from strings.
 
 <p>
-If necessary, the <tt>xsd:base64Binary</tt> schema type and its attachment-based type can be separated with class inheritance. For example:
+When necessary, the <tt>xsd:base64Binary</tt> schema type and its attachment-based
+counterpart can be specified with class inheritance. For example:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>class</b>&nbsp;xsd__base64Binary <br />
 { <br />
@@ -6675,20 +6704,191 @@ If necessary, the <tt>xsd:base64Binary</tt> schema type and its attachment-based
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*options; <br />
 };
 </td></tr></table><br></i>
-The <i>dime_id_format</i> attribute of the current gSOAP run-time environment can be set to the default format of DIME id fields.
-The format string MUST contain a <i>%d</i> format specifier (or any other <i><b>int</b></i>-based format specifier). The value of this specifier is a non-negative integer, with zero
-being the value of the DIME attachment id for the SOAP message.
-For example,
+The <i>dime_id_format</i> attribute of the current gSOAP run-time environment
+can be set to the default format of DIME id fields.  The format string MUST
+contain a <i>%d</i> format specifier (or any other <i><b>int</b></i>-based format
+specifier). The value of this specifier is a non-negative integer, with zero
+being the value of the DIME attachment id for the SOAP message.  For example,
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>struct</b>&nbsp;soap soap;<br />
-soap_init(&amp;soap); <br />
-soap.dime_id_format = "uuid:09233523-345b-4351-b623-5dsf35sgs5d6-%x"; <br />
+<b>struct</b>&nbsp;soap soap;<br />soap_init(&amp;soap); <br />
+soap.dime_id_format
+= "uuid:09233523-345b-4351-b623-5dsf35sgs5d6-%x"; <br />
 </td></tr></table><br></i>
-As a result, all attachments with a NULL <i>id</i> field will use a gSOAP-generated id value based on the format string.
+As a result, all attachments with a NULL <i>id</i> field will use a
+gSOAP-generated id value based on the format string.
 
 <p>
-<font color="#FF0000"><b>Caution</b></font>: Do not set the <i>disable_request_count</i> or <i>disable_response_count</i> attributes of the gSOAP run-time
-with DIME.
+	     <h3><a name="tth_sEc12.2">
+12.2</a>&nbsp;&nbsp;<font color="#0000FF">Streaming DIME</font></h3><a name="sec:DIMEstreaming">
+</a>
+
+<p>
+Three function callbacks for streaming DIME output and three callbacks for
+streaming DIME input are available. These callbacks are used to access
+application data resources during transmission.
+
+<p>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
+
+<table>
+<tr><td width="602"><font color="#FF0000"><b>Callback (function pointer)</b></font> </td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fdimereadopen)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*options)</i> </td></tr>
+<tr><td width="602">Called from the gSOAP run-time DIME attachment sender to start reading from a
+(binary) data source for outbound transmission. The content will be read from the
+application's data source in chunks using the <i>fdimeread</i> callback and
+streamed into the SOAP/XML/DIME output stream. The <i>handle</i> contains the
+value of the <i>__ptr</i> field of an attachment struct/class, which could be a
+pointer to specific information such as a file descriptor or a pointer to a
+string to be passed to this callback.  Both <i>__ptr</i> and <i>__size</i>
+fields should have been set by the application prior to the serialization of
+the content. The <i>id</i>, <i>type</i>, and <i>options</i> arguments are the DIME
+id, type, and options, respectively. The callback should return <i>handle</i>,
+or another pointer value which will be passed as a handle to <i>fdimeread</i>
+and <i>fdimereadclose</i>.  The callback should return NULL and set
+<i>soap</i><tt>-&gt;</tt><i>error</i> when an error occurred. The callback should return
+NULL (and not set <i>soap</i><tt>-&gt;</tt><i>error</i>) when this particular DIME
+attachment is not to be streamed.
+</td></tr>
+<tr><td width="602"><i>size_t (*soap.fdimeread)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>char</b>&nbsp;*buf, size_t len)</i> </td></tr>
+<tr><td width="602">Called from the gSOAP run-time DIME attachment sender to read more data from a
+(binary) data source for streaming into the output stream.  The <i>handle</i>
+contains the value returned by the <i>fdimereadopen</i> callback.  The <i>buf</i>
+argument is the buffer of length <i>len</i> into which a chunk of data should be
+stored.  The actual amount of data stored in the buffer might be less than
+<i>len</i> and the amount should be returned by the application.  A return value
+of 0 indicates an error.  The <i>__size</i> field of the attachment
+struct/class should have been set by the application prior to the serialization
+of the content.  The value of <i>__size</i> indicates the total size of the
+content to be transmitted.
+</td></tr>
+<tr><td width="602"><i><b>void</b>(*soap.fdimereadclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
+<tr><td width="602">Called from the gSOAP run-time DIME attachment sender at the end of the
+streaming process to close the data source.  The <i>handle</i> contains the
+value returned by the <i>fdimereadopen</i> callback.  The <i>fdimewriteclose</i>
+callback is called after successfully transmitting the data or when an error
+occurred.
+</td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fdimewriteopen)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*options)</i> </td></tr>
+<tr><td width="602">Called from the gSOAP run-time DIME attachment receiver to start writing an
+inbound DIME attachment to an application's data store. The content is streamed
+into an application data store through multiple <i>fdimewrite</i> calls from the
+gSOAP attachment receiver.  The <i>id</i>, <i>type</i>, and <i>options</i>
+arguments are the DIME id, type, and options, respectively. The callback should
+return a handle which is passed to the <i>fdimewrite</i> and
+<i>fdimewriteclose</i> callbacks. The <i>__ptr</i> field of the attachment
+struct/class is set to the value of this handle. The <i>__size</i> field is set
+to the total size of the attachment after receving the entire content. The size
+is unknown in advance because a DIME attachment may be chunked.
+</td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fdimewrite)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*buf, size_t len)</i> </td></tr>
+<tr><td width="602">Called from the gSOAP run-time DIME attachment receiver to write part of
+an inbound DIME attachment to an application's data store.
+The <i>handle</i>
+contains the value returned by the <i>fdimewriteopen</i> callback.  The <i>buf</i>
+argument contains the data of length <i>len</i>.
+The callback should return a gSOAP error code (e.g.&nbsp;<i>SOAP_OK</i> when no error occurred).
+</td></tr>
+<tr><td width="602"><i><b>void</b>(*soap.fdimewriteclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
+<tr><td width="602">Called from the gSOAP run-time DIME attachment receiver at the end of the
+streaming process to close the data store.  The <i>handle</i> contains the value
+returned by the <i>fdimewriteopen</i> callback.  The <i>fdimewriteclose</i>
+callback is called after successfully receiving the data or when an error
+occurred.
+</td></tr></table>
+
+</td></tr></table><br></span>
+In addition, a <i><b>void</b>*user</i> field in the <i><b>struct</b>&nbsp;soap</i> data structure is available to pass user-defined data to the callbacks.
+
+<p>
+The following example illustrates the client-side initialization of an image attachment struct to stream a file into a DIME attachment:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;main() <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;xsd__base64Binary image; <br />
+&nbsp;&nbsp;&nbsp;FILE *fd; <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;stat sb; <br />
+&nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!fstat(fileno(fd), &amp;sb) &amp;&amp; sb.st_size  &gt;  0) <br />
+&nbsp;&nbsp;&nbsp;{ // because we can get the length of the file, we can stream it <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap.fdimereadopen = dime_read_open; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap.fdimereadclose = dime_read_close; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap.fdimeread = dime_read; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__ptr = (<b>unsigned</b>&nbsp;<b>char</b>*)fd; // must set to non-NULL (this is our fd handle which we need in the callbacks) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__size = sb.st_size; // must set size <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;{ // don't know the size, so buffer it <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;size_t i; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;c; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__ptr = (<b>unsigned</b>&nbsp;<b>char</b>*)soap_malloc(&amp;soap, MAX_FILE_SIZE); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_FILE_SIZE; i++) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;((c = fgetc(fd)) == EOF) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__ptr[i] = c; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fclose(fd); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__size = i; <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;image.type = "image/jpeg"; <br />
+&nbsp;&nbsp;&nbsp;image.options = soap_dime_option(&amp;soap, 0, "My picture"); <br />
+&nbsp;&nbsp;&nbsp;soap_call_ns__method(&amp;soap, ...); <br />
+&nbsp;&nbsp;&nbsp;... <br />
+} <br />
+<b>void</b>&nbsp;*dime_read_open(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*options) <br />
+{ <b>return</b>&nbsp;handle; <br />
+} <br />
+<b>void</b>&nbsp;dime_read_close(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle) <br />
+{ fclose((FILE*)handle); <br />
+} <br />
+size_t dime_read(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>char</b>&nbsp;*buf, size_t len) <br />
+{ <b>return</b>&nbsp;fread(buf, 1, len, (FILE*)handle); <br />
+}
+</td></tr></table><br></i>
+
+<p>
+The following example illustrates the streaming of a DIME attachment into a file by a client:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;main() <br />
+{ <b>struct</b>&nbsp;soap soap; <br />
+&nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;soap.fdimewriteopen = dime_write_open; <br />
+&nbsp;&nbsp;&nbsp;soap.fdimewriteclose = dime_write_close; <br />
+&nbsp;&nbsp;&nbsp;soap.fdimewrite = dime_write; <br />
+&nbsp;&nbsp;&nbsp;soap_call_ns__method(&amp;soap, ...); <br />
+&nbsp;&nbsp;&nbsp;... <br />
+} <br />
+<b>void</b>&nbsp;*dime_write_open(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*options) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;FILE *handle = fopen("somefile", "wb"); <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!handle) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>error = SOAP_EOF; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>errnum = errno; // get reason <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;(<b>void</b>*)handle; <br />
+} <br />
+<b>void</b>&nbsp;dime_write_close(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle) <br />
+{ fclose((FILE*)handle); <br />
+} <br />
+<b>int</b>&nbsp;dime_write(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*buf, size_t len) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;size_t nwritten; <br />
+&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(len) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nwritten = fwrite(buf, 1, len, (FILE*)handle); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!nwritten) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>errnum = errno; // get reason <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_EOF; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len -= nwritten; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf += nwritten; <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
+}
+</td></tr></table><br></i>
 
 <p>
  <h2><a name="tth_sEc13">
@@ -6700,12 +6900,15 @@ with DIME.
 13.1</a>&nbsp;&nbsp;<font color="#0000FF">Internationalization</font></h3>
 
 <p>
-The use of wide-character strings (<i>wchar_t*</i>) in C and C++ clients and services suffices for internationalization.
-In contrast, when strings with wide characters are received and stored in regular strings, only the lower 8 bits of the wide characters are retained.
-The <i>enable_utf_string</i> attribute of the current gSOAP environment can be set
-to enable send and receive of wide-characters with regular strings.
-With this attrbute set, text will be stored in UTF8 format in the strings directly, which means that character codes 1 to 127 are treated as plain ASCII.
-Codes with the MSB set are UTF8-encoded characters. Please consult the UTF8 specification for details.
+The use of wide-character strings (<i>wchar_t*</i>) in C and C++ clients and
+services suffices for internationalization.  In contrast, when strings with
+wide characters are received and stored in regular strings, only the lower 8
+bits of the wide characters are retained.  The <i>SOAP_C_UTFSTRING</i> flag
+can be set to enable send and/or receive of wide-characters with regular
+strings.  With this flag set, text will be stored in UTF8 format in the strings
+directly, which means that character codes 1 to 127 are treated as plain ASCII.
+Codes with the MSB set are UTF8-encoded characters. Please consult the UTF8
+specification for details.
 
 <p>
 		     <h3><a name="tth_sEc13.2">
@@ -6727,15 +6930,35 @@ To specify the name of a Web Service in the header file, use:
 </td></tr></table><br></i>
 where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>service-name</i> is the name
 of a Web Service (only required to create new Web Services).
+The name may be followed by text up to the end of the line which is incorporated into the WSDL service documentation. Alternatively, the service documentation can be provided with the directive below.
 
 <p>
-To specify the location of a Web Service in the header file, use:
+To specify the documentation of a Web Service in the header file, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service documentation: <i>text</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>text</i> is the documentation text up to the end of the line.
+The text is incorporated into the WSDL service documentation.
+
+<p>
+To specify the portType of a Web Service in the header file, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service portType: <i>portType</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>portType</i> is the portType name of the WSDL service portType.
+
+<p>
+To specify the location (or port endpoint) of a Web Service in the header file, use:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap <i>namespace-prefix</i> service location: <i>URL</i>
 </td></tr></table><br></i>
+or alternatively
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service port: <i>URL</i>
+</td></tr></table><br></i>
 where <i>URL</i> is the location of the Web Service (only required to create new Web Services).
 The <i>URL</i> specifies the path to the service executable (so <i><i>URL</i>/<i>service-executable</i></i>
-is the actual locations of the executable).
+is the actual location of the executable when declared).
 
 <p>
 To specify the name of the executable of a Web Service in the header file, use:
@@ -7155,8 +7378,7 @@ Built-in gSOAP function: <i>fignore</i>
 </td></tr></table>
 
 </td></tr></table><br></span>
-In addition, a <i><b>void</b>*user</i> field in the <i><b>struct</b>&nbsp;soap</i> data structure has been reserved that can serve to point to user-defined data that needs
-to be carried along the callbacks.
+In addition, a <i><b>void</b>*user</i> field in the <i><b>struct</b>&nbsp;soap</i> data structure is available to pass user-defined data to the callbacks.
 
 <p>
 The following example uses I/O function callbacks for customized serialization of data into a buffer and deserialization back into a
@@ -8339,5 +8561,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 11 Dec 2002, 12:28.</small>
+version 3.00.<br />On 24 Dec 2002, 14:20.</small>
 </html>
