@@ -6,12 +6,12 @@ int main()
 { struct soap soap;
   struct ns__getQuoteResponse r;
   soap_init(&soap);
-  if (soap_send_ns__getQuote(&soap, "http://services.xmethods.net/soap", "", "AOL"))
+  if (soap_send_ns__getQuote(&soap, "http://services.xmethods.net/soap", "", "IBM"))
     soap_print_fault(&soap, stderr);
   else if (soap_recv_ns__getQuoteResponse(&soap, &r))
     soap_print_fault(&soap, stderr);
   else
-    printf("AOL: %f\n", r.Result);
+    printf("IBM: %f\n", r.Result);
   soap_end(&soap);
   soap_done(&soap);
   return 0;

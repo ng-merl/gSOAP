@@ -10,8 +10,8 @@
 // To access a stand-alone server on a port: magicserver[] = "IP:PORT";
 // use "http://" to include HTTP header: magicserver[] = "http://IP:PORT";
 // const char magicserver[] = "http://";
- const char magicserver[] = "http://localhost:18081";
-//const char magicserver[] = "http://www.cs.fsu.edu/~engelen/magicserver.cgi";
+// const char magicserver[] = "http://localhost:18081";
+const char magicserver[] = "http://www.cs.fsu.edu/~engelen/magicserver.cgi";
 
 int main(int argc, char **argv)
 { struct soap soap;

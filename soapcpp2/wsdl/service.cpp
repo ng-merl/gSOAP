@@ -1,0 +1,650 @@
+/*
+
+service.cpp
+
+WSDL parser and converter to gSOAP header file format
+
+--------------------------------------------------------------------------------
+gSOAP XML Web services tools
+Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+Author contact information:
+engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+
+*/
+
+#include "types.h"
+#include "service.h"
+
+static void comment(const char *start, const char *middle, const char *end, const char *text);
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Definitions methods
+//
+////////////////////////////////////////////////////////////////////////////////
+
+Definitions::Definitions()
+{ }
+
+void Definitions::collect(const wsdl__definitions &definitions)
+{ // Collect information: analyze WSDL definitions and imported definitions
+  analyze(definitions);
+  for (vector<wsdl__import>::const_iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
+    if ((*import).definitionsPtr())
+      analyze(*(*import).definitionsPtr());
+}
+
+void Definitions::analyze(const wsdl__definitions &definitions)
+{ for (vector<wsdl__service>::const_iterator service = definitions.service.begin(); service != definitions.service.end(); ++service)
+  { // /definitions/service/documentation
+    const char *service_name = (*service).name;
+    const char *service_documentation = (*service).documentation;
+    // /definitions/service/port*
+    for (vector<wsdl__port>::const_iterator port = (*service).port.begin(); port != (*service).port.end(); ++port)
+    { // /definitions/service/port/documentation
+      const char *port_documentation = (*port).documentation;
+      // /definitions/service/port/soap:address
+      soap__address *soap__address_ = (*port).soap__address_;
+      // /definitions/service/port/soap:address/@location
+      const char *soap__address_location = NULL;
+      if (soap__address_)
+        soap__address_location = soap__address_->location;
+      // /definitions/service/port/http:address
+      http__address *http__address_ = (*port).http__address_;
+      // /definitions/service/port/http:address/@location
+      const char *http__address_location = NULL;
+      if (http__address_)
+        http__address_location = http__address_->location;
+      // /definitions/binding* referenced by /definitions/port/@binding
+      wsdl__binding *binding = (*port).bindingPtr();
+      if (binding)
+      { // /definitions/binding/documentation
+        const char *binding_documentation = binding->documentation;
+	// /definitions/binding/soap:binding
+        soap__binding *soap__binding_ = binding->soap__binding_;
+	// /definitions/binding/soap:binding/@transport
+	const char *soap__binding_transport = NULL;
+	if (soap__binding_)
+	  soap__binding_transport = soap__binding_->transport;
+	// /definitions/binding/soap:binding/@style
+	soap__styleChoice soap__binding_style = rpc;
+	if (soap__binding_ && soap__binding_->style)
+	  soap__binding_style = *soap__binding_->style;
+	// /definitions/binding/http:binding
+        http__binding *http__binding_ = binding->http__binding_;
+	const char *http__binding_verb = NULL;
+	if (http__binding_)
+	   http__binding_verb = http__binding_->verb;
+	// /definitions/binding/operation*
+        for (vector<wsdl__binding_operation>::const_iterator operation = binding->operation.begin(); operation != binding->operation.end(); ++operation)
+	{ // /definitions/portType/operation/ associated with /definitions/binding/operation
+	  wsdl__operation *wsdl__operation_ = (*operation).operationPtr();
+	  // /definitions/binding/operation/soap:operation
+          soap__operation *soap__operation_ = (*operation).soap__operation_;
+	  // /definitions/binding/operation/soap:operation/@style
+	  soap__styleChoice soap__operation_style = soap__binding_style;
+	  if (soap__operation_ && soap__operation_->style)
+	    soap__operation_style = *soap__operation_->style;
+	  // /definitions/binding/operation/http:operation
+          http__operation *http__operation_ = (*operation).http__operation_;
+	  // /definitions/binding/operation/http:operation/@location
+	  const char *http__operation_location = NULL;
+	  if (http__operation_)
+	    http__operation_location = http__operation_->location;
+	  // /definitions/binding/operation/input
+          wsdl__ext_input *ext_input = (*operation).input;
+	  // /definitions/binding/operation/output
+	  wsdl__ext_output *ext_output = (*operation).output;
+	  // /definitions/portType/operation
+	  if (wsdl__operation_)
+	  { wsdl__input *input = wsdl__operation_->input;
+	    if (http__operation_)
+	    { // TODO: HTTP operation
+	    }
+            else if (input && ext_input)
+	    { // MUST have an input, otherwise can't generate a service operation
+	      if (ext_input->soap__body_)
+	      { const char *URI;
+	        if (soap__operation_style == rpc)
+		  URI = ext_input->soap__body_->namespace_;
+		else if (binding->name)
+	          URI = binding->name; // the artificial namespace of document style
+                else
+	          URI = service_name;
+	        if (URI)
+	        { const char *prefix = types.nsprefix(NULL, URI);
+	          const char *name = types.aname(NULL, NULL, binding->name); // name of service is binding name
+	          Service *s = services[prefix];
+	          if (!s)
+	          { s = services[prefix] = new Service();
+	            s->prefix = prefix;
+	            s->URI = URI;
+	            s->name = name;
+		    if (binding->portTypePtr())
+		      s->type = types.aname(NULL, NULL, binding->portTypePtr()->name);
+		    else
+		      s->type = NULL;
+	          }
+		  if (service_documentation)
+		    s->service_documentation[(*service).name] = service_documentation;
+		  if (port_documentation)
+		    s->port_documentation[(*port).name] = port_documentation;
+		  if (binding_documentation)
+		    s->binding_documentation[binding->name] = binding_documentation;
+		  if (soap__address_location)
+		    s->location.insert(soap__address_location);
+                  Operation *o = new Operation();
+		  o->name = types.aname(NULL, NULL, wsdl__operation_->name);
+		  o->prefix = prefix;
+		  o->URI = URI;
+		  o->style = soap__operation_style;
+		  o->documentation = wsdl__operation_->documentation;
+		  o->operation_documentation = (*operation).documentation;
+		  o->parameterOrder = wsdl__operation_->parameterOrder;
+	          if ((*operation).soap__operation_)
+		    o->soapAction = (*operation).soap__operation_->soapAction;
+		  else
+		    o->soapAction = NULL;
+		  o->input = new Message();
+		  o->input->name = (*operation).name; // RPC uses operation/@name
+		  o->input->URI = ext_input->soap__body_->namespace_;
+                  o->input->use = ext_input->soap__body_->use;
+                  o->input->encodingStyle = ext_input->soap__body_->encodingStyle;
+		  o->input->message = input->messagePtr();
+		  o->input->header = ext_input->soap__header_;
+		  o->input->headerfault = ext_input->soap__headerfault_;
+		  o->input->documentation = input->documentation;
+		  o->input->ext_documentation = ext_input->documentation;
+	          wsdl__output *output = wsdl__operation_->output;
+	          if (soap__operation_style == document)
+                    o->input_name = types.oname("__", o->URI, o->input->name);
+                  else
+                    o->input_name = types.oname(NULL, o->input->URI, o->input->name);
+	          if (output && ext_output && ext_output->soap__body_)
+		  { o->output = new Message();
+		    o->output->name = (*operation).name; // RPC uses operation/@name with suffix 'Response'
+		    o->output->URI = ext_output->soap__body_->namespace_;
+                    o->output->use = ext_output->soap__body_->use;
+                    o->output->encodingStyle = ext_output->soap__body_->encodingStyle;
+		    o->output->message = output->messagePtr();
+		    o->output->header = ext_output->soap__header_;
+		    o->output->headerfault = ext_output->soap__headerfault_;
+		    o->output->documentation = output->documentation;
+		    o->output->ext_documentation = ext_output->documentation;
+                    char *s = (char*)soap_malloc(definitions.soap, strlen(o->output->name) + 9);
+                    strcpy(s, o->output->name);
+                    strcat(s, "Response");
+                    if (soap__operation_style == document)
+                      o->output_name = types.oname("__", o->URI, s);
+                    else
+                      o->output_name = types.oname(NULL, o->output->URI, s);
+	          }
+		  else
+		  { o->output_name = NULL;
+		    o->output = NULL;
+		  }
+	          for (vector<wsdl__ext_fault>::const_iterator ext_fault = (*operation).fault.begin(); ext_fault != (*operation).fault.end(); ++ext_fault)
+		  { if ((*ext_fault).soap__fault_ && (*ext_fault).messagePtr())
+		    { Message *f = new Message();
+		      f->message = (*ext_fault).messagePtr();
+		      f->encodingStyle = NULL;
+		      f->URI = (*ext_fault).soap__fault_->namespace_;
+		      f->use = (*ext_fault).soap__fault_->use;
+		      f->ext_documentation = (*ext_fault).documentation;
+                      f->name = types.oname("__", f->URI, f->message->name);
+		      f->documentation = f->message->documentation;
+		      o->fault.push_back(f);
+		      s->fault[f->name] = f;
+		    }
+		    else
+		      fprintf(stderr, "No definitions/binding/operation/fault/soap:fault\n");
+		  }
+		  s->operation.push_back(o);
+                }
+		else
+		  fprintf(stderr, "No SOAP RPC operation namespace\n");
+	      }
+	      else
+	        fprintf(stderr, "No definitions/binding/operation/input/soap:body\n");
+	    }
+	    else
+	      fprintf(stderr, "No definitions/portType/operation/input\n");
+          }
+	  else
+	    fprintf(stderr, "No definitions/portType/operation\n");
+        }
+      }
+      else
+	fprintf(stderr, "No definitions/binding\n");
+    }
+  }
+}
+
+void Definitions::compile(const wsdl__definitions& definitions)
+{ // compile the definitions and generate gSOAP header file
+  if (definitions.name)
+    fprintf(stream, "/*  %s definitions */\n\n", definitions.name);
+  if (definitions.documentation)
+    fprintf(stream, "/*  %s\n*/\n\n", definitions.documentation);
+  if (!lflag)
+    fprintf(stream, "/*\n%s%s*/\n\n", copyrightnotice, licensenotice);
+  // copy documentation from WSDL definitions
+  // gsoap compiler options
+  if (cflag)
+    fprintf(stream, "//gsoapopt cw\n");
+  else
+    fprintf(stream, "//gsoapopt w\n");
+  // determine if we must use SOAP 1.2, this is a bit of a hack due to the lack of WSDL1.1/SOAP1.2 support and better alternatives
+  for (Namespace *p = definitions.soap->local_namespaces; p && p->id; p++)
+  { if (p->out && !strcmp(p->id, "soap"))
+    { fprintf(stream, "// This service uses SOAP 1.2 namespaces:\n");
+      fprintf(stream, "//gsoap SOAP-ENV schema namespace:\thttp://www.w3.org/2003/05/soap-envelope\n");
+      fprintf(stream, "//gsoap SOAP-ENC schema namespace:\thttp://www.w3.org/2003/05/soap-encoding\n");
+      break;
+    }
+  }
+  if (!cflag && !sflag)
+    fprintf(stream, "#import \"stl.h\"\n");
+  fprintf(stream, "#import \"xml.h\"\n");
+  if (mflag)
+    fprintf(stream, "#import \"base.h\"\n");
+  // generate the prototypes first: these should allow use before def, e.g. class names then generate the defs
+  // check if xsd:anyType is used
+  if (!cflag && !pflag)
+  { for (SetOfString::const_iterator i = definitions.builtinTypes().begin(); i != definitions.builtinTypes().end(); ++i)
+    { if (!cflag && !strcmp(*i, "xs:anyType"))
+      { pflag = 1;
+        break;
+      }
+    }
+  }
+  // define xsd:anyType first, if used
+  if (!cflag && pflag)
+  { const char *s, *t;
+    t = types.cname(NULL, NULL, "xs:anyType");
+    s = types.deftypemap[t];
+    if (s)
+    { if (*s)
+      { if (!mflag)
+	  fprintf(stream, "%s\n", s);
+      }
+      s = types.usetypemap[t];
+      if (s)
+      { if (mflag)
+	  fprintf(stream, "// base.h must define type: %s\n", s);
+        types.knames.insert(s);
+      }
+    }
+    else
+    { fprintf(stderr, "No xsd__anyType defined in type map\n");
+      pflag = 0;
+    }
+  }
+  // produce built-in primitive types, limited to the ones that are used only
+  for (SetOfString::const_iterator i = definitions.builtinTypes().begin(); i != definitions.builtinTypes().end(); ++i)
+  { const char *s, *t;
+    if (!cflag && pflag && !strcmp(*i, "xs:anyType"))
+      continue;
+    t = types.cname(NULL, NULL, *i);
+    s = types.deftypemap[t];
+    if (s)
+    { if (*s)
+      { if (!mflag)
+	{ fprintf(stream, "// built-in type \"%s\":\n", *i);
+          fprintf(stream, "%s\n", s);
+        }
+      }
+      s = types.usetypemap[t];
+      if (s)
+      { if (mflag)
+	  fprintf(stream, "// base.h must define type: %s\n", s);
+        types.knames.insert(s);
+      }
+    }
+    else
+    { if (!mflag)
+      { fprintf(stream, "// generic built-in type \"%s\":\n", *i);
+        fprintf(stream, "typedef char *%s;\n", t);
+      }
+      else
+	fprintf(stream, "// base.h must define type: %s\n", t);
+      types.ptrtypemap[t] = types.deftname(TYPEDEF, NULL, NULL, NULL, *i);	// already pointer
+    }
+    if (pflag && !strncmp(*i, "xs:", 3))		// only xsi types are polymorph
+    { s = types.aname(NULL, NULL, *i);
+      if (!mflag)
+      { fprintf(stream, "// class wrapper for built-in type \"%s\" derived from xsd__anyType:\n", *i);
+        fprintf(stream, "class %s : public xsd__anyType\n{ public:\n", s);
+        fprintf(stream, elementformat, types.tname(NULL, NULL, *i), "__item;");
+        fprintf(stream, "\n};\n");
+      }
+      types.knames.insert(s);
+    }
+  }
+  // produce built-in primitive elements, limited to the ones that are used only
+  for (SetOfString::const_iterator j = definitions.builtinElements().begin(); j != definitions.builtinElements().end(); ++j)
+  { const char *s, *t = types.cname("_", NULL, *j);
+    s = types.deftypemap[t];
+    if (s && *s)
+    { if (mflag)
+        fprintf(stream, "// built-in element \"%s\":\n", *j);
+      else
+        fprintf(stream, "// base.h must define element: ");
+      fprintf(stream, "%s\n", s);
+    }
+    else
+    { if (!mflag)
+      { fprintf(stream, "// built-in element \"%s\"\n", t);
+        fprintf(stream, "typedef XML %s;\n", t);
+      }
+      else
+	fprintf(stream, "// base.h must define element: %s\n", t);
+      types.ptrtypemap[t] = types.deftname(TYPEDEF, NULL, NULL, NULL, *j);	// already pointer
+    }
+  }
+  // produce built-in primitive attributes, limited to the ones that are used only
+  for (SetOfString::const_iterator k = definitions.builtinAttributes().begin(); k != definitions.builtinAttributes().end(); ++k)
+  { const char *s, *t = types.cname("_", NULL, *k);
+    s = types.deftypemap[t];
+    if (s && *s)
+    { if (mflag)
+        fprintf(stream, "// built-in attribute \"%s\":\n", *k);
+      else
+        fprintf(stream, "// base.h must define element: ");
+      fprintf(stream, "%s\n", s);
+    }
+    else
+    { if (!mflag)
+      { fprintf(stream, "// built-in attribute \"%s\"\n", t);
+        fprintf(stream, "typedef char *%s;\n", t);
+      }
+      else
+	fprintf(stream, "// base.h must define attribute: %s\n", t);
+      types.ptrtypemap[t] = types.deftname(TYPEDEF, NULL, NULL, NULL, *k);	// already pointer
+    }
+  }
+  // produce types
+  if (definitions.types)
+  { if (definitions.types->documentation)
+      fprintf(stream, "/*  Types documentation:\n    %s\n*/\n", definitions.types->documentation);
+    for (vector<xs__schema>::const_iterator schema1 = definitions.types->xs__schema_.begin(); schema1 != definitions.types->xs__schema_.end(); ++schema1)
+      fprintf(stream, schemaformat, types.nsprefix(NULL, (*schema1).targetNamespace), "namespace", (*schema1).targetNamespace);
+    // define class/struct types first
+    for (vector<xs__schema>::const_iterator schema2 = definitions.types->xs__schema_.begin(); schema2 != definitions.types->xs__schema_.end(); ++schema2)
+    { for (vector<xs__complexType>::const_iterator complexType = (*schema2).complexType.begin(); complexType != (*schema2).complexType.end(); ++complexType)
+        types.define((*schema2).targetNamespace, NULL, *complexType);
+      for (vector<xs__element>::const_iterator element = (*schema2).element.begin(); element != (*schema2).element.end(); ++element)
+        if (!(*element).type && (*element).complexTypePtr())
+          types.define((*schema2).targetNamespace, (*element).name, *(*element).complexTypePtr());
+    }  
+    // visit types with lowest base level first
+    int baseLevel = 1;
+    bool found;
+    do
+    { found = (baseLevel == 1);
+      for (vector<xs__schema>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
+      { for (vector<xs__simpleType>::iterator simpleType = (*schema).simpleType.begin(); simpleType != (*schema).simpleType.end(); ++simpleType)
+        { if ((*simpleType).baseLevel() == baseLevel)
+          { found = true;
+	    types.gen((*schema).targetNamespace, NULL, *simpleType);
+	  }
+	}
+        for (vector<xs__element>::iterator element = (*schema).element.begin(); element != (*schema).element.end(); ++element)
+        { if (!(*element).type && (*element).simpleTypePtr() && (*element).simpleTypePtr()->baseLevel() == baseLevel)
+          { found = true;
+	    types.gen((*schema).targetNamespace, (*element).name, *(*element).simpleTypePtr());
+	  }
+          if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
+            found = true;
+	}
+        for (vector<xs__attribute>::const_iterator attribute = (*schema).attribute.begin(); attribute != (*schema).attribute.end(); ++attribute)
+        { if (!(*attribute).type && (*attribute).simpleTypePtr() && (*attribute).simpleTypePtr()->baseLevel() == baseLevel)
+          { found = true;
+	    types.gen(NULL, (*attribute).name, *(*attribute).simpleTypePtr()); // URI = NULL won't generate type in schema (type without namespace qualifier)
+	  }
+	}
+        for (vector<xs__complexType>::iterator complexType = (*schema).complexType.begin(); complexType != (*schema).complexType.end(); ++complexType)
+        { if ((*complexType).baseLevel() == baseLevel)
+	    found = true;
+        }
+      }
+      ++baseLevel;
+    } while (found);
+    // generate complex type defs. Problem: what if a simpleType restriction/extension depends on a complexType simpleContent restriction/extension?
+    int maxLevel = baseLevel;
+    for (baseLevel = 1; baseLevel < maxLevel; ++baseLevel)
+    { for (vector<xs__schema>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
+      { for (vector<xs__complexType>::iterator complexType = (*schema).complexType.begin(); complexType != (*schema).complexType.end(); ++complexType)
+        { if ((*complexType).baseLevel() == baseLevel)
+	    types.gen((*schema).targetNamespace, NULL, *complexType);
+        }
+        for (vector<xs__element>::iterator element = (*schema).element.begin(); element != (*schema).element.end(); ++element)
+        { if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
+	    types.gen((*schema).targetNamespace, (*element).name, *(*element).complexTypePtr());
+	}
+      }
+    }
+    // option to consider: generate local complexTypes iteratively
+    /*
+    for (MapOfStringToType::const_iterator local = types.locals.begin(); local != types.locals.end(); ++local)
+    { types.gen(NULL, (*local).first, *(*local).second);
+    }
+    */
+  }
+  collect(definitions);
+  generate();
+  fprintf(stream, "\n/*  end of %s definitions */\n", definitions.name?definitions.name:"");
+}
+
+void Definitions::generate()
+{ bool found = false;
+  for (MapOfStringToService::const_iterator service1 = services.begin(); service1 != services.end(); ++service1)
+  { for (MapOfStringToMessage::const_iterator fault = (*service1).second->fault.begin(); fault != (*service1).second->fault.end(); ++fault)
+    { found = true;
+      fprintf(stream, "// SOAP Fault\n");
+      if (cflag)
+        fprintf(stream, "struct %s\n{\n", (*fault).second->name);
+      else
+        fprintf(stream, "class %s\n{ public:", (*fault).second->name);
+      (*fault).second->generate(types, ";", false, true);
+      fprintf(stream, "\n};\n");
+    }
+  }
+  if (found)
+  { // TODO: compose Fault struct
+  }
+  for (MapOfStringToService::const_iterator service2 = services.begin(); service2 != services.end(); ++service2)
+    (*service2).second->generate(types);
+} 
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Service methods
+//
+////////////////////////////////////////////////////////////////////////////////
+
+Service::Service()
+{ prefix = NULL;
+  URI = NULL;
+  name = NULL;
+}
+
+void Service::generate(Types& types)
+{ fprintf(stream, "\n/* Service %s operations:\n\n", name);
+  for (vector<Operation*>::const_iterator op1 = operation.begin(); op1 != operation.end(); ++op1)
+  { if (*op1)
+      fprintf(stream, "  %s\n", (*op1)->input_name);
+  }
+  fprintf(stream, "\n*/\n\n");
+  for (MapOfStringToString::const_iterator service_doc = service_documentation.begin(); service_doc != service_documentation.end(); ++service_doc)
+    comment("Service", (*service_doc).first, "", (*service_doc).second);
+  for (MapOfStringToString::const_iterator port_doc = port_documentation.begin(); port_doc != port_documentation.end(); ++port_doc)
+   comment("Service", (*port_doc).first, "port", (*port_doc).second);
+  for (MapOfStringToString::const_iterator binding_doc = binding_documentation.begin(); binding_doc != binding_documentation.end(); ++binding_doc)
+    comment("Service", (*binding_doc).first, "binding", (*binding_doc).second);
+  fprintf(stream, serviceformat, prefix, "name", name, "");
+  fprintf(stream, serviceformat, prefix, "type", type, "");
+  for (SetOfString::const_iterator port = location.begin(); port != location.end(); ++port)
+    fprintf(stream, serviceformat, prefix, "port", (*port), "");
+  fprintf(stream, serviceformat, prefix, "namespace", URI, "");
+  for (vector<Operation*>::const_iterator op2 = operation.begin(); op2 != operation.end(); ++op2)
+  { if (*op2)
+    { fprintf(stream, "\n/* Service %s operation %s\n\n  C stub function (defined in soapClient.c[pp]):\n", name, (*op2)->input_name);
+      fprintf(stream, "  int soap_call_%s(struct soap *soap,\n    NULL, (char *endpoint = NULL)\n    NULL, (char *action = NULL)", (*op2)->input_name);
+      (*op2)->input->generate(types, ",", false, false);
+      if ((*op2)->output_name)
+      { fprintf(stream, "\n  struct %s {", (*op2)->output_name);
+        (*op2)->output->generate(types, ";", false, false);
+        if (cflag)
+          fprintf(stream, "\n  } *");
+        else
+          fprintf(stream, "\n  } &");
+      }
+      fprintf(stream, " );\n\n");
+      if (!cflag)
+      { fprintf(stream, "  C++ proxy class (defined in soap%sProxy.h):\n", name);
+        fprintf(stream, "  class %s;\n\n", name);
+      }
+      fprintf(stream, "*/\n\n");
+      (*op2)->generate(types);
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Operation methods
+//
+////////////////////////////////////////////////////////////////////////////////
+
+void Operation::generate(Types &types)
+{ // TODO: Need to order params according to *parameterOrder
+  // TODO: Collect header and fault information
+  bool anonymous = parameterOrder != NULL;
+  const char *method_name = strstr(input_name + 1, "__") + 2;
+  if (!method_name)
+    method_name = input_name;
+  if (documentation)
+    comment("Operation", name, "", documentation);
+  if (operation_documentation)
+    comment("Operation", name, "binding", operation_documentation);
+  if (input->documentation)
+    comment("Operation", name, "input", input->documentation);
+  if (input->ext_documentation)
+    comment("Operation", name, "input binding", input->ext_documentation);
+  if (output)
+  { if (output->documentation)
+      comment("Operation", name, "output", output->documentation);
+    if (output->ext_documentation)
+      comment("Operation", name, " output binding", output->ext_documentation);
+  }
+  if (style == document)
+    fprintf(stream, serviceformat, prefix, "method-style", method_name, "document");
+  else
+    fprintf(stream, serviceformat, prefix, "method-style", method_name, "rpc");
+  if (input->use == literal)
+    fprintf(stream, serviceformat, prefix, "method-encoding", method_name, "literal");
+  else if (input->encodingStyle)
+    fprintf(stream, serviceformat, prefix, "method-encoding", method_name, input->encodingStyle);
+  else
+    fprintf(stream, serviceformat, prefix, "method-encoding", method_name, "encoded");
+  if (soapAction)
+    if (*soapAction)
+      fprintf(stream, serviceformat, prefix, "method-action", method_name, soapAction);
+    else
+      fprintf(stream, serviceformat, prefix, "method-action", method_name, "\"\"");
+  if (output)
+  { if (input->use != output->use)
+    { if (output->use == literal)
+        fprintf(stream, serviceformat, prefix, "method-response-encoding", method_name, "literal");
+      else if (output->encodingStyle)
+        fprintf(stream, serviceformat, prefix, "method-response-encoding", method_name, output->encodingStyle);
+      else
+        fprintf(stream, serviceformat, prefix, "method-response-encoding", method_name, "encoded");
+    }
+  }
+  for (vector<Message*>::const_iterator message = fault.begin(); message != fault.end(); ++message)
+    if ((*message)->message && (*message)->message->name)
+      fprintf(stream, serviceformat, prefix, "method-fault", method_name, (*message)->name);
+  // TODO: complete fault directives
+  // TODO: add header directives
+  fprintf(stream, "int %s(", input_name);
+  input->generate(types, ",", anonymous, true); // need to handle parameterOrder
+  if (output_name)
+  { fprintf(stream, "\n  struct %s {", output_name);
+    output->generate(types, ";", anonymous, true);
+    if (cflag)
+      fprintf(stream, "\n  } *");
+    else
+      fprintf(stream, "\n  } &");
+  }
+  else
+    fprintf(stream, " void");
+  fprintf(stream, " );\n");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Message methods
+//
+////////////////////////////////////////////////////////////////////////////////
+
+void Message::generate(Types &types, const char *sep, bool anonymous, bool remark)
+{ if (message)
+  { for (vector<wsdl__part>::const_iterator part = message->part.begin(); part != message->part.end(); ++part)
+    { if ((*part).name)
+      { if (remark && (*part).documentation)
+          comment("", (*part).name, "parameter", (*part).documentation);
+	else
+	  fprintf(stream, "\n");
+        if ((*part).elementPtr())
+        { const char *name, *type, *URI;
+          name = (*part).elementPtr()->name;
+	  /* comment out to use a type that refers to an element defined with typedef */
+          if ((*part).elementPtr()->type)
+            type = (*part).elementPtr()->type;
+          else
+	  /* */
+            type = name;
+          //if (!URI || strcmp(URI, (*part).elementPtr()->schemaPtr()->targetNamespace))
+            URI = (*part).elementPtr()->schemaPtr()->targetNamespace;
+	  //else
+	    //URI = NULL;
+          fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, URI, type), types.aname(NULL, URI, name), sep);
+	}
+        else if ((*part).type)
+	{ fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, NULL, (*part).type), types.aname(NULL, NULL, (*part).name), sep);
+	}
+        else
+          fprintf(stderr, "No definitions/message/part\n");
+      }
+      else
+        fprintf(stderr, "No part name\n");
+    }
+  }
+  else
+    fprintf(stderr, "No definitions/message\n");
+}
+
+static void comment(const char *start, const char *middle, const char *end, const char *text)
+{ if (strchr(text, '\r') || strchr(text, '\n'))
+    fprintf(stream, "\n/*  %s %s %s documentation:\n%s\n*/\n\n", start, middle, end, text);
+  else
+    fprintf(stream, "\n// %s %s %s: %s\n", start, middle, end, text);
+}
+

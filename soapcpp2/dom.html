@@ -21,7 +21,7 @@
 
 <h3 align="center">Robert van Engelen <br />Genivia inc. <br />engelen@genivia.com </h3>
 
-<h3 align="center">Jun 30, 2003
+<h3 align="center">Jan  5, 2004
 <br /><a href="dom.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -187,7 +187,7 @@ instances:
 <b>int</b>&nbsp;main() <br />
 { <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element document(soap_new()); // create a DOM with a new soap environment <br />
-&nbsp;&nbsp;&nbsp;soap_set_imode(document.soap, SOAP_XML_GRAPH); // DOM w/ application data <br />
+&nbsp;&nbsp;&nbsp;soap_set_imode(document.soap, SOAP_DOM_NODE); // DOM w/ application data nodes <br />
 &nbsp;&nbsp;&nbsp;cin <tt>&gt;&gt;</tt> document; // parse XML <br />
 &nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(soap_dom_iterator walker = document.find(SOAP_TYPE_ns__product); walker != document.end(); ++walker) <br />
 &nbsp;&nbsp;&nbsp;{ <br />
@@ -211,8 +211,9 @@ instances:
 };
 </td></tr></table><br></i>
 The code is compiled and linked with <i>dom++.cpp</i>, <i>stdsoap2.cpp</i>, and <i>soapC.cpp</i>.
-The input-mode flag <i>SOAP_XML_GRAPH</i> is used to force the DOM parser to
-use application-specific data type deserializers to parse the DOM.  (Note: when
+The input-mode flag <i>SOAP_DOM_NODE</i> is used to force the DOM parser to
+use application-specific data type deserializers to parse the DOM and populate the nodes
+with C/C++ application types.  (Note: when
 no flag is used, an appropriate deserializer MAY be used by gSOAP when an
 element contains an <tt>id</tt> attribute and gSOAP can determine the type from
 the <tt>id</tt> attribute reference and/or the <tt>xsi:type</tt> attribute of an
@@ -299,7 +300,7 @@ The code fragment below prints the integer contents of the <tt>&lt;v:value&#62;<
 <b>int</b>&nbsp;main() <br />
 { <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element document(soap_new()); // create a DOM with a new soap environment <br />
-&nbsp;&nbsp;&nbsp;soap_set_imode(document.soap, SOAP_XML_GRAPH); // DOM w/ application data <br />
+&nbsp;&nbsp;&nbsp;soap_set_imode(document.soap, SOAP_DOM_NODE); // DOM w/ application data <br />
 &nbsp;&nbsp;&nbsp;cin <tt>&gt;&gt;</tt> document; // parse XML <br />
 &nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(soap_dom_iterator walker = document.find(SOAP_TYPE_v__value); walker != document.end(); ++walker) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cout <tt>&lt;&lt;</tt> *(v__value*)(*walker).node <tt>&lt;&lt;</tt> endl; <br />
@@ -335,7 +336,7 @@ standard input stream and then copies it to the standard output stream:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 ... <br />
 soap_dom_element document(soap_new()); // create a DOM with a new soap environment <br />
-soap_set_imode(document.soap, SOAP_XML_TREE); // DOM tree w/o application data <br />
+soap_set_imode(document.soap, SOAP_DOM_TREE); // DOM tree w/o application data <br />
 cin <tt>&gt;&gt;</tt> document; // parse <br />
 cout <tt>&lt;&lt;</tt> document; // print it <br />
 soap_destroy(document.soap); // delete entire DOM <br />
@@ -344,7 +345,7 @@ soap_done(document.soap); // detach the soap environment <br />
 free(document.soap); // free the soap environment <br />
 ...
 </td></tr></table><br></i>
-In this example the input-mode flag <i>SOAP_XML_TREE</i> forces the parser to
+In this example the input-mode flag <i>SOAP_DOM_TREE</i> forces the parser to
 construct a DOM only and ignore any application-specific data elements in the
 XML document.
 
@@ -496,7 +497,7 @@ The code is:
 <b>int</b>&nbsp;main() <br />
 { <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *soap = soap_new(); <br />
-&nbsp;&nbsp;&nbsp;soap_set_imode(soap, SOAP_XML_GRAPH); <br />
+&nbsp;&nbsp;&nbsp;soap_set_imode(soap, SOAP_DOM_NODE); <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element envelope(soap, "http://schemas.xmlsoap.org/soap/envelope/", &#203;nvelope"); <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element body(soap, "http://schemas.xmlsoap.org/soap/envelope/", "Body"); <br />
 &nbsp;&nbsp;&nbsp;soap_dom_attribute encodingStyle(soap, NULL, "encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/"); <br />
@@ -547,8 +548,8 @@ The following input-mode flags (<i>soap_imode()</i> flags) can be used to contro
 
 <table>
 <tr><td><font color="#FF0000"><b>Flag</b></font> </td><td width="401"><font color="#FF0000"><b>Description</b></font> </td></tr>
-<tr><td><i>SOAP_XML_TREE</i> </td><td width="401">parse XML as a DOM only w/o embedding application data nodes </td></tr>
-<tr><td><i>SOAP_XML_GRAPH</i> </td><td width="401">parse XML as a DOM and attempt to embed application data nodes when possible </td></tr>
+<tr><td><i>SOAP_DOM_TREE</i> </td><td width="401">parse XML as a DOM only w/o embedding application data nodes </td></tr>
+<tr><td><i>SOAP_DOM_NODE</i> </td><td width="401">parse XML as a DOM and attempt to embed application data nodes when possible </td></tr>
 <tr><td><i>SOAP_C_UTFSTRING</i> </td><td width="401">parse XML cdata in UTF-8 form into the <i>xsd__anyType.data</i> string field </td></tr></table>
 
 </td></tr></table><br></span>
@@ -565,7 +566,7 @@ The following output-mode flags (<i>soap_omode()</i> flags) can be used to contr
 <tr><td><font color="#FF0000"><b>Flag</b></font> </td><td width="401"><font color="#FF0000"><b>Description</b></font> </td></tr>
 <tr><td><i>SOAP_XML_CANONICAL</i> </td><td width="401">produce canonical XML </td></tr>
 <tr><td><i>SOAP_ENC_ZLIB</i> </td><td width="401">compress output with Zlib (see gSOAP documentation) </td></tr>
-<tr><td><i>SOAP_C_UTFSTRING</i> </td><td width="401">output <i>data</i> string field </td></tr></table>
+<tr><td><i>SOAP_C_UTFSTRING</i> </td><td width="401">input/output <i>data</i> string field encoded in UTF8 </td></tr></table>
 
 </td></tr></table><br></span>
 
@@ -577,18 +578,18 @@ The following output-mode flags (<i>soap_omode()</i> flags) can be used to contr
 The DOM class definition (current beta form).
 Note: <i>xsd__anyType</i> is an alias of <i>soap_dom_element</i>.  It defines the serializers of the DOM in gSOAP.
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>class</b>&nbsp;soap_dom_element <br />
-{ <b>public</b>: <br />
+<b>struct</b>&nbsp;soap_dom_element <br />
+{ <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element *next;		// next element (sibling) in sequence (not used at the document root) <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element *prnt;		// parent node <br />
+&nbsp;&nbsp;&nbsp;soap_dom_element *elts;		// optional element children (data, wide, node must be NULL) <br />
+&nbsp;&nbsp;&nbsp;soap_dom_attribute *atts;		// optional element attributes <br />
 &nbsp;&nbsp;&nbsp;<b>const</b>&nbsp;<b>char</b>&nbsp;*nstr;		// optional namespace name string (URI) <br />
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*name;			// element name with optional prefix <br />
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*data;			// optional element CDATA value <br />
 &nbsp;&nbsp;&nbsp;wchar_t *wide;			// optional element CDATA value (wide char string) <br />
-&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;__type;			// optional type of data pointed to (SOAP_TYPE_X) <br />
+&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;type;			// optional type of data pointed to (SOAP_TYPE_X) <br />
 &nbsp;&nbsp;&nbsp;<b>void</b>&nbsp;*node;			// and the optional pointer to serializable data node <br />
-&nbsp;&nbsp;&nbsp;soap_dom_element *elts;		// optional element children (data, wide, node must be NULL) <br />
-&nbsp;&nbsp;&nbsp;soap_dom_attribute *atts;		// optional element attributes <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *soap;		// gSOAP soap struct that manages this node <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element(); <br />
 &nbsp;&nbsp;&nbsp;soap_dom_element(struct soap *soap); <br />
@@ -609,8 +610,8 @@ Note: <i>xsd__anyType</i> is an alias of <i>soap_dom_element</i>.  It defines th
 &nbsp;&nbsp;&nbsp;soap_dom_iterator find(<b>int</b>&nbsp;type); <br />
 &nbsp;&nbsp;&nbsp;<b>void</b>&nbsp;unlink(); <br />
 }; <br />
-<b>class</b>&nbsp;soap_dom_attribute <br />
-{ <b>public</b>: <br />
+<b>struct</b>&nbsp;soap_dom_attribute <br />
+{ <br />
 &nbsp;&nbsp;&nbsp;soap_dom_attribute *next;		// next attribute in sequence <br />
 &nbsp;&nbsp;&nbsp;<b>const</b>&nbsp;<b>char</b>&nbsp;*nstr;			// optional attribute namespace name string (URI) <br />
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*name;			// attribute name <br />
@@ -715,7 +716,7 @@ Note: <i>xsd__anyType</i> is an alias of <i>soap_dom_element</i>.
 <tr><td width="602">Element CDATA content value (DOM output only, set by parser only with SOAP_C_UTFSTRING flag set) </td></tr>
 <tr><td width="602"><i>wchar_t *wide</i> </td></tr>
 <tr><td width="602">Element CDATA content value (wide char string) </td></tr>
-<tr><td width="602"><i><b>int</b>&nbsp;__type</i> </td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;type</i> </td></tr>
 <tr><td width="602">The type (<i>SOAP_TYPE_<i>x</i></i> identifier) of the data pointed to by <i>node</i> </td></tr>
 <tr><td width="602"><i><b>void</b>&nbsp;*node</i>
 Pointer to serializable data type node </td></tr>
@@ -807,5 +808,5 @@ The DOM parser is a beta release. Future additions will include:
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 30 Jun 2003, 11:16.</small>
+version 3.00.<br />On  5 Jan 2004, 23:41.</small>
 </html>

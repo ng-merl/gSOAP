@@ -1,20 +1,44 @@
-/*      soapcpp2_lex.l
+/*
 
-        Flex/Lex tokenizer
+soapcpp2_lex.l
 
-The contents of this file are subject to the gSOAP Public License Version 1.2
+Flex/Lex tokenizer.
+
+gSOAP XML Web services tools
+Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+--------------------------------------------------------------------------------
+gSOAP public license.
+
+The contents of this file are subject to the gSOAP Public License Version 1.3
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
-http://www.cs.fsu.edu/~engelen/gsoapcompilerlicense.html
+http://www.cs.fsu.edu/~engelen/soaplicense.html
 Software distributed under the License is distributed on an "AS IS" basis,
 WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
-The Original Code is ''gSOAP compiler'' consisting of:
-error2.c, error2.h, init2.c, soapcpp2.c, soapcpp2.h, soapcpp2_lex.l, soapcpp2_yacc.y, symbol2.c.
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+--------------------------------------------------------------------------------
+GPL license.
 
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+Author contact information:
+engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
 */
 
 %{
@@ -36,8 +60,8 @@ static struct imported { struct imported *next; char name[1]; } *imported = NULL
 static char fnstk[MAX_IMPORT_DEPTH][1024];
 static int lnstk[MAX_IMPORT_DEPTH];
 static YY_BUFFER_STATE instk[MAX_IMPORT_DEPTH];
-int imports = 0;
 #endif
+int imports = 0;
 static Token install_id();
 static Token install_int();
 static Token install_hex();
@@ -45,7 +69,7 @@ static Token install_num();
 static Token install_chr();
 static Token install_str();
 static Token install_pragma();
-static void comment(), directive();
+static void comment(), directive(), option();
 static Token error_chr();
 static Token error_str();
 static int convchar(int*);
@@ -70,6 +94,7 @@ eof		<<EOF>>
 %%
 [ \t\v\n\f\r\x1A\xA0]	{ /* skip white space (\x1A is ^Z and \xA0 is HTML non-breakable space) */ }
 "/*"		{ comment(); }
+"//gsoapopt".*\n	{ option(); }
 "//gsoap".*\n	{ directive(); }
 "//".*\n	{ /* skip comment */ }
 "+="		{ return PA; }
@@ -266,6 +291,7 @@ static void directive()
 		sp->URL = NULL;
 		sp->URI = NULL;
 		sp->WSDL = NULL;
+		sp->style = NULL;
 		sp->encoding = NULL;
 		sp->executable = NULL;
 		sp->import = NULL;
@@ -310,6 +336,8 @@ static void directive()
 			s[k-j] = '\0';
 			sp->documentation = s;
 		}
+		else if (!strncmp(yytext+i, "type:", 5))
+			sp->port = s;
 		else if (!strncmp(yytext+i, "portType:", 9))
 			sp->port = s;
 		else if (!strncmp(yytext+i, "documentation:", 14))
@@ -346,10 +374,57 @@ static void directive()
 		}
 		else if (!strncmp(yytext+i, "encoding:", 9))
 			sp->encoding = s;
+		else if (!strncmp(yytext+i, "style:", 6))
+		{	sp->style = s;
+	        	if (!wflag && strcmp(s, "document"))
+				semwarn("WSDL output for document style operations might be invalid. This issue will be addressed in upcoming releases.");
+		}
+		else if (!strncmp(yytext+i, "method-style:", 13))
+		{	m = (Method*)emalloc(sizeof(Method));
+			m->name = s;
+			m->mess = STYLE;
+			m->part = NULL;
+			m->next = sp->list;
+			sp->list = m;
+			for (j = k; yytext[j]; j++)
+				if (yytext[j] > 32)
+					break;
+			for (k = j; yytext[k]; k++)
+				if (yytext[k] == 10 || yytext[k] == 13)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			m->part = s;
+	        	if (!wflag && strcmp(s, "document"))
+				semwarn("WSDL output for document style operations might be invalid. This issue will be addressed in upcoming releases.");
+		}
 		else if (!strncmp(yytext+i, "method-encoding:", 16))
 		{	m = (Method*)emalloc(sizeof(Method));
 			m->name = s;
 			m->mess = ENCODING;
+			m->part = NULL;
+			m->next = sp->list;
+			sp->list = m;
+			for (j = k; yytext[j]; j++)
+				if (yytext[j] > 32)
+					break;
+			for (k = j; yytext[k]; k++)
+				if (yytext[k] == 10 || yytext[k] == 13)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			m->part = s;
+		}
+		else if (!strncmp(yytext+i, "method-response-encoding:", 25))
+		{	m = (Method*)emalloc(sizeof(Method));
+			m->name = s;
+			m->mess = RESPONSE_ENCODING;
 			m->part = NULL;
 			m->next = sp->list;
 			sp->list = m;
@@ -466,7 +541,40 @@ static void directive()
 			s[k-j] = '\0';
 			m->part = s;
 		}
+		else
+                { sprintf(errbuf, "unrecognized gsoap directive: '%s'", yytext+i);
+		  semwarn(errbuf);
+		}
 	}
+	else
+        { sprintf(errbuf, "unrecognized gsoap directive: '%s'", yytext);
+	  semwarn(errbuf);
+	}
+}
+
+static void option()
+{	int i;
+	for (i = 10; yytext[i]; i++)
+		if (yytext[i] > 32)
+			break;
+	for (; yytext[i]; i++)
+		switch (yytext[i])
+		{	case 'c':
+				cflag = 1;
+				break;
+		 	case 'n':
+				nflag = 1;
+				break;
+		 	case 'l':
+				lflag = 1;
+				break;
+		 	case 'w':
+				wflag = 1;
+				break;
+			default:
+				if (yytext[i] <= 32)
+					return;
+		}
 }
 
 /*
@@ -565,7 +673,7 @@ static void module(const char *name)
 static int magic(const char *name)
 { int i, n;
   if (strlen(name) > 4)
-    semerror("#module name length cannot exceed 4 characters");
+    semerror("#module name length must not exceed four characters");
   n = 0;
   for (i = 0; i < strlen(name); i++)
     if (name[i] >= 'a' && name[i] <= 'z')
@@ -573,8 +681,8 @@ static int magic(const char *name)
     else if (name[i] >= 'A' && name[i] <= 'Z')
       n = 26*n + name[i] - 'A';
     else
-      semerror("#module name must be alphabetic");
-  return 4699*n;
+      semerror("#module name must be alphabetic and the length must not exceed four characters");
+  return 4699*n + 153424;
 }
 
 #ifdef WITH_LEX

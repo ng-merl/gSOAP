@@ -1,12 +1,11 @@
 #include "soapH.h"
-#include <iostream.h>
+using namespace std;
 int main(int argc, char **argv)
-{ struct soap *soap = soap_new();
+{ soap *soap = soap_new1(SOAP_DOM_NODE); // enable deserialization of application data
   if (argc <= 1)
   { fprintf(stderr, "Usage: quote4 <ticker>\n");
     exit(1);
   }
-  soap_set_imode(soap, SOAP_XML_GRAPH); // enable deserialization of application data
   soap_dom_element envelope(soap, "http://schemas.xmlsoap.org/soap/envelope/", "Envelope");
   soap_dom_element body(soap, "http://schemas.xmlsoap.org/soap/envelope/", "Body");
   soap_dom_attribute encodingStyle(soap, "http://schemas.xmlsoap.org/soap/envelope/", "encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
@@ -18,6 +17,7 @@ int main(int argc, char **argv)
   body.add(request);
   request.add(symbol);
   cout << "Request message:" << endl << envelope << endl;
+  soap_mark_xsd__anyType(soap, &envelope);
   if (soap_connect(soap, "http://services.xmethods.net/soap", "")
    || soap_put_xsd__anyType(soap, &envelope, NULL, NULL)
    || soap_end_send(soap)
@@ -25,7 +25,9 @@ int main(int argc, char **argv)
    || !soap_get_xsd__anyType(soap, &response, NULL, NULL) // returns pointer when successful
    || soap_end_recv(soap)
    || soap_closesock(soap))
-    soap_print_fault(soap, stderr);
+  { soap_print_fault(soap, stderr);
+    soap_print_fault_location(soap, stderr);
+  }
   else
   { cout << "Response message:" << endl << response << endl;
     for (soap_dom_element::iterator walker = response.find(SOAP_TYPE_xsd__float); walker != response.end(); ++walker)

@@ -1,9 +1,40 @@
+/*
+
+wsdl.h
+
+WSDL 1.1 binding schema interface
+
+--------------------------------------------------------------------------------
+gSOAP XML Web services tools
+Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+Author contact information:
+engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+
+*/
+
 //gsoap wsdl schema documentation:	WSDL 1.1 binding schema
 //gsoap wsdl schema namespace:		http://schemas.xmlsoap.org/wsdl/
 
-#import "stlvector.h"
+#import "imports.h"
+#import "schema.h"
 #import "soap.h"
 #import "http.h"
+#import "gwsdl.h"
 
 class wsdl__definitions;		// forward declaration
 
@@ -12,11 +43,13 @@ class wsdl__import
 	@xsd__anyURI			namespace_;
 	@xsd__anyURI			location;
   private:
-  	const wsdl__definitions		*definitionsRef;	// not yet handled
+  	wsdl__definitions		*definitionsRef;
   public:
-  	int				traverse(const wsdl__definitions&);
-	void				definitionsPtr(const wsdl__definitions*);
-	const wsdl__definitions		*definitionsPtr() const;
+					wsdl__import();
+					~wsdl__import();
+  	int				traverse(wsdl__definitions&);
+	void				definitionsPtr(wsdl__definitions*);
+	wsdl__definitions		*definitionsPtr() const;
 };
 
 class wsdl__types
@@ -24,7 +57,7 @@ class wsdl__types
 	xsd__string			documentation;		// <wsdl:documentation>?
 	std::vector<xs__schema>		xs__schema_; 		// <xs:schema>*
   public:
-	int				traverse(const wsdl__definitions&);
+	int				traverse(wsdl__definitions&);
 };
 
 class wsdl__part
@@ -32,18 +65,19 @@ class wsdl__part
 	@xsd__NMTOKEN			name;
 	@xsd__QName			element;
 	@xsd__QName			type;
+	xsd__string			documentation;		// <wsdl:documentation>?
   private:
-  	const xs__element		*elementRef;		// traverse() finds element
-  	const xs__simpleType		*simpleTypeRef;		// traverse() finds simpleType
-  	const xs__complexType		*complexTypeRef;	// traverse() finds complexType
+  	xs__element			*elementRef;		// traverse() finds element
+  	xs__simpleType			*simpleTypeRef;		// traverse() finds simpleType
+  	xs__complexType			*complexTypeRef;	// traverse() finds complexType
   public:
-  	int				traverse(const wsdl__definitions&);
-	void				elementPtr(const xs__element*);
-	void				simpleTypePtr(const xs__simpleType*);
-	void				complexTypePtr(const xs__complexType*);
-	const xs__element		*elementPtr() const;
-	const xs__simpleType		*simpleTypePtr() const;
-	const xs__complexType		*complexTypePtr() const;
+  	int				traverse(wsdl__definitions&);
+	void				elementPtr(xs__element*);
+	void				simpleTypePtr(xs__simpleType*);
+	void				complexTypePtr(xs__complexType*);
+	xs__element			*elementPtr() const;
+	xs__simpleType			*simpleTypePtr() const;
+	xs__complexType			*complexTypePtr() const;
 };
 
 class wsdl__message
@@ -52,7 +86,7 @@ class wsdl__message
 	xsd__string			documentation;		// <wsdl:documentation>?
 	std::vector<wsdl__part>		part;			// <wsdl:part>*
   public:
-  	int				traverse(const wsdl__definitions&);
+  	int				traverse(wsdl__definitions&);
 };
 
 class wsdl__input
@@ -61,11 +95,11 @@ class wsdl__input
 	@xsd__QName			message;
 	xsd__string			documentation;		// <wsdl:documentation>?
   private:
-  	const wsdl__message		*messageRef;		// traverse() finds message
+  	wsdl__message			*messageRef;		// traverse() finds message
   public:
-  	int				traverse(const wsdl__definitions&);
-	void				messagePtr(const wsdl__message*);
-	const wsdl__message		*messagePtr() const;
+  	int				traverse(wsdl__definitions&);
+	void				messagePtr(wsdl__message*);
+	wsdl__message			*messagePtr() const;
 };
 
 class wsdl__output
@@ -74,11 +108,11 @@ class wsdl__output
 	@xsd__QName			message;
 	xsd__string			documentation;		// <wsdl:documentation>?
   private:
-  	const wsdl__message		*messageRef;		// traverse() finds message
+  	wsdl__message			*messageRef;		// traverse() finds message
   public:
-  	int				traverse(const wsdl__definitions&);
-	void				messagePtr(const wsdl__message*);
-	const wsdl__message		*messagePtr() const;
+  	int				traverse(wsdl__definitions&);
+	void				messagePtr(wsdl__message*);
+	wsdl__message			*messagePtr() const;
 };
 
 class wsdl__fault
@@ -87,11 +121,11 @@ class wsdl__fault
 	@xsd__QName			message;
 	xsd__string			documentation;		// <wsdl:documentation>?
   private:
-  	const wsdl__message		*messageRef;		// traverse() finds message
+  	wsdl__message			*messageRef;		// traverse() finds message
   public:
-  	int				traverse(const wsdl__definitions&);
-	void				messagePtr(const wsdl__message*);
-	const wsdl__message		*messagePtr() const;
+  	int				traverse(wsdl__definitions&);
+	void				messagePtr(wsdl__message*);
+	wsdl__message			*messagePtr() const;
 };
 
 class wsdl__operation
@@ -103,7 +137,7 @@ class wsdl__operation
 	wsdl__output			*output;		// <wsdl:output>?
 	std::vector<wsdl__fault>	fault;			// <wsdl:fault>*
   public:
-  	int				traverse(const wsdl__definitions&);
+  	int				traverse(wsdl__definitions&);
 };
 
 class wsdl__portType
@@ -112,7 +146,7 @@ class wsdl__portType
 	xsd__string			documentation;		// <wsdl:documentation>?
 	std::vector<wsdl__operation>	operation;		// <wsdl:operation>*
   public:
-  	int				traverse(const wsdl__definitions&);
+  	int				traverse(wsdl__definitions&);
 };	
 
 class wsdl__ext_input			// extensibility element
@@ -122,7 +156,7 @@ class wsdl__ext_input			// extensibility element
 	std::vector<soap__header>	soap__header_;		// <soap:header>*
 	std::vector<soap__headerfault>	soap__headerfault_;	// <soap:headerfault>*
   public:
-  	int				traverse(const wsdl__definitions&);
+  	int				traverse(wsdl__definitions&);
 };
 
 class wsdl__ext_output			// extensibility element
@@ -132,7 +166,7 @@ class wsdl__ext_output			// extensibility element
 	std::vector<soap__header>	soap__header_;		// <soap:header>*
 	std::vector<soap__headerfault>	soap__headerfault_;	// <soap:headerfault>*
   public:
-  	int				traverse(const wsdl__definitions&);
+  	int				traverse(wsdl__definitions&);
 };
 
 class wsdl__ext_fault			// extensibility element
@@ -140,8 +174,12 @@ class wsdl__ext_fault			// extensibility element
 	@xsd__NMTOKEN			name;
 	xsd__string			documentation;		// <wsdl:documentation>?
 	soap__fault			*soap__fault_;		// <soap:fault>?
+  private:
+  	wsdl__message			*messageRef;
   public:
-  	int				traverse(const wsdl__definitions&);
+  	int				traverse(wsdl__definitions&);
+	void				messagePtr(wsdl__message*);
+	wsdl__message			*messagePtr() const;
 };
 
 class wsdl__binding_operation
@@ -154,11 +192,11 @@ class wsdl__binding_operation
 	wsdl__ext_output		*output;		// <wsdl:output>?
 	std::vector<wsdl__ext_fault>	fault;			// <wsdl:fault>*
   private:
-  	const wsdl__operation		*operationRef;		// traverse() finds operation in <wsdl:portType>
+  	wsdl__operation			*operationRef;		// traverse() finds operation in <wsdl:portType>
   public:
-  	int				traverse(const wsdl__definitions&, const wsdl__portType*);
-	void				operationPtr(const wsdl__operation*);
-	const wsdl__operation		*operationPtr() const;
+  	int				traverse(wsdl__definitions&, wsdl__portType*);
+	void				operationPtr(wsdl__operation*);
+	wsdl__operation			*operationPtr() const;
 };
 
 class wsdl__binding
@@ -171,11 +209,11 @@ class wsdl__binding
 	std::vector<wsdl__binding_operation>
 					operation;		// <wsdl:operation>*
   private:
-	const wsdl__portType		*portTypeRef;		// traverse() finds portType
+	wsdl__portType			*portTypeRef;		// traverse() finds portType
   public:
-	int				traverse(const wsdl__definitions&);
-	void				portTypePtr(const wsdl__portType*);
-	const wsdl__portType		*portTypePtr() const;
+	int				traverse(wsdl__definitions&);
+	void				portTypePtr(wsdl__portType*);
+	wsdl__portType			*portTypePtr() const;
 };
 
 class wsdl__port
@@ -186,11 +224,11 @@ class wsdl__port
 	soap__address			*soap__address_;	// <soap:address>?
 	http__address			*http__address_;	// <http:address>?
   private:
-	const wsdl__binding		*bindingRef;		// traverse() finds binding
+	wsdl__binding			*bindingRef;		// traverse() finds binding
   public:
-	int				traverse(const wsdl__definitions&);
-	void				bindingPtr(const wsdl__binding*);
-	const wsdl__binding		*bindingPtr() const;
+	int				traverse(wsdl__definitions&);
+	void				bindingPtr(wsdl__binding*);
+	wsdl__binding			*bindingPtr() const;
 };
 
 class wsdl__service
@@ -199,7 +237,7 @@ class wsdl__service
 	xsd__string			documentation;		// <wsdl:documentation>?
 	std::vector<wsdl__port>		port;			// <wsdl:port>*
   public:
-	int				traverse(const wsdl__definitions&);
+	int				traverse(wsdl__definitions&);
 };
 
 class wsdl__definitions
@@ -213,18 +251,30 @@ class wsdl__definitions
 	std::vector<wsdl__portType>	portType;		// <wsdl:portType>*
 	std::vector<wsdl__binding>	binding;		// <wsdl:binding>*
 	std::vector<wsdl__service>	service;		// <wsdl:service>*
-  private:
+	std::vector<gwsdl__portType>	gwsdl__portType_;	// <gwsdl:portType>* For the moment, we will hardcode this which makes it easier to access. WSDL 1.1 does not allow this to be extended this anyway
 	struct soap			*soap;
+  private:
+	SetOfString			builtinTypeSet;
+	SetOfString			builtinElementSet;
+	SetOfString			builtinAttributeSet;
   public:
 					wsdl__definitions();
-					wsdl__definitions(struct soap*);
-					wsdl__definitions(const char*);
+					wsdl__definitions(struct soap*, const char*);
 					~wsdl__definitions();
 	int				get(struct soap*);	// gSOAP getter is triggered after parsing
 	int				traverse();
+	int				read(const char*);
 	int				error();
 	void				print_fault();
-	friend wsdl__definitions	*soap_instantiate_wsdl__definitions(struct soap*, int, const char*, const char*, size_t*);	// soap struct is private, so gSOAP's instantiator must be a friend
+	void				builtinType(const char*);
+	void				builtinTypes(const SetOfString&);
+	void				builtinElement(const char*);
+	void				builtinElements(const SetOfString&);
+	void				builtinAttribute(const char*);
+	void				builtinAttributes(const SetOfString&);
+	const SetOfString&		builtinTypes() const;
+	const SetOfString&		builtinElements() const;
+	const SetOfString&		builtinAttributes() const;
 	friend std::ostream&		operator<<(std::ostream&, const wsdl__definitions&);
 	friend std::istream&		operator>>(std::istream&, wsdl__definitions&);
 };

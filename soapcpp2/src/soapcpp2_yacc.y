@@ -1,11 +1,20 @@
-/*	soapcpp2_yacc.y
+/*
 
-	Yacc/Bison grammar
+soapcpp2_yacc.y
 
-Note:	Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small
-	Compile with -DYYINITDEPTH=1000
+Yacc/Bison grammar.
 
-The contents of this file are subject to the gSOAP Public License Version 1.2
+Note:
+Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small Compile with
+-DYYINITDEPTH=1000
+
+gSOAP XML Web services tools
+Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+--------------------------------------------------------------------------------
+gSOAP public license.
+
+The contents of this file are subject to the gSOAP Public License Version 1.3
 (the "License"); you may not use this file except in compliance with the
 License. You may obtain a copy of the License at
 http://www.cs.fsu.edu/~engelen/soaplicense.html
@@ -13,11 +22,27 @@ Software distributed under the License is distributed on an "AS IS" basis,
 WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
-The Original Code is ''gSOAP compiler'' consisting of:
-error2.c, error2.h, init2.c, soapcpp2.c, soapcpp2.h, soapcpp2_lex.l, soapcpp2_yacc.y, symbol2.c.
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+--------------------------------------------------------------------------------
+GPL license.
 
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+Author contact information:
+engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
 */
 
 %{
@@ -62,7 +87,7 @@ static void	mkscope(Table*, int), enterscope(Table*, int), exitscope();
 static int	integer(Tnode*), real(Tnode*), numeric(Tnode*), pointer(Tnode*);
 static void	add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
 extern char	*c_storage(Storage), *c_type(Tnode*);
-extern int	is_primitive_or_string(Tnode*);
+extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*);
 
 /* temporaries used in semantic rules */
 int	i;
@@ -103,7 +128,8 @@ Pragma	**pp;
 %token	<sym> BOOL     CFALSE  CTRUE	 WCHAR
 %token	<sym> TIME     USING   NAMESPACE ULLONG
 %token	<sym> MUSTUNDERSTAND   SIZE      FRIEND
-%token	<sym> TEMPLATE EXPLICIT
+%token	<sym> TEMPLATE EXPLICIT		 TYPENAME
+%token	<sym> RESTRICT
 /* */
 %token	NONE
 /* identifiers (TYPE = typedef identifier) */
@@ -198,7 +224,7 @@ ext	: dclrs ';'	{ }
 	| t1		{ }
 	| t2		{ }
 	;
-pragma	: PRAGMA	{ if (iflag && $1[1] >= 'a' && $1[1] <= 'z')
+pragma	: PRAGMA	{ if ($1[1] >= 'a' && $1[1] <= 'z')
 			  {	for (pp = &pragmas; *pp; pp = &(*pp)->next)
 			          ;
 				*pp = (Pragma*)emalloc(sizeof(Pragma));
@@ -304,6 +330,8 @@ dclr	: ptrs ID array occurs init
 						case Tdouble:
 							if ($5.typ->type == Tfloat || $5.typ->type == Tdouble)
 								p->info.val.r = $5.val.r;
+							else if ($5.typ->type == Tint)
+								p->info.val.r = (double)$5.val.i;
 							else
 								semerror("type error in initialization constant");
 							break;
@@ -313,6 +341,9 @@ dclr	: ptrs ID array occurs init
 							 && $5.typ->type == Tpointer
 							 && ((Tnode*)$5.typ->ref)->type == Tchar)
 								p->info.val.s = $5.val.s;
+							else if ($3.typ->type == Tpointer
+							      && ((Tnode*)$3.typ->ref)->id == lookup("std::string"))
+							      	p->info.val.s = $5.val.s;
 							else
 								semerror("Initialization constant type error");
 							break;
@@ -320,13 +351,20 @@ dclr	: ptrs ID array occurs init
 				}
 				else
 					p->info.val.i = sp->val;
-				p->info.minOccurs = $4.minOccurs;
+			        if ($4.minOccurs < 0)
+			        {	if ($3.typ->type == Tpointer)
+			        		p->info.minOccurs = 0;
+			        	else
+			        		p->info.minOccurs = 1;
+				}
+				else
+					p->info.minOccurs = $4.minOccurs;
 				p->info.maxOccurs = $4.maxOccurs;
 				p->info.pattern = $4.pattern;
 				if (sp->mask)
-				  sp->val <<= 1;
+					sp->val <<= 1;
 				else
-				  sp->val++;
+					sp->val++;
 			  	p->info.offset = sp->offset;
 				if ($3.sto & Sextern)
 					p->level = GLOBAL;
@@ -443,11 +481,13 @@ func	: fname '(' s2 fargso ')' constobj abstract
 				 	$1->info.typ = mkmethod($1->info.typ, sp->table);
 			  	else if (sp->entry && (sp->entry->info.typ->type == Tpointer || sp->entry->info.typ->type == Treference || sp->entry->info.typ->type == Tarray || is_transient(sp->entry->info.typ)))
 				{	if ($1->info.typ->type == Tint)
-					{	sp->entry->info.sto |= Sreturn;
+					{	sp->entry->info.sto = (Storage)((int)sp->entry->info.sto | (int)Sreturn);
 						$1->info.typ = mkfun(sp->entry);
 						if (!is_transient(sp->entry->info.typ))
 							if (!is_response(sp->entry->info.typ))
-								add_response($1, sp->entry);
+							{	if (!is_XML(sp->entry->info.typ))
+									add_response($1, sp->entry);
+							}
 							else
 								add_result(sp->entry->info.typ);
 					}
@@ -481,7 +521,7 @@ func	: fname '(' s2 fargso ')' constobj abstract
 			  }
 			  else if ($1->level == INTERNAL)
 			  {	$1->info.typ = mkmethod($1->info.typ, sp->table);
-				$1->info.sto |= $6 | $7;
+				$1->info.sto = (Storage)((int)$1->info.sto | (int)$6 | (int)$7);
 			  }
 			  exitscope();
 			}
@@ -522,6 +562,8 @@ farg	: tspec ptrs arg array init
 					case Tdouble:
 						if ($5.typ->type == Tfloat || $5.typ->type == Tdouble)
 							p->info.val.r = $5.val.r;
+						else if ($5.typ->type == Tint)
+							p->info.val.r = (double)$5.val.i;
 						else
 							semerror("type error in initialization constant");
 						break;
@@ -531,6 +573,9 @@ farg	: tspec ptrs arg array init
 						 && $5.typ->type == Tpointer
 						 && ((Tnode*)$5.typ->ref)->type == Tchar)
 							p->info.val.s = $5.val.s;
+						else if ($4.typ->type == Tpointer
+						      && ((Tnode*)$4.typ->ref)->id == lookup("std::string"))
+						      	p->info.val.s = $5.val.s;
 						else
 							semerror("Initialization constant type error");
 						break;
@@ -576,8 +621,8 @@ spec	: /*empty */	{ $$.typ = mkint();
 			  sp->node = $$;
 			}
 	| store spec	{ $$.typ = $2.typ;
-			  $$.sto = $1 | $2.sto;
-			  if (($$.sto & Sattribute) && (!is_primitive_or_string($2.typ)))
+			  $$.sto = (Storage)((int)$1 | (int)$2.sto);
+			  if (($$.sto & Sattribute) && (!is_primitive_or_string($2.typ)) && !is_stdstr($2.typ))
 			  {	semwarn("invalid attribute type");
 			  	$$.sto &= ~Sattribute;
 			  }
@@ -642,7 +687,7 @@ tspec	: store		{ $$.typ = mkint();
 			  sp->node = $$;
 			}
 	| store tspec	{ $$.typ = $2.typ;
-			  $$.sto = $1 | $2.sto;
+			  $$.sto = (Storage)((int)$1 | (int)$2.sto);
 			  if (($$.sto & Sattribute) && (!is_primitive_or_string($2.typ)))
 			  {	semwarn("invalid attribute type");
 			  	$$.sto &= ~Sattribute;
@@ -712,7 +757,7 @@ type	: VOID		{ $$ = mkvoid(); }
 	| SIGNED	{ $$ = mkint(); }
 	| UNSIGNED	{ $$ = mkuint(); }
 	| TIME		{ $$ = mktimet(); }
-	| TEMPLATE '<' CLASS id '>' CLASS id
+	| TEMPLATE '<' tname id '>' CLASS id
 			{ if (!(p = entry(templatetable, $7)))
 			  {	p = enter(templatetable, $7);
 			  	p->info.typ = mktemplate(NULL, $7);
@@ -1021,6 +1066,9 @@ class	: CLASS ID	{ if ((p = entry(classtable, $2)))
 			  $$ = p;
 			}
 	;
+tname	: CLASS		{ }
+	| TYPENAME	{ }
+	;
 super	: PROTECTED TYPE{ $$ = entry(classtable, $2); }
 	| PRIVATE TYPE	{ $$ = entry(classtable, $2); }
 	| PUBLIC TYPE	{ $$ = entry(classtable, $2); }
@@ -1127,7 +1175,7 @@ init	: /* empty */   { $$.hasval = False; }
 			  }
 			}
         ;
-occurs	: patt		{ $$.minOccurs = 1;
+occurs	: patt		{ $$.minOccurs = -1;
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
@@ -1144,7 +1192,7 @@ occurs	: patt		{ $$.minOccurs = 1;
 			  $$.maxOccurs = $4;
 			  $$.pattern = $1;
 			}
-	| patt ':' LNG	{ $$.minOccurs = 1;
+	| patt ':' LNG	{ $$.minOccurs = -1;
 			  $$.maxOccurs = $3;
 			  $$.pattern = $1;
 			}
@@ -1480,10 +1528,13 @@ add_fault(Table *gt)
       p1->info.typ->ref = t;
     p2 = enter(t, lookup("SOAP_ENV__Value"));
     p2->info.typ = qname;
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("SOAP_ENV__Node"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("SOAP_ENV__Role"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
   }
   s2 = lookup("SOAP_ENV__Fault");
   p2 = entry(classtable, s2);
@@ -1494,18 +1545,25 @@ add_fault(Table *gt)
     p2->info.typ->id = s2;
     p2 = enter(t, lookup("faultcode"));
     p2->info.typ = qname;
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("faultstring"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("faultactor"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("detail"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
     p2 = enter(t, s1);
     p2->info.typ = mkpointer(p1->info.typ);
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("SOAP_ENV__Reason"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
     p2 = enter(t, lookup("SOAP_ENV__Detail"));
     p2->info.typ = mkstring();
+    p2->info.minOccurs = 0;
     custom_fault = 0;
   }
 }
@@ -1570,5 +1628,5 @@ add_result(Tnode *typ)
       return;
   p = ((Table*)((Tnode*)typ->ref)->ref)->list;
   if (p)
-    p->info.sto |= Sreturn;
+    p->info.sto = (Storage)((int)p->info.sto | (int)Sreturn);
 }

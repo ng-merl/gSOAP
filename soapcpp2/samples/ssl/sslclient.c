@@ -9,14 +9,23 @@ int main()
   a = 10.0;
   b = 20.0;
   soap_init(&soap);
+  if (soap_ssl_client_context(&soap,
+    SOAP_SSL_DEFAULT,
+    "client.pem",	/* keyfile: see SSL docs on how to obtain this file */
+    "password",		/* password to read the key file */
+    NULL, 		/* cacert: optional for client. To verify client by server (not implemented yet) */
+    NULL,		/* capath */
+    NULL		/* if randfile!=NULL: use a file with random data to seed randomness */ 
+  ))
+  { soap_print_fault(&soap, stderr);
+    exit(1);
+  }
   soap.require_server_auth = 0;
-  soap.password = "password"; /* may be omitted when server does not require client authentication */
-  soap.keyfile = "client.pem"; /* may be omitted when server does not require client authentication */
-  soap.cafile = "cacert.pem"; /* may be omitted when server does not require client authentication */
   if (soap_call_ns__add(&soap, server, "", a, b, &result) == SOAP_OK)
-    fprintf(stdout,"Result = %f\n", result);
+    fprintf(stdout, "Result: %f + %f = %f\n", a, b, result);
   else
     soap_print_fault(&soap, stderr);
+  soap_destroy(&soap); /* C++ */
   soap_end(&soap);
   soap_done(&soap);
   return 0;

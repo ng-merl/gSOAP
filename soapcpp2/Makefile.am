@@ -3,13 +3,11 @@
 ## you have all needed files, that a GNU package needs
 AUTOMAKE_OPTIONS = foreign 1.4
 
-SUBDIRS=src @SAMPLE_DIRS@
+SUBDIRS=src wsdl @SAMPLE_DIRS@
 CLEANFILES=soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp
 
 ##	*~ *.req.xml *.res.xml *.nsmap *.wsdl *.xsd *Proxy.h \
 ##	*.o soapH.h soapStub.h soapC.cpp soapC.c soapClient.cpp soapClient.c soapServer.cpp soapServer.c
-
-BUILT_SOURCES=stdsoap2_cpp.cpp
 
 AM_CXXFLAGS=$(SOAPCPP2_DEBUG) -D$(platform)
 AM_CFLAGS=$(SOAPCPP2_DEBUG) -D$(platform)
@@ -33,10 +31,13 @@ libgsoapck_a_CFLAGS=$(SOAPCPP2_DEBUG) -D$(platform) -DWITH_COOKIES
 libgsoapck___a_SOURCES=stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS=$(SOAPCPP2_DEBUG) -D$(platform) -DWITH_COOKIES
 
+BUILT_SOURCES=stdsoap2_cpp.cpp $(lib_LIBRARIES)
+
 include_HEADERS = stdsoap2.h
 
 install-data-hook:
 	$(LN_S) $(top_builddir)/soapcpp2/src/soapcpp2 $(top_builddir)/soapcpp2/soapcpp2 || echo "ok, link already exists".
+	$(LN_S) $(top_builddir)/soapcpp2/wsdl/wsdl2h $(top_builddir)/soapcpp2/wsdl2h || echo "ok, link already exists".
 
 
 

@@ -94,10 +94,8 @@ install_sh = @install_sh@
 platform = @platform@
 AUTOMAKE_OPTIONS = foreign 1.4
 
-SUBDIRS = src @SAMPLE_DIRS@
+SUBDIRS = src wsdl @SAMPLE_DIRS@
 CLEANFILES = soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp
-
-BUILT_SOURCES = stdsoap2_cpp.cpp
 
 AM_CXXFLAGS = $(SOAPCPP2_DEBUG) -D$(platform)
 AM_CFLAGS = $(SOAPCPP2_DEBUG) -D$(platform)
@@ -109,6 +107,8 @@ libgsoapck_a_SOURCES = stdsoap2_ck.c
 libgsoapck_a_CFLAGS = $(SOAPCPP2_DEBUG) -D$(platform) -DWITH_COOKIES
 libgsoapck___a_SOURCES = stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS = $(SOAPCPP2_DEBUG) -D$(platform) -DWITH_COOKIES
+
+BUILT_SOURCES = stdsoap2_cpp.cpp $(lib_LIBRARIES)
 
 include_HEADERS = stdsoap2.h
 subdir = soapcpp2
@@ -551,6 +551,7 @@ stdsoap2_ck_cpp.cpp: stdsoap2.cpp
 
 install-data-hook:
 	$(LN_S) $(top_builddir)/soapcpp2/src/soapcpp2 $(top_builddir)/soapcpp2/soapcpp2 || echo "ok, link already exists".
+	$(LN_S) $(top_builddir)/soapcpp2/wsdl/wsdl2h $(top_builddir)/soapcpp2/wsdl2h || echo "ok, link already exists".
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

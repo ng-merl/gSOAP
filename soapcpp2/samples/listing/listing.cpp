@@ -5,7 +5,7 @@ int main(int argc, char** argv)
 { XMethodsQuery query;
   ArrayOfIDNamePair services;
   printf("Content-type: text/html\r\n\r\n<html><h1>Most Recent Xmethods Service Listing</h1><pre>\n");
-  if (!query.getAllServiceNames(services))
+  if (!query.ns__getAllServiceNames(services))
     services.print();
   else
   { soap_print_fault(query.soap, stderr);

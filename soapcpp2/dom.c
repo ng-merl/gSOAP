@@ -1,11 +1,44 @@
-/*	dom.c
+/*
 
-	gSOAP XML DOM extensions
+dom.c[pp]
 
-	Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc.
-	All Rights Reserved.
+gSOAP XML DOM extensions
 
-	Requires gSOAP 2.3 and higher.
+gSOAP XML Web services tools
+Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+--------------------------------------------------------------------------------
+gSOAP public license.
+
+The contents of this file are subject to the gSOAP Public License Version 1.3
+(the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at
+http://www.cs.fsu.edu/~engelen/soaplicense.html
+Software distributed under the License is distributed on an "AS IS" basis,
+WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+for the specific language governing rights and limitations under the License.
+
+The Initial Developer of the Original Code is Robert A. van Engelen.
+Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+--------------------------------------------------------------------------------
+GPL license.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+Author contact information:
+engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
 
 	This level-2 DOM parser features automatic XML namespace handling and
 	allows mixing with gSOAP's data type (de)serializers.
@@ -22,27 +55,16 @@
 	  int ns__test(xsd__anyType in, xsd__anyType *out);
 	which defines a custom SOAP Header with an authentication element
 	parsed as a DOM.
-	
-	The parser fills the wide string fields of the DOM node only, unless
-	the flag SOAP_C_UTFSTRING is set. These wide fields contain Unicode XML
-	cdata.
-
-	The namespace name (URI) parsing is smart and checks the names in the
-	nsmap table first. After parsing, the nstr namespace strings will point
-	to the table contents in case the names (URIs) match. Otherwise, the
-	names are dynamically allocated. This enables quick pointer-based
-	checks on the DOM node's namespace names by comparing the pointer
-	to the namespace table entries namespaces[i].ns.
 
 	DOM node fields:
+	           *elts	optional sub elements (list of DOM nodes)
+	           *atts	optional element attributes
 	const char *nstr	element namespace name (URI)
-	      char *name	element name
+	      char *name	element name with optional ns: prefix
 	      char *data	optional element data
            wchar_t *wide	optional element data
-	           *elts	optional sub elements (list of DOM nodes)
-	       int __type	optional type (SOAP_TYPE_X as defined in soapH.h)
+	       int  type	optional type (SOAP_TYPE_X as defined in soapH.h)
 	      void *node	and optional element pointer to C/C++ data type
-	           *atts	optional element attributes
 
 	DOM Parsing:
 	The namespace name (URI) parsing is smart and fills the 'nstr' field
@@ -62,74 +84,122 @@
 
 	default:	only elements with an 'id' attribute are deserialized
 			as C/C++ data types (when a deserializer is available)
-	SOAP_XML_TREE:	never deserialize C/C++ types (produces DOM tree)
-	SOAP_XML_GRAPH:	always deserialize C/C++ types (when a deserializer is
+	SOAP_DOM_TREE:	never deserialize C/C++ types (produces DOM tree)
+	SOAP_DOM_NODE:	always deserialize C/C++ types (when a deserializer is
 			available and the xsi:type attribute is present in the
 			XML node or the XML element tag matches the type name)
 
-	The following output-mode flag (set with soap_set_omode()) control the
+	The following output-mode flag (set with soap_set_omode()) controls the
 	serialization of XML:
 
 	SOAP_XML_CANONICAL:	serialize XML in canonical form
 
-	The entire deserialized DOM is freed with soap_end();
+	The entire deserialized DOM is freed with
+	soap_destroy(DOM.soap);
+	soap_end(DOM.soap);
+
+	Examples (XML parsing and generation):
+
+	struct soap *soap = soap_new();
+	xsd__anyType dom(soap); // need a soap struct to parse XML using '>>'
+	cin >> dom; // parse XML
+	if (soap->error)
+	  ... parse error ...
+	soap_destroy(soap); // delete DOM
+	soap_end(soap); // delete data
+	soap_done(soap); // finalize
+	free(soap);
+
+	struct soap *soap = soap_new();
+	xsd__anyType dom(soap, ...); // populate the DOM
+	cout << dom; // print 
+	if (soap->error)
+	  ... output error ...
+	soap_end(soap); // clean up
+	soap_done(soap); // finalize
+	free(soap);
+
+	To retain the DOM but remove all other data, use:
+	dom.unlink();
 
 	Compile:
-	soapcpp2 -c dom.h
-	gcc -c dom.c
+	soapcpp2 dom++.h
+	g++ -c dom++.cpp
 
 	Add to the application's header file:
-	#import "dom.h"
+	#import "dom++.h"
 
-	Then link the application with dom.o
+	Then link the application with dom++.o
 
 	Development note:
 	Reused the gSOAP struct soap id hash table for handling namespace
 	bindings when transmitting DOMs
 
+Changes:
+	Renamed __type to type (correction)
+	dom.h and dom++.h are equivalent
+	dom.c, dom++.cpp, and dom.cpp are equivalent
+	Renamed SOAP_XML_TREE to SOAP_DOM_TREE
+	Renamed SOAP_XML_GRAPH to SOAP_DOM_NODE
+
 TODO:	Add wide string support for DOM attribute parsing
 	Improve mixed content handling
 */
 
-#include "soapH.h"
+#include "stdsoap2.h"
 
-/* format string for DOM namespace prefixes (<= 16 chars total) */
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__anyType(struct soap*, struct soap_dom_element const*);
+SOAP_FMAC1 void SOAP_FMAC2 soap_mark_xsd__anyType(struct soap*, const struct soap_dom_element *);
+SOAP_FMAC1 void SOAP_FMAC2 soap_default_xsd__anyType(struct soap*, struct soap_dom_element *);
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_xsd__anyType(struct soap*, struct soap_dom_element *, const char*, const char*);
+SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyType(struct soap*, const char*, int, const struct soap_dom_element *, const char*);
+SOAP_FMAC3 struct soap_dom_element * SOAP_FMAC4 soap_get_xsd__anyType(struct soap*, struct soap_dom_element *, const char*, const char*);
+SOAP_FMAC1 struct soap_dom_element * SOAP_FMAC2 soap_in_xsd__anyType(struct soap*, const char*, struct soap_dom_element *, const char*);
+
+SOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap*, const void*, int);
+SOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap*, const void*, const char*, int, int);
+SOAP_FMAC3 void *SOAP_FMAC4 soap_getelement(struct soap*, int*);
+
+/* format string for generating DOM namespace prefixes (<= 16 chars total) */
 #define SOAP_DOMID_FORMAT "SOAP-DOM%lu"
 
 /* namespace name (URI) lookup and store routines */
 static struct soap_ilist *soap_lookup_ns(struct soap*, const char*);
 static struct soap_ilist *soap_enter_ns(struct soap*, const char*, const char*);
 
-/******************************************************************************/
+/*
+**	DOM custom (de)serializers
+*/
+
 SOAP_FMAC1
 void
 SOAP_FMAC2
 soap_mark_xsd__anyType(struct soap *soap, const struct soap_dom_element *node)
 { if (node)
-  { struct soap_dom_element *elt;
-    if (node->__type && node->node)
-      soap_markelement(soap, node->node, node->__type);
+  { if (node->type && node->node)
+      soap_markelement(soap, node->node, node->type);
     else if (!node->data && !node->wide)
+    { struct soap_dom_element *elt;
       for (elt = node->elts; elt; elt = elt->next)
         soap_mark_xsd__anyType(soap, elt);
+    }
   }
 }
 
-/******************************************************************************/
 SOAP_FMAC1
 void
 SOAP_FMAC2
 soap_default_xsd__anyType(struct soap *soap, struct soap_dom_element *node)
 { node->next = NULL;
   node->prnt = NULL;
+  node->elts = NULL;
+  node->atts = NULL;
   node->nstr = NULL;
   node->name = NULL;
   node->data = NULL;
   node->wide = NULL;
-  node->elts = NULL;
-  node->atts = NULL;
   node->node = NULL;
-  node->__type = 0;
+  node->type = 0;
 }
 
 static int element(struct soap *soap, const char *name)
@@ -142,16 +212,16 @@ static int element(struct soap *soap, const char *name)
 
 static int out_element(struct soap *soap, const struct soap_dom_element *node, const char *prefix, const char *name, const char *nstr)
 { if (!prefix)
-  { if (node->__type && node->node)
-      return soap_putelement(soap, node->node, name, 0, node->__type);
+  { if (node->type && node->node)
+      return soap_putelement(soap, node->node, name, 0, node->type);
     return element(soap, name);
   }
-  if (node->__type && node->node)
+  if (node->type && node->node)
   { char *s = (char*)malloc(strlen(prefix) + strlen(name) + 2);
     if (!s)
       return soap->error = SOAP_EOM;
     sprintf(s, "%s:%s", prefix, name);
-    soap_putelement(soap, node->node, s, 0, node->__type);
+    soap_putelement(soap, node->node, s, 0, node->type);
     free(s);
   }
   else if (strlen(prefix) + strlen(name) < sizeof(soap->msgbuf))
@@ -210,6 +280,8 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
     size_t colon = 0;
     if (node->name)
       tag = node->name;
+    if (!tag)
+      tag = "_";
     if ((prefix = strchr(tag, ':')))
     { colon = prefix - tag + 1;
       if (colon > sizeof(soap->tag))
@@ -254,7 +326,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
     }
     else if (out_element(soap, node, NULL, tag + colon, NULL))
       return soap->error;
-    if (node->node && node->__type)
+    if (node->type && node->node)
       return SOAP_OK;
     for (att = node->atts; att; att = att->next)
     { if (att->name)
@@ -338,14 +410,14 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     }
   node->next = NULL;
   node->prnt = NULL;
+  node->elts = NULL;
+  node->atts = NULL;
   node->nstr = NULL;
   node->name = NULL;
   node->data = NULL;
   node->wide = NULL;
-  node->elts = NULL;
-  node->atts = NULL;
   node->node = NULL;
-  node->__type = 0;
+  node->type = 0;
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node %s\n", soap->tag));
   np = soap->nlist;
   if (!(s = strchr(soap->tag, ':')))
@@ -370,13 +442,10 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node namespace='%s'\n", node->nstr?node->nstr:""));
   }
   node->name = soap_strdup(soap, soap->tag);
-  if ((soap->mode & SOAP_XML_GRAPH) || (!(soap->mode & SOAP_XML_TREE) && *soap->id))
-  { if ((node->node = soap_getelement(soap, &node->__type)))
+  if ((soap->mode & SOAP_DOM_NODE) || (!(soap->mode & SOAP_DOM_TREE) && *soap->id))
+  { if ((node->node = soap_getelement(soap, &node->type)))
+    { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node contains type %d from xsi:type\n", node->type));
       return node;
-    if ((soap->mode & SOAP_XML_GRAPH) && !*soap->type)
-    { strcpy(soap->type, soap->tag);
-      if ((node->node = soap_getelement(soap, &node->__type)))
-        return node;
     }
   }
   att = &node->atts;
@@ -422,8 +491,10 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
       tp->visible = 0;
     }
   soap_element_begin_in(soap, NULL);
+  DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' accepted\n", node->name));
   if (soap->body)
   { wchar c;
+    DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' has content\n", node->name));
     do c = soap_getchar(soap);
     while (c > 0 && c <= 32);
     if (c == EOF)
@@ -463,37 +534,35 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
   return node;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-//	DOM attribute custom (de)serializers (to enable linkage)
-//
-////////////////////////////////////////////////////////////////////////////////
+/*
+**	DOM attribute custom (de)serializers (to enable linkage)
+*/
 
+/*
 SOAP_FMAC1
 void
 SOAP_FMAC2
-soap_mark_xsd__anyTypeAttribute(struct soap *soap, const struct soap_dom_attribute *a)
+soap_mark_xsd__anyAttribute(struct soap *soap, soap_dom_attribute const *a)
 { }
 
 SOAP_FMAC1
-struct soap_dom_attribute *
+soap_dom_attribute *
 SOAP_FMAC2
-soap_in_xsd__anyTypeAttribute(struct soap *soap, char const *tag, struct soap_dom_attribute *a, char const *type)
+soap_in_xsd__anyAttribute(struct soap *soap, char const *tag, soap_dom_attribute *a, char const *type)
 { return NULL;
 }
 
 SOAP_FMAC1
 int
 SOAP_FMAC2
-soap_out_xsd__anyTypeAttribute(struct soap *soap, char const *tag, int id, struct soap_dom_attribute *a, char const *type)
+soap_out_xsd__anyAttribute(struct soap *soap, char const *tag, int id, soap_dom_attribute const *a, char const *type)
 { return SOAP_EOF;
 }
+*/
 
-////////////////////////////////////////////////////////////////////////////////
-//
-//	Namespace lookup/store routines
-//
-////////////////////////////////////////////////////////////////////////////////
+/*
+**	Namespace lookup/store routines
+*/
 
 static struct soap_ilist *
 soap_lookup_ns(struct soap *soap, const char *nstr)
@@ -529,3 +598,335 @@ soap_enter_ns(struct soap *soap, const char *prefix, const char *nstr)
   return NULL;
 }
 
+/*
+**	Class soap_dom_element
+*/
+
+#ifdef __cplusplus
+
+soap_dom_element::soap_dom_element()
+{ soap = NULL;
+  next = NULL;
+  prnt = NULL;
+  elts = NULL;
+  atts = NULL;
+  nstr = NULL;
+  name = NULL;
+  data = NULL;
+  wide = NULL;
+  node = NULL;
+  type = 0;
+}
+
+soap_dom_element::soap_dom_element(struct soap *soap)
+{ this->soap = soap;
+  next = NULL;
+  prnt = NULL;
+  elts = NULL;
+  atts = NULL;
+  nstr = NULL;
+  name = NULL;
+  data = NULL;
+  wide = NULL;
+  node = NULL;
+  type = 0;
+}
+
+soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const char *name)
+{ this->soap = soap;
+  this->next = NULL;
+  this->prnt = NULL;
+  this->elts = NULL;
+  this->atts = NULL;
+  this->nstr = soap_strdup(soap, nstr);
+  this->name = soap_strdup(soap, name);
+  this->data = NULL;
+  this->wide = NULL;
+  this->node = NULL;
+  this->type = 0;
+}
+
+soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const char *name, const char *data)
+{ this->soap = soap;
+  this->next = NULL;
+  this->prnt = NULL;
+  this->nstr = soap_strdup(soap, nstr);
+  this->name = soap_strdup(soap, name);
+  this->data = soap_strdup(soap, data);
+  this->wide = NULL;
+  this->atts = NULL;
+  this->elts = NULL;
+  this->node = NULL;
+  this->type = 0;
+}
+
+soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const char *name, void *node, int type)
+{ this->soap = soap;
+  this->next = NULL;
+  this->prnt = NULL;
+  this->nstr = soap_strdup(soap, nstr);
+  this->name = soap_strdup(soap, name);
+  this->data = NULL;
+  this->wide = NULL;
+  this->atts = NULL;
+  this->elts = NULL;
+  this->node = node;
+  this->type = type;
+}
+
+soap_dom_element::~soap_dom_element()
+{ }
+
+soap_dom_element &soap_dom_element::set(const char *nstr, const char *name)
+{ this->nstr = soap_strdup(soap, nstr);
+  this->name = soap_strdup(soap, name);
+  return *this;
+}
+
+soap_dom_element &soap_dom_element::set(const char *data)
+{ this->data = soap_strdup(soap, data);
+  return *this;
+}
+
+soap_dom_element &soap_dom_element::set(void *node, int type)
+{ this->node = node;
+  this->type = type;
+  return *this;
+}
+
+soap_dom_element &soap_dom_element::add(struct soap_dom_element *elt)
+{ elt->prnt = this;
+  for (struct soap_dom_element *e = elts; e; e = e->next)
+    if (!e->next)
+    { e->next = elt;
+      return *this;
+    }
+  elts = elt;
+  return *this;
+}
+
+soap_dom_element &soap_dom_element::add(struct soap_dom_element &elt)
+{ return add(&elt);
+}
+
+soap_dom_element &soap_dom_element::add(struct soap_dom_attribute *att)
+{ for (struct soap_dom_attribute *a = atts; a; a = a->next)
+    if (!a->next)
+    { a->next = att;
+      return *this;
+    }
+  atts = att;
+  return *this;
+}
+
+soap_dom_element &soap_dom_element::add(struct soap_dom_attribute &att)
+{ return add(&att);
+}
+
+soap_dom_iterator soap_dom_element::begin()
+{ soap_dom_iterator iter(this);
+  return iter;
+}
+
+soap_dom_iterator soap_dom_element::end()
+{ soap_dom_iterator iter(NULL);
+  return iter;
+}
+
+soap_dom_iterator soap_dom_element::find(const char *nstr, const char *name)
+{ soap_dom_iterator iter(this);
+  iter.nstr = nstr;
+  iter.name = name;
+  if (name && soap_tag_cmp(this->name, name))
+    return ++iter;
+  if (nstr && this->nstr && soap_tag_cmp(this->nstr, nstr))
+    return ++iter;
+  return iter;
+}
+
+soap_dom_iterator soap_dom_element::find(int type)
+{ soap_dom_iterator iter(this);
+  iter.type = type;
+  if (this->type != type)
+    return ++iter;
+  return iter;
+}
+
+void soap_dom_element::unlink()
+{ soap_unlink(soap, this);
+  soap_unlink(soap, nstr);
+  soap_unlink(soap, name);
+  soap_unlink(soap, data);
+  soap_unlink(soap, wide);
+  if (elts)
+    elts->unlink();
+  if (atts)
+    elts->unlink();
+  if (next)
+    next->unlink();
+  node = NULL;
+  type = 0;
+}
+
+#endif
+
+/*
+**	Class soap_dom_attribute
+*/
+
+#ifdef __cplusplus
+
+soap_dom_attribute::soap_dom_attribute()
+{ soap = NULL;
+}
+
+soap_dom_attribute::soap_dom_attribute(struct soap *soap)
+{ this->soap = soap;
+  this->next = NULL;
+  this->nstr = NULL;
+  this->name = NULL;
+  this->data = NULL;
+  this->wide = NULL;
+}
+
+soap_dom_attribute::soap_dom_attribute(struct soap *soap, const char *nstr, const char *name, const char *data)
+{ this->soap = soap;
+  this->next = NULL;
+  this->nstr = soap_strdup(soap, nstr);
+  this->name = soap_strdup(soap, name);
+  this->data = soap_strdup(soap, data);
+  this->wide = NULL;
+}
+
+soap_dom_attribute::~soap_dom_attribute()
+{ }
+
+void soap_dom_attribute::unlink()
+{ soap_unlink(soap, this);
+  soap_unlink(soap, nstr);
+  soap_unlink(soap, name);
+  soap_unlink(soap, data);
+  soap_unlink(soap, wide);
+  if (next)
+    next->unlink();
+}
+
+#endif
+
+/*
+**	Class soap_dom_iterator
+*/
+
+#ifdef __cplusplus
+
+soap_dom_iterator::soap_dom_iterator()
+{ elt = NULL;
+  nstr = NULL;
+  name = NULL;
+  type = 0;
+}
+
+soap_dom_iterator::soap_dom_iterator(struct soap_dom_element *elt)
+{ this->elt = elt;
+  nstr = NULL;
+  name = NULL;
+  type = 0;
+}
+
+soap_dom_iterator::~soap_dom_iterator()
+{ }
+
+bool soap_dom_iterator::operator==(const soap_dom_iterator &iter) const
+{ return this->elt == iter.elt;
+}
+
+bool soap_dom_iterator::operator!=(const soap_dom_iterator &iter) const
+{ return this->elt != iter.elt;
+}
+
+struct soap_dom_element &soap_dom_iterator::operator*() const
+{ return *this->elt;
+}
+
+soap_dom_iterator &soap_dom_iterator::operator++()
+{ while (this->elt)
+  { if (this->elt->elts)
+      this->elt = elt->elts;
+    else if (this->elt->next)
+      this->elt = this->elt->next;
+    else
+    { do this->elt = this->elt->prnt;
+      while (this->elt && !this->elt->next);
+      if (this->elt)
+        this->elt = this->elt->next;
+      if (!this->elt)
+        break;
+    }
+    if (this->name && this->elt->name)
+    { if (!soap_tag_cmp(this->elt->name, this->name))
+      { if (this->nstr && this->elt->nstr)
+        { if (!soap_tag_cmp(this->elt->nstr, this->nstr))
+	    break;
+        }
+        else
+          break;
+      }
+    }
+    else if (this->type)
+    { if (this->elt->type == this->type)
+        break;
+    }
+    else
+      break;
+  }
+  return *this;
+}
+
+#endif
+
+/*
+**	I/O
+*/
+
+#ifdef __cplusplus
+
+std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
+{ if (!e.soap)
+  { struct soap soap;
+    soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_DOM_NODE);
+    soap_mark_xsd__anyType(&soap, &e);
+    soap_begin_send(&soap);
+    soap_out_xsd__anyType(&soap, NULL, 0, &e, NULL);
+    soap_end_send(&soap);
+    soap_end(&soap);
+    soap_done(&soap);
+  }
+  else
+  { std::ostream *os = e.soap->os;
+    e.soap->os = &o;
+    short omode = e.soap->omode;
+    soap_set_omode(e.soap, SOAP_DOM_NODE);
+    soap_mark_xsd__anyType(e.soap, &e);
+    soap_begin_send(e.soap);
+    soap_out_xsd__anyType(e.soap, NULL, 0, &e, NULL);
+    soap_end_send(e.soap);
+    e.soap->os = os;
+    e.soap->omode = omode;
+  }
+  return o;
+}
+
+std::istream &operator>>(std::istream &i, struct soap_dom_element &e)
+{ if (!e.soap)
+    e.soap = soap_new();
+  std::istream *is = e.soap->is;
+  e.soap->is = &i;
+  if (soap_begin_recv(e.soap)
+   || !soap_in_xsd__anyType(e.soap, NULL, &e, NULL)
+   || soap_end_recv(e.soap))
+    ; /* handle error? Note: e.soap->error is set and app should check */
+  e.soap->is = is;
+  return i;
+}
+
+#endif

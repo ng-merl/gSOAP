@@ -12,7 +12,7 @@ int main(int argc, char **argv)
   }
   soap_init(&soap);
   if (soap_call_ns__getQuote(&soap, "http://services.xmethods.net/soap", "", sym, &q) == 0)
-    printf("\nCompany - %s    Quote - %f\n", sym, q);
+     printf("\nCompany - %s    Quote - %f\n", sym, q);
   else
     soap_print_fault(&soap, stderr);
   soap_end(&soap);

@@ -402,6 +402,26 @@ has been changed).</li>
 <li>Fixed sporadic memory leak in HTTP cookie reader.</li>
 <li>Fixed multi-threaded server-side OpenSSL initialization.</li>
 <li>Fixed enumeration-based XML attribute deserialiation.</li>
+<li>Fixed SOAP-ENC:position attribute placement when arrays of pointers are
+mixed with nillable data.</li>
+<li>Fixed crash when parsing incorrect SOAP/XML attribute content.</li>
+</ul>
+<li>Version 2.4 (12/20/2003)</li>
+<ul>
+<li>New WSDL parser and importer with improved support for SOAP document style and literal encoding.</li>
+<li>Added optional full schema validation (partial by default). Use SOAP_XML_STRICT flag.</li>
+<li>Added SSL session caching.</li>
+<li>Added soap_set_namespaces() to switch namespace tables.</li>
+<li>Fixed plugin memory leak. REQUIRED CHANGE to plugin allocation and copying.</li>
+<li>Fixed server-side blocking SSL accept.</li>
+</ul>
+<li>Version 2.4.1 (01/07/2004)</li>
+<ul>
+<li>Changed _USCORE_ and _DOT_ naming conventions into _USCORE and _DOT to improve name
+mapping.</li>
+<li>Updated DOM parser (integrated into core gSOAP library).</li>
+<li>Improved WSDL parser and included several new features.</li>
+<li>Fixed WSDL schema import and WSDL literal output.</li>
 </ul>
 </ul>
 

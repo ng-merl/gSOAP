@@ -1,9 +1,44 @@
-/*	httpget.c
+/*
 
-	gSOAP HTTP GET plug-in
+httpget.c
 
-	Copyright (C) 2000-2003 Robert A. van Engelen, Genivia inc.
-	All Rights Reserved.
+gSOAP HTTP GET plugin.
+
+gSOAP XML Web services tools
+Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+
+--------------------------------------------------------------------------------
+gSOAP public license.
+
+The contents of this file are subject to the gSOAP Public License Version 1.3
+(the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at
+http://www.cs.fsu.edu/~engelen/soaplicense.html
+Software distributed under the License is distributed on an "AS IS" basis,
+WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+for the specific language governing rights and limitations under the License.
+
+The Initial Developer of the Original Code is Robert A. van Engelen.
+Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+--------------------------------------------------------------------------------
+GPL license.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place, Suite 330, Boston, MA 02111-1307 USA
+
+Author contact information:
+engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
 
 	Compile & link with stand-alone gSOAP server for HTTP GET support.
 	Compile & link with gSOAP clients for client-side HTTP GET requests.
@@ -13,18 +48,17 @@
 	soap_init(&soap);
 	soap_register_plugin_arg(&soap, http_get, http_get_handler);
 	...
-	... = soap_copy(&soap); // copies plugin too
+	... = soap_copy(&soap); // copies plugin too but not its data: plugin data is shared since fcopy is not set
 	...
-	soap_done(&soap); // detach plugin
+	soap_done(&soap); // detach plugin (calls plugin->fdelete)
 
 	You need to define a HTTP GET handling function at the server-side:
 	int http_get_handler(struct soap*)
 	which will be called from the plugin upon an HTTP GET request.
 	The function should return an error code or SOAP_OK;
 	This function should produce a valid HTTP response, for example:
-	soap_begin_send(soap);
 	soap_response(soap, SOAP_HTML); // use this to return HTML ...
-	soap_response(soap, SOAP_OK); // or use this to return a SOAP message
+	soap_response(soap, SOAP_OK); // ... or use this to return a SOAP message
 	...
 	soap_send(soap, "<HTML>...</HTML>"); // example HTML
 	...
@@ -81,7 +115,6 @@
 const char http_get_id[13] = HTTP_GET_ID;
 
 static int http_get_init(struct soap *soap, struct http_get_data *data, int (*handler)(struct soap*));
-static int http_get_copy(struct soap *soap, struct soap_plugin *dst, struct soap_plugin *src);
 static void http_get_delete(struct soap *soap, struct soap_plugin *p);
 static int http_get_parse(struct soap *soap);
 static int http_connect(struct soap*, const char*, const char*, int, const char*, const char*, size_t);
@@ -89,7 +122,7 @@ static int http_connect(struct soap*, const char*, const char*, int, const char*
 int http_get(struct soap *soap, struct soap_plugin *p, void *arg)
 { p->id = http_get_id;
   p->data = (void*)malloc(sizeof(struct http_get_data));
-  p->fcopy = http_get_copy;
+  /* p->fcopy = http_get_copy; obsolete, see note with http_get_copy() */
   p->fdelete = http_get_delete;
   if (p->data)
     if (http_get_init(soap, (struct http_get_data*)p->data, (int (*)(struct soap*))arg))
@@ -128,13 +161,15 @@ static int http_get_init(struct soap *soap, struct http_get_data *data, int (*ha
   return SOAP_OK;
 }
 
+/* We will share the plugin data among all soap copies created with soap_copy(), so we don't have to define this
 static int http_get_copy(struct soap *soap, struct soap_plugin *dst, struct soap_plugin *src)
 { *dst = *src;
   return SOAP_OK;
 }
+*/
 
 static void http_get_delete(struct soap *soap, struct soap_plugin *p)
-{ free(p->data); /* free allocated plugin data (this function is not called for shared plugin data) */
+{ free(p->data); /* free allocated plugin data (this function is not called for shared plugin data, but only when the final soap_done() is invoked on the original soap struct) */
 }
 
 static int http_get_parse(struct soap *soap)

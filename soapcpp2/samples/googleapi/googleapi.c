@@ -95,5 +95,6 @@ int main(int argc, char **argv)
   }
   else
     fprintf(stderr, "Unknown directive\n");
+  soap_done(&soap);
   return 0;
 }
