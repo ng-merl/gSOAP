@@ -8,4 +8,4 @@ Description: SOAP C Web Services with Cookies Enabled
 Version: @VERSION@
 Requires:
 Libs: -L${libdir} -lgsoapck
-Cflags: @SOAPCPP2_NONAMESPACES@ -DWITH_COOKIES -I${includedir}
+Cflags: -DWITH_COOKIES -I${includedir}

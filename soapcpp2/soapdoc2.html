@@ -15,13 +15,13 @@
 
 
 
-<title> gSOAP 2.7.0 User Guide</title>
+<title> gSOAP 2.7.1 User Guide</title>
     
-<h1 align="center">gSOAP 2.7.0 User Guide </h1>
+<h1 align="center">gSOAP 2.7.1 User Guide </h1>
 
-<h3 align="center">Robert van Engelen <br />Genivia, Inc., <br />engelen@genivia.com &amp; engelen@acm.org </h3>
+<h3 align="center">Robert van Engelen <br />Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Mar  1, 2005
+<h3 align="center">Apr  3, 2005
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -96,7 +96,9 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.2.10"
 >8.2.10&nbsp; <font color="#0000FF">How to Parse and Import WSDL Service Descriptions to Develop Clients and Servers</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.2.11"
->8.2.11&nbsp; <font color="#0000FF">How to Use Client Functionalities Within a Service</font></a><br />
+>8.2.11&nbsp; <font color="#0000FF">The typemap.dat File</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.2.12"
+>8.2.12&nbsp; <font color="#0000FF">How to Use Client Functionalities Within a Service</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.3"
 >8.3&nbsp; <font color="#0000FF">How to Use gSOAP for Asynchronous One-Way Message Passing</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc8.4"
@@ -2467,18 +2469,18 @@ members.
 <p>
 Consider the following example commands (entered at the command prompt):
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
-$ wsdl2h -o Amazon.h http://soap.amazon.com/schemas/AmazonWebServices.wsdl <br />
+$ wsdl2h -o XMethodsQuery.h http://www.xmethods.net/wsdl/query.wsdl <br />
 ... <br />
-$ soapcpp2 -i Amazon.h
+$ soapcpp2 -i XMethodsQuery.h
 </td></tr></table><br></span>
-The first command generates <i>Amazon.h</i> from the WSDL at the specified URL.
+The first command generates <i>XMethodsQuery.h</i> from the WSDL at the specified URL.
 The header file is then processed by the gSOAP compiler to generate the stubs
 and skeletons.
-See Amazon.h for the types and service functions. A C++ client application may
-use the generated <i>soapAmazonSearchBindingProxy.h</i> class and
-<i>AmazonSearchBinding.nsmap</i> XML namespace table to access the Amazon Web
+See XMethodsQuery.h for the types and service functions. A C++ client application may
+use the generated <i>soapXMethodsQuerySoapProxy.h</i> class and
+<i>XMethodsQuerySoap.nsmap</i> XML namespace table to access the Web
 service. Both need to be <i>#include</i>-d in your source. Then compile and link
-the <i>soapC.cpp</i>, <i>soapAmazonSearchBindingProxy.cpp</i>, and <i>stdsoap2.cpp</i> sources to complete the build.
+the <i>soapC.cpp</i>, <i>soapClient.cpp</i>, and <i>stdsoap2.cpp</i> sources to complete the build.
 
 <p>
 When parsing a WSDL, the output file name is the WSDL input file name with
@@ -2493,34 +2495,52 @@ The <i>wsdl2h</i> command line options are:
 <table>
 <tr><td><font color="#FF0000"><b>Option</b></font>	</td><td><font color="#FF0000"><b>Description</b></font> </td></tr>
 <tr><td><i>-c</i>	</td><td>generate pure C header file code </td></tr>
-<tr><td><i>-e</i>	</td><td>enum names will not be prefixed </td></tr>
+<tr><td><i>-e</i>	</td><td>don't qualify enum names </td></tr>
 <tr><td></td><td>This option is for backward compatibility with gSOAP 2.4.1 and earlier. </td></tr>
 <tr><td></td><td>The option does not produce code that conforms to WS-I Basic Profile 1.0a. </td></tr>
 <tr><td><i>-f</i>      </td><td>generate flat C++ class hierarchy for schema extensions </td></tr>
+<tr><td><i>-h</i>      </td><td>print help information </td></tr>
 <tr><td><i>-m</i>	</td><td>create modules for separate compilation </td></tr>
 <tr><td><i>-n name</i>	</td><td>use <i>name</i> as the base namespace prefix name instead of <i>ns</i> </td></tr>
+<tr><td><i>-N name</i>	</td><td>use <i>name</i> as the base namespace prefix name for service namespaces </td></tr>
 <tr><td><i>-o file</i>  </td><td>output to file </td></tr>
 <tr><td><i>-p</i>      </td><td>create polymorphic types with C++ inheritance hierarchy with base <i>xsd__anyType</i> </td></tr>
 <tr><td></td><td>This is automatically performed when WSDL contains polymorphic definitions </td></tr>
+<tr><td><i>-r host:port</i>      </td><td>connect via proxy host and port </td></tr>
 <tr><td><i>-s</i>      </td><td>do not generate STL code (no std::string and no std::vector) </td></tr>
 <tr><td><i>-t file</i>  </td><td>use type map file instead of the default file typemap.dat </td></tr>
 <tr><td><i>-v</i>      </td><td>verbose output </td></tr>
-<tr><td><i>-?</i>      </td><td>help </td></tr></table>
+<tr><td><i>-w</i>      </td><td>wrap response parameters in a response struct </td></tr>
+<tr><td><i>-?</i>      </td><td>print help information </td></tr></table>
 
 </td></tr></table><br></span>
-A typemap file contains custom XML schema and C/C++ type bindings. An internal table is used by default.
+
+<p>
+      <h4><a name="tth_sEc8.2.11">
+8.2.11</a>&nbsp;&nbsp;<font color="#0000FF">The typemap.dat File</font></h4>
+
+<p>
+A typemap.dat file contains custom XML schema and C/C++ type bindings. An internal table is used by default.
+
+<p>
 An example typemap file is:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0B0D0"><tr><td><tt>
 #       This file contains custom definitions of the XML schema types and <br />
 #       C/C++ types for your project, and XML namespace prefix definitions. <br />
+#       The wsdl2h WSDL importer consults this file to determine bindings. <br />
   <br />
+<tt>[</tt> <br />
+// This comment will be included in the generated .h file <br />
+// You can include any additional declarations, includes, imports, etc. <br />
+// within <tt>[</tt> <tt>]</tt> sections. The brackets MUST appear at the start of a line <br />
+<tt>]</tt> <br />
 #       XML namespace prefix definitions can be provided to override the <br />
 #       default choice of ns1, ns2, ... prefixes. For example: <br />
  <br />
 i       = "http://www.soapinterop.org/" <br />
 s       = "http://www.soapinterop.org/xsd" <br />
  <br />
-#       Type definitions consists of a single line containing: <br />
+#       Type definitions are of the form:
 #       type = declaration <font face="symbol">|</font
 > use <font face="symbol">|</font
 > pointer-use <br />
@@ -2534,21 +2554,26 @@ s       = "http://www.soapinterop.org/xsd" <br />
  <br />
 xsd__int        = <font face="symbol">|</font
 > int <br />
-xsd__byte       = <font face="symbol">|</font
-> char <font face="symbol">|</font
-> int* <br />
+xsd__string     = <font face="symbol">|</font
+> char* <font face="symbol">|</font
+> char* <br />
 xsd__boolean = enum xsd__boolean  false_, true_ ; <font face="symbol">|</font
 > enum xsd__boolean <br />
 xsd__base64Binary = class xsd__base64Binary  unsigned char *__ptr; int __size; ; <font face="symbol">|</font
 > xsd__base64Binary <font face="symbol">|</font
-> xsd__base64Binary
+> xsd__base64Binary <br />
+#	You can extend structs and classes with member data and functions. <br />
+#      For example, adding a constructor to ns__myClass:
+ns__myClass     = $ ns__myClass(); <br />
+#	The general form is
+#	class_name = $ member; <br />
 </td></tr></table><br></tt>
 The <i>i</i> and <i>s</i> prefixes are declared such that the header file output by the WSDL parser will use these to produce C/C++ code.
 The XML schema types are associated with an optional C/C++ type declaration, a use reference, and a pointer-use reference. The pointer-use reference of the <i>xsd__byte</i> type for example, is <i><b>int</b>*</i> because <i><b>char</b>*</i> is reserved for strings.
 
 <p>
-		      <h4><a name="tth_sEc8.2.11">
-8.2.11</a>&nbsp;&nbsp;<font color="#0000FF">How to Use Client Functionalities Within a Service</font></h4>
+		      <h4><a name="tth_sEc8.2.12">
+8.2.12</a>&nbsp;&nbsp;<font color="#0000FF">How to Use Client Functionalities Within a Service</font></h4>
 
 <p>
 A gSOAP service may make client calls to other services from within its remove
@@ -2739,14 +2764,12 @@ At the server side, we need to return an empty HTTP OK response. This is accompl
 </td></tr></table><br></i>
 At the client side, the empty response header must be parsed as follows:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>if</b>&nbsp;(soap_call_ns__event(soap, eventNo) != SOAP_OK <br />
+<b>if</b>&nbsp;(soap_send_ns__event(soap, eventNo) != SOAP_OK <br />
 &nbsp;&nbsp;&nbsp;<font face="symbol">|</font
 ><font face="symbol">|</font
 > soap_recv_empty_response(soap) != SOAP_OK) <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); <br />
-&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_recv_empty_response(soap) != SOAP_OK) // parse HTTP OK <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); <br />
-}
+&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); <br />
+...
 </td></tr></table><br></i>
 The synchronous (and asynchronous) one-way messaging supports HTTP keep-alive and chunking.
 
@@ -9388,10 +9411,16 @@ Should set <i>in_addr *a</i> and return <i>SOAP_OK</i> or return <i>SOAP_ERR</i>
 <tr><td width="602">Used by clients to check if the server is still responsive.
 </td></tr>
 <tr><td width="602">Built-in gSOAP function: <i>soap_poll</i> </td></tr>
-<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fserveloop)(<b>struct</b>&nbsp;soap *soap</i> </td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fserveloop)(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
 <tr><td width="602">Called after successful invocation of a server operation in the server loop, immediately after sending the response to a client.
 Can be used to clean up resources (e.g.&nbsp;using <i>soap_end()</i>) while serving a long sequence of keep-alive connections.
 Should return <i>SOAP_OK</i>, or set <i>soap</i><tt>-&gt;</tt><i>error</i> to a gSOAP error code and return <i>soap</i><tt>-&gt;</tt><i>error</i>.
+Built-in gSOAP function: none.
+</td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;(*soap.fseterror)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;**code, <b>const</b>&nbsp;<b>char</b>&nbsp;**string)</i> </td></tr>
+<tr><td width="602">Called to set the SOAP Fault <i>code</i> and <i>string</i> values based on the value of <i>soap</i><tt>-&gt;</tt><i>error</i>. Allows user-defined messages to be associated with gSOAP error codes to override gSOAP's built-in error messages.
+
+<p>
 Built-in gSOAP function: none.
 </td></tr></table>
 
@@ -11407,5 +11436,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On  1 Mar 2005, 10:11.</small>
+version 3.00.<br />On  3 Apr 2005, 14:32.</small>
 </html>

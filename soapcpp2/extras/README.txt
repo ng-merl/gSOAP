@@ -11,6 +11,8 @@ logging.cpp contributed by M. Helmick
 ckdb.h ckdb.c			Simple Cookie database manager (store/load)
 ckdbtest.h ckdbtest.c		Test code for Simple Cookie database manager
 fault.cpp			Print SOAP Fault messages to C++ streams
+httpget.h httpget.c		HTTP GET plugin to support HTTP GET operations
+logging.h logging.c		Message logging and statistics plugin
 httpmd5.h httpmd5.c		HTTP Content-MD5 support
 httpmd5test.h httpmd5test.c	Example HTTP Content-MD5 test application
 logging.cpp			Log send, receive, and trace messages on streams

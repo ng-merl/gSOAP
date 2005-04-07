@@ -3,8 +3,9 @@
 soapcpp2.h
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+This part of the software is released under one of the following licenses:
+GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
 gSOAP public license.
 
@@ -37,6 +38,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 */
 
 #include <stdio.h>
@@ -48,7 +51,7 @@ engelen@genivia.com / engelen@acm.org
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.0f" /* Current version */
+#define VERSION "2.7.1" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -327,6 +330,7 @@ extern int vflag;
 extern int wflag;
 extern int cflag;
 extern int eflag;
+extern int iflag;
 extern int mflag;
 extern int nflag;
 extern int lflag;

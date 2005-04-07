@@ -103,13 +103,13 @@ AM_CXXFLAGS = $(SOAPCPP2_DEBUG) -D$(platform)
 AM_CFLAGS = $(SOAPCPP2_DEBUG) -D$(platform)
 
 lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a
-libgsoap_a_SOURCES = stdsoap2.c dom.c
+libgsoap_a_SOURCES = stdsoap2.c
 libgsoap_a_CFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform)
-libgsoap___a_SOURCES = stdsoap2_cpp.cpp dom.cpp
+libgsoap___a_SOURCES = stdsoap2_cpp.cpp
 libgsoap___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform)
-libgsoapck_a_SOURCES = stdsoap2_ck.c dom.c
+libgsoapck_a_SOURCES = stdsoap2_ck.c
 libgsoapck_a_CFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
-libgsoapck___a_SOURCES = stdsoap2_ck_cpp.cpp dom.cpp
+libgsoapck___a_SOURCES = stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 
 BUILT_SOURCES = stdsoap2_cpp.cpp $(lib_LIBRARIES)
@@ -123,23 +123,19 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libgsoap___a_AR = $(AR) cru
 libgsoap___a_LIBADD =
-am_libgsoap___a_OBJECTS = libgsoap___a-stdsoap2_cpp.$(OBJEXT) \
-	libgsoap___a-dom.$(OBJEXT)
+am_libgsoap___a_OBJECTS = libgsoap___a-stdsoap2_cpp.$(OBJEXT)
 libgsoap___a_OBJECTS = $(am_libgsoap___a_OBJECTS)
 libgsoap_a_AR = $(AR) cru
 libgsoap_a_LIBADD =
-am_libgsoap_a_OBJECTS = libgsoap_a-stdsoap2.$(OBJEXT) \
-	libgsoap_a-dom.$(OBJEXT)
+am_libgsoap_a_OBJECTS = libgsoap_a-stdsoap2.$(OBJEXT)
 libgsoap_a_OBJECTS = $(am_libgsoap_a_OBJECTS)
 libgsoapck___a_AR = $(AR) cru
 libgsoapck___a_LIBADD =
-am_libgsoapck___a_OBJECTS = libgsoapck___a-stdsoap2_ck_cpp.$(OBJEXT) \
-	libgsoapck___a-dom.$(OBJEXT)
+am_libgsoapck___a_OBJECTS = libgsoapck___a-stdsoap2_ck_cpp.$(OBJEXT)
 libgsoapck___a_OBJECTS = $(am_libgsoapck___a_OBJECTS)
 libgsoapck_a_AR = $(AR) cru
 libgsoapck_a_LIBADD =
-am_libgsoapck_a_OBJECTS = libgsoapck_a-stdsoap2_ck.$(OBJEXT) \
-	libgsoapck_a-dom.$(OBJEXT)
+am_libgsoapck_a_OBJECTS = libgsoapck_a-stdsoap2_ck.$(OBJEXT)
 libgsoapck_a_OBJECTS = $(am_libgsoapck_a_OBJECTS)
 
 DEFS = @DEFS@
@@ -149,13 +145,9 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/libgsoap___a-dom.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/libgsoap___a-stdsoap2_cpp.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/libgsoap_a-dom.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/libgsoap___a-stdsoap2_cpp.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoap_a-stdsoap2.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/libgsoapck___a-dom.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/libgsoapck_a-dom.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -224,25 +216,21 @@ uninstall-libLIBRARIES:
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
 libgsoap___a-stdsoap2_cpp.$(OBJEXT): stdsoap2_cpp.cpp
-libgsoap___a-dom.$(OBJEXT): dom.cpp
 libgsoap++.a: $(libgsoap___a_OBJECTS) $(libgsoap___a_DEPENDENCIES) 
 	-rm -f libgsoap++.a
 	$(libgsoap___a_AR) libgsoap++.a $(libgsoap___a_OBJECTS) $(libgsoap___a_LIBADD)
 	$(RANLIB) libgsoap++.a
 libgsoap_a-stdsoap2.$(OBJEXT): stdsoap2.c
-libgsoap_a-dom.$(OBJEXT): dom.c
 libgsoap.a: $(libgsoap_a_OBJECTS) $(libgsoap_a_DEPENDENCIES) 
 	-rm -f libgsoap.a
 	$(libgsoap_a_AR) libgsoap.a $(libgsoap_a_OBJECTS) $(libgsoap_a_LIBADD)
 	$(RANLIB) libgsoap.a
 libgsoapck___a-stdsoap2_ck_cpp.$(OBJEXT): stdsoap2_ck_cpp.cpp
-libgsoapck___a-dom.$(OBJEXT): dom.cpp
 libgsoapck++.a: $(libgsoapck___a_OBJECTS) $(libgsoapck___a_DEPENDENCIES) 
 	-rm -f libgsoapck++.a
 	$(libgsoapck___a_AR) libgsoapck++.a $(libgsoapck___a_OBJECTS) $(libgsoapck___a_LIBADD)
 	$(RANLIB) libgsoapck++.a
 libgsoapck_a-stdsoap2_ck.$(OBJEXT): stdsoap2_ck.c
-libgsoapck_a-dom.$(OBJEXT): dom.c
 libgsoapck.a: $(libgsoapck_a_OBJECTS) $(libgsoapck_a_DEPENDENCIES) 
 	-rm -f libgsoapck.a
 	$(libgsoapck_a_AR) libgsoapck.a $(libgsoapck_a_OBJECTS) $(libgsoapck_a_LIBADD)
@@ -254,13 +242,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoap___a-dom.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoap___a-stdsoap2_cpp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoap_a-dom.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoap_a-stdsoap2.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck___a-dom.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck_a-dom.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po@am__quote@
 
 distclean-depend:
@@ -290,18 +274,6 @@ libgsoap_a-stdsoap2.obj: stdsoap2.c
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoap_a_CFLAGS) $(CFLAGS) -c -o libgsoap_a-stdsoap2.obj `cygpath -w stdsoap2.c`
 
-libgsoap_a-dom.o: dom.c
-@AMDEP_TRUE@	source='dom.c' object='libgsoap_a-dom.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoap_a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoap_a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoap_a_CFLAGS) $(CFLAGS) -c -o libgsoap_a-dom.o `test -f 'dom.c' || echo '$(srcdir)/'`dom.c
-
-libgsoap_a-dom.obj: dom.c
-@AMDEP_TRUE@	source='dom.c' object='libgsoap_a-dom.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoap_a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoap_a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoap_a_CFLAGS) $(CFLAGS) -c -o libgsoap_a-dom.obj `cygpath -w dom.c`
-
 libgsoapck_a-stdsoap2_ck.o: stdsoap2_ck.c
 @AMDEP_TRUE@	source='stdsoap2_ck.c' object='libgsoapck_a-stdsoap2_ck.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po' tmpdepfile='$(DEPDIR)/libgsoapck_a-stdsoap2_ck.TPo' @AMDEPBACKSLASH@
@@ -313,18 +285,6 @@ libgsoapck_a-stdsoap2_ck.obj: stdsoap2_ck.c
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po' tmpdepfile='$(DEPDIR)/libgsoapck_a-stdsoap2_ck.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck_a_CFLAGS) $(CFLAGS) -c -o libgsoapck_a-stdsoap2_ck.obj `cygpath -w stdsoap2_ck.c`
-
-libgsoapck_a-dom.o: dom.c
-@AMDEP_TRUE@	source='dom.c' object='libgsoapck_a-dom.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck_a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoapck_a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck_a_CFLAGS) $(CFLAGS) -c -o libgsoapck_a-dom.o `test -f 'dom.c' || echo '$(srcdir)/'`dom.c
-
-libgsoapck_a-dom.obj: dom.c
-@AMDEP_TRUE@	source='dom.c' object='libgsoapck_a-dom.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck_a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoapck_a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck_a_CFLAGS) $(CFLAGS) -c -o libgsoapck_a-dom.obj `cygpath -w dom.c`
 CCDEPMODE = @CCDEPMODE@
 
 .cpp.o:
@@ -351,18 +311,6 @@ libgsoap___a-stdsoap2_cpp.obj: stdsoap2_cpp.cpp
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoap___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoap___a-stdsoap2_cpp.obj `cygpath -w stdsoap2_cpp.cpp`
 
-libgsoap___a-dom.o: dom.cpp
-@AMDEP_TRUE@	source='dom.cpp' object='libgsoap___a-dom.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoap___a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoap___a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoap___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoap___a-dom.o `test -f 'dom.cpp' || echo '$(srcdir)/'`dom.cpp
-
-libgsoap___a-dom.obj: dom.cpp
-@AMDEP_TRUE@	source='dom.cpp' object='libgsoap___a-dom.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoap___a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoap___a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoap___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoap___a-dom.obj `cygpath -w dom.cpp`
-
 libgsoapck___a-stdsoap2_ck_cpp.o: stdsoap2_ck_cpp.cpp
 @AMDEP_TRUE@	source='stdsoap2_ck_cpp.cpp' object='libgsoapck___a-stdsoap2_ck_cpp.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po' tmpdepfile='$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.TPo' @AMDEPBACKSLASH@
@@ -374,18 +322,6 @@ libgsoapck___a-stdsoap2_ck_cpp.obj: stdsoap2_ck_cpp.cpp
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po' tmpdepfile='$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoapck___a-stdsoap2_ck_cpp.obj `cygpath -w stdsoap2_ck_cpp.cpp`
-
-libgsoapck___a-dom.o: dom.cpp
-@AMDEP_TRUE@	source='dom.cpp' object='libgsoapck___a-dom.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck___a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoapck___a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoapck___a-dom.o `test -f 'dom.cpp' || echo '$(srcdir)/'`dom.cpp
-
-libgsoapck___a-dom.obj: dom.cpp
-@AMDEP_TRUE@	source='dom.cpp' object='libgsoapck___a-dom.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck___a-dom.Po' tmpdepfile='$(DEPDIR)/libgsoapck___a-dom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoapck___a-dom.obj `cygpath -w dom.cpp`
 CXXDEPMODE = @CXXDEPMODE@
 uninstall-info-am:
 includeHEADERS_INSTALL = $(INSTALL_HEADER)

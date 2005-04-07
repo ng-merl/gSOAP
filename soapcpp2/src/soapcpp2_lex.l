@@ -5,8 +5,9 @@ soapcpp2_lex.l
 Flex/Lex tokenizer.
 
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+This part of the software is released under one of the following licenses:
+GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
 gSOAP public license.
 
@@ -38,6 +39,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 
 Author contact information:
 engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 */
 
@@ -96,8 +99,7 @@ eof		<<EOF>>
 %%
 {ws}			{ /* skip white space */ }
 "/*"			{ BEGIN(MLCOMMENT); }
-<MLCOMMENT>[^*]		{ /* eat anything that's not a '*' */ }
-<MLCOMMENT>"*"[^/]	{ /* eat up '*'s not followed by '/'s */ }
+<MLCOMMENT>.|\n		{ }
 <MLCOMMENT>"*/"		{ BEGIN(INITIAL); }
 <MLCOMMENT><<EOF>>	{ execerror("Unclosed multiline comment at the end of file"); }
 "//gsoapopt".*\n	{ option(); }
@@ -186,7 +188,7 @@ install_int()
 #ifdef WIN32
 	sscanf(yytext, "%I64u", &yylval.i);
 #else
- 	sscanf(yytext, "%llu", &yylval.i);
+	yylval.i = strtoull(yytext, NULL, 10);
 #endif
 	return LNG;
 }
@@ -200,7 +202,7 @@ install_hex()
 #ifdef WIN32
 	sscanf(yytext, "%I64x", &yylval.i);
 #else
- 	sscanf(yytext, "%llx", &yylval.i);
+	yylval.i = strtoull(yytext + 2, NULL, 16);
 #endif
 	return LNG;
 }
@@ -746,7 +748,7 @@ static void import(const char *file)
       yyin = fopen(buf, "r");
     }
     if (!yyin)
-    { sprintf(errbuf, "#import: Cannot open file \"%s\" for reading", file);
+    { sprintf(errbuf, "#import: Cannot open file \"%s\" for reading. Hint: use option -I path", file);
       execerror(errbuf);
     }
   }

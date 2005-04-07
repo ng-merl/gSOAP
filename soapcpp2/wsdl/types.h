@@ -6,7 +6,7 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ enum Lookup { NOLOOKUP, LOOKUP };
 class Types
 { public:
     SetOfString		knames;	// keywords, reserved words, class names, and typedefs
+    MapOfStringToString modtypemap;
     MapOfStringToString deftypemap;
     MapOfStringToString usetypemap;
     MapOfStringToString ptrtypemap;
@@ -69,7 +70,7 @@ class Types
     const char *pname(bool flag, const char *prefix, const char *URI, const char *qname);
     const char *sname(const char *type, const char *value);
     const char *nsprefix(const char *prefix, const char *URI);
-    const char *deftname(enum Type type, const char *pointer, const char *prefix, const char *URI, const char *qname);
+    const char *deftname(enum Type type, const char *pointer, bool is_pointer, const char *prefix, const char *URI, const char *qname);
     bool is_defined(const char *prefix, const char *URI, const char *qname);
     bool is_nillable(const xs__element& element);
     bool is_basetype(const char *type);
@@ -93,6 +94,7 @@ class Types
     void gen(const char *URI, const xs__choice&);
     void gen(const char *URI, const xs__any&);
     void gen(const char *URI, const xs__anyAttribute&);
+    void modify(const char *name);
 };
 
 #endif

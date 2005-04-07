@@ -6,7 +6,7 @@ WSDL 1.1 binding schema interface
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -56,7 +56,6 @@ class wsdl__import
   	wsdl__definitions		*definitionsRef;
   public:
 					wsdl__import();
-					~wsdl__import();
   	int				traverse(wsdl__definitions&);
 	void				definitionsPtr(wsdl__definitions*);
 	wsdl__definitions		*definitionsPtr() const;
@@ -82,7 +81,6 @@ class wsdl__part
   	xs__complexType			*complexTypeRef;	// traverse() finds complexType
   public:
 					wsdl__part();
-					~wsdl__part();
   	int				traverse(wsdl__definitions&);
 	void				elementPtr(xs__element*);
 	void				simpleTypePtr(xs__simpleType*);
@@ -110,7 +108,6 @@ class wsdl__input
   	wsdl__message			*messageRef;		// traverse() finds message
   public:
   					wsdl__input();
-  					~wsdl__input();
   	int				traverse(wsdl__definitions&);
 	void				messagePtr(wsdl__message*);
 	wsdl__message			*messagePtr() const;
@@ -125,7 +122,6 @@ class wsdl__output
   	wsdl__message			*messageRef;		// traverse() finds message
   public:
 					wsdl__output();
-					~wsdl__output();
   	int				traverse(wsdl__definitions&);
 	void				messagePtr(wsdl__message*);
 	wsdl__message			*messagePtr() const;
@@ -140,7 +136,6 @@ class wsdl__fault
   	wsdl__message			*messageRef;		// traverse() finds message
   public:
   					wsdl__fault();
-  					~wsdl__fault();
   	int				traverse(wsdl__definitions&);
 	void				messagePtr(wsdl__message*);
 	wsdl__message			*messagePtr() const;
@@ -198,7 +193,6 @@ class wsdl__ext_fault			// extensibility element
   	wsdl__message			*messageRef;
   public:
   					wsdl__ext_fault();
-  					~wsdl__ext_fault();
   	int				traverse(wsdl__definitions&);
 	void				messagePtr(wsdl__message*);
 	wsdl__message			*messagePtr() const;
@@ -217,7 +211,6 @@ class wsdl__binding_operation
   	wsdl__operation			*operationRef;		// traverse() finds operation in <wsdl:portType>
   public:
   					wsdl__binding_operation();
-  					~wsdl__binding_operation();
   	int				traverse(wsdl__definitions&, wsdl__portType*);
 	void				operationPtr(wsdl__operation*);
 	wsdl__operation			*operationPtr() const;
@@ -236,7 +229,6 @@ class wsdl__binding
 	wsdl__portType			*portTypeRef;		// traverse() finds portType
   public:
 					wsdl__binding();
-					~wsdl__binding();
 	int				traverse(wsdl__definitions&);
 	void				portTypePtr(wsdl__portType*);
 	wsdl__portType			*portTypePtr() const;
@@ -253,7 +245,6 @@ class wsdl__port
 	wsdl__binding			*bindingRef;		// traverse() finds binding
   public:
   					wsdl__port();
-  					~wsdl__port();
 	int				traverse(wsdl__definitions&);
 	void				bindingPtr(wsdl__binding*);
 	wsdl__binding			*bindingPtr() const;
@@ -288,7 +279,7 @@ class wsdl__definitions
   public:
 					wsdl__definitions();
 					wsdl__definitions(struct soap*, const char*);
-					~wsdl__definitions();
+	virtual				~wsdl__definitions();
 	int				get(struct soap*);	// gSOAP getter is triggered after parsing
 	int				traverse();
 	int				read(const char*);

@@ -76,9 +76,9 @@ static int dime_write(struct soap*, void*, const char*, size_t);
 
 int main(int argc, char **argv)
 { struct soap soap;
-  // use HTTP chunking when possible
-  // chunking allows streaming of DIME content without requiring DIME attachment size to be set
-  // DIME attachments can be streamed without chunking only if the attachment size is set
+  // use HTTP 1.1 chunking
+  // HTTP chunking allows streaming of DIME content without requiring DIME attachment size to be set
+  // DIME attachments can be streamed without chunking ONLY if the attachment size is set
   soap_init1(&soap, SOAP_IO_CHUNK);
   // set DIME callbacks
   soap.fdimereadopen = dime_read_open;
@@ -136,6 +136,7 @@ static void putData(struct soap *soap, int argc, char **argv)
   for (int i = 2; i < argc; i++)
   { data[i - 2].__ptr = (unsigned char*)argv[i];
     // MUST set id or type to enable DIME
+    // zero size indicates streaming DIME (this requires HTTP chunking)
     data[i - 2].type = "";
   }
   if (soap_call_ns__putData(soap, endpoint, NULL, &data, &names))
@@ -233,7 +234,7 @@ static void *dime_write_open(struct soap *soap, const char *id, const char *type
   char *name;
   // get file name from options (not '\0' terminated)
   if (options)
-  { size_t len = ((size_t)options[2] << 8) | ((size_t)options[3]); // option string length
+  { size_t len = ((unsigned char)options[2] << 8) | ((unsigned char)options[3]); // option string length
     name = (char*)soap_malloc(soap, len + 1);
     strncpy(name, options + 4, len);
     name[len] = '\0';

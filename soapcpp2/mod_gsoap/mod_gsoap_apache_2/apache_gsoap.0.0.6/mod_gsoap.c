@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <assert.h>
 //#include <ltdl.h>
+#include <dlfcn.h>
 #include "apr_strings.h"
 #include "apr_fnmatch.h"
 #include "apr_strings.h"
@@ -51,7 +52,7 @@ typedef struct SoapSharedLibrary_S {
     #define DLOPEN(a,b) LoadLibrary(a)
 	HMODULE m_hLibrary;
 #else
-	#define DLSYM(a,b) dlsyn(a,b)
+	#define DLSYM(a,b) dlsym(a,b)
     #define DLOPEN(a,b) dlopen(a,b)
     void *m_hLibrary; ///< handle of the loaded libray.
 #endif

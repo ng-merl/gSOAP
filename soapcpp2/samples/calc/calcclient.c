@@ -34,8 +34,13 @@ int main(int argc, char **argv)
       exit(0);
   }
   if (soap.error)
-    soap_print_fault(&soap, stderr);
+  { soap_print_fault(&soap, stderr);
+    exit(1);
+  }
   else
     printf("result = %g\n", result);
+  soap_destroy(&soap);
+  soap_end(&soap);
+  soap_done(&soap);
   return 0;
 }

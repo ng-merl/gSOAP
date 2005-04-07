@@ -485,7 +485,7 @@ pointers std::string**). To obtain old behavior, add entry "xsd:string =
 schema attributes.</li>
 <li>Fixed MB char handling.</li>
 </ul>
-<li>Version 2.7.0a/b/c/d/e (09/10/2004, 1/24/2005)</li>
+<li>Version 2.7.0a/b/c/d/e/f (09/10/2004, 2/1/2005)</li>
 <ul>
 <li>Added multipart/related support for SOAP with MIME attachments (SwA).</li>
 <li>Added API functions for DIME open and closed layout support.</li>
@@ -497,6 +497,7 @@ schema attributes.</li>
 <li>Added wsdl2h options -e and -i.</li>
 <li>Added Palm OS and Symbian instructions and examples.</li>
 <li>Added xml-rpc support and examples.</li>
+<li>New mod_gsoap directory with modules for Apache 1.x/2.x, IIS, and WinInet</li>
 <li>Improved XML validation with SOAP_XML_STRICT flag.</li>
 <li>Improved memory footprint (reduced code size and reduced serialization overhead).</li>
 <li>Improved runtime id-ref serialization and deserialization.</li>
@@ -508,6 +509,21 @@ schema attributes.</li>
 <li>Fixed proxy+SSL+zlib+chunking.</li>
 <li>Fixed SSL select() polling in frecv().</li>
 <li>Fixed wsdl2h multidimensional SOAP arrays generate problem.</li>
+</ul>
+<li>Version 2.7.1 (03/31/2005)</li>
+<ul>
+<li>Added new style of C++ proxy/object generation (objects derived from
+soap struct), enabled with soapcpp2 option -i.</li>
+<li>Added new features to wsdl2h generation to enable user-defined class/struct extensions such as member data and functions which are declared in typemap.dat.</li>
+<li>Added MIME multipart/form-data parsing to support HTTP POST HTML form handling (example included in samples/webserver).</li>
+<li>Added built-in memory leak detection enabled with -DDEBUG.</li>
+<li>Added UDDI v2 API and examples.</li>
+<li>Added 'WS' directory with WS-* protocols, such as WS-Addressing. This part will mature as more WS-* protocols will be added over time.</li>
+<li>Added fseterror() callback.</li>
+<li>Improved wsdl2h code output.</li>
+<li>Enhanced Web server sample code, and httpget and logging plugins.</li>
+<li>Fixed base64/hexBinary XML attribute serialization.</li>
+<li>Fixed a missing min/maxOccurs check for validation.</li>
 </ul>
 </ul>
 

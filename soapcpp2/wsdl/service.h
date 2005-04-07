@@ -6,7 +6,7 @@ Service structures.
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ class Message
     const char *layout;				// DIME
     const char *documentation;
     const char *ext_documentation;
-    void generate(Types&, const char *sep, bool anonymous, bool remark);
+    void generate(Types&, const char *sep, bool anonymous, bool remark, bool response);
 };
 
 typedef map<const char*, Message*, ltstr> MapOfStringToMessage;

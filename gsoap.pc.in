@@ -8,4 +8,4 @@ Description: SOAP C Web Services
 Version: @VERSION@
 Requires:
 Libs: -L${libdir} -lgsoap
-Cflags: @SOAPCPP2_NONAMESPACES@ -I${includedir}
+Cflags: -I${includedir}

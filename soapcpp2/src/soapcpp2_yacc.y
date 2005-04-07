@@ -14,8 +14,9 @@ declaration with a base class and the use of a maxOccurs. However, the conflict
 is resolved in favor of a shift, which leads to the correct parsing behavior.
 
 gSOAP XML Web services tools
-Copyright (C) 2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+This part of the software is released under one of the following licenses:
+GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
 gSOAP public license.
 
@@ -47,6 +48,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 
 Author contact information:
 engelen@genivia.com / engelen@acm.org
+--------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 */
 
@@ -93,7 +96,7 @@ static void	mkscope(Table*, int), enterscope(Table*, int), exitscope();
 static int	integer(Tnode*), real(Tnode*), numeric(Tnode*), pointer(Tnode*);
 static void	add_XML(), add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
 extern char	*c_storage(Storage), *c_type(Tnode*), *c_ident(Tnode*);
-extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*);
+extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*), is_binary(Tnode*);
 
 /* temporaries used in semantic rules */
 int	i;
@@ -532,7 +535,7 @@ func	: fname '(' s6 fargso ')' constobj abstract
 			  	{	unlinklast(sp->table);
 			  		if ((p = entry(classtable, $1->sym)))
 					{	if ((Table*) p->info.typ->ref)
-						{	sprintf(errbuf, "remote method name clash: struct/class '%s' already defined (reference from line %d)", $1->sym->name, p->lineno);
+						{	sprintf(errbuf, "remote method name clash: struct/class '%s' already declared (reference from line %d)", $1->sym->name, p->lineno);
 							semerror(errbuf);
 						}
 						else
@@ -672,7 +675,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 			}
 	| store spec	{ $$.typ = $2.typ;
 			  $$.sto = (Storage)((int)$1 | (int)$2.sto);
-			  if (($$.sto & Sattribute) && (!is_primitive_or_string($2.typ)) && !is_stdstr($2.typ))
+			  if (($$.sto & Sattribute) && !is_primitive_or_string($2.typ) && !is_stdstr($2.typ) && !is_binary($2.typ))
 			  {	semwarn("invalid attribute type");
 			  	$$.sto &= ~Sattribute;
 			  }
@@ -738,7 +741,7 @@ tspec	: store		{ $$.typ = mkint();
 			}
 	| store tspec	{ $$.typ = $2.typ;
 			  $$.sto = (Storage)((int)$1 | (int)$2.sto);
-			  if (($$.sto & Sattribute) && (!is_primitive_or_string($2.typ)))
+			  if (($$.sto & Sattribute) && !is_primitive_or_string($2.typ) && !is_stdstr($2.typ) && !is_binary($2.typ))
 			  {	semwarn("invalid attribute type");
 			  	$$.sto &= ~Sattribute;
 			  }
@@ -821,7 +824,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			  semwarn(errbuf);
 			  if ((p = entry(classtable, sym)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "class '%s' already defined", sym->name);
+				{	sprintf(errbuf, "class '%s' already declared", sym->name);
 					semerror(errbuf);
 				}
 			  }
@@ -889,7 +892,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			  semwarn(errbuf);
 			  if ((p = entry(classtable, sym)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "struct '%s' already defined", sym->name);
+				{	sprintf(errbuf, "struct '%s' already declared", sym->name);
 					semerror(errbuf);
 				}
 				else
@@ -929,7 +932,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			  semwarn("unions cannot be (de)serialized");
 			  if ((p = entry(uniontable, sym)))
 			  {	if ((Table*) p->info.typ->ref)
-				{	sprintf(errbuf, "union '%s' already defined", sym->name);
+				{	sprintf(errbuf, "union '%s' already declared", sym->name);
 					semerror(errbuf);
 				}
 				else
@@ -949,7 +952,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			{ semwarn("unions cannot be (de)serialized");
 			  if ((p = entry(uniontable, $2)))
 			  {	if ((Table*) p->info.typ->ref)
-			  	{	sprintf(errbuf, "union '%s' already defined", $2->name);
+			  	{	sprintf(errbuf, "union '%s' already declared", $2->name);
 					semerror(errbuf);
 				}
 				else
@@ -981,7 +984,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			  semwarn(errbuf);
 			  if ((p = entry(enumtable, sym)))
 			  {	if ((Table*) p->info.typ->ref)
-				{	sprintf(errbuf, "enum '%s' already defined", sym->name);
+				{	sprintf(errbuf, "enum '%s' already declared", sym->name);
 					semerror(errbuf);
 				}
 				else
@@ -1000,7 +1003,7 @@ type	: VOID		{ $$ = mkvoid(); }
 	| ENUM ID '{' s2 dclrs s5 '}'
 			{ if ((p = entry(enumtable, $2)))
 			  {	if ((Table*) p->info.typ->ref)
-				{	sprintf(errbuf, "enum '%s' already defined (referenced from line %d)", $2->name, p->lineno);
+				{	sprintf(errbuf, "enum '%s' already declared (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				}
 				else
@@ -1019,7 +1022,7 @@ type	: VOID		{ $$ = mkvoid(); }
 	| ENUM '*' ID '{' s4 dclrs s5 '}'
 			{ if ((p = entry(enumtable, $3)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "enum '%s' already defined (referenced from line %d)", $3->name, p->lineno);
+				{	sprintf(errbuf, "enum '%s' already declared (referenced from line %d)", $3->name, p->lineno);
 					semerror(errbuf);
 				}
 				else
@@ -1042,6 +1045,15 @@ type	: VOID		{ $$ = mkvoid(); }
 			  	$$ = p->info.typ = mkenum((Table*)0);
 				p->info.typ->id = $2;
 			  }
+			}
+	| ENUM TYPE '{' s2 dclrs s5 '}'
+			{ sprintf(errbuf, "'enum %s' redeclares %s as enum type", $2->name, $2->name);
+			  semerror(errbuf);
+			  $$ = mkint();
+			}
+	| ENUM TYPE	{ sprintf(errbuf, "'enum %s' redeclares %s as enum type", $2->name, $2->name);
+			  semerror(errbuf);
+			  $$ = mkint();
 			}
 	| TYPE		{ if ((p = entry(typetable, $1)))
 				$$ = p->info.typ;
@@ -1071,7 +1083,7 @@ type	: VOID		{ $$ = mkvoid(); }
 	;
 struct	: STRUCT ID	{ if ((p = entry(classtable, $2)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "struct '%s' already defined (referenced from line %d)", $2->name, p->lineno);
+				{	sprintf(errbuf, "struct '%s' already declared (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				}
 				else
@@ -1086,7 +1098,7 @@ struct	: STRUCT ID	{ if ((p = entry(classtable, $2)))
 	;
 class	: CLASS ID	{ if ((p = entry(classtable, $2)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "class '%s' already defined (referenced from line %d)", $2->name, p->lineno);
+				{	sprintf(errbuf, "class '%s' already declared (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				}
 				else
@@ -1102,7 +1114,7 @@ class	: CLASS ID	{ if ((p = entry(classtable, $2)))
 			}
 	| CLASS TYPE	{ if ((p = entry(classtable, $2)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "class '%s' already defined (referenced from line %d)", $2->name, p->lineno);
+				{	sprintf(errbuf, "class '%s' already declared (referenced from line %d)", $2->name, p->lineno);
 					semerror(errbuf);
 				}
 				else

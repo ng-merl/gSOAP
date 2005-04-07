@@ -65,9 +65,11 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 	> webserver 8080 &
 	Start a web browser and open a (localhost) location:
 	http://127.0.0.1:8080
-	then type userid 'admin' and passwd 'guest'
+	and type userid 'admin' and passwd 'guest' to gain access
+	Open the location:
 	http://127.0.0.1:8080/calc.html
 	then enter an expression
+	Open the locations:
 	http://127.0.0.1:8080/test.html
 	http://127.0.0.1:8081/webserver.wsdl
 
@@ -80,9 +82,11 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 	8081
 	Start a web browser and open a (localhost) location:
 	https://127.0.0.1:8081
-	then type userid 'admin' and passwd 'guest'
+	and type userid 'admin' and passwd 'guest' to gain access
+	Open the location:
 	https://127.0.0.1:8081/calc.html
-	then enter an expression
+	and enter an expression
+	Open the locations:
 	https://127.0.0.1:8081/test.html
 	https://127.0.0.1:8081/webserver.wsdl
 
@@ -145,6 +149,19 @@ static const struct option default_options[] =
   { NULL },			/* must be NULL terminated */
 };
 
+/* The numbering of these defines must correspond to the option sequence */
+#define OPTION_z	0
+#define OPTION_c	1
+#define OPTION_k	2
+#define OPTION_i	3
+#define OPTION_v	4
+#define OPTION_t	5
+#define OPTION_s	6
+#define OPTION_d	7
+#define OPTION_p	8
+#define OPTION_l	9
+#define OPTION_port	10
+
 /******************************************************************************\
  *
  *	Static
@@ -154,6 +171,9 @@ static const struct option default_options[] =
 static struct option *options = NULL;
 static time_t start;
 static int secure = 0;		/* =0: no SSL, =1: support SSL */
+
+static const char *minutes[60] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *hours[24] = {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"};
 
 /******************************************************************************\
  *
@@ -166,8 +186,10 @@ int http_get_handler(struct soap*);	/* HTTP get handler */
 int check_authentication(struct soap*);	/* HTTP authentication check */
 int copy_file(struct soap*, const char*, const char*);	/* copy file as HTTP response */
 int calc(struct soap*);
+int calcpost(struct soap*);
 int info(struct soap*);
 int html_hbar(struct soap*, const char*, size_t, size_t, unsigned long);
+int html_hist(struct soap*, const char*, size_t, size_t, size_t, const char**, size_t*, size_t);
 void sigpipe_handle(int); /* SIGPIPE handler: Unix/Linux only */
 
 /******************************************************************************\
@@ -194,8 +216,8 @@ int main(int argc, char **argv)
   options = copy_options(default_options); /* must copy, so option values can be modified */
   if (parse_options(argc, argv, options))
     exit(0);
-  if (options[10].value)
-    port = atol(options[10].value);
+  if (options[OPTION_port].value)
+    port = atol(options[OPTION_port].value);
   if (!port)
     port = 8080;
   start = time(NULL);
@@ -205,8 +227,8 @@ int main(int argc, char **argv)
   fprintf(stderr, "[Note: you must enable Linux/Unix SIGPIPE handler to avoid broken pipe]\n");
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
   /* HTTP cookies (to enable: compile all sources with -DWITH_COOKIES) */
-  soap.cookie_domain = options[7].value; /* must be the current host name */
-  soap.cookie_path = options[8].value; /* the path which is used to filter/set cookies with this destination */
+  soap.cookie_domain = options[OPTION_d].value; /* must be the current host name */
+  soap.cookie_path = options[OPTION_p].value; /* the path which is used to filter/set cookies with this destination */
   /* SSL init (to enable: compile all sources with -DWITH_OPENSSL) */
 #ifdef WITH_OPENSSL
   if (CRYPTO_thread_setup())
@@ -248,28 +270,33 @@ int main(int argc, char **argv)
   }
   fprintf(stderr, "Port bind successful: master socket = %d\n", m);
   for (i = 1; ; i++)
-  { if (options[6].value)
-      soap.accept_timeout = atol(options[6].value);
+  { if (options[OPTION_s].value)
+      soap.accept_timeout = atol(options[OPTION_s].value);
     s = soap_accept(&soap);
     if (!soap_valid_socket(s))
     { if (soap.errnum)
       { soap_print_fault(&soap, stderr);
-        exit(1);
+        fprintf(stderr, "Retry...\n");
+	continue;
       }
       fprintf(stderr, "gSOAP Web server timed out\n");
       break;
     }
-    if (options[4].selected)
+    if (options[OPTION_v].selected)
       fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
     tsoap = soap_copy(&soap);
-    if (options[1].selected)
+    tsoap->cookie_domain = options[OPTION_d].value;
+    tsoap->cookie_path = options[OPTION_p].value;
+    soap_set_cookie(tsoap, "visit", "true", NULL, NULL);
+    soap_set_cookie_expire(tsoap, "visit", 600, NULL, NULL);
+    if (options[OPTION_c].selected)
       soap_set_omode(tsoap, SOAP_IO_CHUNK); /* use chunked HTTP content (fast) */
-    if (options[2].selected)
+    if (options[OPTION_k].selected)
       soap_set_omode(tsoap, SOAP_IO_KEEPALIVE);
-    if (options[5].value)
-      tsoap->send_timeout = tsoap->recv_timeout = atol(options[5].value);
-    logdata->inbound = (options[9].selected == 1 || options[9].selected == 3);
-    logdata->outbound = (options[9].selected == 2 || options[9].selected == 3);
+    if (options[OPTION_t].value)
+      tsoap->send_timeout = tsoap->recv_timeout = atol(options[OPTION_t].value);
+    logdata->inbound = (options[OPTION_l].selected == 1 || options[OPTION_l].selected == 3);
+    logdata->outbound = (options[OPTION_l].selected == 2 || options[OPTION_l].selected == 3);
 #ifdef WITH_OPENSSL
     if (secure && soap_ssl_accept(tsoap))
     { soap_print_fault(tsoap, stderr);
@@ -280,14 +307,14 @@ int main(int argc, char **argv)
       continue;
     }
 #endif
-    if (options[3].selected)
+    if (options[OPTION_i].selected)
     { if (soap_serve(tsoap))
       { fprintf(stderr, "Thread %d completed with failure %d\n", i, tsoap->error);
         soap_print_fault(tsoap, stderr);
       }
       soap_end(tsoap);
       soap_done(tsoap);
-      if (options[4].selected)
+      if (options[OPTION_v].selected)
         fprintf(stderr, "Thread %d completed\n", i);
       free(tsoap);
     }
@@ -318,7 +345,7 @@ void *process_request(void *soap)
   { fprintf(stderr, "Thread %d completed with failure %d\n", (int)tsoap->user, tsoap->error);
     soap_print_fault(tsoap, stderr);
   }
-  else if (options[4].selected)
+  else if (options[OPTION_v].selected)
     fprintf(stderr, "Thread %d completed\n", (int)tsoap->user);
   /* soap_destroy((struct soap*)soap); */ /* cleanup class instances (but this is a C app) */
   soap_end(tsoap);
@@ -386,12 +413,12 @@ int http_get_handler(struct soap *soap)
   if ((soap->omode & SOAP_IO) != SOAP_IO_CHUNK)
     soap_set_omode(soap, SOAP_IO_STORE); */ /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
 #ifdef WITH_ZLIB
-  if (options[0].selected && soap->zlib_out == SOAP_ZLIB_GZIP) /* client accepts gzip */
+  if (options[OPTION_z].selected && soap->zlib_out == SOAP_ZLIB_GZIP) /* client accepts gzip */
     soap_set_omode(soap, SOAP_ENC_ZLIB); /* so we can compress content (gzip) */
   soap->z_level = 9; /* best compression */
 #endif
   /* Use soap->path (from request URL) to determine request: */
-  if (options[4].selected)
+  if (options[OPTION_v].selected)
     fprintf(stderr, "HTTP GET Request: %s\n", soap->endpoint);
   /* Note: soap->path always starts with '/' */
   if (strchr(soap->path + 1, '/') || strchr(soap->path + 1, '\\'))	/* we don't like snooping in dirs */
@@ -510,16 +537,56 @@ int calc(struct soap *soap)
 
 /******************************************************************************\
  *
+ *	Example dynamic HTTP POST multipart/form-data form-based calculator
+ *
+\******************************************************************************/
+
+int f__form(struct soap *soap, struct f__formResponse *response)
+{ int o = 0, a = 0, b = 0;
+  struct soap_multipart *content;
+  for (content = soap->mime.list; content; content = content->next)
+  { if (content->id && content->ptr)
+    { /* may have to check content->encoding to convert data when necessary! */
+      if (!strcmp(content->id, "o"))
+        o = content->ptr[0];
+      else if (!strcmp(content->id, "a"))
+        a = strtol(content->ptr, NULL, 10);
+      else if (!strcmp(content->id, "b"))
+        b = strtol(content->ptr, NULL, 10);
+    }
+  }
+  switch (o)
+  { case 'a':
+      response->result = a + b;
+      break;
+    case 's':
+      response->result = a - b;
+      break;
+    case 'm':
+      response->result = a * b;
+      break;
+    case 'd':
+      response->result = a / b;
+      break;
+    default:
+      return soap_sender_fault(soap, "Unknown operation", NULL);
+  }
+  return SOAP_OK;
+}
+
+/******************************************************************************\
+ *
  *	Dynamic Web server info page
  *
 \******************************************************************************/
 
 int info(struct soap *soap)
-{ struct http_get_data *data;
+{ struct http_get_data *getdata;
+  struct logging_data *logdata;
   const char *t0, *t1, *t2, *t3, *t4, *t5, *t6, *t7;
   char buf[2048]; /* buffer large enough to hold HTML content */
-  int r;
-  time_t elapsed = time(NULL) - start;
+  struct soap_plugin *p;
+  time_t now = time(NULL), elapsed = now - start;
   query_options(soap, options);
   if (soap->omode & SOAP_IO_KEEPALIVE)
     t0 = "<td align='center' bgcolor='green'>YES</td>";
@@ -527,7 +594,8 @@ int info(struct soap *soap)
     t0 = "<td align='center' bgcolor='red'>NO</td>";
 #ifdef WITH_COOKIES
   t1 = "<td align='center' bgcolor='green'>YES</td>";
-  if (soap_cookie_value(soap, "visit", NULL, NULL))
+  /* soap_env_cookie_value() returns value of a cookie received (from client) */
+  if (soap_env_cookie_value(soap, "visit", NULL, NULL))
     t2 = "<td align='center' bgcolor='green'>PASS</td>";
   else
     t2 = "<td align='center' bgcolor='yellow'>WAIT</td>";
@@ -547,7 +615,7 @@ int info(struct soap *soap)
     t4 = "<td align='center' bgcolor='blue'>N/A</td>";
   }
 #ifdef WITH_ZLIB
-  if (options[0].selected)
+  if (options[OPTION_z].selected)
   { t5 = "<td align='center' bgcolor='green'>YES</td>";
     if (soap->omode & SOAP_ENC_ZLIB)
       t6 = "<td align='center' bgcolor='green'>PASS</td>";
@@ -562,14 +630,10 @@ int info(struct soap *soap)
   t5 = "<td align='center' bgcolor='red'>NO</td>";
   t6 = "<td align='center' bgcolor='blue'>N/A</td>";
 #endif
-  if (options[1].selected || (soap->omode & SOAP_IO) == SOAP_IO_CHUNK)
+  if (options[OPTION_c].selected || (soap->omode & SOAP_IO) == SOAP_IO_CHUNK)
     t7 = "<td align='center' bgcolor='green'>YES</td>";
   else
     t7 = "<td align='center' bgcolor='red'>NO</td>";
-  soap->cookie_domain = options[7].value;
-  soap->cookie_path = options[8].value;
-  soap_set_cookie(soap, "visit", "true", NULL, NULL);
-  soap_set_cookie_expire(soap, "visit", 600, NULL, NULL);
   if (soap_response(soap, SOAP_HTML))
     return soap->error;
   sprintf(buf, "\
@@ -578,27 +642,31 @@ int info(struct soap *soap)
 <meta name='Author' content='Robert A. van Engelen'>\
 <meta name='Generator' content='gSOAP'>\
 <meta http-equiv='Refresh' content='60'>\
-<style type='text/css' media='screen'><!-- table { background-color: #666 } td { color: white; font-size: 10px; line-height: 10px; font-family: Arial, Helve tica, Geneva, Swiss, SunSans-Regular } --></style>\
+<style type='text/css' media='screen'><!-- table { background-color: #666 } td { color: white; font-size: 10px; line-height: 10px; font-family: Arial, Helvetica, Geneva, Swiss, SunSans-Regular } --></style>\
 <title>gSOAP Web Server Administration</title>\
 </head>\
 <body bgcolor='#FFFFFF'>\
 <h1>gSOAP Web Server Administration</h1>\
-<p>Server endpoint: %s\
-<p>Client agent IP: %d.%d.%d.%d\
-<h2>Time Elapsed</h2>\
+<p>Server endpoint=%s client agent IP=%d.%d.%d.%d\
+<h2>Registered Plugins</h2>\
 ", soap->endpoint, (int)(soap->ip>>24)&0xFF, (int)(soap->ip>>16)&0xFF, (int)(soap->ip>>8)&0xFF, (int)soap->ip&0xFF);
-  r = soap_send(soap, buf);
-  if (r)
-    return r;
+  if (soap_send(soap, buf))
+    return soap->error;
+  for (p = soap->plugins; p; p = p->next)
+  { sprintf(buf, "%s<br>", p->id);
+    if (soap_send(soap, buf))
+      return soap->error;
+  }
+  if (soap_send(soap, "<h2>Elapsed Time</h2>"))
+    return soap->error;
   if (elapsed >= 86400)
-    html_hbar(soap, "Days:", 80, elapsed/86400, 0x000000);
+    html_hbar(soap, "Days:", 100, elapsed/86400, 0x000000);
   if (elapsed >= 3600)
-    html_hbar(soap, "Hours:", 80, elapsed/3600%24, 0x000000);
-  html_hbar(soap, "Minutes:", 80, elapsed/60%60, 0x000000);
+    html_hbar(soap, "Hours:", 100, elapsed/3600%24, 0x000000);
+  html_hbar(soap, "Minutes:", 100, elapsed/60%60, 0x000000);
   soap_send(soap, "<h2>Control Panel</h2>");
-  r = html_form_options(soap, options);
-  if (r)
-    return r;
+  if (html_form_options(soap, options))
+    return soap->error;
   sprintf(buf, "\
 <h2>Function Tests</h2>\
 <table border='0' cellspacing='0' cellpadding='0' bgcolor='#666666' nosave>\
@@ -614,60 +682,159 @@ int info(struct soap *soap)
 <tr><td background='bl.gif'></td><td>HTTP chunking enabled</td>%s<td width='10' background='ls.gif'></td></tr>\
 <tr height='10'><td width='10' height='10' background=otrs.gif></td><td height='10' background='ts.gif'></td><td height='10' background='ts.gif'></td><td width='10' height='10' background='otls.gif'></td></tr>\
 </table>", t0, t1, t2, t3, t4, t5, t6, t7);
-  r = soap_send(soap, buf);
-  if (r)
-    return r;
-  data = (struct http_get_data*)soap_lookup_plugin(soap, http_get_id);
-  if (data)
-  { soap_send(soap, "<h2>Usage Statistics</h2>");
-    html_hbar(soap, "GET", 80, data->stat_get, 0x0000FF);
-    html_hbar(soap, "POST", 80, data->stat_post, 0x00FF00);
-    html_hbar(soap, "FAIL", 80, data->stat_fail, 0xFF0000);
+  if (soap_send(soap, buf))
+    return soap->error;
+  getdata = (struct http_get_data*)soap_lookup_plugin(soap, http_get_id);
+  logdata = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
+  soap_send(soap, "<h2>Usage Statistics</h2>");
+  if (getdata)
+  { html_hbar(soap, "HTTP&nbsp;GET", 120, getdata->stat_get, 0x0000FF);
+    html_hbar(soap, "HTTP&nbsp;POST", 120, getdata->stat_post, 0x00FF00);
+    html_hbar(soap, "HTTP&nbsp;FAIL", 120, getdata->stat_fail, 0xFF0000);
+  }
+  if (logdata)
+  { html_hbar(soap, "SENT(kB)", 120, logdata->stat_sent/1024, 0x00FFFF);
+    html_hbar(soap, "RECV(kB)", 120, logdata->stat_recv/1024, 0x00FFFF);
+    if (elapsed > 0)
+    { html_hbar(soap, "SENT(kB/s)", 120, logdata->stat_sent/elapsed/1024, 0x00FFFF);
+      html_hbar(soap, "RECV(kB/s)", 120, logdata->stat_recv/elapsed/1024, 0x00FFFF);
+    }
+  }
+  if (getdata)
+  { struct tm T;
+    T.tm_min = 99;
+    T.tm_hour = 99;
+    T.tm_yday = 999;
+#ifdef HAVE_LOCALTIME_R
+    localtime_r(&now, &T);
+#else
+    localtime(&now, &T);
+#endif
+    soap_send(soap, "<h2>Requests by the Minute</h2>");
+    html_hist(soap, "Minute", 12, 0, 60, minutes, getdata->min, T.tm_min);
+    soap_send(soap, "<h2>Requests by the Hour</h2>");
+    html_hist(soap, "Hour", 30, 0, 24, hours, getdata->hour, T.tm_hour);
+    soap_send(soap, "<h2>Requests by Day of the Year</h2>");
+    html_hist(soap, "Day", 2, 0, 365, NULL, getdata->day, T.tm_yday);
   }
   soap_send(soap, "\
 <p>This page will automatically reload every minute to refresh the statistics.\
-<br><br><br>Powered by gSOAP\
+<br><br><br><img src='favicon.gif' align='absmiddle'>Powered by gSOAP\
 </body>\
 </HTML>");
   return soap_end_send(soap);
 }
 
+static size_t html_scaled(char *buf, size_t len)
+{ if (len > 1000000)
+  { sprintf(buf, "%.2f&#183;10<sup>6</sup>", (float)len/1000000.0);
+    return len / 1000000;
+  }
+  if (len > 1000)
+  { sprintf(buf, "%.2f&#183;10<sup>3</sup>", (float)len/1000.0);
+    return len / 1000;
+  }
+  sprintf(buf, "%lu", (unsigned long)len);
+  return len;
+}
+
 int html_hbar(struct soap *soap, const char *title, size_t pix, size_t len, unsigned long color)
 { char buf[2048]; /* buffer large enough to hold HTML content */
-  const char *scale;
-  int r;
-  if (len > 1000000)
-  { len /= 1000000;
-    scale = "&#183;10<sup>6</sup>";
-  }
-  else if (len > 1000)
-  { len /= 1000;
-    scale = "&#183;10<sup>3</sup>";
-  }
-  else
-    scale = "";
+  char lab[32];
+  len = html_scaled(lab, len);
   sprintf(buf, "\
 <table border='0' cellspacing='0' cellpadding='0' height='30'>\
 <tr height='10'>\
 <td width='10' height='10' background='bl.gif'></td>\
-<td rowspan='2' bgcolor='#666666' width='%lu' height='20'>%s %lu%s</td>\
-<td bgcolor='#%.6lx' width='%lu' height='10'></td>\
+<td rowspan='2' bgcolor='#666666' width='%lu' height='20'>%s&nbsp;%s</td>\
 <td bgcolor='#%.6lx' width='%lu' height='10'></td>\
 <td width='10' height='10' background='obls.gif'></td>\
 </tr>\
 <tr height='10'>\
 <td width='10' height='10' background='bl.gif'></td>\
-<td colspan='2' height='10' background='ruler.gif'></td>\
+<td height='10' background='ruler.gif'></td>\
 <td width='10' height='10' background='ls.gif'></td>\
 </tr>\
 <tr height='10'>\
 <td width='10' height='10' background='otrs.gif'></td>\
-<td colspan='3' height='10' background='ts.gif'></td>\
+<td colspan='2' height='10' background='ts.gif'></td>\
 <td width='10' height='10' background='otls.gif'></td>\
 </tr>\
-</table>", (unsigned long)pix, title, (unsigned long)len, scale, color, (unsigned long)len, color, (unsigned long)len);
-  r = soap_send(soap, buf);
-  return r;
+</table>", (unsigned long)pix, title ? title : "", lab, color, (unsigned long)len * 2);
+  return soap_send(soap, buf);
+}
+
+int html_hist(struct soap *soap, const char *title, size_t barwidth, size_t height, size_t num, const char **key, size_t *val, size_t highlight)
+{ char buf[2048]; /* buffer large enough to hold HTML content */
+  char lab[32];
+  size_t i, max;
+  float scale;
+  max = 0;
+  for (i = 0; i < num; i++)
+  { if (val[i] > max)
+      max = val[i];
+  }
+  if (height < 20)
+  { height = max;
+    if (height < 20)
+      height = 20;
+    else if (height > 256)
+      height = 256;
+  }
+  scale = (float)height / (float)max;
+  html_scaled(lab, max);
+  sprintf(buf, "\
+<a name='%s'></a>\
+<table bgcolor='#FFFFFF' border='0' cellspacing='0' cellpadding='0' height='%lu' align='center'>\
+<tr height='10'>\
+<td width='10' height='10' background='btl.gif'></td><td colspan='%lu' height='10' background='bt.gif'></td><td width='10' height='10' background='btr.gif'></td><td width='10' height='10' background='obls.gif'></td>\
+</tr>\
+<tr height='%lu' align='center' valign='bottom'>\
+<td width='10' height='%lu' background='bl.gif'></td>\
+<td bgcolor='#666666' valign='top'>%s</td>", title ? title : "", (unsigned long)height + 50, (unsigned long)num + 1, (unsigned long)height, (unsigned long)height, lab);
+  if (soap_send(soap, buf))
+    return soap->error;
+  for (i = 0; i < num; i++)
+  { unsigned long bar = (scale * val[i] + 0.5);
+    if (bar >= 1)
+      sprintf(buf, "\
+<td bgcolor='#FFFFFF'><a onmouseover=\"window.status='%lu';return true\" onmouseout=\"window.status='';return true\" href='#%s'><img src='top.gif' alt='' width='%lu' height='1' align='bottom' border='0'><br><img src='bar.gif' alt='' width='%lu' height='%lu' align='bottom' border='0'></a></td>", (unsigned long)i, title ? title : "", (unsigned long)barwidth, (unsigned long)barwidth, bar - 1);
+    else
+      sprintf(buf, "\
+<td bgcolor='#FFFFFF'><img src='bar.gif' alt='' width='%lu' height='0' align='bottom' border='0'></td>", (unsigned long)barwidth);
+    if (soap_send(soap, buf))
+      return soap->error;
+  }
+  sprintf(buf, "\
+<td width='10' height='%lu' background='br.gif'></td>\
+<td width='10' height='%lu' background='ls.gif'></td>\
+</tr>\
+<tr bgcolor='#666666' height='20' align='center'>\
+<td width='10' height='20' background='bl.gif'></td>\
+<td bgcolor='#666666'>%s</td>", (unsigned long)height, (unsigned long)height, title ? title : "");
+  if (soap_send(soap, buf))
+    return soap->error;
+  for (i = 0; i < num; i++)
+  { sprintf(buf, "<td%s>%s</td>", (i == highlight) ? " bgcolor='#777777'" : "", key ? key[i] : "<img src='bar.gif'>");
+    if (soap_send(soap, buf))
+      return soap->error;
+  }
+  if (soap_send(soap, "\
+<td width='10' height='20' background='br.gif'></td>\
+<td width='10' height='20' background='ls.gif'></td>"))
+    return soap->error;
+  sprintf(buf, "\
+</tr>\
+<tr height='10'>\
+<td width='10' height='10' background='bbl.gif'></td><td colspan='%lu' height='10' background='bb.gif'></td><td width='10' height='10' background='bbr.gif'></td><td width='10' height='10' background='ls.gif'></td>\
+</tr>\
+<tr height='10'>\
+<td width='10' height='10' background='otrs.gif'></td>\
+<td colspan='%lu' height='10' background='ts.gif'></td>\
+<td width='10' height='10' background='otls.gif'></td>\
+</tr>\
+</table>", (unsigned long)num + 1, (unsigned long)num + 2);
+  return soap_send(soap, buf);
 }
 
 /******************************************************************************\

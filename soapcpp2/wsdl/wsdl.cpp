@@ -6,7 +6,7 @@ WSDL 1.1 binding schema implementation
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ int show_ignore(struct soap*, const char*);
 wsdl__definitions::wsdl__definitions()
 { soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
 #ifdef WITH_OPENSSL
-  soap_ssl_client_context(soap, SOAP_SSL_NOAUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
+  soap_ssl_client_context(soap, SOAP_SSL_NO_AUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
 #endif
 #ifdef WITH_NONAMESPACES
   soap_set_namespaces(soap, namespaces);
@@ -100,7 +100,9 @@ wsdl__definitions::wsdl__definitions(struct soap *copy, const char *location)
 }
 
 wsdl__definitions::~wsdl__definitions()
-{ soap_done(soap);
+{ soap_destroy(soap);
+  soap_end(soap);
+  soap_done(soap);
   free(soap);
 }
 
@@ -295,9 +297,6 @@ wsdl__port::wsdl__port()
 { bindingRef = NULL;
 }
 
-wsdl__port::~wsdl__port()
-{ }
-
 int wsdl__port::traverse(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl port" << endl;
@@ -333,7 +332,7 @@ int wsdl__port::traverse(wsdl__definitions& definitions)
     }
   }
   if (!bindingRef)
-    cerr << "Warning: could not find port " << (name?name:"") << " binding " << (binding?binding:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+    cerr << "Warning: no port " << (name?name:"") << " binding " << (binding?binding:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   return SOAP_OK;
 }
 
@@ -348,9 +347,6 @@ wsdl__binding *wsdl__port::bindingPtr() const
 wsdl__binding::wsdl__binding()
 { portTypeRef = NULL;
 }
-
-wsdl__binding::~wsdl__binding()
-{ }
 
 int wsdl__binding::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -386,7 +382,7 @@ int wsdl__binding::traverse(wsdl__definitions& definitions)
     }
   }
   if (!portTypeRef)
-    cerr << "Warning: could not find binding " << (name?name:"") << " portType " << (type?type:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+    cerr << "Warning: no binding " << (name?name:"") << " portType " << (type?type:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   for (vector<wsdl__binding_operation>::iterator i = operation.begin(); i != operation.end(); ++i)
     (*i).traverse(definitions, portTypeRef);
   return SOAP_OK;
@@ -404,9 +400,6 @@ wsdl__binding_operation::wsdl__binding_operation()
 { operationRef = NULL;
 }
 
-wsdl__binding_operation::~wsdl__binding_operation()
-{ }
-
 int wsdl__binding_operation::traverse(wsdl__definitions& definitions, wsdl__portType *portTypeRef)
 { if (vflag)
     cerr << "wsdl binding operation" << endl;
@@ -417,18 +410,18 @@ int wsdl__binding_operation::traverse(wsdl__definitions& definitions, wsdl__port
   for (vector<wsdl__ext_fault>::iterator i = fault.begin(); i != fault.end(); ++i)
     (*i).traverse(definitions);
   operationRef = NULL;
-  if (portTypeRef)
+  if (name && portTypeRef)
   { for (vector<wsdl__operation>::iterator i = portTypeRef->operation.begin(); i != portTypeRef->operation.end(); ++i)
     { if ((*i).name && !strcmp((*i).name, name))
       { operationRef = &(*i);
         if (vflag)
-	  cerr << "Found operation " << (name?name:"") << endl;
+          cerr << "Found operation " << (name?name:"") << endl;
         break;
       }
     }
   }
   if (!operationRef)
-    cerr << "Warning: could not find operation " << (name?name:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+    cerr << "Warning: no operation " << (name?name:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   else
   { for (vector<wsdl__ext_fault>::iterator i = fault.begin(); i != fault.end(); ++i)
     { if ((*i).name)
@@ -452,7 +445,7 @@ int wsdl__binding_operation::traverse(wsdl__definitions& definitions, wsdl__port
         }
       }
       if (!(*i).messagePtr())
-        cerr << "Warning: could not find soap:fault message in WSDL definitions " << (definitions.name?definitions.name:"") << " operation " << (name?name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+        cerr << "Warning: no soap:fault message in WSDL definitions " << (definitions.name?definitions.name:"") << " operation " << (name?name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
     }
   }
   return SOAP_OK;
@@ -485,9 +478,6 @@ int wsdl__ext_output::traverse(wsdl__definitions& definitions)
 wsdl__ext_fault::wsdl__ext_fault()
 { messageRef = NULL;
 }
-
-wsdl__ext_fault::~wsdl__ext_fault()
-{ }
 
 int wsdl__ext_fault::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -528,9 +518,6 @@ wsdl__input::wsdl__input()
 { messageRef = NULL;
 }
 
-wsdl__input::~wsdl__input()
-{ }
-
 int wsdl__input::traverse(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl input" << endl;
@@ -565,7 +552,7 @@ int wsdl__input::traverse(wsdl__definitions& definitions)
     }
   }
   if (!messageRef)
-    cerr << "Warning: could not find input " << (name?name:"") << " message " << (message?message:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+    cerr << "Warning: no input " << (name?name:"") << " message " << (message?message:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   return SOAP_OK;
 }
 
@@ -580,9 +567,6 @@ wsdl__message *wsdl__input::messagePtr() const
 wsdl__output::wsdl__output()
 { messageRef = NULL;
 }
-
-wsdl__output::~wsdl__output()
-{ }
 
 int wsdl__output::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -618,7 +602,7 @@ int wsdl__output::traverse(wsdl__definitions& definitions)
     }
   }
   if (!messageRef)
-    cerr << "Warning: could not find output " << (name?name:"") << " message " << (message?message:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+    cerr << "Warning: no output " << (name?name:"") << " message " << (message?message:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   return SOAP_OK;
 }
 
@@ -633,9 +617,6 @@ wsdl__message *wsdl__output::messagePtr() const
 wsdl__fault::wsdl__fault()
 { messageRef = NULL;
 }
-
-wsdl__fault::~wsdl__fault()
-{ }
 
 int wsdl__fault::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -671,7 +652,7 @@ int wsdl__fault::traverse(wsdl__definitions& definitions)
     }
   }
   if (!messageRef)
-    cerr << "Warning: could not find fault " << (name?name:"") << " message " << (message?message:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+    cerr << "Warning: no fault " << (name?name:"") << " message " << (message?message:"") << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   return SOAP_OK;
 }
 
@@ -696,9 +677,6 @@ wsdl__part::wsdl__part()
   simpleTypeRef = NULL;
   complexTypeRef = NULL;
 }
-
-wsdl__part::~wsdl__part()
-{ }
 
 int wsdl__part::traverse(wsdl__definitions& definitions)
 { if (vflag)
@@ -748,16 +726,16 @@ int wsdl__part::traverse(wsdl__definitions& definitions)
     { if (is_builtin_qname(element))
 	definitions.builtinElement(element);
       else
-        cerr << "Warning: could not find part " << (name?name:"") << " element " << element << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+        cerr << "Warning: no part " << (name?name:"") << " element " << element << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
     }
     else if (type)
     { if (is_builtin_qname(type))
 	definitions.builtinType(type);
       else
-        cerr << "Warning: could not find part " << (name?name:"") << " type " << type << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+        cerr << "Warning: no part " << (name?name:"") << " type " << type << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
     }
     else
-      cerr << "Warning: could not find part " << (name?name:"") << " element or type" << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
+      cerr << "Warning: no part " << (name?name:"") << " element or type" << " in WSDL definitions " << (definitions.name?definitions.name:"") << " namespace " << (definitions.targetNamespace?definitions.targetNamespace:"") << endl;
   }
   return SOAP_OK;
 }
@@ -793,7 +771,7 @@ int wsdl__types::traverse(wsdl__definitions& definitions)
 again:
   for (vector<xs__schema*>::iterator schema1 = xs__schema_.begin(); schema1 != xs__schema_.end(); ++schema1)
   { for (vector<xs__import>::iterator import = (*schema1)->import.begin(); import != (*schema1)->import.end(); ++import)
-    { if ((*import).namespace_ && (*import).schemaLocation)
+    { if ((*import).namespace_)
       { bool found = false;
         for (vector<xs__schema*>::const_iterator schema2 = xs__schema_.begin(); schema2 != xs__schema_.end(); ++schema2)
         { if ((*schema2)->targetNamespace && !strcmp((*import).namespace_, (*schema2)->targetNamespace))
@@ -812,8 +790,7 @@ again:
 	  }
 	  else
           { struct Namespace *p = definitions.soap->local_namespaces;
-            const char *s = (*import).schemaLocation;
-            if (s && (*import).namespace_)
+            if ((*import).namespace_)
             { if (p)
               { for (; p->id; p++)
                 { if (p->in)
@@ -829,7 +806,10 @@ again:
 	      else
 	        fprintf(stderr, "Warning: no namespace table\n");
               if (!iflag && (!p || !p->id)) // don't import any of the schemas in the .nsmap table (or when -i option is used)
-	      { xs__schema *importschema = new xs__schema(definitions.soap, s);
+              { const char *s = (*import).schemaLocation;
+	        if (!s)
+		  s = (*import).namespace_;
+	        xs__schema *importschema = new xs__schema(definitions.soap, s);
 	        (*import).schemaPtr(importschema);
 	        if (!importschema->targetNamespace)
 	          importschema->targetNamespace = (*import).namespace_;
@@ -842,8 +822,8 @@ again:
 	        }
               }
 	    }
-	    else if (vflag)
-	      fprintf(stderr, "Warning: no schemaLocation for namespace '%s'\n", (*import).namespace_?(*import).namespace_:"");
+	    else
+	      fprintf(stderr, "Warning: no namespace in <import>\n");
 	  }
         }
       }
@@ -950,11 +930,6 @@ wsdl__import::wsdl__import()
 { definitionsRef = NULL;
 }
 
-wsdl__import::~wsdl__import()
-{ // if (definitionsRef)
-    // delete definitionsRef;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 //	streams
@@ -972,6 +947,7 @@ ostream &operator<<(ostream &o, const wsdl__definitions &e)
     soap_begin_send(&soap);
     e.soap_out(&soap, "wsdl:definitions", 0, NULL);
     soap_end_send(&soap);
+    soap_destroy(&soap);
     soap_end(&soap);
     soap_done(&soap);
   }

@@ -48,3 +48,8 @@ int ns__addResponse_(double, void);	// response to HTTP GET
 int ns__subResponse_(double, void);	// response to HTTP GET
 int ns__mulResponse_(double, void);	// response to HTTP GET
 int ns__divResponse_(double, void);	// response to HTTP GET
+
+//gsoap f schema namespace: urn:form
+
+int f__form(struct f__formResponse { double result; } *);
+

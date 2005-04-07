@@ -1,0 +1,845 @@
+#	uddi2map.dat
+#
+#	gSOAP type map bindings for UDDI v2 to run the gSOAP WSDL tool 'wsdl2h'
+#
+#	Included full documentation and examples of the gSOAP UDDI v2 API
+#
+#-------------------------------------------------------------------------------
+#gSOAP XML Web services tools
+#Copyright (C) 2004-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+#This software is released under one of the following two licenses:
+#GPL or Genivia's license for commercial use.
+#-------------------------------------------------------------------------------
+#GPL license.
+#
+#This program is free software; you can redistribute it and/or modify it under
+#the terms of the GNU General Public License as published by the Free Software
+#Foundation; either version 2 of the License, or (at your option) any later
+#version.
+#
+#This program is distributed in the hope that it will be useful, but WITHOUT ANY
+#WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License along with
+#this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+#Place, Suite 330, Boston, MA 02111-1307 USA
+#
+#Author contact information:
+#engelen@genivia.com / engelen@acm.org
+#-------------------------------------------------------------------------------
+#A commercial use license is available from Genivia, Inc., contact@genivia.com
+#-------------------------------------------------------------------------------
+
+[
+/** @mainpage gSOAP UDDI v2
+
+@section UDDI2_CLASSES Classes
+
+- @ref uddi2__find_USCOREbinding
+- @ref uddi2__find_USCOREbusiness
+- @ref uddi2__find_USCORErelatedBusinesses
+- @ref uddi2__find_USCOREservice
+- @ref uddi2__find_USCOREtModel
+- @ref uddi2__get_USCOREbindingDetail
+- @ref uddi2__get_USCOREbusinessDetail
+- @ref uddi2__get_USCOREbusinessDetailExt
+- @ref uddi2__get_USCOREserviceDetail
+- @ref uddi2__get_USCOREtModelDetail
+
+@section UDDI2_BINDINGS Binding Reference
+
+- @ref InquireSoap
+- @ref PublishSoap
+
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:find_binding
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__find_USCOREbinding
+@brief
+
+Represents a request to locate bindings that meet the specified requirements.
+*/
+
+/**
+@fn uddi2__find_USCOREbinding::uddi2__find_USCOREbinding(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREbinding class.
+*/
+
+/**
+@fn uddi2__find_USCOREbinding::uddi2__find_USCOREbinding(struct soap *soap, const char *tModelKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKey string
+
+Creates an instance of the find_USCOREbinding class using the specified tModel
+key.
+*/
+
+/**
+@fn uddi2__find_USCOREbinding::uddi2__find_USCOREbinding(struct soap *soap, std::vector<char*> tModelKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKeys collection of tModel key strings
+
+Creates an instance of the find_USCOREbinding class using the specified tModel
+keys.
+*/
+
+/**
+@fn uddi2__bindingDetail* uddi2__find_USCOREbinding::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__bindingDetail object or NULL on error
+
+Send a request to a UDDI server to find binding details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:find_business
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__find_USCOREbusiness
+@brief
+
+Represents a request to locate businesses that meet specific requirements. When
+the send method is called, the instance returns a uddi2__businessList object
+that contains a list of business that matched the search criteria.
+
+See also @ref example2.
+*/
+
+/**
+@fn uddi2__find_USCOREbusiness::uddi2__find_USCOREbusiness(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREbusiness class.
+*/
+
+/**
+@fn uddi2__find_USCOREbusiness::uddi2__find_USCOREbusiness(struct soap *soap, const char *name)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREbusiness class using the specified name
+of the requested business.
+*/
+
+/**
+@fn uddi2__find_USCOREbusiness::uddi2__find_USCOREbusiness(struct soap *soap, std::vector<uddi2__keyedReference*> keyedReferences)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREbusiness class using the specified
+category references.
+*/
+
+/**
+@fn uddi2__find_USCOREbusiness::uddi2__find_USCOREbusiness(struct soap *soap, std::vector<char*> tModelKeys)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREbusiness class using the specified tModel
+keys.
+*/
+
+/**
+@fn uddi2__businessList *uddi2__find_USCOREbusiness::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__businessList object or NULL on error
+
+Send a request to a UDDI server to find a list of businesses.
+
+See also @ref example2.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:find_relatedBusinesses
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__find_USCORErelatedBusinesses
+@brief
+
+Represents a request to locate businesses that are related to a specific
+business. When the send method is called, the instance returns a
+uddi2__relatedBusinessList object that contains a list of business that matched
+the relationship set.
+*/
+
+/**
+@fn uddi2__find_USCORErelatedBusinesses::uddi2__find_USCORErelatedBusinesses(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCORErelatedBusiness class.
+*/
+
+/**
+@fn uddi2__find_USCORErelatedBusinesses::uddi2__find_USCORErelatedBusinesses(struct soap *soap, const char *businessKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKey string
+
+Creates an instance of the find_USCORErelatedBusiness class using the specified
+business key.
+*/
+
+/**
+@fn uddi2__relatedBusinessesList *uddi2__find_USCORErelatedBusinesses::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__relatedBusinessList object or NULL on error
+
+Send a request to a UDDI server to find a list of related businesses.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:find_service
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__find_USCOREservice
+@brief
+
+Represents a request to locate services that meet the specified requirements.
+
+See also @ref example1.
+*/
+
+/**
+@fn uddi2__find_USCOREservice::uddi2__find_USCOREservice(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREservice class.
+*/
+
+/**
+@fn uddi2__find_USCOREservice::uddi2__find_USCOREservice(struct soap *soap, const char *name)
+@brief
+@param[in] soap gSOAP context
+@param[in] name of the service
+
+Creates an instance of the find_USCOREservice class using the specified name.
+*/
+
+/**
+@fn uddi2__find_USCOREservice::uddi2__find_USCOREservice(struct soap *soap, std::vector<uddi2__keyedReference*> keyedReferences)
+@brief
+@param[in] soap gSOAP context
+@param[in] keyedReferences collection of category keys
+
+Creates an instance of the find_USCOREservice class using the specified
+category keys.
+*/
+
+/**
+@fn uddi2__find_USCOREservice::uddi2__find_USCOREservice(struct soap *soap, std::vector<char*> tModelKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKeys collection of tModel key strings
+
+Creates an instance of the find_USCOREservice class using the specified tModel
+keys.
+*/
+
+/**
+@fn uddi2__serviceList* uddi2__find_USCOREservice::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__serviceList object or NULL on error
+
+Send a request to a UDDI server to find a list of services.
+
+See also @ref example1.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:find_tModel
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__find_USCOREtModel
+@brief
+
+Represents a request to locate a list of tModel entries that match a set of
+specific criteria. The result of a search is a uddi2__tModelList object that
+contains information about registered tModel data that matches the criteria.
+*/
+
+/**
+@fn uddi2__find_USCOREtModel::uddi2__find_USCOREtModel(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the find_USCOREtModel class.
+*/
+
+/**
+@fn uddi2__find_USCOREtModel::uddi2__find_USCOREtModel(struct soap *soap, const char *name)
+@brief
+@param[in] soap gSOAP context
+@param[in] name of the tModel
+
+Creates an instance of the find_USCOREtModel class using the speficied tModel
+name.
+*/
+
+/**
+@fn uddi2__find_USCOREtModel::uddi2__find_USCOREtModel(struct soap *soap, std::vector<uddi2__keyedReference*> keyedReferences)
+@brief
+@param[in] soap gSOAP context
+@param[in] keyedReferences collection of category keys
+
+Creates an instance of the find_USCOREtModel class using the specified category
+keys.
+*/
+
+/**
+@fn uddi2__tModelList* uddi2__find_USCOREtModel::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__tModelList object or NULL on error
+
+Send a request to a UDDI server to find a tModelList.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_bindingDetail
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREbindingDetail
+@brief
+
+Represents a request to get binding details from a UDDI server.
+*/
+
+/**
+@fn uddi2__get_USCOREbindingDetail::uddi2__get_USCOREbindingDetail(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREbindingDetail class.
+*/
+
+/**
+@fn uddi2__get_USCOREbindingDetail::uddi2__get_USCOREbindingDetail(struct soap *soap, const char *bindingKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] bindingKey string
+
+Creates an instance of the get_USCOREbindingDetail class using the specified
+binding key.
+*/
+
+/**
+@fn uddi2__get_USCOREbindingDetail::uddi2__get_USCOREbindingDetail(struct soap *soap, std::vector<char*> bindingKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] bindingKeys collection of key strings
+
+Creates an instance of the get_USCOREbindingDetail class using the specified
+collection of binding keys.
+*/
+
+/**
+@fn uddi2__bindingDetail* uddi2__get_USCOREbindingDetail::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__bindingDetail object or NULL on error
+
+Send a request to a UDDI server to get the binding details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_businessDetail
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREbusinessDetail
+@brief
+
+Represents a request to get business details from a UDDI server.
+*/
+
+/**
+@fn uddi2__get_USCOREbusinessDetail::uddi2__get_USCOREbusinessDetail(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREbusinessDetail class.
+*/
+
+/**
+@fn uddi2__get_USCOREbusinessDetail::uddi2__get_USCOREbusinessDetail(struct soap *soap, const char *businessKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKey string
+
+Creates an instance of the get_USCOREbusinessDetail class using the specified
+business key.
+*/
+
+/**
+@fn uddi2__get_USCOREbusinessDetail::uddi2__get_USCOREbusinessDetail(struct soap *soap, std::vector<char*> businessKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKeys collection of key strings
+
+Creates an instance of the get_USCOREbusinessDetail class using the specified
+collection of business keys.
+*/
+
+/**
+@fn uddi2__businessDetail* uddi2__get_USCOREbusinessDetail::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__businessDetail object or NULL on error
+
+Send a request to a UDDI server to get the business details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_businessDetailExt
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREbusinessDetailExt
+@brief
+
+Represents a request to get business details from a UDDI server.
+*/
+
+/**
+@fn uddi2__get_USCOREbusinessDetailExt::uddi2__get_USCOREbusinessDetailExt(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREbusinessDetailExt class.
+*/
+
+/**
+@fn uddi2__get_USCOREbusinessDetailExt::uddi2__get_USCOREbusinessDetailExt(struct soap *soap, const char *businessKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKey string
+
+Creates an instance of the get_USCOREbusinessDetailExt class using the specified
+business key.
+*/
+
+/**
+@fn uddi2__get_USCOREbusinessDetailExt::uddi2__get_USCOREbusinessDetailExt(struct soap *soap, std::vector<char*> businessKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKeys collection of key strings
+
+Creates an instance of the get_USCOREbusinessDetailExt class using the specified
+collection of business keys.
+*/
+
+/**
+@fn uddi2__businessDetailExt* uddi2__get_USCOREbusinessDetailExt::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__businessDetailExt object or NULL on error
+
+Send a request to a UDDI server to get the business details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_serviceDetail
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREserviceDetail
+@brief
+
+Represents a request to get service details from a UDDI server.
+*/
+
+/**
+@fn uddi2__get_USCOREserviceDetail::uddi2__get_USCOREserviceDetail(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREserviceDetail class.
+*/
+
+/**
+@fn uddi2__get_USCOREserviceDetail::uddi2__get_USCOREserviceDetail(struct soap *soap, const char *serviceKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] serviceKey string
+
+Creates an instance of the get_USCOREserviceDetail class using the specified
+service key.
+*/
+
+/**
+@fn uddi2__get_USCOREserviceDetail::uddi2__get_USCOREserviceDetail(struct soap *soap, std::vector<char*> serviceKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] serviceKeys collection of key strings
+
+Creates an instance of the get_USCOREserviceDetail class using the specified
+collection of service keys.
+*/
+
+/**
+@fn uddi2__serviceDetail* uddi2__get_USCOREserviceDetail::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__serviceDetail object or NULL on error
+
+Send a request to a UDDI server to get the service details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_tModelDetail
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREtModelDetail
+@brief
+
+Represents a request to get tModel details from a UDDI server.
+*/
+
+/**
+@fn uddi2__get_USCOREtModelDetail::uddi2__get_USCOREtModelDetail(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREtModelDetail class.
+*/
+
+/**
+@fn uddi2__get_USCOREtModelDetail::uddi2__get_USCOREtModelDetail(struct soap *soap, const char *tModelKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKey string
+
+Creates an instance of the get_USCOREtModelDetail class using the specified
+tModel key.
+*/
+
+/**
+@fn uddi2__get_USCOREtModelDetail::uddi2__get_USCOREtModelDetail(struct soap *soap, std::vector<char*> tModelKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKeys collection of key strings
+
+Creates an instance of the get_USCOREtModelDetail class using the specified
+collection of tModel keys.
+*/
+
+/**
+@fn uddi2__tModelDetail* uddi2__get_USCOREtModelDetail::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__tModelDetail object or NULL on error
+
+Send a request to a UDDI server to get the tModel details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	Code Examples
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@page example1 Code Example 1: Finding a service
+
+This example shows you how to find Web services. In this case, the example
+finds Web services with names that begin with the word "magic".
+
+@code
+#include "inqH.h"
+
+int main(int argc, char **argv)
+{ 
+  char *search_string = "magic";
+
+  if (argc > 1)
+    search_string = argv[1];
+
+  // Create a gSOAP context
+  struct soap *soap = soap_new();
+
+  // Create an object to find a business
+  uddi2__find_USCOREservice fs(soap, search_string);
+
+  // Send the request
+  uddi2__serviceList *sl = fs.send("http://uddi.xmethods.net/inquire");
+
+  // Check if result is OK
+  if (!sl)
+    soap_print_fault(soap, stderr);
+
+  // If OK, report the service name(s) and unique identification keys
+  else if (sl->serviceInfos)
+  {
+    std::cout << "Search results on " << search_string << ":" << std::endl << std::endl;
+
+    for (std::vector<uddi2__serviceInfo*>::const_iterator si = sl->serviceInfos->serviceInfo.begin(); si != sl->serviceInfos->serviceInfo.end(); ++si)
+    {
+      // Report serviceKey and businessKey
+      std::cout << "serviceKey=" << (*si)->serviceKey << std::endl << "businessKey=" << (*si)->businessKey << std::endl;
+
+      // Report names
+      for (std::vector<uddi2__name*>::const_iterator n = (*si)->name.begin(); n != (*si)->name.end(); ++n)
+        std::cout << "name=" << (*n)->__item << std::endl;
+
+      std::cout << std::endl;
+    }
+  }
+
+  // Remove deserialized objects
+  soap_destroy(soap);
+
+  // Remove temporary data
+  soap_end(soap);
+
+  // Detach and free context
+  soap_done(soap);
+  free(soap);
+
+  return 0;
+}
+@endcode
+
+To compile:
+- wsdl2h -tuddi2map.dat inquire_v2.wsdl
+- soapcpp2 -I.. -pinq inquire_v2.h
+- g++ -DWITH_NONAMESPACES -I.. -o example1 example1.cpp inquire_v2.cpp inqC.cpp inqClient.cpp ../stdsoap2.cpp
+*/
+
+/**
+@page example2 Code Example 2: Finding a business
+
+This example shows you how to find a business from a UDDI server.
+
+@code
+#include "inqH.h"
+
+int main(int argc, char **argv)
+{ 
+  char *search_string = "xmethods";
+
+  if (argc > 1)
+    search_string = argv[1];
+
+  // Create a gSOAP context
+  struct soap *soap = soap_new();
+
+  // Create an object to find a business
+  uddi2__find_USCOREbusiness fb(soap, search_string);
+
+  // Send the request
+  uddi2__businessList *bl = fb.send("http://uddi.xmethods.net/inquire");
+
+  // Check if result is OK
+  if (!bl)
+    soap_print_fault(soap, stderr);
+
+  // If OK, report the business name(s) and unique identification keys
+  else if (bl->businessInfos)
+  {
+    std::cout << "Search results on " << search_string << ":" << std::endl << std::endl;
+
+    for (std::vector<uddi2__businessInfo*>::const_iterator bi = bl->businessInfos->businessInfo.begin(); bi != bl->businessInfos->businessInfo.end(); ++bi)
+    {
+      // Report businessKey
+      std::cout << "businessKey=" << (*bi)->businessKey << std::endl;
+
+      // Report names
+      for (std::vector<uddi2__name*>::const_iterator n = (*bi)->name.begin(); n != (*bi)->name.end(); ++n)
+        std::cout << "name=" << (*n)->__item << std::endl;
+
+      std::cout << std::endl;
+    }
+  }
+
+  // Remove deserialized objects
+  soap_destroy(soap);
+
+  // Remove temporary data
+  soap_end(soap);
+
+  // Detach and free context
+  soap_done(soap);
+  free(soap);
+
+  return 0;
+}
+@endcode
+
+To compile:
+- wsdl2h -tuddi2map.dat inquire_v2.wsdl
+- soapcpp2 -I.. -pinq inquire_v2.h
+- g++ -DWITH_NONAMESPACES -I.. -o example2 example2.cpp inquire_v2.cpp inqC.cpp inqClient.cpp ../stdsoap2.cpp
+*/
+]
+
+################################################################################
+#
+#	UDDI v2 XML namespaces
+#
+################################################################################
+
+inq2	= "urn:uddi-org:inquiry_v2"
+pub2	= "urn:uddi-org:publication_v2"
+uddi2	= "urn:uddi-org:api_v2"
+
+################################################################################
+#
+#	Type Definitions
+#
+################################################################################
+
+#	Use regular C strings only:
+
+xsd__string	= | char* | char*
+
+################################################################################
+#
+#	Class/Struct Extensions
+#
+################################################################################
+
+#	uddi2:find_binding object extended with con/de-structors and send()
+
+uddi2__find_USCOREbinding = $ uddi2__find_USCOREbinding(struct soap*);
+
+uddi2__find_USCOREbinding = $ uddi2__find_USCOREbinding(struct soap*, const char *tModelKey);
+
+uddi2__find_USCOREbinding = $ uddi2__find_USCOREbinding(struct soap*, std::vector<char*> tModelKeys);
+
+uddi2__find_USCOREbinding = $ uddi2__bindingDetail *send(const char *endpoint);
+
+#	uddi2:find_business object extended with con/de-structors and send()
+
+uddi2__find_USCOREbusiness = $ uddi2__find_USCOREbusiness(struct soap*);
+
+uddi2__find_USCOREbusiness = $ uddi2__find_USCOREbusiness(struct soap*, const char *name);
+
+uddi2__find_USCOREbusiness = $ uddi2__find_USCOREbusiness(struct soap*, std::vector<char*> tModelKeys);
+
+uddi2__find_USCOREbusiness = $ uddi2__find_USCOREbusiness(struct soap*, std::vector<uddi2__keyedReference*> keyedReferences);
+
+uddi2__find_USCOREbusiness = $ uddi2__businessList *send(const char *endpoint);
+
+#	uddi2:find_relatedBusinesses object extended with con/de-structors and send()
+
+uddi2__find_USCORErelatedBusinesses = $ uddi2__find_USCORErelatedBusinesses(struct soap*);
+
+uddi2__find_USCORErelatedBusinesses = $ uddi2__find_USCORErelatedBusinesses(struct soap*, const char *businessKey);
+
+uddi2__find_USCORErelatedBusinesses = $ uddi2__relatedBusinessesList *send(const char *endpoint);
+
+#	uddi2:find_service object extended with con/de-structors and send()
+
+uddi2__find_USCOREservice = $ uddi2__find_USCOREservice(struct soap*);
+
+uddi2__find_USCOREservice = $ uddi2__find_USCOREservice(struct soap*, const char *name);
+
+uddi2__find_USCOREservice = $ uddi2__find_USCOREservice(struct soap*, std::vector<char*> tModelKeys);
+
+uddi2__find_USCOREservice = $ uddi2__find_USCOREservice(struct soap*, std::vector<uddi2__keyedReference*> keyedReferences);
+
+uddi2__find_USCOREservice = $ uddi2__serviceList* send(const char *endpoint);
+
+#	uddi2:find_tModel object extended with con/de-structors and send()
+
+uddi2__find_USCOREtModel = $ uddi2__find_USCOREtModel(struct soap*);
+
+uddi2__find_USCOREtModel = $ uddi2__find_USCOREtModel(struct soap*, const char *name);
+
+uddi2__find_USCOREtModel = $ uddi2__find_USCOREtModel(struct soap*, std::vector<uddi2__keyedReference*> keyedReferences);
+
+uddi2__find_USCOREtModel = $ uddi2__tModelList* send(const char *endpoint);
+
+#	uddi2:get_bindingDetail object extended with con/de-structors and send()
+
+uddi2__get_USCOREbindingDetail = $ uddi2__get_USCOREbindingDetail(struct soap*);
+
+uddi2__get_USCOREbindingDetail = $ uddi2__get_USCOREbindingDetail(struct soap*, const char *bindingKey);
+
+uddi2__get_USCOREbindingDetail = $ uddi2__get_USCOREbindingDetail(struct soap*, std::vector<char*> bindingKeys);
+
+uddi2__get_USCOREbindingDetail = $ uddi2__bindingDetail* send(const char *endpoint);
+
+#	uddi2:get_businessDetail object extended with con/de-structors and send()
+
+uddi2__get_USCOREbusinessDetail = $ uddi2__get_USCOREbusinessDetail(struct soap*);
+
+uddi2__get_USCOREbusinessDetail = $ uddi2__get_USCOREbusinessDetail(struct soap*, const char *businessKey);
+
+uddi2__get_USCOREbusinessDetail = $ uddi2__get_USCOREbusinessDetail(struct soap*, std::vector<char*> businessKeys);
+
+uddi2__get_USCOREbusinessDetail = $ uddi2__businessDetail* send(const char *endpoint);
+
+#	uddi2:get_businessDetailExt object extended with con/de-structors and send()
+
+uddi2__get_USCOREbusinessDetailExt = $ uddi2__get_USCOREbusinessDetailExt(struct soap*);
+
+uddi2__get_USCOREbusinessDetailExt = $ uddi2__get_USCOREbusinessDetailExt(struct soap*, const char *businessKey);
+
+uddi2__get_USCOREbusinessDetailExt = $ uddi2__get_USCOREbusinessDetailExt(struct soap*, std::vector<char*> businessKeys);
+
+uddi2__get_USCOREbusinessDetailExt = $ uddi2__businessDetailExt* send(const char *endpoint);
+
+#	uddi2:get_serviceDetail object extended with con/de-structors and send()
+
+uddi2__get_USCOREserviceDetail = $ uddi2__get_USCOREserviceDetail(struct soap*);
+
+uddi2__get_USCOREserviceDetail = $ uddi2__get_USCOREserviceDetail(struct soap*, const char *serviceKey);
+
+uddi2__get_USCOREserviceDetail = $ uddi2__get_USCOREserviceDetail(struct soap*, std::vector<char*> serviceKeys);
+
+uddi2__get_USCOREserviceDetail = $ uddi2__serviceDetail* send(const char *endpoint);
+
+#	uddi2:get_tModelDetail object extended with con/de-structors and send()
+
+uddi2__get_USCOREtModelDetail = $ uddi2__get_USCOREtModelDetail(struct soap*);
+
+uddi2__get_USCOREtModelDetail = $ uddi2__get_USCOREtModelDetail(struct soap*, const char *tModelKey);
+
+uddi2__get_USCOREtModelDetail = $ uddi2__get_USCOREtModelDetail(struct soap*, std::vector<char*> tModelKeys);
+
+uddi2__get_USCOREtModelDetail = $ uddi2__tModelDetail* send(const char *endpoint);
+

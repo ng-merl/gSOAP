@@ -4,7 +4,7 @@ includes.h
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.1.5"
+#define VERSION "1.2.0"
 
 #include <utility>
 #include <iterator>
@@ -79,7 +79,8 @@ extern char *infile, *outfile, *mapfile, *proxy_host;
 
 extern int proxy_port;
 
-extern const char *prefix_name;
+extern const char *service_prefix;
+extern const char *schema_prefix;
 
 extern char elementformat[];
 extern char pointerformat[];

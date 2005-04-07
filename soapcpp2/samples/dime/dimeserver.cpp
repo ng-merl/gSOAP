@@ -253,7 +253,7 @@ int ns__getImage(struct soap *soap, char *name, ns__Data& image)
   if (getdata(soap, name, image))
     return soap_sender_fault(soap, "Access denied", NULL);
   image.type = "image/jpeg";
-  image.options = soap_dime_option(soap, 0, "My picture");
+  image.options = soap_dime_option(soap, 0, name);
   return SOAP_OK;
 }
 

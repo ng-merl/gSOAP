@@ -6,7 +6,7 @@ XSD binding schema interface
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -73,7 +73,6 @@ class xs__element
   	xs__complexType			*complexTypeRef;	// traverse() finds type or = complexType above
   public:
 					xs__element();
-					~xs__element();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				elementPtr(xs__element*);
@@ -103,7 +102,6 @@ class xs__attribute
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type or = simpleType above
   public:
 					xs__attribute();
-					~xs__attribute();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				attributePtr(xs__attribute*);
@@ -147,7 +145,6 @@ class xs__group
   	xs__group			*groupRef;		// traverse() finds ref
   public:
   					xs__group();
-  					~xs__group();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				groupPtr(xs__group*);
@@ -191,7 +188,6 @@ class xs__attributeGroup
   	xs__attributeGroup		*attributeGroupRef;
   public:
 					xs__attributeGroup();
-					~xs__attributeGroup();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	void				attributeGroupPtr(xs__attributeGroup*);
@@ -239,7 +235,6 @@ class xs__simpleType
 	int				level;
   public:
 					xs__simpleType();
-					~xs__simpleType();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	xs__schema			*schemaPtr() const;
@@ -260,7 +255,6 @@ class xs__extension
   	xs__complexType			*complexTypeRef;	// traverse() finds type
   public:
 					xs__extension();
-					~xs__extension();
   	int				traverse(xs__schema&);
 	void				simpleTypePtr(xs__simpleType*);
 	void				complexTypePtr(xs__complexType*);
@@ -287,6 +281,7 @@ class xs__restriction
 	xs__choice			*choice;	// not used in <simpleType><restriction>
 	xs__sequence			*sequence;	// not used in <simpleType><restriction>
 	std::vector<xs__attribute>	attribute;	// not used in <simpleType><restriction>
+	xs__anyAttribute		*anyAttribute;	// not used in <simpleType><restriction>
 	std::vector<xs__enumeration>	enumeration;
 	std::vector<xs__pattern>	pattern;
 	xs__whiteSpace			*whiteSpace;
@@ -306,7 +301,6 @@ class xs__restriction
   	xs__complexType			*complexTypeRef;	// traverse() finds type
   public:
 					xs__restriction();
-					~xs__restriction();
   	int				traverse(xs__schema&);
 	void				simpleTypePtr(xs__simpleType*);
 	void				complexTypePtr(xs__complexType*);
@@ -323,7 +317,6 @@ class xs__list
   	xs__simpleType			*itemTypeRef;
   public:
 					xs__list();
-					~xs__list();
   	int				traverse(xs__schema&);
 	void				itemTypePtr(xs__simpleType*);
 	xs__simpleType			*itemTypePtr() const;
@@ -364,7 +357,6 @@ class xs__complexType
   	int				level;
   public:
 					xs__complexType();
-					~xs__complexType();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	xs__schema			*schemaPtr() const;
@@ -379,7 +371,6 @@ class xs__import
   	xs__schema			*schemaRef;		// set by WSDL parser or via schemaLocation
   public:
 					xs__import();
-					~xs__import();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	xs__schema			*schemaPtr() const;
@@ -392,7 +383,6 @@ class xs__include
   	xs__schema			*schemaRef;		// set by WSDL parser or via schemaLocation
   public:
 					xs__include();
-					~xs__include();
   	int				traverse(xs__schema&);
 	void				schemaPtr(xs__schema*);
 	xs__schema			*schemaPtr() const;
@@ -423,7 +413,7 @@ class xs__schema
 					xs__schema();
 					xs__schema(struct soap*);
 					xs__schema(struct soap*, const char*);
-					~xs__schema();
+	virtual				~xs__schema();
 	int				traverse();
 	int				read(const char*);
 	int				error();

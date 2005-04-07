@@ -5,8 +5,9 @@ soapcpp2.c
 Main compiler.
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
-
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+This part of the software is released under one of the following licenses:
+GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
 gSOAP public license.
 
@@ -19,7 +20,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2005 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -39,6 +40,8 @@ Place, Suite 330, Boston, MA 02111-1307 USA
 Author contact information:
 engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
+A commercial use license is available from Genivia, Inc., contact@genivia.com
+--------------------------------------------------------------------------------
 */
 
 #include "soapcpp2.h"
@@ -51,11 +54,15 @@ int vflag = 0;		/* SOAP version, 0=not set, 1=1.1, 2=1.2 */
 int wflag = 0;		/* when set, don't generate WSDL and schema files */
 int cflag = 0;		/* when set, generate files with .c extension */
 int eflag = 0;		/* when set, use SOAP RPC encoding by default */
+int iflag = 0;		/* when set, generate new style proxy/object classes inherited from soap struct */
 int mflag = 0;		/* when set, generate code that requires array/binary classes to explicitly remove malloced array */
 int nflag = 0;		/* when set, names the namespaces global struct '%NAME%_namespaces */
 int lflag = 0;		/* when set, create library */
 int tflag = 0;		/* when set, generates typed messsages (with xsi:type attributes) */
 int xflag = 0;		/* when set, excludes imported types */
+
+int stop_flag = 0;
+
 char dirpath[1024];	/* directory path for generated source files */
 char *prefix = "soap";	/* file name prefix for generated source files */
 char filename[1024];	/* current file name */
@@ -109,7 +116,19 @@ main(int argc, char **argv)
 						break;
 					case '?':
 					case 'h':
-						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-I path] [-d path] [-p name] [-c] [-i] [-m] [-n] [-t] [file]\n");
+						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-c] [-d path] [-i] [-I path] [-m] [-n] [-p name] [-t] [file]\n\n");
+						fprintf(stderr, "\
+-1      generate SOAP 1.1 bindings\n\
+-2      generate SOAP 1.2 bindings\n\
+-c      generate C source code\n\
+-i      generate service proxies and objects derived from soap struct\n\
+-dpath  directory path to save files\n\
+-Ipath  directory path to #import files\n\
+-m      generate modules\n\
+-n      control namespace table naming\n\
+-pname  save files with name as prefix, replacing 'soap' default\n\
+-t      generate code for fully xsi:type typed SOAP/XML messaging\n\
+\n");
 						exit(0);
 					case 'I':
 						a++;
@@ -122,6 +141,7 @@ main(int argc, char **argv)
 							execerror("Option -I requires an import path");
 						break;
 					case 'i':
+						iflag = 1;
 						break;
 					case 'm':
 						mflag = 1;
@@ -163,8 +183,8 @@ main(int argc, char **argv)
 						rpcURI = "http://www.w3.org/2003/05/soap-rpc";
 						break;
 					case 'v':
-						fprintf(stderr, "gSOAP compiler version "VERSION". Copyright (C) 2001-2005 Genivia, Inc. All Rights Reserved.\n");
-						exit(0);
+						stop_flag = 1;
+						break;
 					default:
             					fprintf(stderr, "soapcpp2: Unknown option %s\n", a);
             					exit(1);
@@ -177,7 +197,9 @@ main(int argc, char **argv)
 		else
 			strcpy(filename, argv[i]);
 	}
-	fprintf(stderr, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2005 Robert van Engelen, Genivia, Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
+	fprintf(stdout, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
+	if (stop_flag)
+	  exit(0);
 	init();
 	if (yyparse())
 		synerror("skipping the remaining part of the input");

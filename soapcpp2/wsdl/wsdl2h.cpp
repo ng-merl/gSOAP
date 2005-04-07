@@ -6,7 +6,7 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -69,12 +69,13 @@ int proxy_port = 8080;
 
 FILE *stream = stdout;
 
-const char *prefix_name = "ns";
+const char *service_prefix = NULL;
+const char *schema_prefix = "ns";
 
 char elementformat[]   = "    %-35s  %-30s";
 char pointerformat[]   = "    %-35s *%-30s";
 char attributeformat[] = "   @%-35s  %-30s";
-char vectorformat[]    = "    std::vector<%-22s> *%-30s";
+char vectorformat[]    = "    std::vector<%-23s> %-30s";
 char arrayformat[]     = "    %-35s *__ptr%-25s";
 char sizeformat[]      = "    %-35s  __size%-24s";
 char schemaformat[]    = "//gsoap %-5s schema %s:\t%s\n";
@@ -82,12 +83,12 @@ char serviceformat[]   = "//gsoap %-4s service %s:\t%s %s\n";
 char paraformat[]      = "    %-35s%s%s%s";
 char anonformat[]      = "    %-35s%s_%s%s";
 
-char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2005 Robert van Engelen, Genivia, Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc.\n\n";
+char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2005 Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc. Use option -l for more info.\n\n";
 
-char licensenotice[]   = "\n\
+char licensenotice[]   = "\
 --------------------------------------------------------------------------------\n\
 gSOAP XML Web services tools\n\
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.\n\
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.\n\
 \n\
 This software is released under one of the following two licenses:\n\
 GPL or Genivia's license for commercial use.\n\
@@ -116,10 +117,12 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com\n\
 int main(int argc, char **argv)
 { fprintf(stderr, copyrightnotice);
   options(argc, argv);
+  if (lflag)
+    fprintf(stderr, licensenotice);
   wsdl__definitions definitions;
   if (infile)
   { if (!outfile)
-    { if (strncmp(infile, "http://", 7))
+    { if (strncmp(infile, "http://", 7) && strncmp(infile, "https://", 8))
       { const char *s = strrchr(infile, '.');
         if (s && (!strcmp(s, ".wsdl") || !strcmp(s, ".gwsdl") || !strcmp(s, ".xsd")))
         { outfile = estrdup(infile);
@@ -196,11 +199,21 @@ static void options(int argc, char **argv)
             a++;
             g = 0;
             if (*a)
-              prefix_name = a;
+              schema_prefix = a;
             else if (i < argc && argv[++i])
-              prefix_name = argv[i];
+              schema_prefix = argv[i];
             else
               fprintf(stderr, "wsdl2h: Option -n requires a prefix name argument");
+	    break;
+          case 'N':
+            a++;
+            g = 0;
+            if (*a)
+              service_prefix = a;
+            else if (i < argc && argv[++i])
+              service_prefix = argv[i];
+            else
+              fprintf(stderr, "wsdl2h: Option -N requires a prefix name argument");
 	    break;
           case 'o':
             a++;
@@ -256,7 +269,26 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-i] [-m] [-n name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-w] [-o outfile.h] [infile.wsdl | infile.xsd | http://...]\n");
+            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-w] [-o outfile.h] [infile.wsdl | infile.xsd | http://...]\n\n");
+            fprintf(stderr, "\
+-c      generate C code\n\
+-e      don't qualify enum names\n\
+-f      generate flat C++ class hierarchy\n\
+-h      print help information\n\
+-l      include license information in output\n\
+-m      create modules for separate compilation\n\
+-nname  use name as the base namespace prefix instead of 'ns'\n\
+-Nname  use name as the base namespace prefix for service namespaces\n\
+-ofile  output to file\n\
+-p      create polymorphic types with C++ inheritance with base xsd__anyType\n\
+-rhost:port\n\
+        connect via proxy host and port\n\
+-s      do not generate STL code (no std::string and no std::vector)\n\
+-tfile  use type map file instead of the default file typemap.dat\n\
+-v      verbose output\n\
+-w      always wrap response parameters in a response struct (<=1.1.4 behavior)\n\
+-?      print help information\n\
+\n");
             exit(0);
           default:
             fprintf(stderr, "wsdl2h: Unknown option %s\n", a);

@@ -6,7 +6,7 @@ XSD binding schema implementation
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ extern int is_builtin_qname(const char*);
 xs__schema::xs__schema()
 { soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
 #ifdef WITH_OPENSSL
-  soap_ssl_client_context(soap, SOAP_SSL_NOAUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
+  soap_ssl_client_context(soap, SOAP_SSL_NO_AUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
 #endif
 #ifdef WITH_NONAMESPACES
   soap_set_namespaces(soap, namespaces);
@@ -234,9 +234,6 @@ xs__include::xs__include()
   schemaRef = NULL;
 }
 
-xs__include::~xs__include()
-{ }
-
 int xs__include::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema include" << endl;
@@ -260,16 +257,12 @@ xs__import::xs__import()
   schemaRef = NULL;
 }
 
-xs__import::~xs__import()
-{ }
-
 int xs__import::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema import " << (namespace_?namespace_:"") << endl;
   if (!schemaRef)
   { struct Namespace *p = schema.soap->local_namespaces;
-    const char *s = schemaLocation;
-    if (s && namespace_)
+    if (namespace_)
     { if (p)
       { for (; p->id; p++)
         { if (p->in)
@@ -285,7 +278,10 @@ int xs__import::traverse(xs__schema &schema)
       else
 	fprintf(stderr, "Warning: no namespace table\n");
       if (!iflag && (!p || !p->id)) // don't import any of the schemas in the .nsmap table (or when -i option is used)
-      { schemaRef = new xs__schema(schema.soap, s);
+      { const char *s = schemaLocation;
+	if (!s)
+	  s = namespace_;
+        schemaRef = new xs__schema(schema.soap, s);
         if (schemaPtr())
         { if (!schemaPtr()->targetNamespace || !*schemaPtr()->targetNamespace)
             schemaPtr()->targetNamespace = namespace_;
@@ -295,8 +291,8 @@ int xs__import::traverse(xs__schema &schema)
         }
       }
     }
-    else if (vflag)
-      fprintf(stderr, "Warning: no schemaLocation for namespace import '%s'\n", namespace_?namespace_:"");
+    else
+      fprintf(stderr, "Warning: no namespace in <import>\n");
   }
   return SOAP_OK;
 }
@@ -314,9 +310,6 @@ xs__attribute::xs__attribute()
   attributeRef = NULL;
   simpleTypeRef = NULL;
 }
-
-xs__attribute::~xs__attribute()
-{ }
 
 int xs__attribute::traverse(xs__schema &schema)
 { if (vflag)
@@ -435,9 +428,6 @@ xs__element::xs__element()
   simpleTypeRef = NULL;
   complexTypeRef = NULL;
 }
-
-xs__element::~xs__element()
-{ }
 
 int xs__element::traverse(xs__schema &schema)
 { if (vflag)
@@ -597,9 +587,6 @@ xs__simpleType::xs__simpleType()
 { level = 0;
 }
 
-xs__simpleType::~xs__simpleType()
-{ }
-
 int xs__simpleType::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema simpleType" << endl;
@@ -649,9 +636,6 @@ int xs__simpleType::baseLevel()
 xs__complexType::xs__complexType()
 { level = 0;
 }
-
-xs__complexType::~xs__complexType()
-{ }
 
 int xs__complexType::traverse(xs__schema &schema)
 { if (vflag)
@@ -755,9 +739,6 @@ xs__extension::xs__extension()
 { simpleTypeRef = NULL;
   complexTypeRef = NULL;
 }
-
-xs__extension::~xs__extension()
-{ }
 
 int xs__extension::traverse(xs__schema &schema)
 { if (vflag)
@@ -863,9 +844,6 @@ xs__restriction::xs__restriction()
 { simpleTypeRef = NULL;
   complexTypeRef = NULL;
 }
-
-xs__restriction::~xs__restriction()
-{ }
 
 int xs__restriction::traverse(xs__schema &schema)
 { if (vflag)
@@ -977,9 +955,6 @@ xs__list::xs__list()
 { itemTypeRef = NULL;
 }
 
-xs__list::~xs__list()
-{ }
-
 int xs__list::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "schema list" << endl;
@@ -1084,9 +1059,6 @@ xs__attributeGroup::xs__attributeGroup()
   attributeGroupRef = NULL;
 }
 
-xs__attributeGroup::~xs__attributeGroup()
-{ }
-
 int xs__attributeGroup::traverse(xs__schema& schema)
 { if (vflag)
     cerr << "attributeGroup" << endl;
@@ -1123,9 +1095,6 @@ xs__group::xs__group()
 { schemaRef = NULL;
   groupRef = NULL;
 }
-
-xs__group::~xs__group()
-{ }
 
 int xs__group::traverse(xs__schema &schema)
 { if (vflag)

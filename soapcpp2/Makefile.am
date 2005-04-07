@@ -24,13 +24,13 @@ stdsoap2_ck_cpp.cpp: stdsoap2.cpp
 
 
 lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a
-libgsoap_a_SOURCES=stdsoap2.c dom.c
+libgsoap_a_SOURCES=stdsoap2.c
 libgsoap_a_CFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform)
-libgsoap___a_SOURCES=stdsoap2_cpp.cpp dom.cpp
+libgsoap___a_SOURCES=stdsoap2_cpp.cpp
 libgsoap___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform)
-libgsoapck_a_SOURCES=stdsoap2_ck.c dom.c
+libgsoapck_a_SOURCES=stdsoap2_ck.c
 libgsoapck_a_CFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
-libgsoapck___a_SOURCES=stdsoap2_ck_cpp.cpp dom.cpp
+libgsoapck___a_SOURCES=stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 
 BUILT_SOURCES=stdsoap2_cpp.cpp $(lib_LIBRARIES)

@@ -1,23 +1,19 @@
 /*
 
-stdsoap2.h 2.7.0f
+stdsoap2.h 2.7.1
 
 gSOAP runtime environment.
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc., All Rights Reserved.
-
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc., All Rights Reserved.
+This part of the software is released under one of the following licenses:
+GPL, the gSOAP public license, or Genivia's license for commercial use.
+--------------------------------------------------------------------------------
 Contributors:
 
 Wind River Systems, Inc., for the following additions (marked WR[...]) :
   - vxWorks compatible
   - Support for IPv6.
-
---------------------------------------------------------------------------------
-
-   This software is released under one of the following three licenses:
-   GPL, the gSOAP public license, or Genivia's license for commercial use.
-
 --------------------------------------------------------------------------------
 gSOAP public license.
 
@@ -30,7 +26,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc., All Rights Reserved.
+Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -214,6 +210,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_FTIME
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
+#  define SOAP_LONG_FORMAT "%I64d"
+#  define SOAP_ULONG_FORMAT "%I64u"
 # elif defined(CYGWIN)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -265,18 +263,22 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_LOCALTIME_R
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
-# elif defined(FREEBSD)
+# elif defined(FREEBSD) || defined(__FreeBSD__)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
 #  define HAVE_SSCANF
 #  define HAVE_STRTOL
 #  define HAVE_STRTOUL
+#  define HAVE_STRTOLL
+#  define HAVE_STRTOULL
 #  define HAVE_GETTIMEOFDAY
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
+#  define SOAP_LONG_FORMAT "%qd"
+#  define SOAP_ULONG_FORMAT "%qu"
 # elif defined(__VMS)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
@@ -296,6 +298,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_SSCANF
 #  define HAVE_STRTOL
 #  define HAVE_STRTOUL
+#  define HAVE_STRTOLL
+#  define HAVE_STRTOULL
 #  define HAVE_SYS_TIMEB_H
 #  define HAVE_FTIME
 #  define HAVE_RAND_R
@@ -311,6 +315,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_SSCANF
 #  define HAVE_STRTOL
 #  define HAVE_STRTOUL
+#  define HAVE_STRTOLL
+#  define HAVE_STRTOULL
 #  define HAVE_GETTIMEOFDAY
 #  define HAVE_SYS_TIMEB_H
 #  define HAVE_RAND_R
@@ -319,6 +325,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define __USE_STD_IOSTREAM
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
+#  define SOAP_LONG_FORMAT "%ld"
+#  define SOAP_ULONG_FORMAT "%lu"
 # elif defined(MAC_CARBON)
 #  define WITH_NOIO
 #  define HAVE_STRRCHR
@@ -391,28 +399,12 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #endif
 
-#if defined(TRU64)
-# define SOAP_LONG_FORMAT "%ld"
-# define SOAP_ULONG_FORMAT "%lu"
-#elif defined(WIN32)
-# define SOAP_LONG_FORMAT "%I64d"
-# define SOAP_ULONG_FORMAT "%I64u"
-#endif
-
 #ifndef SOAP_LONG_FORMAT
 # define SOAP_LONG_FORMAT "%lld"	/* printf format for 64 bit ints */
 #endif
 
 #ifndef SOAP_ULONG_FORMAT
 # define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
-#endif
-
-#ifndef SOAP_MALLOC			/* use libc malloc */
-# define SOAP_MALLOC(n) malloc(n)
-#endif
-
-#ifndef SOAP_FREE			/* use libc free */
-# define SOAP_FREE(p) free(p)
 #endif
 
 #include <stdlib.h>
@@ -862,9 +854,11 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define soap_dime_error_check(e) ((e) == SOAP_DIME_ERROR || (e) == SOAP_DIME_MISMATCH)
 #define soap_http_error_check(e) ((e) == SOAP_HTTP_ERROR || (e) == SOAP_GET_METHOD || ((e) >= 100 && (e) < 600))
 
-/* gSOAP HTTP response status codes 100 to 600 are reserved */
+/* gSOAP HTTP response status codes 100 to 599 are reserved */
 
-/* Special gSOAP HTTP response status codes */
+/* Codes 600 to 999 are user definable */
+
+/* Exceptional gSOAP HTTP response status codes >= 1000 */
 
 #define SOAP_STOP		1000	/* No HTTP response */
 #define SOAP_HTML		1001	/* Custom HTML response */
@@ -960,6 +954,19 @@ typedef soap_int32 soap_mode;
 #endif
 
 #ifdef SOAP_DEBUG
+# define SOAP_MALLOC(soap, size) soap_track_malloc(soap, __FILE__, __LINE__, size)
+# define SOAP_FREE(soap, ptr) soap_track_free(soap, __FILE__, __LINE__, ptr)
+#endif
+
+#ifndef SOAP_MALLOC			/* use libc malloc */
+# define SOAP_MALLOC(soap, size) malloc(size)
+#endif
+
+#ifndef SOAP_FREE			/* use libc free */
+# define SOAP_FREE(soap, ptr) free(ptr)
+#endif
+
+#ifdef SOAP_DEBUG
 # ifndef SOAP_MESSAGE
 #  define SOAP_MESSAGE fprintf
 # endif
@@ -1033,6 +1040,16 @@ struct soap_plist
   char mark2;
 };
 
+#ifdef SOAP_DEBUG
+struct soap_mlist
+{ struct soap_mlist *next;
+  const void *ptr;
+  const char *file;
+  int line;
+  short live;
+};
+#endif
+
 /* class allocation list */
 struct soap_clist
 { struct soap_clist *next;
@@ -1061,8 +1078,8 @@ struct soap_cookie
   unsigned int version;
   short secure;
   short session;	/* server-side */
-  short env;		/* server-side: got cookie from client */
-  short modified;	/* server-side: client cookie was modified */
+  short env;		/* server-side: got cookie from client and should not be (re)send */
+  short modified;	/* server-side: client cookie was modified and should be send */
 };
 
 #ifdef __cplusplus
@@ -1097,8 +1114,8 @@ struct soap_dime
   const char *id;
   const char *type;
   const char *options;
-  struct soap_multipart *list;		/* list of DIME attachments received */
-  struct soap_multipart *first, *last;	/* temporary in/out queue */
+  struct soap_multipart *list;		/* the list of DIME attachments received */
+  struct soap_multipart *first, *last;	/* temporary queue for internal use only */
 #ifdef __cplusplus
   soap_multipart_iterator begin()
     { soap_multipart_iterator iter(list); return iter; };
@@ -1143,7 +1160,7 @@ struct soap_multipart
 { struct soap_multipart *next;
   char *ptr;				/* points to raw data content */
   size_t size;				/* size of data content */
-  const char *id;			/* DIME/MIME content ID */
+  const char *id;			/* DIME/MIME content ID or form data name */
   const char *type;			/* DIME/MIME type (MIME type format) */
   const char *options;			/* DIME options */
   enum soap_mime_encoding encoding;	/* MIME Content-Transfer-Encoding */
@@ -1290,6 +1307,7 @@ struct soap
   int (*fsend)(struct soap*, const char*, size_t);
   size_t (*frecv)(struct soap*, char*, size_t);
   int (*fpoll)(struct soap*);
+  void (*fseterror)(struct soap*, const char **c, const char **s);
   int (*fignore)(struct soap*, const char*);
   int (*fserveloop)(struct soap*);
   void *(*fplugin)(struct soap*, const char*);
@@ -1387,6 +1405,7 @@ struct soap
 #if !defined(WITH_LEAN) || defined(SOAP_DEBUG)
   const char *logfile[SOAP_MAXLOGS];
   FILE *fdebug[SOAP_MAXLOGS];
+  struct soap_mlist *mht[SOAP_PTRHASH];
 #endif
 #ifndef WITH_LEAN
   struct soap_cookie *cookies;
@@ -1521,7 +1540,7 @@ soap_wchar soap_get1(struct soap*);
 # define soap_lookup_type(s, i) (0)
 # define soap_getindependent(s) (0)
 # define soap_putindependent(s) (0)
-# define soap_getelement(s, n) (0)
+# define soap_getelement(s, n) (n)
 # define soap_putelement(s, p, t, i, n) (0)
 # define soap_markelement(s, p, n) (0)
 #endif
@@ -1761,9 +1780,9 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_s2QName(struct soap*, const char*, char**);
 
 #ifndef WITH_LEAN
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2dateTime(struct soap*, const char*, time_t*);
-#endif
-
 SOAP_FMAC1 char* SOAP_FMAC2 soap_s2base64(struct soap*, const unsigned char*, char*, size_t);
+SOAP_FMAC1 char* SOAP_FMAC2 soap_s2hex(struct soap*, const unsigned char*, char*, size_t);
+#endif
 
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_byte2s(struct soap*, char);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_short2s(struct soap*, short);
@@ -1778,10 +1797,11 @@ SOAP_FMAC1 const char* SOAP_FMAC2 soap_unsignedInt2s(struct soap*, unsigned int)
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_unsignedLong2s(struct soap*, unsigned long);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_ULONG642s(struct soap*, ULONG64);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_QName2s(struct soap*, const char*);
-SOAP_FMAC1 const char* SOAP_FMAC2 soap_base642s(struct soap*, const char*, char*, size_t, size_t*);
 
 #ifndef WITH_LEAN
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_dateTime2s(struct soap*, time_t);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_base642s(struct soap*, const char*, char*, size_t, int*);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_hex2s(struct soap*, const char*, char*, size_t, int*);
 #endif
 
 
@@ -1867,6 +1887,7 @@ SOAP_FMAC1 size_t SOAP_FMAC2 soap_encode_cookie(const char*, char*, size_t);
 SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_set_cookie(struct soap*, const char*, const char*, const char*, const char*);
 SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_cookie(struct soap*, const char*, const char*, const char*);
 SOAP_FMAC1 extern char* SOAP_FMAC2 soap_cookie_value(struct soap*, const char*, const char*, const char*);
+SOAP_FMAC1 extern char* SOAP_FMAC2 soap_env_cookie_value(struct soap*, const char*, const char*, const char*);
 SOAP_FMAC1 extern long SOAP_FMAC2 soap_cookie_expire(struct soap*, const char*, const char*, const char*);
 SOAP_FMAC1 extern int SOAP_FMAC2 soap_set_cookie_expire(struct soap*, const char*, long, const char*, const char*);
 SOAP_FMAC1 extern int SOAP_FMAC2 soap_set_cookie_session(struct soap*, const char*, const char*, const char*);

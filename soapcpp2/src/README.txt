@@ -1,6 +1,6 @@
 
-The gSOAP 2 compiler sources are Copyright (C) 2000-2003 Robert A. van Engelen,
-Genivia inc. All rights reserved.
+The gSOAP 2 compiler sources are Copyright (C) 2000-2005 Robert A. van Engelen,
+Florida State University and Genivia Inc. All rights reserved.
 
 THIS PART OF THE PACKAGE IS INTENDED TO SUPPORT THE MIGRATION OF gSOAP TO
 DIFFERENT PLATFORMS. The code has not been cleaned. No documentation is
