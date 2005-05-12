@@ -150,7 +150,7 @@ LICENSE
 
 The gSOAP WSDL parser 'wsdl2h' and source code are released under the GPL.
 See gpl.txt for more details. A commercial license is available from Genivia.
-Please visit http://genivia.com/Products/gsoap/license.pdf
+Please visit http://genivia.com/Products/gsoap/contract.html
 
 COPYRIGHT NOTICE
 

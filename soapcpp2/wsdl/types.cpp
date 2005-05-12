@@ -1216,7 +1216,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
   if (name)
   { if (!cflag && !pflag)
     { if (!complexType.complexContent || !complexType.complexContent->extension || !complexType.complexContent->extension->complexTypePtr())
-      { fprintf(stream, "/// A handle to the soap struct context that manages this class instance\n");
+      { fprintf(stream, "/// A handle to the soap struct that manages this instance (automatically set)\n");
         fprintf(stream, pointerformat, "struct soap", "soap");
         fprintf(stream, ";\n");
       }
@@ -1439,6 +1439,10 @@ void Types::gen(const char *URI, const xs__element& element)
   }
   else if (element.ref)
     fprintf(stream, elementformat, tname(NULL, NULL, element.ref), aname(NULL, NULL, element.ref));
+  else if (name)
+  { fprintf(stream, "/// Warning: element '%s' has no type or ref. Assuming XML content\n", name?name:"");
+    fprintf(stream, elementformat, "_XML", aname(NULL, URI, name));
+  }
   else
     fprintf(stream, "//\tunrecognized: element '%s' has no type or ref", name?name:"");
   if (!element.minOccurs && !element.nillable && !element.default_)

@@ -17,7 +17,7 @@ int main(int argc, char **argv)
   body.add(request);
   request.add(symbol);
   cout << "Request message:" << endl << envelope << endl;
-  soap_mark_xsd__anyType(soap, &envelope);
+  soap_serialize_xsd__anyType(soap, &envelope);
   if (soap_connect(soap, "http://services.xmethods.net/soap", "")
    || soap_put_xsd__anyType(soap, &envelope, NULL, NULL)
    || soap_end_send(soap)

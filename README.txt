@@ -1,5 +1,7 @@
 Please see soapcpp2/README.txt for more info on the gSOAP package.
 
+INSTALLATION NOTES
+
 This file explains how gSOAP is build on your platform.
 
 Win32 users can start right away. A soapcpp2.exe binary compiler and
@@ -53,4 +55,22 @@ automake
 
 Then run:
 make
+
+MISC BUILD NOTES
+
+QNX
+===
+
+On QNX the bison.simple file is located in $QNX_HOST/usr/share/bison.simple
+Update your .profile to include:
+
+export BISON_SIMPLE=$QNX_HOST/usr/share/bison/bison.simple 
+export BISON_HAIRY=$QNX_HOST/usr/share/bison/bison.hairy 
+
+WIN32
+=====
+
+Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small Compile with
+/DYYINITDEPTH=1000
+
 

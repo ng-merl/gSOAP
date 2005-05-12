@@ -1,6 +1,17 @@
 /** @mainpage gSOAP UDDI v2
 
+Universal Description, Discovery and Integration, or UDDI, is the name of a
+group of web-based registries that expose information about a business or other
+entity and its technical interfaces.
+
+See the UDDI v2 specification @url http://uddi.org/pubs/ProgrammersAPI_v2.htm
+for more details.
+
 @section UDDI2_CLASSES Classes
+
+See Related Pages for examples.
+
+UDDI Inquire classes
 
 - @ref uddi2__find_USCOREbinding
 - @ref uddi2__find_USCOREbusiness
@@ -12,6 +23,25 @@
 - @ref uddi2__get_USCOREbusinessDetailExt
 - @ref uddi2__get_USCOREserviceDetail
 - @ref uddi2__get_USCOREtModelDetail
+
+UDDI Publish classes
+
+- @ref uddi2__add_USCOREpublisherAssertions
+- @ref uddi2__delete_USCOREbinding
+- @ref uddi2__delete_USCOREbusiness
+- @ref uddi2__delete_USCOREservice
+- @ref uddi2__delete_USCOREtModel
+- @ref uddi2__delete_USCOREpublisherAssertions
+- @ref uddi2__discard_USCOREauthToken
+- @ref uddi2__get_USCOREassertionStatusReport
+- @ref uddi2__get_USCOREauthToken
+- @ref uddi2__get_USCOREpublisherAssertions
+- @ref uddi2__get_USCOREregisteredInfo
+- @ref uddi2__save_USCOREbinding
+- @ref uddi2__save_USCOREbusiness
+- @ref uddi2__save_USCOREservice
+- @ref uddi2__save_USCOREtModel
+- @ref uddi2__set_USCOREpublisherAssertions
 
 @section UDDI2_BINDINGS Binding Reference
 
@@ -31,6 +61,8 @@
 @brief
 
 Represents a request to locate bindings that meet the specified requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137712
 */
 
 /**
@@ -83,6 +115,8 @@ Send a request to a UDDI server to find binding details.
 Represents a request to locate businesses that meet specific requirements. When
 the send method is called, the instance returns a uddi2__businessList object
 that contains a list of business that matched the search criteria.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137713
 
 See also @ref example2.
 */
@@ -147,6 +181,8 @@ Represents a request to locate businesses that are related to a specific
 business. When the send method is called, the instance returns a
 uddi2__relatedBusinessList object that contains a list of business that matched
 the relationship set.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137714
 */
 
 /**
@@ -187,6 +223,8 @@ Send a request to a UDDI server to find a list of related businesses.
 @brief
 
 Represents a request to locate services that meet the specified requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137715
 
 See also @ref example1.
 */
@@ -252,6 +290,8 @@ See also @ref example1.
 Represents a request to locate a list of tModel entries that match a set of
 specific criteria. The result of a search is a uddi2__tModelList object that
 contains information about registered tModel data that matches the criteria.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137716
 */
 
 /**
@@ -268,7 +308,7 @@ Creates an instance of the find_USCOREtModel class.
 @param[in] soap gSOAP context
 @param[in] name of the tModel
 
-Creates an instance of the find_USCOREtModel class using the speficied tModel
+Creates an instance of the find_USCOREtModel class using the specified tModel
 name.
 */
 
@@ -302,6 +342,8 @@ Send a request to a UDDI server to find a tModelList.
 @brief
 
 Represents a request to get binding details from a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137717
 */
 
 /**
@@ -352,6 +394,8 @@ Send a request to a UDDI server to get the binding details.
 @brief
 
 Represents a request to get business details from a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137718 
 */
 
 /**
@@ -402,6 +446,8 @@ Send a request to a UDDI server to get the business details.
 @brief
 
 Represents a request to get business details from a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137719
 */
 
 /**
@@ -452,6 +498,8 @@ Send a request to a UDDI server to get the business details.
 @brief
 
 Represents a request to get service details from a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137720
 */
 
 /**
@@ -502,6 +550,8 @@ Send a request to a UDDI server to get the service details.
 @brief
 
 Represents a request to get tModel details from a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137721
 */
 
 /**
@@ -539,6 +589,769 @@ collection of tModel keys.
 @return A pointer to a uddi2__tModelDetail object or NULL on error
 
 Send a request to a UDDI server to get the tModel details.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:add_publisherAssertions
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__add_USCOREpublisherAssertions
+@brief
+
+Represents a request to add one or more publisher assertions to the assertion
+collection for an individual publisher.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137731
+*/
+
+/**
+@fn uddi2__add_USCOREpublisherAssertions::uddi2__add_USCOREpublisherAssertions(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the add_USCOREpublisherAssertions class.
+*/
+
+/**
+@fn uddi2__add_USCOREpublisherAssertions::uddi2__add_USCOREpublisherAssertions(struct soap *soap, std::vector<uddi2__publisherAssertion*> publisherAssertions)
+@brief
+@param[in] soap gSOAP context
+@param[in] publisherAssertions collection of publisher assertions
+
+Creates an instance of the add_USCOREpublisherAssertions class using the
+specified publisher assertions.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__add_USCOREpublisherAssertions::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI server to add one or more publisher assertions to the
+assertion collection for an individual publisher.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:delete_binding
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__delete_USCOREbinding
+@brief
+
+Represents a request to delete a binding that meets the specified requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137732
+*/
+
+/**
+@fn uddi2__delete_USCOREbinding::uddi2__delete_USCOREbinding(struct soap *soap)
+@brief
+
+Creates an instance of the delete_USCOREbinding class.
+*/
+
+/**
+@fn uddi2__delete_USCOREbinding::uddi2__delete_USCOREbinding(struct soap *soap, const char *bindingKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] bindingKey a binding key string
+
+Creates an instance of the delete_USCOREbinding class.
+*/
+
+/**
+@fn uddi2__delete_USCOREbinding::uddi2__delete_USCOREbinding(struct soap *soap, std::vector<char*> bindingKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] bindingKeys collection of binding keys
+
+Creates an instance of the delete_USCOREbinding class using the specified
+binding keys.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__delete_USCOREbinding::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI service to delete a binding that meets the specified
+requirements.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:delete_business
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__delete_USCOREbusiness
+@brief
+
+Represents a request to delete a business that meets the specified requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137733
+*/
+
+/**
+@fn uddi2__delete_USCOREbusiness::uddi2__delete_USCOREbusiness(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the delete_USCOREbusiness class.
+*/
+
+/**
+@fn uddi2__delete_USCOREbusiness::uddi2__delete_USCOREbusiness(struct soap *soap, const char *businessKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKey a business key string
+
+Creates an instance of the delete_USCOREbusiness class using the specified
+business key.
+*/
+
+/**
+@fn uddi2__delete_USCOREbusiness::uddi2__delete_USCOREbusiness(struct soap *soap, std::vector<char*> businessKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessKeys collection of business keys
+
+Creates an instance of the delete_USCOREbusiness class using the specified
+business keys.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__delete_USCOREbusiness::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI service to delete a business that meets the specified
+requirements.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:delete_service
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__delete_USCOREservice
+@brief
+
+Represents a request to delete a service that meets the specified requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137735
+*/
+
+/**
+@fn uddi2__delete_USCOREservice::uddi2__delete_USCOREservice(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the delete_USCOREservice class.
+*/
+
+/**
+@fn uddi2__delete_USCOREservice::uddi2__delete_USCOREservice(struct soap *soap, const char *serviceKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] serviceKey a service key string
+
+Creates an instance of the delete_USCOREservice class using the specified
+service key.
+*/
+
+/**
+@fn uddi2__delete_USCOREservice::uddi2__delete_USCOREservice(struct soap *soap, std::vector<char*> serviceKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] serviceKeys collection of service keys
+
+Creates an instance of the delete_USCOREservice class using the specified
+service keys.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__delete_USCOREservice::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI service to delete a service that meets the specified
+requirements.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:delete_tModel
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__delete_USCOREtModel
+@brief
+
+Represents a request to delete a tModel that meets the specified requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137736
+*/
+
+/**
+@fn uddi2__delete_USCOREtModel::uddi2__delete_USCOREtModel(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the delete_USCOREtModel class.
+*/
+
+/**
+@fn uddi2__delete_USCOREtModel::uddi2__delete_USCOREtModel(struct soap *soap, const char *tModelKey)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKey a tModel key string
+
+Creates an instance of the delete_USCOREtModel class using the specified
+tModel key.
+*/
+
+/**
+@fn uddi2__delete_USCOREtModel::uddi2__delete_USCOREtModel(struct soap *soap, std::vector<char*> tModelKeys)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModelKeys collection of tModel keys
+
+Creates an instance of the delete_USCOREtModel class using the specified
+tModel keys.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__delete_USCOREtModel::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI service to delete a tModel that meets the specified
+requirements.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:delete_publisherAssertions
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__delete_USCOREpublisherAssertions
+@brief
+
+Represents a request to delete publisher assertions meeting the specified
+requirements.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137734
+*/
+
+/**
+@fn uddi2__delete_USCOREpublisherAssertions::uddi2__delete_USCOREpublisherAssertions(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the delete_USCOREpublisherAssertions class.
+*/
+
+/**
+@fn uddi2__delete_USCOREpublisherAssertions::uddi2__delete_USCOREpublisherAssertions(struct soap *soap, std::vector<uddi2__publisherAssertion*> publisherAssertions)
+@brief
+@param[in] soap gSOAP context
+@param[in] publisherAssertions a collection of publisher assertions
+
+Creates an instance of the delete_USCOREpublisherAssertions class using the
+specified collection of publisher assertions.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__delete_USCOREpublisherAssertions::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI service to delete publisher assertions meeting the
+specified requirements.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:discard_authToken
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__discard_USCOREauthToken
+@brief
+
+Represents a request to discard an authorization token obtained with the
+get_USCOREauthToken class.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137737
+*/
+
+/**
+@fn uddi2__discard_USCOREauthToken::uddi2__discard_USCOREauthToken(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the delete_USCOREauthToken class.
+*/
+
+/**
+@fn uddi2__discard_USCOREauthToken::uddi2__discard_USCOREauthToken(struct soap *soap, const char *authInfo)
+@brief
+@param[in] soap gSOAP context
+@param[in] authInfo authorization token provided by the UDDI server
+
+Creates an instance of the delete_USCOREauthToken class using the specified
+authentication token string.
+*/
+
+/**
+@fn uddi2__dispositionReport *uddi2__discard_USCOREauthToken::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__dispositionReport object or NULL on error
+
+Send a request to a UDDI service to discard an authentication token.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_assertionStatusReport
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREassertionStatusReport
+@brief
+
+Provides the ability to determine the status of current and outstanding
+publisher assertions. The results can be restricted by setting the
+completionStatus property.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137738
+*/
+
+/**
+@fn uddi2__get_USCOREassertionStatusReport::uddi2__get_USCOREassertionStatusReport(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREassertionStatusReport class.
+*/
+
+/**
+@fn uddi2__get_USCOREassertionStatusReport::uddi2__get_USCOREassertionStatusReport(struct soap *soap, const char *completionStatus)
+@brief
+@param[in] soap gSOAP context
+@param[in] completionStatus completion status string
+
+Creates an instance of the get_USCOREassertionStatusReport class using the
+specified completion status.
+*/
+
+/**
+@fn uddi2__assertionStatusReport *uddi2__get_USCOREassertionStatusReport::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__assertionStatusReport object or NULL on error
+
+Send a request to a UDDI service to get the status of current and outstanding
+publisher assertions.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_authToken
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREauthToken
+@brief
+
+Represents a request to obtain an authorization token, which is represented by
+the uddi2__authToken class.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137739
+*/
+
+/**
+@fn uddi2__get_USCOREauthToken::uddi2__get_USCOREauthToken(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREauthToken class.
+*/
+
+/**
+@fn uddi2__get_USCOREauthToken::uddi2__get_USCOREauthToken(struct soap *soap, const char *userid, const char *passwd)
+@brief
+@param[in] soap gSOAP context
+@param[in] userid the user ID string
+@param[in] passwd the password string
+
+Creates an instance of the get_USCOREauthToken class using the specified user
+ID and password.
+*/
+
+/**
+@fn uddi2__authToken *uddi2__get_USCOREauthToken::send(const char *endpoint)
+@brief
+@param[in] endpoint URL of the UDDI server
+@return A pointer to a uddi2__authToken object or NULL on error
+
+Send a request to a UDDI service to get a authorization token given a user
+ID and password.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_publisherAssertions
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREpublisherAssertions
+@brief
+
+Represents a request to obtain the full set of publisher assertions that are
+associated with an individual publisher.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137740
+*/
+
+/**
+@fn uddi2__get_USCOREpublisherAssertions::uddi2__get_USCOREpublisherAssertions(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREpublisherAssetions class.
+*/
+
+/**
+@fn uddi2__publisherAssertions *uddi2__get_USCOREpublisherAssertions::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__publisherAssertions object or NULL on error
+
+Send a request to a UDDI service to get publisher assertions.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:get_registeredInfo
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__get_USCOREregisteredInfo
+@brief
+
+Represents a request to get all registered business entities and tModels
+controlled by an individual.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137741
+*/
+
+/**
+@fn uddi2__get_USCOREregisteredInfo::uddi2__get_USCOREregisteredInfo(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the get_USCOREregisteredInfo class.
+*/
+
+/**
+@fn uddi2__registeredInfo *uddi2__get_USCOREregisteredInfo::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__registeredInfo object or NULL on error
+
+Send a request to a UDDI service to get all registered business entities and
+tModels controlled by an individual.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:save_binding
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__save_USCOREbinding
+@brief
+
+Represents a request to post binding information on a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137742
+*/
+
+/**
+@fn uddi2__save_USCOREbinding::uddi2__save_USCOREbinding(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the save_USCOREbinding class.
+*/
+
+/**
+@fn uddi2__save_USCOREbinding::uddi2__save_USCOREbinding(struct soap *soap, uddi2__bindingTemplate &bindingTemplate)
+@brief
+@param[in] soap gSOAP context
+@param[in] bindingTemplate binding template
+
+Creates an instance of the save_USCOREbinding class using the specified binding
+template.
+*/
+
+/**
+@fn uddi2__save_USCOREbinding::uddi2__save_USCOREbinding(struct soap *soap, std::vector<uddi2__bindingTemplate*> bindingTemplates)
+@brief
+@param[in] soap gSOAP context
+@param[in] bindingTemplates collection of binding templates
+
+Creates an instance of the save_USCOREbinding class using the specified binding
+templates.
+*/
+
+/**
+@fn uddi2__bindingDetail *uddi2__save_USCOREbinding::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__bindingDetail object or NULL on error
+
+Send a request to a UDDI server to post binding information on the server.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:save_business
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__save_USCOREbusiness
+@brief
+
+Represents a request to post business information on a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137743
+*/
+
+/**
+@fn uddi2__save_USCOREbusiness::uddi2__save_USCOREbusiness(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the save_USCOREbusiness class.
+*/
+
+/**
+@fn uddi2__save_USCOREbusiness::uddi2__save_USCOREbusiness(struct soap *soap, uddi2__businessEntity &businessEntity)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessEntity business entity
+
+Creates an instance of the save_USCOREbusiness class using the specified
+business entity.
+*/
+
+/**
+@fn uddi2__save_USCOREbusiness::uddi2__save_USCOREbusiness(struct soap *soap, std::vector<uddi2__businessEntity*> businessEntities)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessEntities collection of business entities
+
+Creates an instance of the save_USCOREbusiness class using the specified
+business entities.
+*/
+
+/**
+@fn uddi2__businessDetail *uddi2__save_USCOREbusiness::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__businessDetail object or NULL on error
+
+Send a request to a UDDI server to post business information on the server.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:save_service
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__save_USCOREservice
+@brief
+
+Represents a request to post service information on a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137744
+*/
+
+/**
+@fn uddi2__save_USCOREservice::uddi2__save_USCOREservice(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the save_USCOREservice class.
+*/
+
+/**
+@fn uddi2__save_USCOREservice::uddi2__save_USCOREservice(struct soap *soap, uddi2__businessService &businessService)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessService business service
+
+Creates an instance of the save_USCOREservice class using the specified
+service.
+*/
+
+/**
+@fn uddi2__save_USCOREservice::uddi2__save_USCOREservice(struct soap *soap, std::vector<uddi2__businessService*> businessServices)
+@brief
+@param[in] soap gSOAP context
+@param[in] businessServices collection of business services
+
+Creates an instance of the save_USCOREservice class using the specified
+services.
+*/
+
+/**
+@fn uddi2__serviceDetail *uddi2__save_USCOREservice::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__serviceDetail object or NULL on error
+
+Send a request to a UDDI server to post service information on the server.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:save_tModel
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__save_USCOREtModel
+@brief
+
+Represents a request to post tModel information on a UDDI server.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137745
+*/
+
+/**
+@fn uddi2__save_USCOREtModel::uddi2__save_USCOREtModel(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the save_USCOREtModel class.
+*/
+
+/**
+@fn uddi2__save_USCOREtModel::uddi2__save_USCOREtModel(struct soap *soap, uddi2__tModel &tModel)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModel a tModel
+
+Creates an instance of the save_USCOREtModel class using the specified
+tModel.
+*/
+
+/**
+@fn uddi2__save_USCOREtModel::uddi2__save_USCOREtModel(struct soap *soap, std::vector<uddi2__tModel*> tModels)
+@brief
+@param[in] soap gSOAP context
+@param[in] tModels collection of tModels
+
+Creates an instance of the save_USCOREtModel class using the specified
+tModels.
+*/
+
+/**
+@fn uddi2__tModelDetail *uddi2__save_USCOREtModel::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__tModelDetail object or NULL on error
+
+Send a request to a UDDI server to post tModel information on the server.
+*/
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//	uddi2:set_publisherAssertions
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+@class uddi2__set_USCOREpublisherAssertions
+@brief
+
+Represents a request to modify the existing publisher assertions for an
+individual publisher.
+
+See @url http://uddi.org/pubs/ProgrammersAPI_v2.htm#_Toc25137746
+*/
+
+/**
+@fn uddi2__set_USCOREpublisherAssertions::uddi2__set_USCOREpublisherAssertions(struct soap *soap)
+@brief
+@param[in] soap gSOAP context
+
+Creates an instance of the set_USCOREpublisherAssertions class.
+*/
+
+/**
+@fn uddi2__set_USCOREpublisherAssertions::uddi2__set_USCOREpublisherAssertions(struct soap *soap, std::vector<uddi2__publisherAssertion*> publisherAssertions)
+@brief
+@param[in] soap gSOAP context
+@param[in] publisherAssertions collection of publisher assertions
+
+Creates an instance of the set_USCOREpublisherAssertions class using the
+specified collection of publisher assertions.
+*/
+
+/**
+@fn uddi2__publisherAssertions *uddi2__set_USCOREpublisherAssertions::send(const char *endpoint, char *authInfo)
+@brief
+@param[in] endpoint URL of the UDDI server
+@param[in] authInfo authorization token provided by the UDDI server
+@return A pointer to a uddi2__publisherAssertions object or NULL on error
+
+Send a request to a UDDI server to post tModel information on the server.
 */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -609,7 +1422,7 @@ int main(int argc, char **argv)
 @endcode
 
 To compile:
-- wsdl2h -tuddi2map.dat inquire_v2.wsdl
+- wsdl2h -tuddi2-typemap.dat inquire_v2.wsdl
 - soapcpp2 -I.. -pinq inquire_v2.h
 - g++ -DWITH_NONAMESPACES -I.. -o example1 example1.cpp inquire_v2.cpp inqC.cpp inqClient.cpp ../stdsoap2.cpp
 */
@@ -675,13 +1488,171 @@ int main(int argc, char **argv)
 @endcode
 
 To compile:
-- wsdl2h -tuddi2map.dat inquire_v2.wsdl
+- wsdl2h -tuddi2-typemap.dat inquire_v2.wsdl
 - soapcpp2 -I.. -pinq inquire_v2.h
 - g++ -DWITH_NONAMESPACES -I.. -o example2 example2.cpp inquire_v2.cpp inqC.cpp inqClient.cpp ../stdsoap2.cpp
 */
+/**
+@page example3 Code Example 3: Publishing a WSDL and service on XMethods
+
+This example shows you how to publish a Web service. In this case, the example
+template code obtains an authorization token, saves the tModel with the WSDL
+URL in the server, and saves the business service information in the server.
+
+@code
+#include "pubH.h"
+
+const char *server = "https://uddi.xmethods.net/publish";
+
+const char *userid = "..."; // user ID to access UDDI server
+const char *passwd = "..."; // password to access UDDI server
+
+int main(int argc, char **argv)
+{ 
+  // Create a gSOAP context
+  struct soap *soap = soap_new();
+
+  // Setup SSL context (optional) to verify server's credentials
+  if (soap_ssl_client_context(soap, SOAP_SSL_DEFAULT, NULL, NULL, "cacerts.pem", NULL, NULL))
+  { 
+    soap_print_fault(soap, stderr);
+    exit(1);
+  }
+
+  // Step 1: Get an authorization token from the UDDI server
+  uddi2__get_USCOREauthToken get_authToken(soap, userid, passwd);
+  uddi2__authToken *authToken = get_authToken.send(server);
+
+  // Check if authorized
+  if (!authToken)
+  {
+    soap_print_fault(soap, stderr);
+    exit(1);
+  }
+
+  // Authorization info provided by server for this session
+  char *authInfo = authToken->authInfo;
+
+  // Step 2: Create a tModel for the WSDL to be published
+  uddi2__tModel tModel;
+  tModel.soap_default(soap);
+
+  // Create the tModel and service name
+  tModel.name = soap_new_uddi2__name(soap, -1);
+  tModel.name->__item = "...";
+  tModel.name->xml__lang_ = "en";
+
+  // Create XMethods description elements (see http://www.xmethods.net/ve2/UDDI.po)
+  uddi2__description *description = soap_new_uddi2__description(soap, 6);
+  description[0].__item = "SHORT DESCRIPTION: ...";
+  description[0].xml__lang_ = "en";
+  description[1].__item = "SHORT DESCRIPTION: ...";
+  description[1].xml__lang_ = "en";
+  description[2].__item = "USAGE NOTES: ...";
+  description[2].xml__lang_ = "en";
+  description[3].__item = "HOMEPAGE URL: ...";
+  description[3].xml__lang_ = "en";
+  description[4].__item = "CONTACT EMAIL: ...";
+  description[4].xml__lang_ = "en";
+  description[5].__item = "IMPLEMENTATION: ...";
+  description[5].xml__lang_ = "en";
+
+  // Add the four description elements to the tModel
+  tModel.description.push_back(description + 0);
+  tModel.description.push_back(description + 1);
+  tModel.description.push_back(description + 2);
+  tModel.description.push_back(description + 4);
+
+  // Add an overviewDoc element with description and overviewURL
+  tModel.overviewDoc = soap_new_uddi2__overviewDoc(soap, -1);
+  tModel.overviewDoc->soap_default(soap);
+  tModel.overviewDoc->description.push_back(soap_new_uddi2__description(soap, -1));
+  tModel.overviewDoc->description[0]->__item = "WSDL source document";
+  tModel.overviewDoc->description[0]->xml__lang_ = "en";
+  tModel.overviewDoc->overviewURL = "http://.../my.wsdl#bindingName";
+
+  // Omit identifier bag
+  tModel.identifierBag = NULL;
+
+  // Add a category with a WSDL-specific keyedReference
+  tModel.categoryBag = soap_new_uddi2__categoryBag(soap, -1);
+  tModel.categoryBag->soap_default(soap);
+  tModel.categoryBag->keyedReference.push_back(soap_new_uddi2__keyedReference(soap, -1));
+  tModel.categoryBag->keyedReference[0]->tModelKey = "...";
+  tModel.categoryBag->keyedReference[0]->keyName = "uddi-org:types";
+  tModel.categoryBag->keyedReference[0]->keyValue = "wsdlSpec";
+
+  tModel.authorizedName = "...";
+  tModel.operator_ = "...";
+  tModel.tModelKey = "...";
+
+  // Save the tModel
+  uddi2__save_USCOREtModel save_tModel(soap, tModel);
+  uddi2__tModelDetail *tModelDetail = save_tModel.send(server, authInfo);
+
+  // Step 3: Create a new service to be published
+  uddi2__businessService service;
+  service.soap_default(soap);
+
+  // Service name is the tModel name (XMethods)
+  service.name.push_back(tModel.name);
+
+  // Add two description elements to the service
+  service.description.push_back(description + 4);
+  service.description.push_back(description + 5);
+
+  // Create binding template
+  uddi2__bindingTemplate bindingTemplate;
+  bindingTemplate.soap_default(soap);
+  bindingTemplate.tModelInstanceDetails = soap_new_uddi2__tModelInstanceDetails(soap, -1);
+  bindingTemplate.tModelInstanceDetails->tModelInstanceInfo.push_back(soap_new_uddi2__tModelInstanceInfo(soap, -1));
+  bindingTemplate.tModelInstanceDetails->tModelInstanceInfo[0]->instanceDetails = NULL;
+  bindingTemplate.tModelInstanceDetails->tModelInstanceInfo[0]->tModelKey = tModel.tModelKey;
+  bindingTemplate.accessPoint = soap_new_uddi2__accessPoint(soap, -1);
+  bindingTemplate.accessPoint->__item = "...";
+  bindingTemplate.accessPoint->URLType = uddi2__URLType__http;
+  bindingTemplate.hostingRedirector = NULL;
+  bindingTemplate.serviceKey = "...";
+  bindingTemplate.bindingKey = "...";
+
+  // Add binding Template to service
+  service.bindingTemplates = soap_new_uddi2__bindingTemplates(soap, -1);
+  service.bindingTemplates->soap_default(soap);
+  service.bindingTemplates->bindingTemplate.push_back(&bindingTemplate);
+
+  service.categoryBag = NULL;
+  service.serviceKey = "...";
+  service.businessKey = "...";
+
+  // Save the service
+  uddi2__save_USCOREservice save_service(soap, service);
+  uddi2__serviceDetail *serviceDetail = save_service.send(server, authInfo);
+
+  // Step 4: Discard authorization token
+  uddi2__discard_USCOREauthToken discard_authToken(soap, authInfo);
+  uddi2__dispositionReport *dispositionReport = discard_authToken.send(server);
+
+  // Remove deserialized objects
+  soap_destroy(soap);
+
+  // Remove temporary data
+  soap_end(soap);
+
+  // Detach and free context
+  soap_done(soap);
+  free(soap);
+
+  return 0;
+}
+@endcode
+To compile:
+- wsdl2h -tuddi2-typemap.dat publish_v2.wsdl
+- soapcpp2 -I.. -ppub publish_v2.h
+- g++ -DWITH_OPENSSL -DWITH_NONAMESPACES -I.. -o example3 example3.cpp publish_v2.cpp pubC.cpp pubClient.cpp ../stdsoap2.cpp
+*/
 /* inquire_v2.h
-   Generated by wsdl2h 1.2.0 from inquire_v2.wsdl and uddi2map.dat
-   2005-04-01 00:21:50 GMT
+   Generated by wsdl2h 1.2.0 from inquire_v2.wsdl and uddi2-typemap.dat
+   2005-04-24 00:29:41 GMT
    Copyright (C) 2001-2005 Robert van Engelen, Genivia Inc. All Rights Reserved.
    This part of the software is released under one of the following licenses:
    GPL or Genivia's license for commercial use.
@@ -742,7 +1713,7 @@ It is strongly recommended to customize the names of the namespace prefixes
 generated by wsdl2h. To do so, modify the prefix bindings below and add the
 modified lines to typemap.dat to rerun wsdl2h:
 
-inq2 = urn:uddi-org:inquiry_v2
+inq2 = "urn:uddi-org:inquiry_v2"
 uddi2 = urn:uddi-org:api_v2
 
 */
@@ -850,23 +1821,23 @@ class uddi2__serviceList;
 class uddi2__tModelDetail;
 class uddi2__tModelList;
 
-/// Schema urn:uddi-org:api_v2 simpleType "bindingKey" restriction of xs:string
+/// Schema "urn:uddi-org:api_v2":bindingKey simpleType restriction of xs:string
 
 typedef char* uddi2__bindingKey;
 
-/// Schema urn:uddi-org:api_v2 simpleType "businessKey" restriction of xs:string
+/// Schema "urn:uddi-org:api_v2":businessKey simpleType restriction of xs:string
 
 typedef char* uddi2__businessKey;
 
-/// Schema urn:uddi-org:api_v2 simpleType "serviceKey" restriction of xs:string
+/// Schema "urn:uddi-org:api_v2":serviceKey simpleType restriction of xs:string
 
 typedef char* uddi2__serviceKey;
 
-/// Schema urn:uddi-org:api_v2 simpleType "tModelKey" restriction of xs:string
+/// Schema "urn:uddi-org:api_v2":tModelKey simpleType restriction of xs:string
 
 typedef char* uddi2__tModelKey;
 
-/// Schema urn:uddi-org:api_v2 simpleType "direction" restriction of xs:NMTOKEN
+/// Schema "urn:uddi-org:api_v2":direction simpleType restriction of xs:NMTOKEN
 
 /// Note: enum values are prefixed with 'uddi2__direction' to avoid name clashes, please use wsdl2h option -e to omit this prefix
 enum uddi2__direction
@@ -874,7 +1845,7 @@ enum uddi2__direction
 	uddi2__direction__toKey,	///< xs:NMTOKEN value="toKey"
 };
 
-/// Schema urn:uddi-org:api_v2 simpleType "truncated" restriction of xs:NMTOKEN
+/// Schema "urn:uddi-org:api_v2":truncated simpleType restriction of xs:NMTOKEN
 
 /// Note: enum values are prefixed with 'uddi2__truncated' to avoid name clashes, please use wsdl2h option -e to omit this prefix
 enum uddi2__truncated
@@ -882,7 +1853,7 @@ enum uddi2__truncated
 	uddi2__truncated__false_,	///< xs:NMTOKEN value="false"
 };
 
-/// Schema urn:uddi-org:api_v2 simpleType "URLType" restriction of xs:NMTOKEN
+/// Schema "urn:uddi-org:api_v2":URLType simpleType restriction of xs:NMTOKEN
 
 /// Note: enum values are prefixed with 'uddi2__URLType' to avoid name clashes, please use wsdl2h option -e to omit this prefix
 enum uddi2__URLType
@@ -895,7 +1866,7 @@ enum uddi2__URLType
 	uddi2__URLType__other,	///< xs:NMTOKEN value="other"
 };
 
-/// Schema urn:uddi-org:api_v2 simpleType "keyType" restriction of xs:NMTOKEN
+/// Schema "urn:uddi-org:api_v2":keyType simpleType restriction of xs:NMTOKEN
 
 /// Note: enum values are prefixed with 'uddi2__keyType' to avoid name clashes, please use wsdl2h option -e to omit this prefix
 enum uddi2__keyType
@@ -905,7 +1876,7 @@ enum uddi2__keyType
 	uddi2__keyType__bindingKey,	///< xs:NMTOKEN value="bindingKey"
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "address"
+/// Schema urn:uddi-org:api_v2:"address"
 
 class uddi2__address
 { public:
@@ -921,7 +1892,7 @@ class uddi2__address
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "assertionStatusItem"
+/// Schema urn:uddi-org:api_v2:"assertionStatusItem"
 
 class uddi2__assertionStatusItem
 { public:
@@ -939,7 +1910,7 @@ class uddi2__assertionStatusItem
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "bindingTemplate"
+/// Schema urn:uddi-org:api_v2:"bindingTemplate"
 
 class uddi2__bindingTemplate
 { public:
@@ -947,12 +1918,12 @@ class uddi2__bindingTemplate
     std::vector<uddi2__description*    > description                    0;
 /// Element reference "urn:uddi-org:api_v2":tModelInstanceDetails
     uddi2__tModelInstanceDetails*        tModelInstanceDetails          1;	///< Required element
-// Choice of elements:
+// CHOICE OF ELEMENTS:
 /// Element reference "urn:uddi-org:api_v2":accessPoint
     uddi2__accessPoint*                  accessPoint                    1;	///< Required element
 /// Element reference "urn:uddi-org:api_v2":hostingRedirector
     uddi2__hostingRedirector*            hostingRedirector              1;	///< Required element
-// end choice
+// END CHOICE
 /// Attribute serviceKey of type "urn:uddi-org:api_v2":serviceKey
    @uddi2__serviceKey                    serviceKey                     0;	///< Optional attribute
 /// Attribute bindingKey of type "urn:uddi-org:api_v2":bindingKey
@@ -961,7 +1932,7 @@ class uddi2__bindingTemplate
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "bindingTemplates"
+/// Schema urn:uddi-org:api_v2:"bindingTemplates"
 
 class uddi2__bindingTemplates
 { public:
@@ -971,7 +1942,7 @@ class uddi2__bindingTemplates
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessEntity"
+/// Schema urn:uddi-org:api_v2:"businessEntity"
 
 class uddi2__businessEntity
 { public:
@@ -999,21 +1970,21 @@ class uddi2__businessEntity
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessEntityExt"
+/// Schema urn:uddi-org:api_v2:"businessEntityExt"
 
 class uddi2__businessEntityExt
 { public:
 /// Element reference "urn:uddi-org:api_v2":businessEntity
     uddi2__businessEntity*               businessEntity                 1;	///< Required element
-/// A gSOAP type indicator SOAP_TYPE_X (e.g. SOAP_TYPE_int, SOAP_TYPE_std__string, ..., as defined by soapH.h)
-    int                                  __type                        ;
-/// Pointer to an instance of the type indicated with __type
-    void*                                _any                          ;
+// TODO: <any namespace="##other" minOccurs="0" maxOccurs="unbounded">
+//       Schema extensibility is user-definable
+//       Consult the protocol documentation to insert declarations here:
+    _XML                                 __any                         ;	///< Catch any element content in XML string
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessInfo"
+/// Schema urn:uddi-org:api_v2:"businessInfo"
 
 class uddi2__businessInfo
 { public:
@@ -1029,7 +2000,7 @@ class uddi2__businessInfo
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessInfos"
+/// Schema urn:uddi-org:api_v2:"businessInfos"
 
 class uddi2__businessInfos
 { public:
@@ -1039,7 +2010,7 @@ class uddi2__businessInfos
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessService"
+/// Schema urn:uddi-org:api_v2:"businessService"
 
 class uddi2__businessService
 { public:
@@ -1059,7 +2030,7 @@ class uddi2__businessService
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessServices"
+/// Schema urn:uddi-org:api_v2:"businessServices"
 
 class uddi2__businessServices
 { public:
@@ -1069,7 +2040,7 @@ class uddi2__businessServices
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "categoryBag"
+/// Schema urn:uddi-org:api_v2:"categoryBag"
 
 class uddi2__categoryBag
 { public:
@@ -1079,7 +2050,7 @@ class uddi2__categoryBag
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "contact"
+/// Schema urn:uddi-org:api_v2:"contact"
 
 class uddi2__contact
 { public:
@@ -1099,7 +2070,7 @@ class uddi2__contact
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "contacts"
+/// Schema urn:uddi-org:api_v2:"contacts"
 
 class uddi2__contacts
 { public:
@@ -1109,7 +2080,7 @@ class uddi2__contacts
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "discoveryURLs"
+/// Schema urn:uddi-org:api_v2:"discoveryURLs"
 
 class uddi2__discoveryURLs
 { public:
@@ -1119,7 +2090,7 @@ class uddi2__discoveryURLs
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "dispositionReport"
+/// Schema urn:uddi-org:api_v2:"dispositionReport"
 
 class uddi2__dispositionReport
 { public:
@@ -1135,7 +2106,7 @@ class uddi2__dispositionReport
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "findQualifiers"
+/// Schema urn:uddi-org:api_v2:"findQualifiers"
 
 class uddi2__findQualifiers
 { public:
@@ -1145,7 +2116,7 @@ class uddi2__findQualifiers
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "hostingRedirector"
+/// Schema urn:uddi-org:api_v2:"hostingRedirector"
 
 class uddi2__hostingRedirector
 { public:
@@ -1155,7 +2126,7 @@ class uddi2__hostingRedirector
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "identifierBag"
+/// Schema urn:uddi-org:api_v2:"identifierBag"
 
 class uddi2__identifierBag
 { public:
@@ -1165,7 +2136,7 @@ class uddi2__identifierBag
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "instanceDetails"
+/// Schema urn:uddi-org:api_v2:"instanceDetails"
 
 class uddi2__instanceDetails
 { public:
@@ -1179,7 +2150,7 @@ class uddi2__instanceDetails
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "keyedReference"
+/// Schema urn:uddi-org:api_v2:"keyedReference"
 
 class uddi2__keyedReference
 { public:
@@ -1193,7 +2164,7 @@ class uddi2__keyedReference
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "keysOwned"
+/// Schema urn:uddi-org:api_v2:"keysOwned"
 
 class uddi2__keysOwned
 { public:
@@ -1205,7 +2176,7 @@ class uddi2__keysOwned
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "overviewDoc"
+/// Schema urn:uddi-org:api_v2:"overviewDoc"
 
 class uddi2__overviewDoc
 { public:
@@ -1217,7 +2188,7 @@ class uddi2__overviewDoc
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "publisherAssertion"
+/// Schema urn:uddi-org:api_v2:"publisherAssertion"
 
 class uddi2__publisherAssertion
 { public:
@@ -1231,7 +2202,7 @@ class uddi2__publisherAssertion
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "relatedBusinessInfo"
+/// Schema urn:uddi-org:api_v2:"relatedBusinessInfo"
 
 class uddi2__relatedBusinessInfo
 { public:
@@ -1247,7 +2218,7 @@ class uddi2__relatedBusinessInfo
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "relatedBusinessInfos"
+/// Schema urn:uddi-org:api_v2:"relatedBusinessInfos"
 
 class uddi2__relatedBusinessInfos
 { public:
@@ -1257,7 +2228,7 @@ class uddi2__relatedBusinessInfos
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "result"
+/// Schema urn:uddi-org:api_v2:"result"
 
 class uddi2__result
 { public:
@@ -1271,7 +2242,7 @@ class uddi2__result
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "serviceInfo"
+/// Schema urn:uddi-org:api_v2:"serviceInfo"
 
 class uddi2__serviceInfo
 { public:
@@ -1285,7 +2256,7 @@ class uddi2__serviceInfo
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "serviceInfos"
+/// Schema urn:uddi-org:api_v2:"serviceInfos"
 
 class uddi2__serviceInfos
 { public:
@@ -1295,7 +2266,7 @@ class uddi2__serviceInfos
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "sharedRelationships"
+/// Schema urn:uddi-org:api_v2:"sharedRelationships"
 
 class uddi2__sharedRelationships
 { public:
@@ -1307,7 +2278,7 @@ class uddi2__sharedRelationships
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModel"
+/// Schema urn:uddi-org:api_v2:"tModel"
 
 class uddi2__tModel
 { public:
@@ -1331,7 +2302,7 @@ class uddi2__tModel
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelBag"
+/// Schema urn:uddi-org:api_v2:"tModelBag"
 
 class uddi2__tModelBag
 { public:
@@ -1341,7 +2312,7 @@ class uddi2__tModelBag
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelInfo"
+/// Schema urn:uddi-org:api_v2:"tModelInfo"
 
 class uddi2__tModelInfo
 { public:
@@ -1353,7 +2324,7 @@ class uddi2__tModelInfo
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelInfos"
+/// Schema urn:uddi-org:api_v2:"tModelInfos"
 
 class uddi2__tModelInfos
 { public:
@@ -1363,7 +2334,7 @@ class uddi2__tModelInfos
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelInstanceDetails"
+/// Schema urn:uddi-org:api_v2:"tModelInstanceDetails"
 
 class uddi2__tModelInstanceDetails
 { public:
@@ -1373,7 +2344,7 @@ class uddi2__tModelInstanceDetails
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelInstanceInfo"
+/// Schema urn:uddi-org:api_v2:"tModelInstanceInfo"
 
 class uddi2__tModelInstanceInfo
 { public:
@@ -1387,7 +2358,7 @@ class uddi2__tModelInstanceInfo
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "add_publisherAssertions"
+/// Schema urn:uddi-org:api_v2:"add_publisherAssertions"
 
 class uddi2__add_USCOREpublisherAssertions
 { public:
@@ -1399,9 +2370,15 @@ class uddi2__add_USCOREpublisherAssertions
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__add_USCOREpublisherAssertions(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__add_USCOREpublisherAssertions(struct soap*, std::vector<uddi2__publisherAssertion*> publisherAssertions);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "delete_binding"
+/// Schema urn:uddi-org:api_v2:"delete_binding"
 
 class uddi2__delete_USCOREbinding
 { public:
@@ -1413,9 +2390,17 @@ class uddi2__delete_USCOREbinding
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREbinding(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREbinding(struct soap*, const char *bindingKey);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREbinding(struct soap*, std::vector<char*> bindingKeys);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "delete_business"
+/// Schema urn:uddi-org:api_v2:"delete_business"
 
 class uddi2__delete_USCOREbusiness
 { public:
@@ -1427,9 +2412,17 @@ class uddi2__delete_USCOREbusiness
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREbusiness(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREbusiness(struct soap*, const char *businessKey);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREbusiness(struct soap*, std::vector<char*> businessKeys);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "delete_publisherAssertions"
+/// Schema urn:uddi-org:api_v2:"delete_publisherAssertions"
 
 class uddi2__delete_USCOREpublisherAssertions
 { public:
@@ -1441,9 +2434,15 @@ class uddi2__delete_USCOREpublisherAssertions
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREpublisherAssertions(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREpublisherAssertions(struct soap*, std::vector<uddi2__publisherAssertion*> publisherAssertions);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "delete_service"
+/// Schema urn:uddi-org:api_v2:"delete_service"
 
 class uddi2__delete_USCOREservice
 { public:
@@ -1455,9 +2454,17 @@ class uddi2__delete_USCOREservice
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREservice(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREservice(struct soap*, const char *serviceKey);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREservice(struct soap*, std::vector<char*> serviceKeys);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "delete_tModel"
+/// Schema urn:uddi-org:api_v2:"delete_tModel"
 
 class uddi2__delete_USCOREtModel
 { public:
@@ -1469,9 +2476,17 @@ class uddi2__delete_USCOREtModel
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREtModel(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREtModel(struct soap*, const char *tModelKey);
+/// Member declared in uddi2-typemap.dat
+    uddi2__delete_USCOREtModel(struct soap*, std::vector<char*> tModelKeys);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "discard_authToken"
+/// Schema urn:uddi-org:api_v2:"discard_authToken"
 
 class uddi2__discard_USCOREauthToken
 { public:
@@ -1481,9 +2496,15 @@ class uddi2__discard_USCOREauthToken
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__discard_USCOREauthToken(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__discard_USCOREauthToken(struct soap*, const char *authInfo);
+/// Member declared in uddi2-typemap.dat
+    uddi2__dispositionReport* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "find_binding"
+/// Schema urn:uddi-org:api_v2:"find_binding"
 
 class uddi2__find_USCOREbinding
 { public:
@@ -1499,17 +2520,17 @@ class uddi2__find_USCOREbinding
    @uddi2__serviceKey                    serviceKey                     1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbinding(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbinding(struct soap*, const char *tModelKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbinding(struct soap*, std::vector<char*> tModelKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__bindingDetail *send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "find_business"
+/// Schema urn:uddi-org:api_v2:"find_business"
 
 class uddi2__find_USCOREbusiness
 { public:
@@ -1531,19 +2552,19 @@ class uddi2__find_USCOREbusiness
    @int*                                 maxRows                        0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbusiness(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbusiness(struct soap*, const char *name);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbusiness(struct soap*, std::vector<char*> tModelKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREbusiness(struct soap*, std::vector<uddi2__keyedReference*> keyedReferences);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__businessList *send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "find_relatedBusinesses"
+/// Schema urn:uddi-org:api_v2:"find_relatedBusinesses"
 
 class uddi2__find_USCORErelatedBusinesses
 { public:
@@ -1559,15 +2580,15 @@ class uddi2__find_USCORErelatedBusinesses
    @int*                                 maxRows                        0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCORErelatedBusinesses(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCORErelatedBusinesses(struct soap*, const char *businessKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__relatedBusinessesList *send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "find_service"
+/// Schema urn:uddi-org:api_v2:"find_service"
 
 class uddi2__find_USCOREservice
 { public:
@@ -1587,19 +2608,19 @@ class uddi2__find_USCOREservice
    @uddi2__businessKey                   businessKey                    0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREservice(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREservice(struct soap*, const char *name);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREservice(struct soap*, std::vector<char*> tModelKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREservice(struct soap*, std::vector<uddi2__keyedReference*> keyedReferences);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__serviceList* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "find_tModel"
+/// Schema urn:uddi-org:api_v2:"find_tModel"
 
 class uddi2__find_USCOREtModel
 { public:
@@ -1617,17 +2638,17 @@ class uddi2__find_USCOREtModel
    @int*                                 maxRows                        0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREtModel(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREtModel(struct soap*, const char *name);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__find_USCOREtModel(struct soap*, std::vector<uddi2__keyedReference*> keyedReferences);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__tModelList* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_assertionStatusReport"
+/// Schema urn:uddi-org:api_v2:"get_assertionStatusReport"
 
 class uddi2__get_USCOREassertionStatusReport
 { public:
@@ -1639,9 +2660,15 @@ class uddi2__get_USCOREassertionStatusReport
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__get_USCOREassertionStatusReport(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__get_USCOREassertionStatusReport(struct soap*, const char *completionStatus);
+/// Member declared in uddi2-typemap.dat
+    uddi2__assertionStatusReport* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_authToken"
+/// Schema urn:uddi-org:api_v2:"get_authToken"
 
 class uddi2__get_USCOREauthToken
 { public:
@@ -1653,9 +2680,15 @@ class uddi2__get_USCOREauthToken
    @char*                                cred                           1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__get_USCOREauthToken(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__get_USCOREauthToken(struct soap*, const char *userid, const char *passwd);
+/// Member declared in uddi2-typemap.dat
+    uddi2__authToken* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_bindingDetail"
+/// Schema urn:uddi-org:api_v2:"get_bindingDetail"
 
 class uddi2__get_USCOREbindingDetail
 { public:
@@ -1665,17 +2698,17 @@ class uddi2__get_USCOREbindingDetail
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbindingDetail(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbindingDetail(struct soap*, const char *bindingKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbindingDetail(struct soap*, std::vector<char*> bindingKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__bindingDetail* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_businessDetail"
+/// Schema urn:uddi-org:api_v2:"get_businessDetail"
 
 class uddi2__get_USCOREbusinessDetail
 { public:
@@ -1685,17 +2718,17 @@ class uddi2__get_USCOREbusinessDetail
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbusinessDetail(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbusinessDetail(struct soap*, const char *businessKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbusinessDetail(struct soap*, std::vector<char*> businessKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__businessDetail* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_businessDetailExt"
+/// Schema urn:uddi-org:api_v2:"get_businessDetailExt"
 
 class uddi2__get_USCOREbusinessDetailExt
 { public:
@@ -1705,17 +2738,17 @@ class uddi2__get_USCOREbusinessDetailExt
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbusinessDetailExt(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbusinessDetailExt(struct soap*, const char *businessKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREbusinessDetailExt(struct soap*, std::vector<char*> businessKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__businessDetailExt* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_publisherAssertions"
+/// Schema urn:uddi-org:api_v2:"get_publisherAssertions"
 
 class uddi2__get_USCOREpublisherAssertions
 { public:
@@ -1725,9 +2758,13 @@ class uddi2__get_USCOREpublisherAssertions
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__get_USCOREpublisherAssertions(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__publisherAssertions* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_registeredInfo"
+/// Schema urn:uddi-org:api_v2:"get_registeredInfo"
 
 class uddi2__get_USCOREregisteredInfo
 { public:
@@ -1737,9 +2774,13 @@ class uddi2__get_USCOREregisteredInfo
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__get_USCOREregisteredInfo(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__registeredInfo* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_serviceDetail"
+/// Schema urn:uddi-org:api_v2:"get_serviceDetail"
 
 class uddi2__get_USCOREserviceDetail
 { public:
@@ -1749,17 +2790,17 @@ class uddi2__get_USCOREserviceDetail
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREserviceDetail(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREserviceDetail(struct soap*, const char *serviceKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREserviceDetail(struct soap*, std::vector<char*> serviceKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__serviceDetail* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "get_tModelDetail"
+/// Schema urn:uddi-org:api_v2:"get_tModelDetail"
 
 class uddi2__get_USCOREtModelDetail
 { public:
@@ -1769,17 +2810,17 @@ class uddi2__get_USCOREtModelDetail
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREtModelDetail(struct soap*);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREtModelDetail(struct soap*, const char *tModelKey);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__get_USCOREtModelDetail(struct soap*, std::vector<char*> tModelKeys);
-/// Member declared in uddi2map.dat
+/// Member declared in uddi2-typemap.dat
     uddi2__tModelDetail* send(const char *endpoint);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "save_binding"
+/// Schema urn:uddi-org:api_v2:"save_binding"
 
 class uddi2__save_USCOREbinding
 { public:
@@ -1791,9 +2832,17 @@ class uddi2__save_USCOREbinding
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREbinding(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREbinding(struct soap*, uddi2__bindingTemplate &bindingTemplate);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREbinding(struct soap*, std::vector<uddi2__bindingTemplate*> bindingTemplates);
+/// Member declared in uddi2-typemap.dat
+    uddi2__bindingDetail* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "save_business"
+/// Schema urn:uddi-org:api_v2:"save_business"
 
 class uddi2__save_USCOREbusiness
 { public:
@@ -1807,9 +2856,17 @@ class uddi2__save_USCOREbusiness
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREbusiness(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREbusiness(struct soap*, uddi2__businessEntity &businessEntity);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREbusiness(struct soap*, std::vector<uddi2__businessEntity*> businessEntities);
+/// Member declared in uddi2-typemap.dat
+    uddi2__businessDetail* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "save_service"
+/// Schema urn:uddi-org:api_v2:"save_service"
 
 class uddi2__save_USCOREservice
 { public:
@@ -1821,9 +2878,17 @@ class uddi2__save_USCOREservice
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREservice(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREservice(struct soap*, uddi2__businessService &businessService);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREservice(struct soap*, std::vector<uddi2__businessService*> businessServices);
+/// Member declared in uddi2-typemap.dat
+    uddi2__serviceDetail* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "save_tModel"
+/// Schema urn:uddi-org:api_v2:"save_tModel"
 
 class uddi2__save_USCOREtModel
 { public:
@@ -1837,9 +2902,17 @@ class uddi2__save_USCOREtModel
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREtModel(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREtModel(struct soap*, uddi2__tModel &tModel);
+/// Member declared in uddi2-typemap.dat
+    uddi2__save_USCOREtModel(struct soap*, std::vector<uddi2__tModel*> tModels);
+/// Member declared in uddi2-typemap.dat
+    uddi2__tModelDetail* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "set_publisherAssertions"
+/// Schema urn:uddi-org:api_v2:"set_publisherAssertions"
 
 class uddi2__set_USCOREpublisherAssertions
 { public:
@@ -1851,27 +2924,33 @@ class uddi2__set_USCOREpublisherAssertions
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
+/// Member declared in uddi2-typemap.dat
+    uddi2__set_USCOREpublisherAssertions(struct soap*);
+/// Member declared in uddi2-typemap.dat
+    uddi2__set_USCOREpublisherAssertions(struct soap*, std::vector<uddi2__publisherAssertion*> publisherAssertions);
+/// Member declared in uddi2-typemap.dat
+    uddi2__publisherAssertions* send(const char *endpoint, char *authInfo);
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "validate_values"
+/// Schema urn:uddi-org:api_v2:"validate_values"
 
 class uddi2__validate_USCOREvalues
 { public:
-// Choice of elements:
+// CHOICE OF ELEMENTS:
 /// Vector of uddi2__businessEntity* with length 0..unbounded
     std::vector<uddi2__businessEntity* > businessEntity                 0;
 /// Vector of uddi2__businessService* with length 0..unbounded
     std::vector<uddi2__businessService*> businessService                0;
 /// Vector of uddi2__tModel* with length 0..unbounded
     std::vector<uddi2__tModel*         > tModel                         0;
-// end choice
+// END CHOICE
 /// Attribute generic of type xs:string
    @char*                                generic                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "assertionStatusReport"
+/// Schema urn:uddi-org:api_v2:"assertionStatusReport"
 
 class uddi2__assertionStatusReport
 { public:
@@ -1885,7 +2964,7 @@ class uddi2__assertionStatusReport
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "authToken"
+/// Schema urn:uddi-org:api_v2:"authToken"
 
 class uddi2__authToken
 { public:
@@ -1899,7 +2978,7 @@ class uddi2__authToken
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "bindingDetail"
+/// Schema urn:uddi-org:api_v2:"bindingDetail"
 
 class uddi2__bindingDetail
 { public:
@@ -1915,7 +2994,7 @@ class uddi2__bindingDetail
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessDetail"
+/// Schema urn:uddi-org:api_v2:"businessDetail"
 
 class uddi2__businessDetail
 { public:
@@ -1931,7 +3010,7 @@ class uddi2__businessDetail
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessDetailExt"
+/// Schema urn:uddi-org:api_v2:"businessDetailExt"
 
 class uddi2__businessDetailExt
 { public:
@@ -1947,7 +3026,7 @@ class uddi2__businessDetailExt
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "businessList"
+/// Schema urn:uddi-org:api_v2:"businessList"
 
 class uddi2__businessList
 { public:
@@ -1963,7 +3042,7 @@ class uddi2__businessList
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "publisherAssertions"
+/// Schema urn:uddi-org:api_v2:"publisherAssertions"
 
 class uddi2__publisherAssertions
 { public:
@@ -1979,7 +3058,7 @@ class uddi2__publisherAssertions
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "registeredInfo"
+/// Schema urn:uddi-org:api_v2:"registeredInfo"
 
 class uddi2__registeredInfo
 { public:
@@ -1997,7 +3076,7 @@ class uddi2__registeredInfo
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "relatedBusinessesList"
+/// Schema urn:uddi-org:api_v2:"relatedBusinessesList"
 
 class uddi2__relatedBusinessesList
 { public:
@@ -2015,7 +3094,7 @@ class uddi2__relatedBusinessesList
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "serviceDetail"
+/// Schema urn:uddi-org:api_v2:"serviceDetail"
 
 class uddi2__serviceDetail
 { public:
@@ -2031,7 +3110,7 @@ class uddi2__serviceDetail
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "serviceList"
+/// Schema urn:uddi-org:api_v2:"serviceList"
 
 class uddi2__serviceList
 { public:
@@ -2047,7 +3126,7 @@ class uddi2__serviceList
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelDetail"
+/// Schema urn:uddi-org:api_v2:"tModelDetail"
 
 class uddi2__tModelDetail
 { public:
@@ -2063,7 +3142,7 @@ class uddi2__tModelDetail
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "tModelList"
+/// Schema urn:uddi-org:api_v2:"tModelList"
 
 class uddi2__tModelList
 { public:
@@ -2079,22 +3158,22 @@ class uddi2__tModelList
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "accessPoint"
+/// Schema urn:uddi-org:api_v2:"accessPoint"
 
 class uddi2__accessPoint
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute URLType of type "urn:uddi-org:api_v2":URLType
    @enum uddi2__URLType                  URLType                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "addressLine"
+/// Schema urn:uddi-org:api_v2:"addressLine"
 
 class uddi2__addressLine
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute keyName of type xs:string
    @char*                                keyName                        0;	///< Optional attribute
 /// Attribute keyValue of type xs:string
@@ -2103,66 +3182,66 @@ class uddi2__addressLine
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "description"
+/// Schema urn:uddi-org:api_v2:"description"
 
 class uddi2__description
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute reference xml:lang
    @xml__lang                            xml__lang_                     0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "discoveryURL"
+/// Schema urn:uddi-org:api_v2:"discoveryURL"
 
 class uddi2__discoveryURL
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute useType of type xs:string
    @char*                                useType                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "email"
+/// Schema urn:uddi-org:api_v2:"email"
 
 class uddi2__email
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute useType of type xs:string
    @char*                                useType                        0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "errInfo"
+/// Schema urn:uddi-org:api_v2:"errInfo"
 
 class uddi2__errInfo
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute errCode of type xs:string
    @char*                                errCode                        1;	///< Required attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "name"
+/// Schema urn:uddi-org:api_v2:"name"
 
 class uddi2__name
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute reference xml:lang
    @xml__lang                            xml__lang_                     0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance
     struct soap                         *soap                          ;
 };
 
-/// Schema urn:uddi-org:api_v2 complexType "phone"
+/// Schema urn:uddi-org:api_v2:"phone"
 
 class uddi2__phone
 { public:
-    char*                                __item;                       ;
+    char*                                __item                        ;
 /// Attribute useType of type xs:string
    @char*                                useType                        0;	///< Optional attribute
 /// A handle to the soap struct context that manages this class instance

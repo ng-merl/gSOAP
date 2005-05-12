@@ -16,7 +16,6 @@ localtime.h localtime.c:		 Get localtime DOC/LIT client example
 lu.h lumat.cpp luclient.cpp luserver.cpp:Linear solver example client+server
 magic.h magicclient.cpp magicserver.cpp: Magic Squares client and server
 magic.h mtmagicserver.cpp:		 Multi-threaded Magic Squares server
-mybubble.h mybubble.c:			 MyBubble client
 oneliners:				 Directory with one-line services
 polymorph.h polymorph.cpp:		 Polymorphic object exchange
 quote.h quote.c				 Get delayed stock quote
@@ -26,9 +25,10 @@ quote4.h quote4.cpp			 Get delayed stock quote using XML DOM
 quotex.h quotex.cpp:			 Combined client/server example
 rss.h rss.c				 Obtain RSS feeds
 ssl.h sslclient.c sslserver.c:		 SSL example (requires OpenSSL)
-uddi.h uddi.cpp:			 UDDI client
+udp.h udpclient.c udpserver.c:		 SOAP-over-UDP examples
 varparam.h varparam.cpp:		 Variable polymorphic parameters example
 webserver:				 Stand-alone Web server
+xml-rpc:				 XML-RPC examples
 
 To build the example services and clients, type "make" in the 'samples'
 directory (Sun Solaris users should type "make -f MakefileSolaris").

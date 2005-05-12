@@ -3933,6 +3933,9 @@ case "${host}" in
         *-*-OS400*)     platform=OS400 ;;
         *-*-osf*)	platform=TRU64 ;;
         *-apple-*)	platform=MACOSX ;;
+	*-nto-qnx)	platform=QNX
+			SAMPLE_EXTRA_LIBS="-lsocket"
+			;;
         *)              platform=UNKNOWN ;;
 esac
 
@@ -5951,7 +5954,7 @@ fi
 
 
 
-                                                                                                                                                                                                                                                                                                            ac_config_files="$ac_config_files Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile soapcpp2/samples/Makefile soapcpp2/samples/quote/Makefile soapcpp2/samples/quote2/Makefile soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile soapcpp2/samples/quotex/Makefile soapcpp2/samples/calc/Makefile soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile soapcpp2/samples/dime/Makefile soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile soapcpp2/samples/events/Makefile"
+                                                                                                                                                                                                                                                                                                                      ac_config_files="$ac_config_files Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile soapcpp2/samples/Makefile soapcpp2/samples/quote/Makefile soapcpp2/samples/quote2/Makefile soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile soapcpp2/samples/quotex/Makefile soapcpp2/samples/calc/Makefile soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile soapcpp2/samples/dime/Makefile soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile soapcpp2/samples/events/Makefile soapcpp2/samples/udp/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6538,6 +6541,7 @@ do
   "soapcpp2/samples/ssl/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/ssl/Makefile" ;;
   "soapcpp2/samples/router/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/router/Makefile" ;;
   "soapcpp2/samples/events/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/events/Makefile" ;;
+  "soapcpp2/samples/udp/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/udp/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
   "config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

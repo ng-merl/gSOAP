@@ -91,18 +91,23 @@ wsa	= "http://schemas.xmlsoap.org/ws/2004/08/addressing"
 wsp	= "http://schemas.xmlsoap.org/ws/2004/09/policy"
 wsu	= "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
 
-#	Remember: type definitions are given on a single line containing.
+#	Remember: type bindings are given on a single line.
 #	Example XML schema and C/C++ type bindings:
 
 xsd__int	= | int
 
-#	WS-Policy imports wsu:Id
+#	With SOAP encoded arrays, the SOAP-ENC:arrayType attribute is defined
+#	but we really don't need it because we never use it
 
-wsu__Id		= typedef char *wsu__Id; | wsu__Id | wsu__Id
+SOAP_ENC__arrayType	= | char* | char*
 
 #	To use regular char* strings instead of std::string, use:
 
 # xsd__string	= | char* | char*
+
+#	WS-Policy imports wsu:Id
+
+wsu__Id		= typedef char *wsu__Id; | wsu__Id | wsu__Id
 
 #	To use regular char* strings serialized with xsi:type attributes, use:
 

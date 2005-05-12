@@ -128,7 +128,7 @@ LDADD = $(SOAP_CPP_LIB) $(SAMPLE_EXTRA_LIBS)
 BUILT_SOURCES = $(SOAP_CPP_SRC) 
 CLEANFILES = $(SOAP_CPP_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
-quote4_SOURCES = quote4.cpp ../../dom++.cpp $(SOAPHEADER)
+quote4_SOURCES = quote4.cpp ../../dom++.cpp soapC.cpp $(SOAPHEADER)
 subdir = soapcpp2/samples/quote4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -137,7 +137,8 @@ noinst_PROGRAMS = quote4$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 
 am__objects_1 =
-am_quote4_OBJECTS = quote4.$(OBJEXT) dom++.$(OBJEXT) $(am__objects_1)
+am_quote4_OBJECTS = quote4.$(OBJEXT) dom++.$(OBJEXT) soapC.$(OBJEXT) \
+	$(am__objects_1)
 quote4_OBJECTS = $(am_quote4_OBJECTS)
 quote4_LDADD = $(LDADD)
 quote4_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap++.a
@@ -150,7 +151,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/dom++.Po ./$(DEPDIR)/quote4.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/dom++.Po ./$(DEPDIR)/quote4.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/soapC.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
@@ -192,6 +194,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dom++.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quote4.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapC.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

@@ -60,7 +60,8 @@ int cflag = 0,
     vflag = 0,
     wflag = 0;
 
-char *infile = NULL,
+int infiles = 0;
+char *infile[100],
      *outfile = NULL,
      *mapfile = "typemap.dat",
      *proxy_host = NULL;
@@ -120,18 +121,18 @@ int main(int argc, char **argv)
   if (lflag)
     fprintf(stderr, licensenotice);
   wsdl__definitions definitions;
-  if (infile)
+  if (infiles)
   { if (!outfile)
-    { if (strncmp(infile, "http://", 7) && strncmp(infile, "https://", 8))
-      { const char *s = strrchr(infile, '.');
+    { if (strncmp(infile[0], "http://", 7) && strncmp(infile[0], "https://", 8))
+      { const char *s = strrchr(infile[0], '.');
         if (s && (!strcmp(s, ".wsdl") || !strcmp(s, ".gwsdl") || !strcmp(s, ".xsd")))
-        { outfile = estrdup(infile);
-          outfile[s - infile + 1] = 'h';
-          outfile[s - infile + 2] = '\0';
+        { outfile = estrdup(infile[0]);
+          outfile[s - infile[0] + 1] = 'h';
+          outfile[s - infile[0] + 2] = '\0';
         }
         else
-        { outfile = (char*)emalloc(strlen(infile) + 3);
-          strcpy(outfile, infile);
+        { outfile = (char*)emalloc(strlen(infile[0]) + 3);
+          strcpy(outfile, infile[0]);
           strcat(outfile, ".h");
         }
       }
@@ -145,7 +146,7 @@ int main(int argc, char **argv)
     }
     fprintf(stderr, "Saving %s\n\n", outfile);
   }
-  definitions.read(infile);
+  definitions.read(infiles, infile);
   if (definitions.error())
   { definitions.print_fault();
     exit(1);
@@ -167,6 +168,7 @@ int main(int argc, char **argv)
 
 static void options(int argc, char **argv)
 { int i;
+  infiles = 0;
   for (i = 1; i < argc; i++)
   { char *a = argv[i];
     if (*a == '-'
@@ -269,7 +271,7 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-w] [-o outfile.h] [infile.wsdl | infile.xsd | http://...]\n\n");
+            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-h] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-v] [-w] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
             fprintf(stderr, "\
 -c      generate C code\n\
 -e      don't qualify enum names\n\
@@ -288,6 +290,7 @@ static void options(int argc, char **argv)
 -v      verbose output\n\
 -w      always wrap response parameters in a response struct (<=1.1.4 behavior)\n\
 -?      print help information\n\
+infile.wsdl infile.xsd http://www... list of input sources (empty = stdin)\n\
 \n");
             exit(0);
           default:
@@ -297,7 +300,12 @@ static void options(int argc, char **argv)
       }
     }
     else
-     infile = argv[i];
+    { infile[infiles++] = argv[i];
+      if (infiles >= 100)
+      { fprintf(stderr, "wsdl2h: too many files\n");
+        exit(1);
+      }
+    }
   }
 }
 

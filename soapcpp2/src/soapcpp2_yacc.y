@@ -1603,11 +1603,8 @@ add_fault(Table *gt)
     p2 = enter(t, lookup("SOAP_ENV__Value"));
     p2->info.typ = qname;
     p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("SOAP_ENV__Node"));
-    p2->info.typ = mkstring();
-    p2->info.minOccurs = 0;
-    p2 = enter(t, lookup("SOAP_ENV__Role"));
-    p2->info.typ = mkstring();
+    p2 = enter(t, lookup("SOAP_ENV__Subcode"));
+    p2->info.typ = mkpointer(p1->info.typ);
     p2->info.minOccurs = 0;
   }
   s2 = lookup("SOAP_ENV__Detail");
@@ -1655,6 +1652,12 @@ add_fault(Table *gt)
     p3->info.typ = mkpointer(p1->info.typ);
     p3->info.minOccurs = 0;
     p3 = enter(t, lookup("SOAP_ENV__Reason"));
+    p3->info.typ = mkstring();
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("SOAP_ENV__Node"));
+    p3->info.typ = mkstring();
+    p3->info.minOccurs = 0;
+    p3 = enter(t, lookup("SOAP_ENV__Role"));
     p3->info.typ = mkstring();
     p3->info.minOccurs = 0;
     p3 = enter(t, lookup("SOAP_ENV__Detail"));

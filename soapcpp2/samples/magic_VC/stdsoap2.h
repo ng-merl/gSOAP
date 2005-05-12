@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.1
+stdsoap2.h 2.7.2
 
 gSOAP runtime environment.
 
@@ -399,6 +399,11 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #endif
 
+/* QNX does not have a working version of strtof */
+#if defined(__QNX__) || defined(QNX)
+# undef HAVE_STRTOF
+#endif
+
 #ifndef SOAP_LONG_FORMAT
 # define SOAP_LONG_FORMAT "%lld"	/* printf format for 64 bit ints */
 #endif
@@ -407,15 +412,15 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
 #endif
 
-#include <stdlib.h>
-
-#ifndef PALM
-# include <stdio.h>
-# include <string.h>
+#ifndef WITH_NOSTDLIB
+# include <stdlib.h>
+# ifndef PALM
+#  include <stdio.h>
+#  include <string.h>
+# endif
+# include <ctype.h>
+# include <limits.h>
 #endif
-
-#include <ctype.h>
-#include <limits.h>
 
 #if defined(__cplusplus) && !defined(WITH_LEAN)
 # include <string>
@@ -516,8 +521,10 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # include <zlib.h>
 #endif
 
-#ifndef PALM
-# include <math.h>	/* for isnan() */
+#ifndef WITH_NOSTDLIB
+# ifndef PALM
+#  include <math.h>	/* for isnan() */
+# endif
 #endif
 
 /* #define DEBUG */ /* Uncomment to debug sending (in file SENT.log) receiving (in file RECV.log) and messages (in file TEST.log) */
@@ -592,11 +599,13 @@ extern "C" {
 #endif
 
 #ifdef WIN32
+# define SOAP_ERANGE ERANGE
 # define SOAP_EINTR WSAEINTR
 # define SOAP_EAGAIN WSAEWOULDBLOCK
 # define SOAP_EWOULDBLOCK WSAEWOULDBLOCK
 # define SOAP_EINPROGRESS WSAEINPROGRESS
 #else
+# define SOAP_ERANGE ERANGE
 # define SOAP_EINTR EINTR
 # define SOAP_EAGAIN EAGAIN
 # ifdef SYMBIAN
@@ -627,10 +636,14 @@ extern "C" {
 #endif
 
 #ifndef SOAP_BUFLEN
-# ifndef WITH_LEAN
-#  define SOAP_BUFLEN (32768) /* buffer length for socket packets, also used by gethostbyname_r so don't make this too small */
+# ifdef WITH_UDP
+#  define SOAP_BUFLEN (65536) /* max UDP packet size */
 # else
-#  define SOAP_BUFLEN  (2048)
+#  ifndef WITH_LEAN
+#   define SOAP_BUFLEN (65536) /* buffer length for socket packets, also used by gethostbyname_r so don't make this too small */
+#  else
+#   define SOAP_BUFLEN  (2048)
+#  endif
 # endif
 #endif
 #ifndef SOAP_LABLEN
@@ -828,22 +841,23 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_MULTI_ID			17
 #define SOAP_MISSING_ID			18
 #define SOAP_HREF			19
-#define SOAP_TCP_ERROR			20
-#define SOAP_HTTP_ERROR			21
-#define SOAP_SSL_ERROR			22
-#define SOAP_ZLIB_ERROR			23
-#define SOAP_DIME_ERROR			24
-#define SOAP_DIME_HREF			25
-#define SOAP_DIME_MISMATCH		26
-#define SOAP_DIME_END			27
-#define SOAP_MIME_ERROR			28
-#define SOAP_VERSIONMISMATCH		29
-#define SOAP_PLUGIN_ERROR		30
-#define SOAP_DATAENCODINGUNKNOWN	31
-#define SOAP_REQUIRED			32
-#define SOAP_PROHIBITED			33
-#define SOAP_OCCURS			34
-#define SOAP_LENGTH			35
+#define SOAP_UDP_ERROR			20
+#define SOAP_TCP_ERROR			21
+#define SOAP_HTTP_ERROR			22
+#define SOAP_SSL_ERROR			23
+#define SOAP_ZLIB_ERROR			24
+#define SOAP_DIME_ERROR			25
+#define SOAP_DIME_HREF			26
+#define SOAP_DIME_MISMATCH		27
+#define SOAP_DIME_END			28
+#define SOAP_MIME_ERROR			29
+#define SOAP_VERSIONMISMATCH		30
+#define SOAP_PLUGIN_ERROR		31
+#define SOAP_DATAENCODINGUNKNOWN	32
+#define SOAP_REQUIRED			33
+#define SOAP_PROHIBITED			34
+#define SOAP_OCCURS			35
+#define SOAP_LENGTH			36
 
 #define soap_xml_error_check(e) ((e) == SOAP_TAG_MISMATCH || (e) == SOAP_TAG_END || (e) == SOAP_SYNTAX_ERROR || (e) == SOAP_NAMESPACE || (e) == SOAP_MULTI_ID || (e) == SOAP_MISSING_ID || (e) == SOAP_REQUIRED || (e) == SOAP_PROHIBITED || (e) == SOAP_OCCURS || (e) == SOAP_LENGTH || (e) == SOAP_NULL || (e) == SOAP_HREF)
 #define soap_soap_error_check(e) ((e) == SOAP_CLI_FAULT || (e) == SOAP_SVR_FAULT || (e) == SOAP_VERSIONMISMATCH || (e) == SOAP_MUSTUNDERSTAND || (e) == SOAP_FAULT || (e) == SOAP_NO_METHOD)
@@ -895,15 +909,16 @@ typedef soap_int32 soap_mode;
 #define SOAP_IO_STORE		0x00000002	/* store entire output to determine length for transport */
 #define SOAP_IO_CHUNK		0x00000003	/* use HTTP chunked transfer AND buffer packets */
 
-#define SOAP_IO_LENGTH		0x00000004
-#define SOAP_IO_KEEPALIVE	0x00000008
+#define SOAP_IO_UDP		0x00000004
+#define SOAP_IO_LENGTH		0x00000008
+#define SOAP_IO_KEEPALIVE	0x00000010
 
-#define SOAP_ENC_LATIN		0x00800010	/* iso-8859-1 encoding */
-#define SOAP_ENC_XML		0x00000020	/* plain XML encoding, no HTTP header */
-#define SOAP_ENC_DIME		0x00000040
-#define SOAP_ENC_MIME		0x00000080
-#define SOAP_ENC_ZLIB		0x00000100
-#define SOAP_ENC_SSL		0x00000200
+#define SOAP_ENC_LATIN		0x00800020	/* iso-8859-1 encoding */
+#define SOAP_ENC_XML		0x00000040	/* plain XML encoding, no HTTP header */
+#define SOAP_ENC_DIME		0x00000080
+#define SOAP_ENC_MIME		0x00000100
+#define SOAP_ENC_ZLIB		0x00000200
+#define SOAP_ENC_SSL		0x00000400
 
 #define SOAP_ENC		0x00000FFF	/* IO and ENC mask */
 
@@ -938,10 +953,11 @@ typedef soap_int32 soap_mode;
 #define SOAP_IN_ENVELOPE	2
 #define SOAP_IN_HEADER		3
 #define SOAP_END_HEADER		4
-#define SOAP_IN_BODY		5
-#define SOAP_END_BODY		6
-#define SOAP_END_ENVELOPE	7
-#define SOAP_END		8
+#define SOAP_NO_BODY		5
+#define SOAP_IN_BODY		6
+#define SOAP_END_BODY		7
+#define SOAP_END_ENVELOPE	8
+#define SOAP_END		9
 
 /* DEBUG macros */
 
@@ -1385,7 +1401,8 @@ struct soap
   char *action;
   char *authrealm;		/* HTTP authentication realm */
   char *prolog;			/* XML declaration prolog */
-  int port;
+  unsigned long ip;		/* IP number */
+  int port;			/* port number */
   unsigned int max_keep_alive;
   const char *proxy_host;	/* Proxy Server host name */
   int proxy_port;		/* Proxy Server port (default = 8080) */
@@ -1396,7 +1413,6 @@ struct soap
   int errmode;
   int errnum;
   unsigned long idnum;
-  unsigned long ip;
 #ifndef WITH_LEANER
   struct soap_dom_element *dom;
   struct soap_dime dime;
@@ -1412,6 +1428,14 @@ struct soap
   const char *cookie_domain;
   const char *cookie_path;
   int cookie_max;
+#endif
+#ifndef WITH_NOIO
+#ifdef WITH_IPV6
+  struct sockaddr_storage peer;	/* IPv6: set by soap_accept and by UDP recv */
+#else
+  struct sockaddr_in peer;	/* IPv4: set by soap_connect/soap_accept and by UDP recv */
+#endif
+  size_t peerlen;
 #endif
 #ifdef WITH_OPENSSL
   int (*fsslauth)(struct soap*);
@@ -1507,6 +1531,8 @@ soap_wchar soap_get1(struct soap*);
 #define soap_omode(soap, n) ((soap)->mode = (soap)->omode = (n))
 #define soap_set_omode(soap, n) ((soap)->mode = (soap)->omode |= (n))
 #define soap_clr_omode(soap, n) ((soap)->mode = (soap)->omode &= ~(n))
+#define soap_set_mode(soap, n) ((soap)->mode = ((soap)->imode |= (n), (soap)->omode |= (n)))
+#define soap_clr_mode(soap, n) ((soap)->mode = ((soap)->imode &= ~(n), (soap)->omode &= ~(n)))
 #define soap_destroy(soap) soap_delete((soap), NULL)
 
 #ifdef HAVE_STRRCHR
@@ -1636,6 +1662,9 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_dealloc(struct soap*, void*);
 SOAP_FMAC1 struct soap_clist * SOAP_FMAC2 soap_link(struct soap*, void*, int, int, void (*fdelete)(struct soap_clist*));
 SOAP_FMAC1 void SOAP_FMAC2 soap_unlink(struct soap*, const void*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_free(struct soap*);
+
+SOAP_FMAC1 void* SOAP_FMAC2 soap_track_malloc(struct soap*, const char*, int, size_t);
+SOAP_FMAC1 void SOAP_FMAC2 soap_track_free(struct soap*, const char*, int, void*);
 
 #ifndef WITH_NOIDREF
 SOAP_FMAC1 int SOAP_FMAC2 soap_lookup_type(struct soap*, const char *id);

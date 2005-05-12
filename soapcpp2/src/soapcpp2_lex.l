@@ -266,6 +266,7 @@ static void directive()
 	char *s;
 	Service *sp;
 	Method *m;
+	Data *d;
 	int service;
 	for (i = 7; yytext[i]; i++)
 		if (yytext[i] > 32)
@@ -287,6 +288,9 @@ static void directive()
 		sp->ns = s;
 		sp->name = NULL;
 		sp->port = NULL;
+		sp->binding = NULL;
+		sp->definitions = NULL;
+		sp->transport = NULL;
 		sp->URL = NULL;
 		sp->URI = NULL;
 		sp->WSDL = NULL;
@@ -298,6 +302,7 @@ static void directive()
 		sp->import = NULL;
 		sp->documentation = NULL;
 		sp->list = NULL;
+		sp->data = NULL;
 		services = sp;
 	}
 	for (i = j; yytext[i]; i++)
@@ -341,6 +346,10 @@ static void directive()
 			sp->port = s;
 		else if (!strncmp(yytext+i, "portType:", 9))
 			sp->port = s;
+		else if (!strncmp(yytext+i, "binding:", 8))
+			sp->binding = s;
+		else if (!strncmp(yytext+i, "definitions:", 12))
+			sp->definitions = s;
 		else if (!strncmp(yytext+i, "documentation:", 14))
 		{	for (k = j; yytext[k]; k++)
 				if (yytext[k] == 10 || yytext[k] == 13)
@@ -352,6 +361,8 @@ static void directive()
 			s[k-j] = '\0';
 			sp->documentation = s;
 		}
+		else if (!strncmp(yytext+i, "transport:", 10))
+			sp->transport = s;
 		else if (!strncmp(yytext+i, "location:", 9) || !strncmp(yytext+i, "port:", 5))
 			sp->URL = s;
 		else if (!strncmp(yytext+i, "executable:", 11))
@@ -575,6 +586,25 @@ static void directive()
 			strncpy(s, yytext+j, k-j);
 			s[k-j] = '\0';
 			m->part = s;
+		}
+		else if (!strncmp(yytext+i, "type-documentation:", 19))
+		{	d = (Data*)emalloc(sizeof(Data));
+			d->name = s;
+			d->part = NULL;
+			d->next = sp->data;
+			sp->data = d;
+			for (j = k; yytext[j]; j++)
+				if (yytext[j] > 32)
+					break;
+			for (k = j; yytext[k]; k++)
+				if (yytext[k] == 10 || yytext[k] == 13)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			d->part = s;
 		}
 		else
                 { sprintf(errbuf, "unrecognized gsoap directive: '%s'", yytext+i);

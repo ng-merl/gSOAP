@@ -34,6 +34,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "inqH.h"
 #define SOAP_NMAC static
+#define uddiH_H
 #include "InquireSoap.nsmap"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +69,7 @@ uddi2__find_USCOREbinding::uddi2__find_USCOREbinding(struct soap *soap, std::vec
   // Initialize this object and associate it with the gSOAP context
   soap_default(soap);
 
-  // Create a new UDDI tModelKey
+  // Create a new UDDI tModelKey Bag
   this->tModelBag = soap_new_uddi2__tModelBag(soap, -1);
   this->tModelBag->soap_default(soap);
   this->tModelBag->tModelKey = tModelKeys;

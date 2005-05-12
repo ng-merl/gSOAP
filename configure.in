@@ -65,6 +65,9 @@ dnl			fi
         *-*-OS400*)     platform=OS400 ;;
         *-*-osf*)	platform=TRU64 ;;
         *-apple-*)	platform=MACOSX ;;
+	*-nto-qnx)	platform=QNX
+			SAMPLE_EXTRA_LIBS="-lsocket"
+			;;
         *)              platform=UNKNOWN ;;
 esac
 
@@ -182,6 +185,7 @@ AC_CONFIG_FILES([ Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc \
     soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile \
     soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile \
     soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile \
-    soapcpp2/samples/events/Makefile
+    soapcpp2/samples/events/Makefile \
+    soapcpp2/samples/udp/Makefile
 ])
 AC_OUTPUT

@@ -228,12 +228,12 @@ static int out_element(struct soap *soap, const struct soap_dom_element *node, c
     return element(soap, name);
   }
   if (node->type && node->node)
-  { char *s = (char*)malloc(strlen(prefix) + strlen(name) + 2);
+  { char *s = (char*)SOAP_MALLOC(soap, strlen(prefix) + strlen(name) + 2);
     if (!s)
       return soap->error = SOAP_EOM;
     sprintf(s, "%s:%s", prefix, name);
     soap_putelement(soap, node->node, s, 0, node->type);
-    free(s);
+    SOAP_FREE(soap, s);
   }
   else if (strlen(prefix) + strlen(name) < sizeof(soap->msgbuf))
   { sprintf(soap->msgbuf, "%s:%s", prefix, name);
@@ -245,7 +245,7 @@ static int out_element(struct soap *soap, const struct soap_dom_element *node, c
     }
   }
   else
-  { char *s = (char*)malloc(strlen(prefix) + strlen(name) + 2);
+  { char *s = (char*)SOAP_MALLOC(soap, strlen(prefix) + strlen(name) + 2);
     if (!s)
       return soap->error = SOAP_EOM;
     sprintf(s, "%s:%s", prefix, name);
@@ -255,7 +255,7 @@ static int out_element(struct soap *soap, const struct soap_dom_element *node, c
     { sprintf(s, "xmlns:%s", prefix);
       soap_attribute(soap, s, nstr);
     }
-    free(s);
+    SOAP_FREE(soap, s);
   }
   return soap->error;
 }
@@ -268,12 +268,12 @@ static int out_attribute(struct soap *soap, const char *prefix, const char *name
     soap_attribute(soap, soap->msgbuf, data);
   }
   else
-  { char *s = (char*)malloc(strlen(prefix) + strlen(name) + 2);
+  { char *s = (char*)SOAP_MALLOC(soap, strlen(prefix) + strlen(name) + 2);
     if (!s)
       return soap->error = SOAP_EOM;
     sprintf(s, "%s:%s", prefix, name);
     soap_attribute(soap, s, data);
-    free(s);
+    SOAP_FREE(soap, s);
   }
   return soap->error;
 }
@@ -564,7 +564,7 @@ soap_enter_ns(struct soap *soap, const char *prefix, const char *nstr)
       return ip;
     }
   }
-  ip = (struct soap_ilist*)malloc(sizeof(struct soap_ilist) + strlen(nstr) + SOAP_TAGLEN);
+  ip = (struct soap_ilist*)SOAP_MALLOC(soap, sizeof(struct soap_ilist) + strlen(nstr) + SOAP_TAGLEN);
   if (ip)
   { h = soap_hash(nstr);
     strcpy(ip->id, prefix);
@@ -867,7 +867,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_GRAPH);
     soap_serialize_xsd__anyType(&soap, &e);
     soap_begin_send(&soap);
-    soap_put_xsd__anyType(&soap, &e, NULL, NULL);
+    soap_out_xsd__anyType(&soap, NULL, 0, &e, NULL);
     soap_end_send(&soap);
     soap_end(&soap);
     soap_done(&soap);
@@ -879,7 +879,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
     soap_set_omode(e.soap, SOAP_XML_GRAPH);
     soap_serialize_xsd__anyType(e.soap, &e);
     soap_begin_send(e.soap);
-    soap_put_xsd__anyType(e.soap, &e, NULL, NULL);
+    soap_out_xsd__anyType(e.soap, NULL, 0, &e, NULL);
     soap_end_send(e.soap);
     e.soap->os = os;
     e.soap->omode = omode;

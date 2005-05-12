@@ -51,7 +51,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.1" /* Current version */
+#define VERSION "2.7.2" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -275,6 +275,12 @@ typedef	struct Node {
 #define STYLE 32
 #define FAULT 64
 
+typedef struct Data
+{	struct Data *next;
+	char *name;
+	char *part;
+} Data;
+
 typedef struct Method
 {	struct Method *next;
 	char *name;
@@ -287,6 +293,9 @@ typedef struct Service
 	char *ns;
 	char *name;
 	char *port;
+	char *binding;
+	char *definitions;
+	char *transport;
 	char *URL;
 	char *executable;
 	char *import;
@@ -298,6 +307,7 @@ typedef struct Service
 	char *attributeForm;
 	char *documentation;
 	struct Method *list;
+	struct Data *data;
 } Service;
 
 typedef struct Pragma

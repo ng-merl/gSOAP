@@ -27,3 +27,22 @@ error2.c	Error handling routines
 init2.c		Compiler symbol table initialization
 soapcpp2_lex.l	Flex/Lex tokens
 soapcpp2_yacc.y	Yacc/Bison grammar
+
+
+BUILD NOTES
+
+QNX
+===
+
+On QNX the bison.simple file is located in $QNX_HOST/usr/share/bison.simple
+Update your .profile to include:
+
+export BISON_SIMPLE=$QNX_HOST/usr/share/bison/bison.simple 
+export BISON_HAIRY=$QNX_HOST/usr/share/bison/bison.hairy 
+
+WIN32
+=====
+
+Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small Compile with
+/DYYINITDEPTH=1000
+

@@ -137,6 +137,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                 s->prefix = prefix;
                 s->URI = URI;
                 s->name = name;
+                s->transport = soap__binding_transport;
                 if ((*binding).portTypePtr())
                   s->type = types.aname(NULL, NULL, (*binding).portTypePtr()->name);
                 else
@@ -627,6 +628,8 @@ void Definitions::compile(const wsdl__definitions& definitions)
           fprintf(stream, serviceformat, sv->prefix, "port", (*port), "");
         if (sv->URI)
           fprintf(stream, serviceformat, sv->prefix, "namespace", sv->URI, "");
+        if (sv->transport)
+          fprintf(stream, serviceformat, sv->prefix, "transport", sv->transport, "");
       }
     }
     fprintf(stream, "\n/** @mainpage %s Definitions\n", definitions.name?definitions.name:"Service");
@@ -705,12 +708,15 @@ void Definitions::generate()
       { fprintf(stream, "/// \"%s\" SOAP Header part element\n", (*header).second->part->name);
         types.gen((*header).second->part->elementPtr()->schemaPtr()->targetNamespace, *(*header).second->part->elementPtr());
       }
-      else if ((*header).second->part && (*header).second->part->name && (*header).second->part->type)
+      else if ((*header).second->part && (*header).second->part->type)
       { fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), (*header).first);
         fprintf(stream, ";\n");
       }
       else
-        fprintf(stderr, "Error in SOAP Header part\n");
+      { fprintf(stderr, "Warning: SOAP Header element %s not found (in imported namespace?)\n", (*header).first);
+        fprintf(stream, elementformat, (*header).first, (*header).first);
+        fprintf(stream, ";\t///< TODO: Insufficient type information (imported type)\n");
+      }
     }
     fprintf(stream, "\n};\n");
   }
@@ -782,6 +788,8 @@ Service::Service()
 { prefix = NULL;
   URI = NULL;
   name = NULL;
+  type = NULL;
+  transport = NULL;
 }
 
 void Service::generate(Types& types)
@@ -851,22 +859,35 @@ void Service::generate(Types& types)
         }
       }
       if ((*op2)->soapAction)
-        if (*(*op2)->soapAction)
+      { if (*(*op2)->soapAction)
           fprintf(stream, "  - SOAP action=\"%s\"\n", (*op2)->soapAction);
+      }
       for (vector<Message*>::const_iterator message = (*op2)->fault.begin(); message != (*op2)->fault.end(); ++message)
-        if ((*message)->message && (*message)->message->name)
+      { if ((*message)->message && (*message)->message->name)
           fprintf(stream, "  - SOAP Fault: %s\n", (*message)->name);
+      }
       for (vector<soap__header>::const_iterator inputheader = (*op2)->input->header.begin(); inputheader != (*op2)->input->header.end(); ++inputheader)
-        if ((*inputheader).part)
-          fprintf(stream, "  - Request message has mandatory header part: %s\n", types.aname(NULL, (*inputheader).namespace_, (*inputheader).part));
+      { if ((*inputheader).part)
+        { if ((*inputheader).use == encoded && (*inputheader).namespace_)
+            fprintf(stream, "  - Request message has mandatory header part: %s\n", types.aname(NULL, (*inputheader).namespace_, (*inputheader).part));
+          else if ((*inputheader).partPtr() && (*inputheader).partPtr()->element)
+            fprintf(stream, "  - Request message has mandatory header part: %s\n", types.aname(NULL, NULL, (*inputheader).partPtr()->element));
+        }
+      }
       if ((*op2)->input->multipartRelated)
         fprintf(stream, "  - Request message has MIME multipart/related attachments\n");
       if ((*op2)->input->layout)
         fprintf(stream, "  - Request message has DIME attachments in compliance with %s\n", (*op2)->input->layout);
       if ((*op2)->output)
-        for (vector<soap__header>::const_iterator outputheader = (*op2)->output->header.begin(); outputheader != (*op2)->output->header.end(); ++outputheader)
-          if ((*outputheader).part)
-            fprintf(stream, "  - Response message has mandatory header part: %s\n", types.aname(NULL, (*outputheader).namespace_, (*outputheader).part));
+      { for (vector<soap__header>::const_iterator outputheader = (*op2)->output->header.begin(); outputheader != (*op2)->output->header.end(); ++outputheader)
+        { if ((*outputheader).part)
+          { if ((*outputheader).use == encoded && (*outputheader).namespace_)
+              fprintf(stream, "  - Request message has mandatory header part: %s\n", types.aname(NULL, (*outputheader).namespace_, (*outputheader).part));
+            else if ((*outputheader).partPtr() && (*outputheader).partPtr()->element)
+              fprintf(stream, "  - Request message has mandatory header part: %s\n", types.aname(NULL, NULL, (*outputheader).partPtr()->element));
+          }
+        }
+      }
       if ((*op2)->output && (*op2)->output_name && (*op2)->output->multipartRelated)
         fprintf(stream, "  - Response message has MIME multipart/related attachments\n");
       if ((*op2)->output && (*op2)->output_name && (*op2)->output->layout)
@@ -942,12 +963,23 @@ void Operation::generate(Types &types)
       fprintf(stream, serviceformat, prefix, "method-fault", method_name, (*message)->name);
   // TODO: add headerfault directives
   for (vector<soap__header>::const_iterator inputheader = input->header.begin(); inputheader != input->header.end(); ++inputheader)
-    if ((*inputheader).part)
-      fprintf(stream, serviceformat, prefix, "method-input-header-part", method_name, types.aname(NULL, (*inputheader).namespace_, (*inputheader).part));
+  { if ((*inputheader).part)
+    { if ((*inputheader).use == encoded && (*inputheader).namespace_)
+        fprintf(stream, serviceformat, prefix, "method-input-header-part", method_name, types.aname(NULL, (*inputheader).namespace_, (*inputheader).part));
+      else if ((*inputheader).partPtr() && (*inputheader).partPtr()->element)
+        fprintf(stream, serviceformat, prefix, "method-input-header-part", method_name, types.aname(NULL, NULL, (*inputheader).partPtr()->element));
+    }
+  }
   if (output)
-    for (vector<soap__header>::const_iterator outputheader = output->header.begin(); outputheader != output->header.end(); ++outputheader)
-      if ((*outputheader).part)
-        fprintf(stream, serviceformat, prefix, "method-output-header-part", method_name, types.aname(NULL, (*outputheader).namespace_, (*outputheader).part));
+  { for (vector<soap__header>::const_iterator outputheader = output->header.begin(); outputheader != output->header.end(); ++outputheader)
+    { if ((*outputheader).part)
+      { if ((*outputheader).use == encoded && (*outputheader).namespace_)
+          fprintf(stream, serviceformat, prefix, "method-output-header-part", method_name, types.aname(NULL, (*outputheader).namespace_, (*outputheader).part));
+        else if ((*outputheader).partPtr() && (*outputheader).partPtr()->element)
+          fprintf(stream, serviceformat, prefix, "method-output-header-part", method_name, types.aname(NULL, NULL, (*outputheader).partPtr()->element));
+      }
+    }
+  }
   if (output_name)
   { if (style == document)
       flag = output->message && output->message->part.size() == 1;
@@ -1078,8 +1110,16 @@ static void banner(const char *text)
 static void ident()
 { time_t t = time(NULL), *p = &t;
   char tmp[256];
+  int i;
   strftime(tmp, 256, "%Y-%m-%d %H:%M:%S GMT", gmtime(p));
-  fprintf(stream, "/* %s\n   Generated by wsdl2h "VERSION" from %s and %s\n   %s\n   Copyright (C) 2001-2005 Robert van Engelen, Genivia Inc. All Rights Reserved.\n   This part of the software is released under one of the following licenses:\n   GPL or Genivia's license for commercial use.\n*/\n\n", outfile?outfile:"", infile?infile:"(stdin)", mapfile, tmp);
+  fprintf(stream, "/* %s\n   Generated by wsdl2h "VERSION" from ", outfile?outfile:"");
+  if (infiles)
+  { for (i = 0; i < infiles; i++)
+      fprintf(stream, "%s ", infile[i]);
+  }
+  else
+    fprintf(stream, "(stdin) ");
+  fprintf(stream, "and %s\n   %s\n   Copyright (C) 2001-2005 Robert van Engelen, Genivia Inc. All Rights Reserved.\n   This part of the software is released under one of the following licenses:\n   GPL or Genivia's license for commercial use.\n*/\n\n", mapfile, tmp);
 }
 
 static void text(const char *text)

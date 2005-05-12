@@ -15,13 +15,13 @@
 
 
 
-<title> gSOAP 2.7.1 User Guide</title>
+<title> gSOAP 2.7.2 User Guide</title>
     
-<h1 align="center">gSOAP 2.7.1 User Guide </h1>
+<h1 align="center">gSOAP 2.7.2 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Apr  3, 2005
+<h3 align="center">May 12, 2005
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -296,85 +296,99 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc16.2"
 >16.2&nbsp; <font color="#0000FF">Other Constraints</font></a><br />
 <a href="#tth_sEc17"
->17&nbsp; <font color="#0000FF">Advanced Features</font></a><br />
+>17&nbsp; <font color="#0000FF">SOAP-over-UDP</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.1"
->17.1&nbsp; <font color="#0000FF">Internationalization</font></a><br />
+>17.1&nbsp; <font color="#0000FF">Using WS-Addressing with SOAP-over-UDP</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.2"
->17.2&nbsp; <font color="#0000FF">Customizing the WSDL and Namespace Mapping Table File Contents With gSOAP Directives</font></a><br />
+>17.2&nbsp; <font color="#0000FF">Client-side One-way Unicast</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.3"
->17.3&nbsp; <font color="#0000FF">Transient Data Types</font></a><br />
+>17.3&nbsp; <font color="#0000FF">Client-side One-way Multicast</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.4"
->17.4&nbsp; <font color="#0000FF">Volatile Data Types</font></a><br />
+>17.4&nbsp; <font color="#0000FF">Client-side Request-Response Unicast</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.5"
->17.5&nbsp; <font color="#0000FF">How to Declare User-Defined Serializers and Deserializers</font></a><br />
+>17.5&nbsp; <font color="#0000FF">Client-side Request-Response Multicast</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.6"
->17.6&nbsp; <font color="#0000FF">How to Serialize Data Without Generating XSD Type Attributes</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.7"
->17.7&nbsp; <font color="#0000FF">Function Callbacks for Customized I/O and HTTP Handling</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.8"
->17.8&nbsp; <font color="#0000FF">HTTP 1.0 and 1.1</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.9"
->17.9&nbsp; <font color="#0000FF">HTTP 307 Temporary Redirect Support</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.10"
->17.10&nbsp; <font color="#0000FF">HTTP GET Support</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.11"
->17.11&nbsp; <font color="#0000FF">HTTP Keep-Alive</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.12"
->17.12&nbsp; <font color="#0000FF">HTTP Chunked Transfer Encoding</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.13"
->17.13&nbsp; <font color="#0000FF">HTTP Buffered Sends</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.14"
->17.14&nbsp; <font color="#0000FF">HTTP Authentication</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.15"
->17.15&nbsp; <font color="#0000FF">HTTP Proxy Authentication</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.16"
->17.16&nbsp; <font color="#0000FF">Speed Improvement Tips</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.17"
->17.17&nbsp; <font color="#0000FF">Timeout Management for Non-Blocking Operations</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.18"
->17.18&nbsp; <font color="#0000FF">Socket Options and Flags</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.19"
->17.19&nbsp; <font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.20"
->17.20&nbsp; <font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.21"
->17.21&nbsp; <font color="#0000FF">SSL Authentication Callback</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.22"
->17.22&nbsp; <font color="#0000FF">SSL Certificates</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.23"
->17.23&nbsp; <font color="#0000FF">SSL Hardware Acceleration</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.24"
->17.24&nbsp; <font color="#0000FF">SSL on Windows</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.25"
->17.25&nbsp; <font color="#0000FF">Zlib Compression</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.26"
->17.26&nbsp; <font color="#0000FF">Client-Side Cookie Support</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.27"
->17.27&nbsp; <font color="#0000FF">Server-Side Cookie Support</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.28"
->17.28&nbsp; <font color="#0000FF">Connecting Clients Through Proxy Servers</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.29"
->17.29&nbsp; <font color="#0000FF">FastCGI Support</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.30"
->17.30&nbsp; <font color="#0000FF">How to Create gSOAP Applications With a Small Memory Footprint</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.31"
->17.31&nbsp; <font color="#0000FF">How to Eliminate BSD Socket Library Linkage</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.32"
->17.32&nbsp; <font color="#0000FF">Build a Client or Server in a C++ Code Namespace</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.33"
->17.33&nbsp; <font color="#0000FF">How to Create Client/Server Libraries</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.33.1"
->17.33.1&nbsp; <font color="#0000FF">C++ Example</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.33.2"
->17.33.2&nbsp; <font color="#0000FF">C Example</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.34"
->17.34&nbsp; <font color="#0000FF">How to Create DLLs</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.34.1"
->17.34.1&nbsp; <font color="#0000FF">Create the Base stdsoap2.dll</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.34.2"
->17.34.2&nbsp; <font color="#0000FF">Creating Client and Server DLLs</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc17.34.3"
->17.34.3&nbsp; <font color="#0000FF">gSOAP Plug-ins</font></a><br />
+>17.6&nbsp; <font color="#0000FF">SOAP-over-UDP Server</font></a><br />
+<a href="#tth_sEc18"
+>18&nbsp; <font color="#0000FF">Advanced Features</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.1"
+>18.1&nbsp; <font color="#0000FF">Internationalization</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.2"
+>18.2&nbsp; <font color="#0000FF">Customizing the WSDL and Namespace Mapping Table File Contents With gSOAP Directives</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.3"
+>18.3&nbsp; <font color="#0000FF">Transient Data Types</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.4"
+>18.4&nbsp; <font color="#0000FF">Volatile Data Types</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.5"
+>18.5&nbsp; <font color="#0000FF">How to Declare User-Defined Serializers and Deserializers</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.6"
+>18.6&nbsp; <font color="#0000FF">How to Serialize Data Without Generating XSD Type Attributes</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.7"
+>18.7&nbsp; <font color="#0000FF">Function Callbacks for Customized I/O and HTTP Handling</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.8"
+>18.8&nbsp; <font color="#0000FF">HTTP 1.0 and 1.1</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.9"
+>18.9&nbsp; <font color="#0000FF">HTTP 307 Temporary Redirect Support</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.10"
+>18.10&nbsp; <font color="#0000FF">HTTP GET Support</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.11"
+>18.11&nbsp; <font color="#0000FF">HTTP Keep-Alive</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.12"
+>18.12&nbsp; <font color="#0000FF">HTTP Chunked Transfer Encoding</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.13"
+>18.13&nbsp; <font color="#0000FF">HTTP Buffered Sends</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.14"
+>18.14&nbsp; <font color="#0000FF">HTTP Authentication</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.15"
+>18.15&nbsp; <font color="#0000FF">HTTP Proxy Authentication</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.16"
+>18.16&nbsp; <font color="#0000FF">Speed Improvement Tips</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.17"
+>18.17&nbsp; <font color="#0000FF">Timeout Management for Non-Blocking Operations</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.18"
+>18.18&nbsp; <font color="#0000FF">Socket Options and Flags</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.19"
+>18.19&nbsp; <font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.20"
+>18.20&nbsp; <font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.21"
+>18.21&nbsp; <font color="#0000FF">SSL Authentication Callback</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.22"
+>18.22&nbsp; <font color="#0000FF">SSL Certificates</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.23"
+>18.23&nbsp; <font color="#0000FF">SSL Hardware Acceleration</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.24"
+>18.24&nbsp; <font color="#0000FF">SSL on Windows</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.25"
+>18.25&nbsp; <font color="#0000FF">Zlib Compression</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.26"
+>18.26&nbsp; <font color="#0000FF">Client-Side Cookie Support</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.27"
+>18.27&nbsp; <font color="#0000FF">Server-Side Cookie Support</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.28"
+>18.28&nbsp; <font color="#0000FF">Connecting Clients Through Proxy Servers</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.29"
+>18.29&nbsp; <font color="#0000FF">FastCGI Support</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.30"
+>18.30&nbsp; <font color="#0000FF">How to Create gSOAP Applications With a Small Memory Footprint</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.31"
+>18.31&nbsp; <font color="#0000FF">How to Eliminate BSD Socket Library Linkage</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.32"
+>18.32&nbsp; <font color="#0000FF">Build a Client or Server in a C++ Code Namespace</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.33"
+>18.33&nbsp; <font color="#0000FF">How to Create Client/Server Libraries</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.33.1"
+>18.33.1&nbsp; <font color="#0000FF">C++ Example</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.33.2"
+>18.33.2&nbsp; <font color="#0000FF">C Example</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.34"
+>18.34&nbsp; <font color="#0000FF">How to Create DLLs</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.34.1"
+>18.34.1&nbsp; <font color="#0000FF">Create the Base stdsoap2.dll</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.34.2"
+>18.34.2&nbsp; <font color="#0000FF">Creating Client and Server DLLs</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.34.3"
+>18.34.3&nbsp; <font color="#0000FF">gSOAP Plug-ins</font></a><br />
  
 </td></tr></table><br></span>
 <i>Copyright (C) 2000-2003 Robert A. van Engelen, Genivia, Inc., All Rights Reserved.</i>
@@ -417,17 +431,43 @@ Some of the highlights of gSOAP are:
 
 <ul><p>
 <li>Unique interoperability features: the gSOAP compiler generates SOAP marshalling routines that (de)serialize native and
-user-defined C and C++ data structures. 
-gSOAP supports WSDL 1.1, SOAP 1.1/1.2 RPC encoding, literal, and document style.
-gSOAP is also one of the few SOAP toolkits that support the full range of SOAP 1.1 RPC encoding features
+user-defined C and C++ data structures.</li>
+<p>
+<li>
+gSOAP supports WSDL 1.1, SOAP 1.1, SOAP 1.2, SOAP RPC encoding style, and literal/document style.</li>
+<p>
+<li>
+gSOAP is one of the few SOAP toolkits that support the full range of SOAP 1.1 RPC encoding features
 including sparse multi-dimensional arrays and polymorphic types. For example, a remote method with a base class parameter may accept
 derived class instances from a client. Derived class instances keep their identity through dynamic binding.</li>
 <p>
 <li>
-gSOAP supports MIME and DIME attachments.</li>
+gSOAP supports MIME (SwA) and DIME attachments.</li>
 <p>
 <li>
 gSOAP is the only toolkit that supports <em>streaming</em> DIME attachment transfers, which allows you to exchange binary data of practically unlimited size in the fastest possible way (streaming) while ensuring the usefulness of XML interoperability.</li>
+<p>
+<li>
+gSOAP supports SOAP-over-UDP.</li>
+<p>
+<li>
+gSOAP supports IPv4 and IPv6.</li>
+<p>
+<li>
+gSOAP supports Zlib deflate and gzip compression (for HTTP, TCP/IP, and XML file storage).</li>
+<p>
+<li>
+gSOAP supports SSL (HTTPS).</li>
+<p>
+<li>
+gSOAP supports HTTP/1.0, HTTP/1.1 keep-alive, chunking, and basic authentication,</li>
+<p>
+<li>
+gSOAP supports SOAP one-way messaging.</li>
+<p>
+<li>
+The schema-specific XML pull parser is fast and efficient and does not require intermediate data storage for
+demarshalling to save space and time.</li>
 <p>
 <li>
 gSOAP includes a WSDL generator for convenient Web Service publishing.</li>
@@ -449,22 +489,6 @@ Platform independent: Windows, Unix, Linux, Mac OS X, Pocket PC, Palm OS, Symbia
 <p>
 <li>
 Supports serializing of application's native C and C++ data structures, which allows you to save and load of XML serialized data structures to and from files.</li>
-<p>
-<li>
-gSOAP supports Zlib deflate and gzip compression (for HTTP, TCP/IP, and file storage).</li>
-<p>
-<li>
-gSOAP supports SSL (HTTPS).</li>
-<p>
-<li>
-gSOAP supports HTTP/1.1 keep-alive, chunking, and basic authentication,</li>
-<p>
-<li>
-Supports SOAP one-way messaging.</li>
-<p>
-<li>
-The schema-specific XML pull parser is fast and efficient and does not require intermediate data storage for
-demarshalling to save space and time.</li>
 <p>
 <li>
 Selective input and output buffering is used to increase efficiency, but full message buffering to determine HTTP message length
@@ -643,7 +667,7 @@ Or alternatively:
 &nbsp;&nbsp;&nbsp;soap_serve(soap_new()); <br />
 }
 </td></tr></table><br></i>
-The <i>soap_serve</i> dispatcher handles one request or multiple requests when HTTP keep-alive is enabled (with the <i>SOAP_IO_KEEPALIVE</i> flag see Section&nbsp;<a href="#sec:keepalive">17.11</a>).
+The <i>soap_serve</i> dispatcher handles one request or multiple requests when HTTP keep-alive is enabled (with the <i>SOAP_IO_KEEPALIVE</i> flag see Section&nbsp;<a href="#sec:keepalive">18.11</a>).
 
 <p>
 A service can use multi-threading to handle requests while running some other code that invokes remote methods:
@@ -1126,7 +1150,7 @@ SOAP messages.  The namespace name in the service response is verified by the st
 information supplied in a <b>namespace mapping table</b> that is required to be part of gSOAP client and service application codes.  The table is accessed
 at run time to resolve namespace bindings, both by the generated stub's data structure serializer for encoding the client request
 and by the generated stub's data structure deserializer to decode and validate the service response. The namespace mapping table
-should <b>not</b> be part of the header file input to the gSOAP stub and skeleton compiler. Service details including namespace bindings may be provided with gSOAP directives in a header file, see Section&nbsp;<a href="#sec:directives">17.2</a>.
+should <b>not</b> be part of the header file input to the gSOAP stub and skeleton compiler. Service details including namespace bindings may be provided with gSOAP directives in a header file, see Section&nbsp;<a href="#sec:directives">18.2</a>.
 
 <p>
 The namespace mapping table for the Delayed Stock Quote client is:
@@ -1286,7 +1310,7 @@ The <i>Quote</i> constructor allocates and initializes a gSOAP environment for t
 All the HTTP and SOAP/XML processing is hidden and performed on the background.
 
 <p>
-You can use soapcpp2 compiler option <i>-n</i> together with <i>-p</i> to create a local namespaces table to avoid link conflicts when you need multiple namespace tables or need to combine multiple clients, see also Sections&nbsp;<a href="#sec:options">9.1</a> and&nbsp;<a href="#sec:dylibs">17.33</a>, and you can use a C++ code <i><b>namespace</b></i> to create a namespace qualified proxy class, see Section&nbsp;<a href="#sec:codenamespace">17.32</a>.
+You can use soapcpp2 compiler option <i>-n</i> together with <i>-p</i> to create a local namespaces table to avoid link conflicts when you need multiple namespace tables or need to combine multiple clients, see also Sections&nbsp;<a href="#sec:options">9.1</a> and&nbsp;<a href="#sec:dylibs">18.33</a>, and you can use a C++ code <i><b>namespace</b></i> to create a namespace qualified proxy class, see Section&nbsp;<a href="#sec:codenamespace">18.32</a>.
 
 <p>
 		      <h4><a name="tth_sEc8.1.5">
@@ -1566,7 +1590,7 @@ soap_init(&amp;soap); <br />
 soap_call_ns1__getFlightInfo(&amp;soap, <tt>"testvger.objectspace.com/soap/servlet/rpcrouter"</tt>, <br />
 &nbsp;&nbsp;&nbsp;<tt>"urn:galdemo:flighttracker"</tt>, <tt>"UAL"</tt>, <tt>"184"</tt>, r); <br />
 ... <br />
-struct Namespace namespaces[] = <br />
+<b>struct</b>&nbsp;Namespace namespaces[] = <br />
 { <br />
 &nbsp;&nbsp;&nbsp;{"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/"}, <br />
 &nbsp;&nbsp;&nbsp;{"SOAP-ENC","http://schemas.xmlsoap.org/soap/encoding/"}, <br />
@@ -1956,7 +1980,7 @@ To create a stand-alone service, only the <i>main</i> routine of the service nee
 &nbsp;&nbsp;&nbsp;soap_done(&amp;soap); // close master socket and detach environment <br />
 }
 </td></tr></table><br></i>
-The <i>soap_serve</i> dispatcher handles one request or multiple requests when HTTP keep-alive is enabled (with the <i>SOAP_IO_KEEPALIVE</i> flag see Section&nbsp;<a href="#sec:keepalive">17.11</a>).
+The <i>soap_serve</i> dispatcher handles one request or multiple requests when HTTP keep-alive is enabled (with the <i>SOAP_IO_KEEPALIVE</i> flag see Section&nbsp;<a href="#sec:keepalive">18.11</a>).
 
 <p>
 The gSOAP functions that can be used are:
@@ -1972,14 +1996,14 @@ size for requests). When <i>host==NULL</i>: host is the machine on which the ser
 <tr><td width="301"><i>soap_free(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Clean up temporary data only </td></tr>
 <tr><td width="301"><i>soap_destroy(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Clean up deserialized class instances (note: this function will be renamed with option <i>-n</i> </td></tr>
 <tr><td width="301"><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Reset: close master/slave sockets and remove callbacks </td></tr>
-<tr><td width="301"></td><td width="301">(see Section&nbsp;<a href="#sec:callback">17.7</a> </td></tr></table>
+<tr><td width="301"></td><td width="301">(see Section&nbsp;<a href="#sec:callback">18.7</a> </td></tr></table>
 
 </td></tr></table><br></span>
 The <i>host</i> name in <i>soap_bind</i> may be NULL to indicate that the current host should be used.
 
 <p>
 The <i>soap.accept_timeout</i> attribute of the gSOAP run-time environment specifies the timeout value for a non-blocking
-<i>soap_accept(&amp;soap)</i> call. See Section&nbsp;<a href="#sec:timeout">17.17</a> for more details on timeout management.
+<i>soap_accept(&amp;soap)</i> call. See Section&nbsp;<a href="#sec:timeout">18.17</a> for more details on timeout management.
 
 <p>
 See Section&nbsp;<a href="#sec:memory">9.13</a> for more details on memory management.
@@ -1996,7 +2020,7 @@ to the service.
 </a>
 
 <p>
-Multi-threading a Web Service is essential when the response times for handling requests by the service are (potentially) long or when keep-alive is enabled, see Section&nbsp;<a href="#sec:keepalive">17.11</a>.
+Multi-threading a Web Service is essential when the response times for handling requests by the service are (potentially) long or when keep-alive is enabled, see Section&nbsp;<a href="#sec:keepalive">18.11</a>.
 In case of long response times, the latencies introduced by the unrelated requests may become prohibitive for a successful
 deployment of a stand-alone service. When HTTP keep-alive is enabled, a client may not close the socket on time, thereby preventing other clients from connecting.
 
@@ -2014,7 +2038,7 @@ The following example illustrates the use of threads to improve the quality of s
 { <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
 &nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(argc  &lt;  3) // no args: assume this is a CGI application <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(argc  &lt;  2) // no args: assume this is a CGI application <br />
 &nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_serve(&amp;soap); // serve request, one thread, CGI style <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_destroy(&amp;soap); // dealloc C++ data <br />
@@ -2030,15 +2054,15 @@ The following example illustrates the use of threads to improve the quality of s
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *tsoap; <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_t tid; <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;port = atoi(argv[1]); // first command-line arg is port <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;m, s; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SOAP_SOCKET m, s; <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;m = soap_bind(&amp;soap, NULL, port, BACKLOG); <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(m  &lt;  0) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(m)) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(1); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Socket connection successful %d\n"</tt>, m); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(;;) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s = soap_accept(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(s  &lt;  0) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(s)) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap.errnum) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
@@ -2082,17 +2106,17 @@ slow clients from holding a socket connection too long. The accept timeout is us
 to let the server terminate automatically after a period of inactivity.
 
 <p>
-The following example uses a pool of threads:
+The following example uses a pool of servers to limit the machine's resource utilization:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 #include "soapH.h" <br />
 #include  &lt; pthread.h &gt;  <br />
 #define BACKLOG (100)	// Max. request backlog <br />
-#define MAX_THR (8)	// Max. threads to serve requests <br />
+#define MAX_THR (10)	// Max. threads to serve requests <br />
 <b>int</b>&nbsp;main(<b>int</b>&nbsp;argc, <b>char</b>&nbsp;**argv) <br />
 { <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
 &nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(argc  &lt;  3) // no args: assume this is a CGI application <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(argc  &lt;  2) // no args: assume this is a CGI application <br />
 &nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_serve(&amp;soap); // serve request, one thread, CGI style <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_destroy(&amp;soap); // dealloc C++ data <br />
@@ -2103,9 +2127,10 @@ The following example uses a pool of threads:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *soap_thr[MAX_THR]; // each thread needs a runtime environment <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_t tid[MAX_THR]; <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;port = atoi(argv[1]); // first command-line arg is port <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;m, s, i; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SOAP_SOCKET m, s; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;i; <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;m = soap_bind(&amp;soap, NULL, port, BACKLOG); <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(m  &lt;  0) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(m)) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(1); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Socket connection successful %d\n"</tt>, m); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_THR; i++) <br />
@@ -2115,8 +2140,19 @@ The following example uses a pool of threads:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_THR; i++) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s = soap_accept(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(s  &lt;  0) <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(s)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap.errnum) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>continue</b>; // retry<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Server timed out\n"</tt>); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n"</tt>, i, s, (soap.ip &gt;&gt; 24)&amp;0xFF,
 (soap.ip &gt;&gt; 16)&amp;0xFF, (soap.ip &gt;&gt; 8)&amp;0xFF, soap.ip&amp;0xFF); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_thr[i]) // first time around <br />
@@ -2125,7 +2161,7 @@ The following example uses a pool of threads:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_thr[i]) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(1); // could not allocate <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>else</b>\	// recycle soap environment <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>else</b>// recycle soap environment <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_join(tid[i], NULL); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, "Thread <tt>%</tt>d completed<tt>\</tt>n", i); <br />
@@ -2158,11 +2194,143 @@ the argument environment such that the new environment does not share data with 
 <tr><td><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Reset, close communications, and remove callbacks </td></tr></table>
 
 </td></tr></table><br></span>
-A new environment is required for each new thread to guarantee exclusive access
-to runtime environments by threads.
+A new environment is initiated for each thread to guarantee exclusive access
+to runtime environments.
 
 <p>
 For clean termination of the server, the master socket can be closed and callbacks removed with <i>soap_done(<b>struct</b>&nbsp;soap *soap)</i>.
+
+<p>
+The advantage of the code shown above is that the machine cannot be overloaded with requests, since the number of active services is limited. However, threads are still started and terminated. This overhead can be eliminated using a queue of requests (open sockets) as is shown in the code below.
+
+<p>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+#include "soapH.h" <br />
+#include  &lt; pthread.h &gt;  <br />
+#define BACKLOG (100)	// Max. request backlog <br />
+#define MAX_THR (10) // Size of thread pool <br />
+#define MAX_QUEUE (1000) // Max. size of request queue <br />
+SOAP_SOCKET queue[MAX_QUEUE]; // The global request queue of sockets <br />
+<b>int</b>&nbsp;head = 0, tail = 0; // Queue head and tail <br />
+<b>void</b>&nbsp;*process_queue(<b>void</b>*); <br />
+<b>int</b>&nbsp;enqueue(SOAP_SOCKET); <br />
+SOAP_SOCKET dequeue(); <br />
+pthread_mutex_t queue_cs; <br />
+pthread_cond_t queue_cv; <br />
+<b>int</b>&nbsp;main(<b>int</b>&nbsp;argc, <b>char</b>&nbsp;**argv) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
+&nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(argc  &lt;  2) // no args: assume this is a CGI application <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_serve(&amp;soap); // serve request, one thread, CGI style <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_destroy(&amp;soap); // dealloc C++ data <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_end(&amp;soap); // dealloc data and clean up <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *soap_thr[MAX_THR]; // each thread needs a runtime environment <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_t tid[MAX_THR]; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;port = atoi(argv[1]); // first command-line arg is port <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SOAP_SOCKET m, s; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;i; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;m = soap_bind(&amp;soap, NULL, port, BACKLOG); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(m)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(1); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Socket connection successful %d\n"</tt>, m); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_mutex_init(&amp;queue_cs, NULL); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_cond_init(&amp;queue_cv, NULL); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_THR; i++) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_thr[i] = soap_copy(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Starting thread %d\n"</tt>, i); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_create(&amp;tid[i], NULL, (<b>void</b>*(*)(<b>void</b>*))process_queue, (<b>void</b>*)soap_thr[i]); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(;;) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s = soap_accept(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(s)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap.errnum) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>continue</b>; // retry <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Server timed out\n"</tt>); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n"</tt>, i, s, (soap.ip &gt;&gt; 24)&amp;0xFF, (soap.ip &gt;&gt; 16)&amp;0xFF, (soap.ip &gt;&gt; 8)&amp;0xFF, soap.ip&amp;0xFF); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(enqueue(s) == SOAP_EOM) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sleep(1); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_THR; i++) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(enqueue(SOAP_INVALID_SOCKET) == SOAP_EOM) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sleep(1); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_THR; i++) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"Waiting for thread %d to terminate... "</tt>, i); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_join(tid[i], NULL); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"terminated\n"</tt>); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_done(soap_thr[i]); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;free(soap_thr[i]); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_mutex_destroy(&amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_cond_destroy(&amp;queue_cv); <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;soap_done(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;0; <br />
+} <br />
+<b>void</b>&nbsp;*process_queue(<b>void</b>&nbsp;*soap) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *tsoap = (<b>struct</b>&nbsp;soap*)soap; <br />
+&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(;;) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tsoap<tt>-&gt;</tt>socket = dequeue(); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(tsoap<tt>-&gt;</tt>socket)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_serve(tsoap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_destroy(tsoap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_end(tsoap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fprintf(stderr, <tt>"served\n"</tt>); <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;NULL; <br />
+} <br />
+<b>int</b>&nbsp;enqueue(SOAP_SOCKET sock) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;status = SOAP_OK; <br />
+&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;next; <br />
+&nbsp;&nbsp;&nbsp;pthread_mutex_lock(&amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;next = tail + 1; <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(next  &gt; = MAX_QUEUE) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next = 0; <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(next == head) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;status = SOAP_EOM; <br />
+&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queue[tail] = sock; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tail = next; <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;pthread_cond_signal(&amp;queue_cv); <br />
+&nbsp;&nbsp;&nbsp;pthread_mutex_unlock(&amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;status; <br />
+} <br />
+SOAP_SOCKET dequeue() <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;SOAP_SOCKET sock; <br />
+&nbsp;&nbsp;&nbsp;pthread_mutex_lock(&amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;pthread_cond_wait(&amp;queue_cv, &amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;sock = queue[head++]; <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(head  &gt; = MAX_QUEUE) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;head = 0; <br />
+&nbsp;&nbsp;&nbsp;pthread_mutex_unlock(&amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;sock; <br />
+}
+</td></tr></table><br></i>
 
 <p>
 		      <h4><a name="tth_sEc8.2.5">
@@ -2187,7 +2355,7 @@ The <i><b>void</b>&nbsp;*soap.user</i> field can be used to pass application dat
 &nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
 }
 </td></tr></table><br></span>
-Another way to pass application data around in a more organized way is accomplished with plugins, see Section&nbsp;<a href="#sec:plugins">17.34.3</a>.
+Another way to pass application data around in a more organized way is accomplished with plugins, see Section&nbsp;<a href="#sec:plugins">18.34.3</a>.
 
 <p>
 		      <h4><a name="tth_sEc8.2.6">
@@ -2260,7 +2428,7 @@ This generated server object class can be included into a server application tog
 } <br />
 ... sub(), mul(), and div() implementations ...
 </td></tr></table><br></i>
-You can use soapcpp2 compiler option <i>-n</i> together with <i>-p</i> to create a local namespaces table to avoid link conflict when you need to combine multiple tables and/or multiple servers, see also Sections&nbsp;<a href="#sec:options">9.1</a> and&nbsp;<a href="#sec:dylibs">17.33</a>, and you can use a C++ code <i><b>namespace</b></i> to create a namespace qualified server object class, see Section&nbsp;<a href="#sec:codenamespace">17.32</a>.
+You can use soapcpp2 compiler option <i>-n</i> together with <i>-p</i> to create a local namespaces table to avoid link conflict when you need to combine multiple tables and/or multiple servers, see also Sections&nbsp;<a href="#sec:options">9.1</a> and&nbsp;<a href="#sec:dylibs">18.33</a>, and you can use a C++ code <i><b>namespace</b></i> to create a namespace qualified server object class, see Section&nbsp;<a href="#sec:codenamespace">18.32</a>.
 
 <p>
 		      <h4><a name="tth_sEc8.2.8">
@@ -2278,7 +2446,7 @@ of remote methods belonging to a namespace prefix.
 In addition to the generation of the <tt>ns.wsdl</tt> file, a file with a namespace mapping table is generated by the gSOAP
 compiler. An example mapping table is shown below:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-struct Namespace namespaces[] = <br />
+<b>struct</b>&nbsp;Namespace namespaces[] = <br />
 { <br />
 &nbsp;&nbsp;&nbsp;{"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/"}, <br />
 &nbsp;&nbsp;&nbsp;{"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/"}, <br />
@@ -3252,7 +3420,7 @@ The header file is processed and the application compiled on Linux/Unix with:
 <i>libxnet.a</i>, <i>libnsl.a</i>
 are required. Compiling on Linux typically does not require the inclusion of those
 libraries.)
-See&nbsp;<a href="#sec:compression">17.25</a> for details on compression with gSOAP.
+See&nbsp;<a href="#sec:compression">18.25</a> for details on compression with gSOAP.
 
 <p>
 Running the <i>person</i> application results in the compressed XML output:
@@ -3539,7 +3707,7 @@ the same serializers and deserializers to encode and decode the parameters. Note
 not need to know the details of the internal SOAP encoding used by the client and service.
 
 <p>
-The <i>soapClientLib.cpp</i> and <i>soapServerLib.cpp</i> can be used to build (dynamic) client and server libraries. The serialization routines are local (static) to avoid link symbol conflicts. You must create a separate library for SOAP Header and Fault handling, as described in Section&nbsp;<a href="#sec:dylibs">17.33</a>.
+The <i>soapClientLib.cpp</i> and <i>soapServerLib.cpp</i> can be used to build (dynamic) client and server libraries. The serialization routines are local (static) to avoid link symbol conflicts. You must create a separate library for SOAP Header and Fault handling, as described in Section&nbsp;<a href="#sec:dylibs">18.33</a>.
 
 <p>
 The following files are part of the gSOAP package and are required to build client and service applications:
@@ -3678,7 +3846,7 @@ The following header file can now refer to <i>ostream</i>:
 &nbsp;&nbsp;&nbsp;... <br />
 };
 </td></tr></table><br></i>
-See also Section&nbsp;<a href="#sec:transient">17.3</a>.
+See also Section&nbsp;<a href="#sec:transient">18.3</a>.
 
 <p>
 	     <h3><a name="tth_sEc9.4">
@@ -3938,16 +4106,18 @@ The following macros (<i>#define</i>s) can be used to enable certain optional fe
 <table>
 <tr><td><font color="#FF0000"><b>Macro</b></font> </td><td><font color="#FF0000"><b>Description</b></font> </td></tr>
 <tr><td><i>WITH_SOAPDEFS_H</i>	</td><td>includes the <i>soapdefs.h</i> file for custom settings, see Section&nbsp;<a href="#sec:soapdefs">9.3</a> </td></tr>
-<tr><td><i>WITH_COOKIES</i>	</td><td>enables HTTP cookies, see Sections&nbsp;<a href="#sec:clientcookie">17.26</a>&nbsp;<a href="#sec:servercookie">17.27</a> </td></tr>
-<tr><td><i>WITH_OPENSSL</i>	</td><td>enables OpenSSL, see Sections&nbsp;<a href="#sec:clientopenssl">17.20</a>&nbsp;<a href="#sec:serveropenssl">17.19</a> </td></tr>
+<tr><td><i>WITH_COOKIES</i>	</td><td>enables HTTP cookies, see Sections&nbsp;<a href="#sec:clientcookie">18.26</a>&nbsp;<a href="#sec:servercookie">18.27</a> </td></tr>
+<tr><td><i>WITH_OPENSSL</i>	</td><td>enables OpenSSL, see Sections&nbsp;<a href="#sec:clientopenssl">18.20</a>&nbsp;<a href="#sec:serveropenssl">18.19</a> </td></tr>
 <tr><td><i>WITH_IPV6</i>	</td><td>enables IPv6 support </td></tr>
-<tr><td><i>WITH_FASTCGI</i>	</td><td>enables FastCGI, see Sections&nbsp;<a href="#sec:fastcgi">17.29</a> </td></tr>
-<tr><td><i>WITH_GZIP</i>	</td><td>enables gzip and deflate compression, see Section&nbsp;<a href="#sec:compression">17.25</a> </td></tr>
-<tr><td><i>WITH_ZLIB</i>	</td><td>enables deflate compression only, see Section&nbsp;<a href="#sec:compression">17.25</a> </td></tr>
-<tr><td><i>WITH_FAST</i>	</td><td>(experimental) may yield faster executables </td></tr>
-<tr><td><i>WITH_NOIO</i>	</td><td>eliminates need for file IO and BSD socket library, see Section&nbsp;<a href="#sec:noio">17.31</a> </td></tr>
-<tr><td><i>WITH_LEAN</i>	</td><td>creates a small-footprint executable, see Section&nbsp;<a href="#sec:lean">17.30</a> </td></tr>
-<tr><td><i>WITH_LEANER</i>	</td><td>creates an even smaller footprint executable, see Section&nbsp;<a href="#sec:lean">17.30</a> </td></tr>
+<tr><td><i>WITH_FASTCGI</i>	</td><td>enables FastCGI, see Sections&nbsp;<a href="#sec:fastcgi">18.29</a> </td></tr>
+<tr><td><i>WITH_GZIP</i>	</td><td>enables gzip and deflate compression, see Section&nbsp;<a href="#sec:compression">18.25</a> </td></tr>
+<tr><td><i>WITH_ZLIB</i>	</td><td>enables deflate compression only, see Section&nbsp;<a href="#sec:compression">18.25</a> </td></tr>
+<tr><td><i>WITH_UDP</i>		</td><td>enables UDP support (SOAP-over-UDP), see Section&nbsp;<a href="#sec:udp">17</a> </td></tr>
+<tr><td><i>WITH_FAST</i>	</td><td>(experimental) may yield faster code </td></tr>
+<tr><td><i>WITH_NOIO</i>	</td><td>eliminates need for file IO and BSD socket library, see Section&nbsp;<a href="#sec:noio">18.31</a> </td></tr>
+<tr><td><i>WITH_NOHTTP</i>	</td><td>eliminates HTTP stack to reduce code size </td></tr>
+<tr><td><i>WITH_LEAN</i>	</td><td>creates a small-footprint executable, see Section&nbsp;<a href="#sec:lean">18.30</a> </td></tr>
+<tr><td><i>WITH_LEANER</i>	</td><td>creates an even smaller footprint executable, see Section&nbsp;<a href="#sec:lean">18.30</a> </td></tr>
 <tr><td><i>WITH_NONAMESPACES</i></td><td>omit initialization of soap struct with global <i>namespaces</i> table </td></tr>
 <tr><td></td><td>and you MUST explicitly initialize <i>soap.namespaces</i> to point to a table </td></tr>
 <tr><td></td><td>see also Section&nbsp;<a href="#sec:nstable">10.4</a> </td></tr>
@@ -3990,6 +4160,7 @@ messages.  The flags are:
 <tr><td><i>SOAP_IO_CHUNK</i> </td><td>Use HTTP chunking </td></tr>
 <tr><td><i>SOAP_IO_LENGTH</i> </td><td>Require apriori calculation of content length (this is automatic) </td></tr>
 <tr><td><i>SOAP_IO_KEEPALIVE</i> </td><td>Attempt to keep socket connections alive (open) </td></tr>
+<tr><td><i>SOAP_IO_UDP</i> </td><td>Use UDP (datagram) transport, maximum message length is <i>SOAP_BUFLEN</i> </td></tr>
 <tr><td><i>SOAP_ENC_XML</i> </td><td>Use plain XML encoding without HTTP headers (useful with <i>SOAP_ENC_ZLIB</i>) </td></tr>
 <tr><td><i>SOAP_ENC_DIME</i> </td><td>Use DIME encoding (automatic when DIME attachments are used) </td></tr>
 <tr><td><i>SOAP_ENC_MIME</i> </td><td>Use MIME encoding (activate using <i>soap_set_mime</i>) </td></tr>
@@ -4113,7 +4284,7 @@ The deallocation functions are:
 <tr><td><i>soap_unlink(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*p)</i> </td><td>Unlink data/object at <i>p</i> from gSOAP's deallocation chain </td></tr>
 <tr><td></td><td>so gSOAP won't deallocate it </td></tr>
 <tr><td><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Reset: close master/slave sockets and remove callbacks </td></tr>
-<tr><td></td><td>(see Section&nbsp;<a href="#sec:callback">17.7</a> </td></tr></table>
+<tr><td></td><td>(see Section&nbsp;<a href="#sec:callback">18.7</a> </td></tr></table>
 
 </td></tr></table><br></span>
 Temporary data (i.e.&nbsp;the hash tables) are automatically removed with calls to
@@ -4626,7 +4797,8 @@ The error codes returned by the stub and skeleton routines are listed below.
 <tr><td align="right"><i>SOAP_MULTI_ID</i> </td><td>Multiple occurrences of the same element ID on the input </td></tr>
 <tr><td align="right"><i>SOAP_MISSING_ID</i> </td><td>Element ID missing for an HREF on the input </td></tr>
 <tr><td align="right"><i>SOAP_HREF</i> </td><td>Reference to object is incompatible with the object refered to </td></tr>
-<tr><td align="right"><i>SOAP_TCP_ERROR</i> </td><td>A TCP connection error occured </td></tr>
+<tr><td align="right"><i>SOAP_UDP_ERROR</i> </td><td>Message too large to store in UDP packet </td></tr>
+<tr><td align="right"><i>SOAP_TCP_ERROR</i> </td><td>A connection error occured </td></tr>
 <tr><td align="right"><i>SOAP_HTTP_ERROR</i> </td><td>An HTTP error occured </td></tr>
 <tr><td align="right"><i>SOAP_SSL_ERROR</i> </td><td>An SSL error occured </td></tr>
 <tr><td align="right"><i>SOAP_ZLIB_ERROR</i> </td><td>A Zlib error occured </td></tr>
@@ -4848,7 +5020,7 @@ A namespace mapping table is automatically generated together with a WSDL file
 for each namespace prefix that is used for a remote method in the header file.
 This namespace mapping table has entries for all namespace prefixes.  The
 namespace URIs need to be filled in. These appear as <i>http://tempuri.org</i>
-in the table.  See Section&nbsp;<a href="#sec:directives">17.2</a> on how to specify the namespace
+in the table.  See Section&nbsp;<a href="#sec:directives">18.2</a> on how to specify the namespace
 URIs in the header file.
 
 <p>
@@ -5252,7 +5424,7 @@ Type <i>xsd__positiveInteger</i> declares a 64-bit unsigned integer which is enc
 Another possibility is to use strings to represent unbounded integers and do the translation in code.</dd>
  <dt><b><tt>xsd:short</tt></b></dt>
 	<dd>
-Corresponds to a 16-bit integer in the range -323768 to 323767.
+Corresponds to a 16-bit integer in the range -32768 to 32767.
 The type declaration is:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>typedef</b>&nbsp;<b>short</b>&nbsp;xsd__short;
@@ -6003,7 +6175,7 @@ If a constructor method is present, there MUST also be a constructor
 declaration with empty parameter list.
 
 <p>
-Classes should be declared ``volatile'' if you don't want gSOAP to add serialization methods to these classes, see Section&nbsp;<a href="#sec:volatile">17.4</a> for more details.
+Classes should be declared ``volatile'' if you don't want gSOAP to add serialization methods to these classes, see Section&nbsp;<a href="#sec:volatile">18.4</a> for more details.
 
 <p>
 Class templates are not supported by the gSOAP compiler, but you can use STL containers,
@@ -7233,7 +7405,7 @@ The XML schema that corresponds to the <i>ns__myClass</i> type is
 &nbsp;&nbsp;&nbsp;&lt;/sequence&#62; <br />
 &lt;/complexType&#62;
 </td></tr></table><br></tt>
-You can specify the minOccurs and maxOccurs values as explained in Section&nbsp;<a href="#sec:directives">17.2</a>.
+You can specify the minOccurs and maxOccurs values as explained in Section&nbsp;<a href="#sec:directives">18.2</a>.
 
 <p>
 You can also implement your own
@@ -7573,7 +7745,7 @@ namespace prefixes.
 <b>int</b>&nbsp;ns__LocalTimeByZipCode(<b>char</b>&nbsp;*ZipCode, <b>char</b>&nbsp;**LocalTimeByZipCodeResult);
 </td></tr></table><br></i>
 In this case, the method name requires to be associated with a schema through a namespace prefix, e.g. <i>ns</i> is used in this example.
-See Section&nbsp;<a href="#sec:directives">17.2</a> for more details on gSOAP directives.
+See Section&nbsp;<a href="#sec:directives">18.2</a> for more details on gSOAP directives.
 With these directives, the gSOAP compiler generates client and server sources with the specified settings.
 
 <p>
@@ -7731,19 +7903,20 @@ The built-in <i><b>struct</b>&nbsp;SOAP_ENV__Fault</i> data structure is defined
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>struct</b>&nbsp;SOAP_ENV__Fault <br />
 { <br />
-&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*faultcode; // MUST be string <br />
-&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*faultstring; // MUST be string <br />
+&nbsp;&nbsp;&nbsp;_QName faultcode; // _QName is builtin <br />
+&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*faultstring; <br />
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*faultactor; <br />
-&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;SOAP_ENC__Detail *detail; // detail field <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;SOAP_ENC__Detail *detail; <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;SOAP_ENV__Code *SOAP_ENV__Code; // MUST be a SOAP_ENV__Code struct defined below <br />
-&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Reason; // MUST be string<br />
+&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Reason; <br />
+&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Node; <br />
+&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Role; <br />
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;SOAP_ENV__Detail SOAP_ENV__Detail; // SOAP 1.2 detail field <br />
 };
 <b>struct</b>&nbsp;SOAP_ENV__Code <br />
 { <br />
-&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Value; // MUST be string <br />
-&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Node; <br />
-&nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*SOAP_ENV__Role; <br />
+&nbsp;&nbsp;&nbsp;_QName SOAP_ENV__Value; <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;SOAP_ENV__Code *SOAP_ENV__Subcode;
 }; <br />
 <b>struct</b>&nbsp;SOAP_ENV__Detail <br />
 { <br />
@@ -7752,7 +7925,7 @@ The built-in <i><b>struct</b>&nbsp;SOAP_ENV__Fault</i> data structure is defined
 &nbsp;&nbsp;&nbsp;<b>char</b>&nbsp;*__any; // any other detail element content (stored in XML format) <br />
 };
 </td></tr></table><br></i>
-The first four fields in <i>SOAP_ENV__Fault</i> are SOAP 1.1 specific. The last three fields are SOAP 1.2 specific.
+The first four fields in <i>SOAP_ENV__Fault</i> are SOAP 1.1 specific. The last five fields are SOAP 1.2 specific.
 You can redefine these structures in the header file. For example, you can use a <i>class</i> for the <i>SOAP_ENV__Fault</i> and add methods for convenience.
 
 <p>
@@ -7909,7 +8082,7 @@ A Web service can read and set the SOAP Header as follows:
 &nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
 }
 </td></tr></table><br></i>
-See Section&nbsp;<a href="#sec:directives">17.2</a> on how to generate WSDL with the proper method-to-header-part bindings.
+See Section&nbsp;<a href="#sec:directives">18.2</a> on how to generate WSDL with the proper method-to-header-part bindings.
 
 <p>
 The <tt>SOAP-ENV:mustUnderstand</tt> attribute indicates the requirement that the recipient of the SOAP Header (who must
@@ -8716,11 +8889,11 @@ enable the validation of value length constraints.
 <p>
 To associate a pattern with a simpleType, you can define a simpleType with a <i><b>typedef</b></i> and a pattern string:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-<b>typedef</b>&nbsp;<b>int</b>&nbsp;time__seconds "[1-5]?[0-9]|60";
+<b>typedef</b>&nbsp;<b>int</b>&nbsp;time__second "[1-5]?[0-9]|60";
 </td></tr></table><br></i>
 This defines the following schema type in <i>time.xsd</i>:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0B0D0"><tr><td><tt>
-&lt;simpleType name="seconds&#187; <br />
+&lt;simpleType name="second&#187; <br />
 &nbsp;&nbsp;&nbsp;&lt;restriction base="xsd:int&#187; <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;pattern value="[1-5]?[0-9]|60"/&#62; <br />
 &nbsp;&nbsp;&nbsp;&lt;/restriction base="xsd:int"/&#62; <br />
@@ -8729,16 +8902,378 @@ This defines the following schema type in <i>time.xsd</i>:
 The pattern string MUST contain a valid regular expression.
 
 <p>
-Patterns are currently not used in the validation process.
+Patterns are currently not checked in the validation process.
 
 <p>
  <h2><a name="tth_sEc17">
-17</a>&nbsp;&nbsp;<font color="#0000FF">Advanced Features</font></h2><a name="sec:advanced">
+17</a>&nbsp;&nbsp;<font color="#0000FF">SOAP-over-UDP</font></h2><a name="sec:udp">
 </a>
 
 <p>
-		     <h3><a name="tth_sEc17.1">
-17.1</a>&nbsp;&nbsp;<font color="#0000FF">Internationalization</font></h3>
+UDP is a simple, unreliable datagram protocol: UDP sockets are connectionless.
+UDP address formats are identical to those used by TCP.  In particular UDP
+provides a port identifier in addition to the normal Internet address format.
+The UDP port space is separate from the TCP port space (i.e. a UDP port may not
+be ``connected'' to a TCP port).  In addition broadcast packets may be sent
+(assuming the underlying network supports this) by using a reserved ``broadcast
+address''; this address is network interface dependent.
+
+<p>
+To enable SOAP-over-UDP with gSOAP, <i>stdsoap2.c</i> and <i>stdsoap2.cpp</i>
+MUST be compiled with <i>-DWITH_UDP</i> prior to linking with your application.
+
+<p>
+Client-side messages with SOAP-over-UDP endpoint URLs
+(<i>soap.udp://...</i>) will be automatically transmitted as datagrams.
+Server-side applications should set the <i>SOAP_IO_UDP</i> mode flag to
+accept UDP requests, e.g. using <i>soap_init1</i> or <i>soap_set_mode</i>.
+
+<p>
+The maximum message length for datagram packets is restricted by the buffer
+size <i>SOAP_BUFLEN</i>, which is 65536 by default, unless
+compiled with <i>WITH_LEAN</i> to support small-scale embedded systems.
+For UDP transport <i>SOAP_BUFLEN</i> must not exceed the maximum UDP packet size
+65536 (the size of datagram messages is constrained by the
+UDP packet size 2<sup>16</sup>=65536 as per UDP standard). You can use gzip compression
+to reduce the message size, but note that compressed SOAP-over-UDP is a
+gSOAP-specific feature because it is not part of the SOAP-over-UDP
+specification.
+
+<p>
+The SOAP-over-UDP specification relies on WS-Addressing. The <i>WS-Addressing.h</i>
+file in the <i>samples/udp</i> directory defines the WS-Addressing elements for
+client and server applications.
+
+<p>
+The gSOAP implementation conforms to the SOAP-over-UDP requirements:
+
+<ul><p>
+<li> SOAP-over-UDP server endpoint URL format: <i>soap.udp://host:port/path</i></li>
+<p>
+<li> Support one-way message-exchange pattern (MEP) where a SOAP envelope is
+  carried in a user datagram.</li>
+<p>
+<li> Support request-response message-exchange pattern (MEP) where SOAP envelopes
+  are carried in user datagrams.</li>
+<p>
+<li> Support multicast transmission of SOAP envelopes carried in user datagrams.</li>
+<p>
+<li> Support both SOAP 1.1 and SOAP 1.2 envelopes.</li>
+</ul>
+The following additional features are also available, but are not supported by the SOAP-over-UDP specification:
+
+<ul><p>
+<li> Zlib/gzip message compression (compile <i>-DWITH_GZIP</i>).</li>
+<p>
+<li> SOAP with DIME attachments over UDP.</li>
+<p>
+<li> SOAP with MIME attachments (SwA) over UDP.</li>
+<p>
+<li> Support for IPv6 (compile <i>-DWITH_IPV6</i>)</li>
+</ul>
+
+<p>
+	     <h3><a name="tth_sEc17.1">
+17.1</a>&nbsp;&nbsp;<font color="#0000FF">Using WS-Addressing with SOAP-over-UDP</font></h3><a name="sec:udp.h">
+</a>
+
+<p>
+A SOAP-over-UDP application MUST use WS-Addressing to control message delivery
+as per SOAP-over-UDP specification.
+
+<p>
+The <i>WS-Addressing.h</i> file in the <i>samples/udp</i> directory defines the
+WS-Addressing elements.  To include the WS-Addressing elements in the SOAP
+Header for messaging, a <i><b>struct</b>&nbsp;SOAP_ENV__Header</i> structure must be
+defined in your header file. For example:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+#import "WS-Addressing.h" <br />
+//gsoap wsa schema import: http://schemas.xmlsoap.org/ws/2004/08/addressing <br />
+<b>struct</b>&nbsp;SOAP_ENV__Header <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand wsa__AttributedURI                     wsa__MessageID  0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand <b>struct</b>&nbsp;wsa__Relationship               *wsa__RelatesTo 0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand <b>struct</b>&nbsp;wsa__EndpointReferenceType      *wsa__From      0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand <b>struct</b>&nbsp;wsa__EndpointReferenceType      *wsa__ReplyTo   0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand <b>struct</b>&nbsp;wsa__EndpointReferenceType      *wsa__FaultTo   0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand <b>struct</b>&nbsp;wsa__EndpointReferenceType      *wsa__Recipient 0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand wsa__AttributedURI                     wsa__To         0; <br />
+&nbsp;&nbsp;&nbsp;mustUnderstand wsa__AttributedURI                     wsa__Action     0; <br />
+};
+</td></tr></table><br></i>
+We also included a <i>//gsoap wsa schema import</i> directive to generate a WSDL
+specification that imports (instead of includes) the WS-Addressing elements (to
+enable WSDL generation, the <i>//gsoapopt w</i> directive must not be present in
+<i>WS-Addressing.h</i> and your header file).
+
+<p>
+One-way SOAP-over-UDP messages (see Section&nbsp;<a href="#sec:oneway1">8.3</a>) should be
+declared to include the <i>wsa:MessageID</i>, <i>wsa:To</i>, and <i>wsa:Action</i>
+elements in the SOAP Header of the request message as follows:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap ns service method-header-part:          sendString wsa__MessageID <br />
+//gsoap ns service method-header-part:          sendString wsa__To <br />
+//gsoap ns service method-header-part:          sendString wsa__Action <br />
+<b>int</b>&nbsp;ns__sendString(<b>char</b>&nbsp;*str, <b>void</b>);
+</td></tr></table><br></i>
+Request-response SOAP-over-UDP messages should be declared to include the
+<i>wsa:MessageID</i>, <i>wsa:To</i>, <i>wsa:Action</i>, and <i>wsa:ReplyTo</i>
+elements in the SOAP Header of the request message, and the the
+<i>wsa:MessageID</i>, <i>wsa:To</i>, <i>wsa:Action</i>, and <i>wsa:RelatesTo</i>
+elements in the SOAP Header of the response message:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap ns service method-header-part:          echoString wsa__MessageID <br />
+//gsoap ns service method-header-part:          echoString wsa__To <br />
+//gsoap ns service method-header-part:          echoString wsa__Action <br />
+//gsoap ns service method-input-header-part:    sendString wsa__ReplyTo <br />
+//gsoap ns service method-output-header-part:   echoString wsa__RelatesTo <br />
+<b>int</b>&nbsp;ns__echoString(<b>char</b>&nbsp;*str, <b>char</b>&nbsp;**res);
+</td></tr></table><br></i>
+For the content requirements of these elements, please consult the
+SOAP-over-UDP specification and/or read the next sections explaining
+SOAP-over-UDP unicast, multicast, one-way, and request-response client and
+server applications.
+
+<p>
+	     <h3><a name="tth_sEc17.2">
+17.2</a>&nbsp;&nbsp;<font color="#0000FF">Client-side One-way Unicast</font></h3>
+
+<p>
+This example assumes that the gSOAP header file includes the SOAP Header with
+WS-Addressing elements and the <i>ns__sendString</i> function discussed in
+Section&nbsp;<a href="#sec:udp.h">17.1</a>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap soap; <br />
+<b>struct</b>&nbsp;SOAP_ENV__Header header; // the SOAP Header <br />
+soap_init(&amp;soap); <br />
+soap.send_timeout = 1; // 1s timeout <br />
+soap_default_SOAP_ENV__Header(&amp;soap, &amp;header); // init SOAP Header <br />
+header.wsa__MessageID = "<i>message ID</i>"; <br />
+header.wsa__To = "<i>server URL</i>"; <br />
+header.wsa__Action = "<i>server action</i>"; <br />
+soap.header = &amp;header; // bind the SOAP Header for transport <br />
+// Send the message over UDP: <br />
+<b>if</b>&nbsp;(soap_send_ns__echoString(&amp;soap, "soap.udp://...", NULL, "hello world!")) <br />
+&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); // report error <br />
+soap_end(&amp;soap); // cleanup <br />
+soap_destroy(&amp;soap); // cleanup <br />
+soap_done(&amp;soap); // close connection (should not use soap struct after this)
+</td></tr></table><br></i>
+
+<p>
+	     <h3><a name="tth_sEc17.3">
+17.3</a>&nbsp;&nbsp;<font color="#0000FF">Client-side One-way Multicast</font></h3>
+
+<p>
+This example is similar to the one-way unicast example discussed above, but
+uses a broadcast address and the <i>SO_BROADCAST</i> socket option:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap soap; <br />
+<b>struct</b>&nbsp;SOAP_ENV__Header header; // the SOAP Header <br />
+soap_init(&amp;soap); <br />
+soap.send_timeout = 1; // 1s timeout <br />
+soap.connect_flags = SO_BROADCAST; // required for broadcast <br />
+soap_default_SOAP_ENV__Header(&amp;soap, &amp;header); // init SOAP Header <br />
+header.wsa__MessageID = "<i>message ID</i>"; <br />
+header.wsa__To = "<i>server URL</i>"; <br />
+header.wsa__Action = "<i>server action</i>"; <br />
+soap.header = &amp;header; // bind the SOAP Header for transport <br />
+// Send the message over UDP to a broadcast address: <br />
+<b>if</b>&nbsp;(soap_send_ns__echoString(&amp;soap, "soap.udp://...", NULL, "hello world!")) <br />
+&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); // report error <br />
+soap_end(&amp;soap); // cleanup <br />
+soap_destroy(&amp;soap); // cleanup <br />
+soap_done(&amp;soap); // close connection (should not use soap struct after this)
+</td></tr></table><br></i>
+
+<p>
+	     <h3><a name="tth_sEc17.4">
+17.4</a>&nbsp;&nbsp;<font color="#0000FF">Client-side Request-Response Unicast</font></h3>
+
+<p>
+This example assumes that the gSOAP header file includes the SOAP Header with
+WS-Addressing elements and the <i>ns__echoString</i> function discussed in
+Section&nbsp;<a href="#sec:udp.h">17.1</a>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap soap; <br />
+<b>struct</b>&nbsp;SOAP_ENV__Header header; // the SOAP Header <br />
+<b>struct</b>&nbsp;wsa__EndpointReferenceType replyTo; // (anonymous) reply address <br />
+<b>char</b>&nbsp;*res; // server response <br />
+soap_init(&amp;soap); <br />
+soap.send_timeout = 1; // 1s timeout <br />
+soap.recv_timeout = 1; // 1s timeout <br />
+soap_default_SOAP_ENV__Header(&amp;soap, &amp;header); // init SOAP Header <br />
+soap_default_wsa__EndpointReferenceType(&amp;soap, &amp;replyTo); // init reply address <br />
+replyTo.Address = "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous"; <br />
+header.wsa__MessageID = "<i>message ID</i>"; <br />
+header.wsa__To = "<i>server URL</i>"; <br />
+header.wsa__Action = "<i>server action</i>"; <br />
+header.wsa__ReplyTo = &amp;replyTo; <br />
+soap.header = &amp;header; // bind the SOAP Header for transport <br />
+// Send and receive messages over UDP: <br />
+<b>if</b>&nbsp;(soap_call_ns__echoString(&amp;soap, "soap.udp://...", NULL, "hello world!", &amp;res)) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap.error == SOAP_EOF &amp;&amp; soap.errnum == 0) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Timeout: no response from server (message already delivered?) <br />
+&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+} <br />
+<b>else</b><br />
+&nbsp;&nbsp;&nbsp;// UDP server response is stored in 'res' <br />
+// check SOAP header received, if applicable <br />
+check_header(&amp;soap.header); <br />
+soap_end(&amp;soap); // cleanup <br />
+soap_destroy(&amp;soap); // cleanup <br />
+soap_done(&amp;soap); // close connection (should not use soap struct after this)
+</td></tr></table><br></i>
+
+<p>
+	     <h3><a name="tth_sEc17.5">
+17.5</a>&nbsp;&nbsp;<font color="#0000FF">Client-side Request-Response Multicast</font></h3>
+
+<p>
+This example is similar to the request-response unicast example discussed
+above, but uses a broadcast address and the <i>SO_BROADCAST</i> socket option.
+Because we expect to receive multiple responses, we also need to use separate
+request-response messages to send one request and consume multiple responses.
+In this example we defined a <i>bcastString</i> request and a
+<i>bcastStringResponse</i> response message, which are essentially declared as
+one-way messages in the header file:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap ns service method-header-part:          bcastString wsa__MessageID <br />
+//gsoap ns service method-header-part:          bcastString wsa__To <br />
+//gsoap ns service method-header-part:          bcastString wsa__Action <br />
+//gsoap ns service method-header-part:          bcastString wsa__ReplyTo <br />
+<b>int</b>&nbsp;ns__bcastString(<b>char</b>&nbsp;*str, <b>void</b>); <br />
+//gsoap ns service method-header-part:          bcastStringResponse wsa__MessageID <br />
+//gsoap ns service method-header-part:          bcastStringResponse wsa__To <br />
+//gsoap ns service method-header-part:          bcastStringResponse wsa__Action <br />
+//gsoap ns service method-header-part:          bcastStringResponse wsa__RelatesTo <br />
+<b>int</b>&nbsp;ns__bcastStringResponse(<b>char</b>&nbsp;*res, <b>void</b>);
+</td></tr></table><br></i>
+The cliend code includes a loop to receive response messages until a timeout occurs:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap soap; <br />
+<b>struct</b>&nbsp;SOAP_ENV__Header header; <br />
+<b>struct</b>&nbsp;wsa__EndpointReferenceType replyTo; <br />
+<b>char</b>&nbsp;*res; <br />
+soap_init(&amp;soap); <br />
+soap.connect_flags = SO_BROADCAST; <br />
+soap.send_timeout = 1; // 1s timeout <br />
+soap.recv_timeout = 1; // 1s timeout <br />
+soap_default_SOAP_ENV__Header(&amp;soap, &amp;header); <br />
+soap.header = &amp;header; <br />
+soap_default_wsa__EndpointReferenceType(&amp;soap, &amp;replyTo); <br />
+replyTo.Address = "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous"; <br />
+header.wsa__MessageID = "<i>message ID</i>"; <br />
+header.wsa__To = "<i>server URL</i>"; <br />
+header.wsa__Action = "<i>server action</i>"; <br />
+header.wsa__ReplyTo = &amp;replyTo; <br />
+<b>if</b>&nbsp;(soap_send_ns__bcastString(&amp;soap, "soap.udp://...", NULL, "hello world!")) <br />
+&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+<b>else</b><br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(;;) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_recv_ns__bcastStringResponse(&amp;soap, &amp;res)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Got response 'res' from a server <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap.error == SOAP_EOF &amp;&amp; soap.errnum == 0) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Timeout: no more messages received <br />
+&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+} <br />
+soap_end(&amp;soap); // cleanup <br />
+soap_destroy(&amp;soap); // cleanup <br />
+soap_done(&amp;soap); // close connection (should not use soap struct after this)
+</td></tr></table><br></i>
+Note that a server for the <i>bcastString</i> does not need to use two-one way
+messages.  Thus, multicast request-response message pattern can be declared and
+implemented as request-response operations at the server side.
+
+<p>
+	     <h3><a name="tth_sEc17.6">
+17.6</a>&nbsp;&nbsp;<font color="#0000FF">SOAP-over-UDP Server</font></h3>
+
+<p>
+The following example code illustrates a SOAP-over-UDP server for one-way <i>sendString</i> and request-response <i>echoString</i> messages.
+This example assumes that the gSOAP header file includes the SOAP Header with
+WS-Addressing elements and the <i>ns__echoString</i> function discussed in
+Section&nbsp;<a href="#sec:udp.h">17.1</a>.
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+main() <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
+&nbsp;&nbsp;&nbsp;soap_init1(&amp;soap, SOAP_IO_UDP); // must set UDP flag <br />
+&nbsp;&nbsp;&nbsp;// bind to host (NULL=current host) and port: <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap_valid_socket(soap_bind(&amp;soap, host, port, 100))) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(1); <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(;;) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_serve(&amp;soap)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); // report the problem <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_destroy(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_end(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;soap_done(&amp;soap); // close connection <br />
+} <br />
+<b>int</b>&nbsp;ns__echoString(<b>struct</b>&nbsp;soap *soap, <b>char</b>&nbsp;*str, <b>char</b>&nbsp;**res) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap<tt>-&gt;</tt>header) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_sender_fault(soap, "No SOAP header", NULL); <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__MessageID) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_sender_fault(soap, "No WS-Addressing MessageID", NULL); <br />
+&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__RelatesTo = (<b>struct</b>&nbsp;wsa__Relationship*)soap_malloc(soap, <b>sizeof</b>(<b>struct</b>&nbsp;wsa__Relationship)); <br />
+&nbsp;&nbsp;&nbsp;soap_default_wsa__Relationship(soap, soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__RelatesTo); <br />
+&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__RelatesTo<tt>-&gt;</tt>__item = soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__MessageID; <br />
+&nbsp;&nbsp;&nbsp;// must check for duplicate messages <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(check_received(soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__MessageID)) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Request message already received <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_STOP; // don't return response <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__ReplyTo <font face="symbol">|</font
+><font face="symbol">|</font
+> !soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__ReplyTo<tt>-&gt;</tt>Address) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_sender_fault(soap, "No WS-Addressing ReplyTo address", NULL); <br />
+&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__To = soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__ReplyTo<tt>-&gt;</tt>Address; <br />
+&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__MessageID = soap_strdup(soap, soap_int2s(soap, id_count++)) ; <br />
+&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__Action = "http://genivia.com/udp/echoStringResponse"; <br />
+&nbsp;&nbsp;&nbsp;*res = str; <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
+} <br />
+<b>int</b>&nbsp;ns__sendString(<b>struct</b>&nbsp;soap *soap, <b>char</b>&nbsp;*str) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap<tt>-&gt;</tt>header) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_STOP; <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__MessageID) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_STOP; <br />
+&nbsp;&nbsp;&nbsp;// must check for duplicate messages <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(check_received(soap<tt>-&gt;</tt>header<tt>-&gt;</tt>wsa__MessageID)) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_STOP; <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
+} <br />
+<b>int</b>&nbsp;ns__sendStringResponse(<b>struct</b>&nbsp;soap *soap, <b>char</b>&nbsp;*res) <br />
+{ <b>return</b>&nbsp;SOAP_NO_METHOD; } // we don't expect to serve this message
+</td></tr></table><br></i>
+The server binds to a host and port and accepts messages in a tight sequential
+loop.  Because UDP does not have the equivalent of an accept the messages
+cannot be dispatched to threads, the <i>soap_serve</i> waits for a message and
+immediately accepts it. You can use a receive timeout to make <i>soap_serve</i>
+non-blocking.
+
+<p>
+ <h2><a name="tth_sEc18">
+18</a>&nbsp;&nbsp;<font color="#0000FF">Advanced Features</font></h2><a name="sec:advanced">
+</a>
+
+<p>
+		     <h3><a name="tth_sEc18.1">
+18.1</a>&nbsp;&nbsp;<font color="#0000FF">Internationalization</font></h3>
 
 <p>
 gSOAP uses regular strings by default.  Regular strings cannot be used to hold
@@ -8779,8 +9314,8 @@ Please consult the UTF-8 specification for details on the UTF-8 format.
 Note that the ASCII character set [1-127] is a subset of UTF-8. Therefore, with the <i>SOAP_C_UTFSTRING</i> flag set, strings may hold ASCII character data and UTF-8 extensions.
 
 <p>
-		     <h3><a name="tth_sEc17.2">
-17.2</a>&nbsp;&nbsp;<font color="#0000FF">Customizing the WSDL and Namespace Mapping Table File Contents With gSOAP Directives</font></h3><a name="sec:directives">
+		     <h3><a name="tth_sEc18.2">
+18.2</a>&nbsp;&nbsp;<font color="#0000FF">Customizing the WSDL and Namespace Mapping Table File Contents With gSOAP Directives</font></h3><a name="sec:directives">
 </a>
 
 <p>
@@ -8802,6 +9337,13 @@ of a Web Service (only required to create new Web Services).
 The name may be followed by text up to the end of the line which is incorporated into the WSDL service documentation. Alternatively, the service documentation can be provided with the directive below.
 
 <p>
+To specify the name of the WSDL definitions in the header file, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service definitions: <i>definitions-name</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>definitions-name</i> is the name of the WSDL definitions. By default, the WSDL definitions name is the same as the service name.
+
+<p>
 To specify the documentation of a Web Service in the header file, use:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap <i>namespace-prefix</i> service documentation: <i>text</i>
@@ -8812,9 +9354,27 @@ The text is incorporated into the WSDL service documentation.
 <p>
 To specify the portType of a Web Service in the header file, use:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
-//gsoap <i>namespace-prefix</i> service portType: <i>portType</i>
+//gsoap <i>namespace-prefix</i> service portType: <i>portType-name</i>
 </td></tr></table><br></i>
-where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>portType</i> is the portType name of the WSDL service portType.
+or
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service type: <i>portType-name</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>portType-name</i> is the portType name of the WSDL service portType.
+
+<p>
+To specify the binding name of a Web Service in the header file, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service binding: <i>binding-name</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>binding-name</i> is the binding name of the WSDL service binding element. By default, the binding name is the same as the service name.
+
+<p>
+To specify the binding's transport protocol of a Web Service in the header file, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service transport: <i>transport-URL</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>transport-URL</i> is the URL of the transport protocol such as <i>http://schemas.xmlsoap.org/soap/http</i> for HTTP. HTTP transport is assumed by default.
 
 <p>
 To specify the location (or port endpoint) of a Web Service in the header file, use:
@@ -8898,6 +9458,21 @@ A shortcut to define the default qualification of elements and attributes of a s
 or:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap <i>namespace-prefix</i> schema form: unqualified
+</td></tr></table><br></i>
+
+<p>
+To document a data type, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> schema type-documentation: <i>type-name</i> //<i>text</i>
+</td></tr></table><br></i>
+where <i>type-name</i> is the unqualified name of the data type and <i>text</i>
+is a line of text terminated by a newline. Do not use any XML reserved
+characters in <i>text</i> such as  &lt;  and  &gt; . Use well-formed XML and XHTML markup instead.
+For example:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap ns schema type-documentation: tdata stores <tt>&lt;a href="transaction.html"&gt;</tt>transaction<tt>&lt;/a&gt;</tt> data <br />
+<b>class</b>&nbsp;ns__tdata <br />
+{ ... }
 </td></tr></table><br></i>
 
 <p>
@@ -9067,8 +9642,8 @@ namespace prefix with a namespace URI. Otherwise, namespace URIs have to be
 manually added to the table (they appear as <i>http://tempuri.org</i>).
 
 <p>
-		     <h3><a name="tth_sEc17.3">
-17.3</a>&nbsp;&nbsp;<font color="#0000FF">Transient Data Types</font></h3><a name="sec:transient">
+		     <h3><a name="tth_sEc18.3">
+18.3</a>&nbsp;&nbsp;<font color="#0000FF">Transient Data Types</font></h3><a name="sec:transient">
 </a>
 
 <p>
@@ -9087,7 +9662,7 @@ can be used with data type declarations and within <i><b>struct</b></i> and
 same effect, but <i>[ ]</i> may be more convenient to encapsulate transient
 types in a larger part of the header file. The use of <i><b>extern</b></i> with
 <i><b>typedef</b></i> is reserved for the declaration of user-defined external
-(de)serializers for data types, see Section&nbsp;<a href="#sec:extern">17.5</a>.
+(de)serializers for data types, see Section&nbsp;<a href="#sec:extern">18.5</a>.
 
 <p>
 First example:
@@ -9136,8 +9711,8 @@ creating (de)serializers for the <i><b>char</b>[1024]</i> type. gSOAP will gener
 <i>]</i> transient block.
 
 <p>
-		     <h3><a name="tth_sEc17.4">
-17.4</a>&nbsp;&nbsp;<font color="#0000FF">Volatile Data Types</font></h3><a name="sec:volatile">
+		     <h3><a name="tth_sEc18.4">
+18.4</a>&nbsp;&nbsp;<font color="#0000FF">Volatile Data Types</font></h3><a name="sec:volatile">
 </a>
 
 <p>
@@ -9171,8 +9746,8 @@ Note that we qualified the structure <i><b>volatile</b></i> in the gSOAP header 
 We can now readily serialize and deserialize the tm structure. The following program fragment serializes the local time stored in a tm structure to stdout:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 time_t T = time(NULL); <br />
-struct tm *t = localtime(&amp;T); <br />
-struct soap *soap = soap_new(); <br />
+<b>struct</b>&nbsp;tm *t = localtime(&amp;T); <br />
+<b>struct</b>&nbsp;soap *soap = soap_new(); <br />
 soap_set_omode(soap, SOAP_XML_GRAPH); // good habit to use this <br />
 soap_begin_send(soap); <br />
 soap_put_tm(soap, t, "myLocalTime", NULL); <br />
@@ -9204,8 +9779,8 @@ classes <i><b>volatile</b></i>, similar to the tm structure example illustrated 
 You can also use a <i><b>typedef</b></i> to associate a schema with a class.
 
 <p>
-		     <h3><a name="tth_sEc17.5">
-17.5</a>&nbsp;&nbsp;<font color="#0000FF">How to Declare User-Defined Serializers and Deserializers</font></h3><a name="sec:extern">
+		     <h3><a name="tth_sEc18.5">
+18.5</a>&nbsp;&nbsp;<font color="#0000FF">How to Declare User-Defined Serializers and Deserializers</font></h3><a name="sec:extern">
 </a>
 
 <p>
@@ -9271,8 +9846,8 @@ More information on custom (de)serialization will be provided in this document o
 The writing of the (de)serializer code requires the use of the low-level gSOAP API.
 
 <p>
-		     <h3><a name="tth_sEc17.6">
-17.6</a>&nbsp;&nbsp;<font color="#0000FF">How to Serialize Data Without Generating XSD Type Attributes</font></h3>
+		     <h3><a name="tth_sEc18.6">
+18.6</a>&nbsp;&nbsp;<font color="#0000FF">How to Serialize Data Without Generating XSD Type Attributes</font></h3>
 
 <p>
 gSOAP serializes data in XML with <tt>xsi:type</tt> attributes when the types are
@@ -9313,8 +9888,8 @@ underscore prevents the XML serialization of <tt>xsi:type</tt> attributes for th
 type in the SOAP/XML payload.
 
 <p>
-		     <h3><a name="tth_sEc17.7">
-17.7</a>&nbsp;&nbsp;<font color="#0000FF">Function Callbacks for Customized I/O and HTTP Handling</font></h3><a name="sec:callback">
+		     <h3><a name="tth_sEc18.7">
+18.7</a>&nbsp;&nbsp;<font color="#0000FF">Function Callbacks for Customized I/O and HTTP Handling</font></h3><a name="sec:callback">
 </a>
 
 <p>
@@ -9330,7 +9905,7 @@ Should return a valid file descriptor, or <i>SOAP_INVALID_SOCKET</i> and <i>soap
 Built-in gSOAP function: <i>tcp_connect</i>
 </td></tr>
 <tr><td width="602"><i><b>int</b>&nbsp;(*soap.fget)(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
-<tr><td width="602">Called by the main server loop upon an HTTP GET request. The <i>SOAP_GET_METHOD</i> error is returned by the default <i>fget</i> routine. This callback can be used to respond to HTTP GET methods with content, see Section&nbsp;<a href="#sec:get">17.10</a>.
+<tr><td width="602">Called by the main server loop upon an HTTP GET request. The <i>SOAP_GET_METHOD</i> error is returned by the default <i>fget</i> routine. This callback can be used to respond to HTTP GET methods with content, see Section&nbsp;<a href="#sec:get">18.10</a>.
 Built-in gSOAP function: <i>http_get</i>
 </td></tr>
 <tr><td width="602"><i><b>int</b>&nbsp;(*soap.fpost)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*endpoint, <b>const</b>&nbsp;<b>char</b>&nbsp;*host, <b>int</b>&nbsp;port, <b>const</b>&nbsp;<b>char</b>&nbsp;*path, <b>const</b>&nbsp;<b>char</b>&nbsp;*action, size_t count)</i> </td></tr>
@@ -9630,8 +10205,8 @@ soap_end(&amp;soap); // clean up
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc17.8">
-17.8</a>&nbsp;&nbsp;<font color="#0000FF">HTTP 1.0 and 1.1</font></h3>
+	     <h3><a name="tth_sEc18.8">
+18.8</a>&nbsp;&nbsp;<font color="#0000FF">HTTP 1.0 and 1.1</font></h3>
 
 <p>
 gSOAP uses HTTP 1.1 by default. You can revert to HTTP 1.0 as follows:
@@ -9643,8 +10218,8 @@ soap.http_version = "1.0";
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc17.9">
-17.9</a>&nbsp;&nbsp;<font color="#0000FF">HTTP 307 Temporary Redirect Support</font></h3>
+	     <h3><a name="tth_sEc18.9">
+18.9</a>&nbsp;&nbsp;<font color="#0000FF">HTTP 307 Temporary Redirect Support</font></h3>
 
 <p>
 The client-side handling of HTTP 307 code "Temporary Redirect" and any of the redirect codes 301, 302, and 303 are not automated in gSOAP. Client application developers may want to consider adding a few lines of code to support redirects. It was decided not to automatically support redirects for the following reasons:
@@ -9677,8 +10252,8 @@ To implement client-side 307 redirect, add the following lines of code:
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc17.10">
-17.10</a>&nbsp;&nbsp;<font color="#0000FF">HTTP GET Support</font></h3><a name="sec:get">
+	     <h3><a name="tth_sEc18.10">
+18.10</a>&nbsp;&nbsp;<font color="#0000FF">HTTP GET Support</font></h3><a name="sec:get">
 </a>
 
 <p>
@@ -9742,8 +10317,8 @@ where <i>ns1__mySendMethodResponse</i> is a one-way message declared in a gSOAP 
 The generated <i>soapClient.cpp</i> includes the sending-side stub function.
 
 <p>
-	     <h3><a name="tth_sEc17.11">
-17.11</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Keep-Alive</font></h3><a name="sec:keepalive">
+	     <h3><a name="tth_sEc18.11">
+18.11</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Keep-Alive</font></h3><a name="sec:keepalive">
 </a>
 
 <p>
@@ -9838,7 +10413,7 @@ each thread handles the client connection:
 </td></tr></table><br></i>
 To prevent a malicious client from keeping a thread waiting forever by keeping
 the connection open, timeouts are set in the <i>process_request</i> routine.
-See Section&nbsp;<a href="#sec:timeout">17.17</a> for more details on timeout settings.
+See Section&nbsp;<a href="#sec:timeout">18.17</a> for more details on timeout settings.
 
 <p>
 A gSOAP client call will automatically attempt to re-establish a connection to
@@ -9854,8 +10429,8 @@ server to close the connection after this last call. This will close the socket
 after the call and also informs the server to gracefully close the connection.
 
 <p>
-	     <h3><a name="tth_sEc17.12">
-17.12</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Chunked Transfer Encoding</font></h3><a name="sec:chunked">
+	     <h3><a name="tth_sEc18.12">
+18.12</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Chunked Transfer Encoding</font></h3><a name="sec:chunked">
 </a>
 
 <p>
@@ -9865,8 +10440,8 @@ takes place automatically. Outbound messages are never chunked, except when the
 however, will not accept chunked inbound messages.
 
 <p>
-	     <h3><a name="tth_sEc17.13">
-17.13</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Buffered Sends</font></h3>
+	     <h3><a name="tth_sEc18.13">
+18.13</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Buffered Sends</font></h3>
 
 <p>
 The entire outbound message can be stored to determine the HTTP content length
@@ -9884,8 +10459,8 @@ This is accomplished by setting the <i>SOAP_IO_CHUNK</i> flag with
 <i>SOAP_ENC_ZLIB</i> for the output mode.
 
 <p>
-	     <h3><a name="tth_sEc17.14">
-17.14</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Authentication</font></h3>
+	     <h3><a name="tth_sEc18.14">
+18.14</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Authentication</font></h3>
 
 <p>
 HTTP authentication (basic) is enabled at the client-side by setting the
@@ -9936,8 +10511,8 @@ When the authentication fails, the service response with a SOAP Fault message an
 The HTTP error codes are described in Section&nbsp;<a href="#sec:errcodes">10.2</a>.
 
 <p>
-	     <h3><a name="tth_sEc17.15">
-17.15</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Proxy Authentication</font></h3>
+	     <h3><a name="tth_sEc18.15">
+18.15</a>&nbsp;&nbsp;<font color="#0000FF">HTTP Proxy Authentication</font></h3>
 
 <p>
 HTTP proxy authentication (basic) is enabled at the client-side by setting the
@@ -9966,25 +10541,27 @@ Proxy-Authorization: Basic Z3Vlc3Q6Z3Vlc3Q= <br />
 </td></tr></table><br></tt>
 
 <p>
-	     <h3><a name="tth_sEc17.16">
-17.16</a>&nbsp;&nbsp;<font color="#0000FF">Speed Improvement Tips</font></h3>
+	     <h3><a name="tth_sEc18.16">
+18.16</a>&nbsp;&nbsp;<font color="#0000FF">Speed Improvement Tips</font></h3>
 
 <p>
 Here are some tips you can use to speed up gSOAP. gSOAP's default settings are choosen to maximize portability and compatibility. The settings can be tweaked to optimize the performance as follows:
 
 <ul><p>
-<li> Increase the buffer size <i>SOAP_BUFLEN</i> by changing the <i>SOAP_BUFLEN</i> macro in <i>stdsoap2.h</i>. Use buffer size 65536 for example.</li>
+<li> Increase the buffer size <i>SOAP_BUFLEN</i> by changing the <i>SOAP_BUFLEN</i> macro in <i>stdsoap2.h</i>. Use buffer size 2<sup>1</sup>8=262144 for example.</li>
 <p>
-<li> Use HTTP keep-alive at the client-side, see&nbsp;<a href="#sec:keepalive">17.11</a>, when the client needs to make a series of calls to the same server. Server-side keep-alive support can greatly improve performance of both client and server. But be aware that clients and services under Unix/Linux require signal handlers to catch dropped connections.</li>
+<li> Use HTTP keep-alive at the client-side, see&nbsp;<a href="#sec:keepalive">18.11</a>, when the client needs to make a series of calls to the same server. Server-side keep-alive support can greatly improve performance of both client and server. But be aware that clients and services under Unix/Linux require signal handlers to catch dropped connections.</li>
 <p>
-<li> Use HTTP chunked transfers, see&nbsp;<a href="#sec:chunked">17.12</a>.</li>
+<li> Use HTTP chunked transfers, see&nbsp;<a href="#sec:chunked">18.12</a>.</li>
 <p>
 <li> Do NOT use gzip compression, even when transferring data over a modem connection. Modems already compress data transfers.</li>
+<p>
+<li> Use <i>-DWITH_FAST</i> to compile.</li>
 </ul>
 
 <p>
-	     <h3><a name="tth_sEc17.17">
-17.17</a>&nbsp;&nbsp;<font color="#0000FF">Timeout Management for Non-Blocking Operations</font></h3><a name="sec:timeout">
+	     <h3><a name="tth_sEc18.17">
+18.17</a>&nbsp;&nbsp;<font color="#0000FF">Timeout Management for Non-Blocking Operations</font></h3><a name="sec:timeout">
 </a>
 
 <p>
@@ -10039,8 +10616,8 @@ The macros improve readability.
 non-blocking <i>soap_call_ns__method</i> calls may not work under Linux.
 
 <p>
-	     <h3><a name="tth_sEc17.18">
-17.18</a>&nbsp;&nbsp;<font color="#0000FF">Socket Options and Flags</font></h3>
+	     <h3><a name="tth_sEc18.18">
+18.18</a>&nbsp;&nbsp;<font color="#0000FF">Socket Options and Flags</font></h3>
 
 <p>
 gSOAP's socket communications can be controlled with socket options and flags.
@@ -10072,8 +10649,8 @@ sharing (but be aware of the security issues when the port is not blocked by a
 firewall and open to the Internet).
 
 <p>
-	     <h3><a name="tth_sEc17.19">
-17.19</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></h3>&nbsp;<a name="sec:serveropenssl">
+	     <h3><a name="tth_sEc18.19">
+18.19</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Web Services with HTTPS/SSL</font></h3>&nbsp;<a name="sec:serveropenssl">
 </a>
 
 <p>
@@ -10088,7 +10665,7 @@ To enable OpenSSL, first install OpenSSL and use option <i>-DWITH_OPENSSL</i> to
 </td></tr></table><br></span>
 SSL support for stand-alone gSOAP Web services is enabled by calling <i>soap_ssl_accept</i> after <i>soap_accept</i>.
 In addition, a key file, a CA file (or path to certificates), DH file (if RSA is not used), and password need to be supplied. Instructions on how to do this can be found in the
-OpenSSL documentation <i>http://www.openssl.org</i>. See also Section&nbsp;<a href="#sec:ssl">17.22</a>.
+OpenSSL documentation <i>http://www.openssl.org</i>. See also Section&nbsp;<a href="#sec:ssl">18.22</a>.
 
 <p>
 Let's take a look at an example SSL secure
@@ -10307,8 +10884,8 @@ used, the application will crash due to a mismatches in the declaration and
 access of the gSOAP environment.
 
 <p>
-	     <h3><a name="tth_sEc17.20">
-17.20</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></h3><a name="sec:clientopenssl">
+	     <h3><a name="tth_sEc18.20">
+18.20</a>&nbsp;&nbsp;<font color="#0000FF">Secure SOAP Clients with HTTPS/SSL</font></h3><a name="sec:clientopenssl">
 </a>
 
 <p>
@@ -10380,11 +10957,11 @@ compile the sources, such as <i>stdsoap2.cpp</i>, <i>soapC.cpp</i>,
 include <i>stdsoap2.h</i> or <i>soapH.h</i>. If the macros are not consistently
 used, the application will crash due to a mismatches in the declaration and
 access of the gSOAP environment.
-<font color="#FF0000"><b>Caution</b></font>: concurrent client calls MUST be made using separate soap structs copied with <i>soap_copy</i> from an originating struct initialized with <i>soap_ssl_client_context</i>. In addition, the thread initialization code discussed in Section&nbsp;<a href="#sec:serveropenssl">17.19</a> MUST be used to properly setup OpenSSL in a multi-threaded client application.
+<font color="#FF0000"><b>Caution</b></font>: concurrent client calls MUST be made using separate soap structs copied with <i>soap_copy</i> from an originating struct initialized with <i>soap_ssl_client_context</i>. In addition, the thread initialization code discussed in Section&nbsp;<a href="#sec:serveropenssl">18.19</a> MUST be used to properly setup OpenSSL in a multi-threaded client application.
 
 <p>
-	     <h3><a name="tth_sEc17.21">
-17.21</a>&nbsp;&nbsp;<font color="#0000FF">SSL Authentication Callback</font></h3>
+	     <h3><a name="tth_sEc18.21">
+18.21</a>&nbsp;&nbsp;<font color="#0000FF">SSL Authentication Callback</font></h3>
 
 <p>
 gSOAP provides a callback function for authentication initialization:
@@ -10402,8 +10979,8 @@ and initialization of the RNG.  Should return a gSOAP error code or
 </td></tr></table><br></span>
 
 <p>
-	     <h3><a name="tth_sEc17.22">
-17.22</a>&nbsp;&nbsp;<font color="#0000FF">SSL Certificates</font></h3><a name="sec:ssl">
+	     <h3><a name="tth_sEc18.22">
+18.22</a>&nbsp;&nbsp;<font color="#0000FF">SSL Certificates</font></h3><a name="sec:ssl">
 </a>
 
 <p>
@@ -10471,8 +11048,8 @@ Do the following at the prompt:
 File <i>dh512.pem</i> is the output file and 512 is the number of bits used.
 
 <p>
-	     <h3><a name="tth_sEc17.23">
-17.23</a>&nbsp;&nbsp;<font color="#0000FF">SSL Hardware Acceleration</font></h3>
+	     <h3><a name="tth_sEc18.23">
+18.23</a>&nbsp;&nbsp;<font color="#0000FF">SSL Hardware Acceleration</font></h3>
 
 <p>
 You can specify a hardware engine to enable hardware support for cryptographic acceleration. This can be done once in a server or client with the following statements:
@@ -10506,8 +11083,8 @@ The following table lists the names of the hardware and software engines:
 </td></tr></table><br></span>
 
 <p>
-	     <h3><a name="tth_sEc17.24">
-17.24</a>&nbsp;&nbsp;<font color="#0000FF">SSL on Windows</font></h3>
+	     <h3><a name="tth_sEc18.24">
+18.24</a>&nbsp;&nbsp;<font color="#0000FF">SSL on Windows</font></h3>
 
 <p>
 Set the full path to libssl.lib and libcrypto.lib 
@@ -10519,8 +11096,8 @@ environment variable when running gSOAP applications.
 Alternatively, you can use the WinInet interface available in the <i>extras</i> directory of the gSOAP package. API instructions are included in the source.
 
 <p>
-	     <h3><a name="tth_sEc17.25">
-17.25</a>&nbsp;&nbsp;<font color="#0000FF">Zlib Compression</font></h3><a name="sec:compression">
+	     <h3><a name="tth_sEc18.25">
+18.25</a>&nbsp;&nbsp;<font color="#0000FF">Zlib Compression</font></h3><a name="sec:compression">
 </a>
 
 <p>
@@ -10605,8 +11182,8 @@ used, the application will crash due to a mismatches in the declaration and
 access of the gSOAP environment.
 
 <p>
-	     <h3><a name="tth_sEc17.26">
-17.26</a>&nbsp;&nbsp;<font color="#0000FF">Client-Side Cookie Support</font></h3><a name="sec:clientcookie">
+	     <h3><a name="tth_sEc18.26">
+18.26</a>&nbsp;&nbsp;<font color="#0000FF">Client-Side Cookie Support</font></h3><a name="sec:clientcookie">
 </a>
 
 <p>
@@ -10658,8 +11235,8 @@ Since the cookie database is linked to a <i>soap</i> struct, each thread has a l
 implementation.
 
 <p>
-	     <h3><a name="tth_sEc17.27">
-17.27</a>&nbsp;&nbsp;<font color="#0000FF">Server-Side Cookie Support</font></h3><a name="sec:servercookie">
+	     <h3><a name="tth_sEc18.27">
+18.27</a>&nbsp;&nbsp;<font color="#0000FF">Server-Side Cookie Support</font></h3><a name="sec:servercookie">
 </a>
 
 <p>
@@ -10783,8 +11360,8 @@ The following example server adopts cookies for session control:
 </td></tr></table><br></i>
 
 <p>
-	     <h3><a name="tth_sEc17.28">
-17.28</a>&nbsp;&nbsp;<font color="#0000FF">Connecting Clients Through Proxy Servers</font></h3>
+	     <h3><a name="tth_sEc18.28">
+18.28</a>&nbsp;&nbsp;<font color="#0000FF">Connecting Clients Through Proxy Servers</font></h3>
 
 <p>
 When a client needs to connect to a Web Service through a proxy server, set the <i>soap.proxy_host</i> string and
@@ -10803,8 +11380,8 @@ The attributes <i>soap.proxy_host</i> and <i>soap.proxy_port</i> keep their valu
 so they only need to be set once.
 
 <p>
-	     <h3><a name="tth_sEc17.29">
-17.29</a>&nbsp;&nbsp;<font color="#0000FF">FastCGI Support</font></h3><a name="sec:fastcgi">
+	     <h3><a name="tth_sEc18.29">
+18.29</a>&nbsp;&nbsp;<font color="#0000FF">FastCGI Support</font></h3><a name="sec:fastcgi">
 </a>
 
 <p>
@@ -10815,8 +11392,8 @@ To enable FastCGI support, install FastCGI and compile <em>all</em> sources (inc
 to <i>stdsoap2.h</i>.
 
 <p>
-	     <h3><a name="tth_sEc17.30">
-17.30</a>&nbsp;&nbsp;<font color="#0000FF">How to Create gSOAP Applications With a Small Memory Footprint</font></h3><a name="sec:lean">
+	     <h3><a name="tth_sEc18.30">
+18.30</a>&nbsp;&nbsp;<font color="#0000FF">How to Create gSOAP Applications With a Small Memory Footprint</font></h3><a name="sec:lean">
 </a>
 
 <p>
@@ -10868,8 +11445,8 @@ occurs in the compilation process, it is safe to assume that your application
 will run just fine.
 
 <p>
-	     <h3><a name="tth_sEc17.31">
-17.31</a>&nbsp;&nbsp;<font color="#0000FF">How to Eliminate BSD Socket Library Linkage</font></h3><a name="sec:noio">
+	     <h3><a name="tth_sEc18.31">
+18.31</a>&nbsp;&nbsp;<font color="#0000FF">How to Eliminate BSD Socket Library Linkage</font></h3><a name="sec:noio">
 </a>
 
 <p>
@@ -10898,15 +11475,15 @@ soap.fpoll = my_poll; <br />
 soap.faccept = my_accept;
 </td></tr></table><br></i>
 These functions are supposed to provide a (minimal) transport stack.
-See Section&nbsp;<a href="#sec:callback">17.7</a> for more details on the use of these callbacks.
+See Section&nbsp;<a href="#sec:callback">18.7</a> for more details on the use of these callbacks.
 All callback function pointers should be non-NULL, except <i>fpoll</i>.
 
 <p>
 You cannot use <i>soap_print_fault</i> and <i>soap_print_fault_location</i> to print error diagnostics. Instead, the value of <i>soap.error</i>, which contains the gSOAP error code, can be used to determine the cause of a fault.
 
 <p>
-	     <h3><a name="tth_sEc17.32">
-17.32</a>&nbsp;&nbsp;<font color="#0000FF">Build a Client or Server in a C++ Code Namespace</font></h3><a name="sec:codenamespace">
+	     <h3><a name="tth_sEc18.32">
+18.32</a>&nbsp;&nbsp;<font color="#0000FF">Build a Client or Server in a C++ Code Namespace</font></h3><a name="sec:codenamespace">
 </a>
 
 <p>
@@ -10952,8 +11529,8 @@ The generated <i>envC.cpp</i> file holds the SOAP Header and Fault serializers a
 link this file with your client or server application.
 
 <p>
-	     <h3><a name="tth_sEc17.33">
-17.33</a>&nbsp;&nbsp;<font color="#0000FF">How to Create Client/Server Libraries</font></h3><a name="sec:dylibs">
+	     <h3><a name="tth_sEc18.33">
+18.33</a>&nbsp;&nbsp;<font color="#0000FF">How to Create Client/Server Libraries</font></h3><a name="sec:dylibs">
 </a>
 
 <p>
@@ -10966,13 +11543,13 @@ and/or servers into one executable.
 
 <p>
 To build multiple libraries in the same project directory, you can define a
-C++ code namespace in your header file (see Section&nbsp;<a href="#sec:codenamespace">17.32</a>) or you can
+C++ code namespace in your header file (see Section&nbsp;<a href="#sec:codenamespace">18.32</a>) or you can
 use <i>soapcpp2</i> with option <i>-p</i> to rename the generated <i>soapClientLib.cpp</i> and
 <i>soapServerLib.cpp</i> (and associated) files. The <i>-p</i> option specifies
 the file name prefix to replace the <i>soap</i> prefix.  The libraries don't
 have to be C++ codes. You can use option <i>-c</i> to generate C code. A clean
 separation of libraries can also be achieved with C++ code namespaces, see
-Section&nbsp;<a href="#sec:codenamespace">17.32</a>.
+Section&nbsp;<a href="#sec:codenamespace">18.32</a>.
 
 <p>
 The library codes do not define SOAP Header and Fault serializers.  You MUST
@@ -11009,8 +11586,8 @@ two or more client stubs or server skeletons when these methods share the same X
 namespaces to avoid these link conflicts or rename the namespace prefixes used by the remote method defined in the header files.
 
 <p>
-		      <h4><a name="tth_sEc17.33.1">
-17.33.1</a>&nbsp;&nbsp;<font color="#0000FF">C++ Example</font></h4>
+		      <h4><a name="tth_sEc18.33.1">
+18.33.1</a>&nbsp;&nbsp;<font color="#0000FF">C++ Example</font></h4>
 
 <p>
 As an example we will build a Delayed Stock Quote client library and a Currency Exchange Rate client library.
@@ -11146,8 +11723,8 @@ is available as <i>this</i>, which can be passed to all gSOAP functions that req
 context.
 
 <p>
-		      <h4><a name="tth_sEc17.33.2">
-17.33.2</a>&nbsp;&nbsp;<font color="#0000FF">C Example</font></h4>
+		      <h4><a name="tth_sEc18.33.2">
+18.33.2</a>&nbsp;&nbsp;<font color="#0000FF">C Example</font></h4>
 
 <p>
 This is the same example as above, but the clients are build with pure C.
@@ -11233,12 +11810,12 @@ Compile and link this application with <i>stdsoap2.o</i>, <i>envC.o</i>, <i>quot
 To compile and link a server library is very similar. Assuming that the server is named ``<i>calc</i>'' (as specified with options <i>-n</i> and <i>-p</i>), the application needs to include the <i>calcStub.h</i> file, link the <i>calcServerLib.o</i> file, and call <i>calc_serve(&amp;soap)</i> function at run time.
 
 <p>
-	     <h3><a name="tth_sEc17.34">
-17.34</a>&nbsp;&nbsp;<font color="#0000FF">How to Create DLLs</font></h3>
+	     <h3><a name="tth_sEc18.34">
+18.34</a>&nbsp;&nbsp;<font color="#0000FF">How to Create DLLs</font></h3>
 
 <p>
-		      <h4><a name="tth_sEc17.34.1">
-17.34.1</a>&nbsp;&nbsp;<font color="#0000FF">Create the Base stdsoap2.dll</font></h4>
+		      <h4><a name="tth_sEc18.34.1">
+18.34.1</a>&nbsp;&nbsp;<font color="#0000FF">Create the Base stdsoap2.dll</font></h4>
 
 <p>
 First, create a new header file <i>env.h</i> with the SOAP Header and Fault
@@ -11262,8 +11839,8 @@ This exports all functions which are preceded by the macro <i>SOAP_FMAC1</i> in
 the <i>soapcpp2.cpp</i> source file and macro <i>SOAP_FMAC3</i> in the <i>envC.cpp</i> source file.
 
 <p>
-		      <h4><a name="tth_sEc17.34.2">
-17.34.2</a>&nbsp;&nbsp;<font color="#0000FF">Creating Client and Server DLLs</font></h4>
+		      <h4><a name="tth_sEc18.34.2">
+18.34.2</a>&nbsp;&nbsp;<font color="#0000FF">Creating Client and Server DLLs</font></h4>
 
 <p>
 Compile the <i>soapClientLib.cpp</i> and <i>soapServerLib.cpp</i> sources as DLLs
@@ -11275,7 +11852,7 @@ To create multiple DLLs in the same project directory, you SHOULD use option
 <i>-p</i> to rename the generated <i>soapClientLib.cpp</i> and
 <i>soapServerLib.cpp</i> (and associated) files. The <i>-p</i> option specifies
 the file name prefix to replace the <i>soap</i> prefix.
-A clean separation of libraries can also be achieved with C++ namespaces, see Section&nbsp;<a href="#sec:codenamespace">17.32</a>.
+A clean separation of libraries can also be achieved with C++ namespaces, see Section&nbsp;<a href="#sec:codenamespace">18.32</a>.
 
 <p>
 Unless you use the client proxy and server object classes (<i>soapXProxy.h</i> and <i>soapXObject.h</i> where <i>X</i> is the name of the service), all client and server applications MUST explicitly set the namespaces value of the gSOAP environment:
@@ -11286,8 +11863,8 @@ soap_set_namespaces(&amp;soap, namespaces);
 where the <i>namespaces[]</i> table should be defined in the client/server source. These tables are generated in the <i>.nsmap</i> files. You can rename the tables using option <i>-n</i>, see Section&nbsp;<a href="#sec:options">9.1</a>.
 
 <p>
-		      <h4><a name="tth_sEc17.34.3">
-17.34.3</a>&nbsp;&nbsp;<font color="#0000FF">gSOAP Plug-ins</font></h4><a name="sec:plugins">
+		      <h4><a name="tth_sEc18.34.3">
+18.34.3</a>&nbsp;&nbsp;<font color="#0000FF">gSOAP Plug-ins</font></h4><a name="sec:plugins">
 </a>
 
 <p>
@@ -11436,5 +12013,5 @@ argument to plug-in's registry callback.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On  3 Apr 2005, 14:32.</small>
+version 3.00.<br />On 12 May 2005, 10:15.</small>
 </html>

@@ -95,7 +95,7 @@ gSOAP is distributed under three licenses:
 Most parts are distributed under the gSOAP public license and GPL.  You can
 choose which license applies best to your use.  Some parts of gSOAP are
 strictly distributed under the GPL.  A commercial use license is available
-from Genivia Inc, see http://genivia.com/Products/gsoap/license.pdf
+from Genivia Inc, see http://genivia.com/Products/gsoap/contract.html
 
 Please refer to the README files and/or header information in source code files
 for the appropriate licensing specific to that part of the source code.  The

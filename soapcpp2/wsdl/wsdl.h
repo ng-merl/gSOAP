@@ -270,9 +270,10 @@ class wsdl__definitions
 	std::vector<wsdl__portType>	portType;		// <wsdl:portType>*
 	std::vector<wsdl__binding>	binding;		// <wsdl:binding>*
 	std::vector<wsdl__service>	service;		// <wsdl:service>*
-	std::vector<gwsdl__portType>	gwsdl__portType_;	// <gwsdl:portType>* For the moment, we will hardcode this which makes it easier to access. WSDL 1.1 does not allow this to be extended this anyway
+	std::vector<gwsdl__portType>	gwsdl__portType_;	// <gwsdl:portType>* For the moment, we will hardcode this which makes it easier to access. WSDL 1.1 does not allow this to be extended anyway
 	struct soap			*soap;
   private:
+	bool				updated;
 	SetOfString			builtinTypeSet;
 	SetOfString			builtinElementSet;
 	SetOfString			builtinAttributeSet;
@@ -282,6 +283,7 @@ class wsdl__definitions
 	virtual				~wsdl__definitions();
 	int				get(struct soap*);	// gSOAP getter is triggered after parsing
 	int				traverse();
+	int				read(int, char**);
 	int				read(const char*);
 	int				error();
 	void				print_fault();

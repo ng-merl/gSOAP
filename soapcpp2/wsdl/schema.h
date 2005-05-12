@@ -406,6 +406,7 @@ class xs__schema
 	std::vector<xs__complexType>	complexType;
   	struct soap			*soap;
   private:
+	bool				updated;
 	SetOfString			builtinTypeSet;
 	SetOfString			builtinElementSet;
 	SetOfString			builtinAttributeSet;

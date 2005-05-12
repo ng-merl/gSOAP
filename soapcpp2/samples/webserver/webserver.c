@@ -99,8 +99,13 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 	-k		enables keep-alive
 	-i		enables non-threaded iterative server
 	-v		enables verbose mode
-	-t<val>		sets I/O timeout value (seconds)
-	-s<val>		sets server timeout value (seconds)
+	-o<num>		pool of <num> threads (cannot be used with option -i)
+			Note: interactive chunking/keep-alive settings cannot be
+			changed, unless the number of threads is interactively
+			changed to restart the pool
+			Note: <num>=0 specifies unlimited threads
+	-t<num>		sets I/O timeout value (seconds)
+	-s<num>		sets server timeout value (seconds)
 	-d<host>	sets cookie domain
 	-p<path>	sets cookie path
 	-l[none inbound outbound both]
@@ -125,8 +130,77 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #define BACKLOG (100)
 
-#define AUTH_USERID "admin"
-#define AUTH_PASSWD "guest"
+#define AUTH_USERID "admin"	/* user ID to access admin pages */
+#define AUTH_PASSWD "guest"	/* user pw to access admin pages */
+
+/******************************************************************************\
+ *
+ *	Threads
+ *
+\******************************************************************************/
+
+#if defined(WIN32)
+# define THREAD_TYPE		HANDLE
+# define THREAD_ID		GetCurrentThreadId()
+# define THREAD_CREATE(x,y,z)	*(x) = _beginthread((y), NULL, 8*4096, (z))
+# define THREAD_DETACH(x)	
+# define THREAD_JOIN(x)		WaitForSingleObject((x), INFINITE)
+# define THREAD_EXIT		_endthread()
+# define MUTEX_TYPE		HANDLE
+# define MUTEX_SETUP(x)		(x) = CreateMutex(NULL, FALSE, NULL)
+# define MUTEX_CLEANUP(x)	CloseHandle(x)
+# define MUTEX_LOCK(x)		WaitForSingleObject((x), INFINITE)
+# define MUTEX_UNLOCK(x)	ReleaseMutex(x)
+# define COND_SETUP(x)		emulate_pthread_cond_init(&(x))
+# define COND_CLEANUP(x)	emulate_pthread_cond_destroy(&(x))
+# define COND_SIGNAL(x)		emulate_pthread_signal(&(x))
+# define COND_WAIT(x,y)		emulate_pthread_wait(&(x), &(y))
+typedef struct
+{ u_int waiters_count_;
+  CRITICAL_SECTION waiters_count_lock_;
+  HANDLE signal_event_;
+} COND_TYPE;
+int emulate_pthread_cond_init(COND_TYPE*);
+int emulate_pthread_cond_destroy(COND_TYPE*);
+int emulate_pthread_signal(COND_TYPE*);
+int emulate_pthread_wait(COND_TYPE*, MUTEX_TYPE*);
+#elif defined(_POSIX_THREADS)
+# define THREAD_TYPE		pthread_t
+# define THREAD_ID		pthread_self()
+# define THREAD_CREATE(x,y,z)	pthread_create((x), NULL, (y), (z))
+# define THREAD_DETACH(x)	pthread_detach((x))
+# define THREAD_JOIN(x)		pthread_join((x), NULL)
+# define THREAD_EXIT		pthread_exit(NULL)
+# define MUTEX_TYPE		pthread_mutex_t
+# define MUTEX_SETUP(x)		pthread_mutex_init(&(x), NULL)
+# define MUTEX_CLEANUP(x)	pthread_mutex_destroy(&(x))
+# define MUTEX_LOCK(x)		pthread_mutex_lock(&(x))
+# define MUTEX_UNLOCK(x)	pthread_mutex_unlock(&(x))
+# define COND_TYPE		pthread_cond_t
+# define COND_SETUP(x)		pthread_cond_init(&(x), NULL)
+# define COND_CLEANUP(x)	pthread_cond_destroy(&(x))
+# define COND_SIGNAL(x)		pthread_cond_signal(&(x))
+# define COND_WAIT(x,y)		pthread_cond_wait(&(x), &(y))
+#else
+# error "No POSIX threads detected: we need thread and mutex operations. See for example OpenSSL /threads/th-lock.c on how to implement mutex on your platform"
+#endif
+
+/******************************************************************************\
+ *
+ *	Thread pool and request queue
+ *
+\******************************************************************************/
+
+#define MAX_THR (100)
+#define MAX_QUEUE (1000)
+
+static int poolsize = 0;
+
+static int queue[MAX_QUEUE];
+static int head = 0, tail = 0;
+
+static MUTEX_TYPE queue_cs;
+static COND_TYPE queue_cv;
 
 /******************************************************************************\
  *
@@ -140,6 +214,7 @@ static const struct option default_options[] =
   { "k.keepalive", NULL, },
   { "i.iterative", NULL, },
   { "v.verbose", NULL, },
+  { "o.pool", "threads", 6, "none"},
   { "t.ioTimeout", "seconds", 6, "120"},
   { "s.serverTimeout", "seconds", 6, "3600"},
   { "d.cookieDomain", "host", 20, "localhost:8080"},
@@ -155,12 +230,13 @@ static const struct option default_options[] =
 #define OPTION_k	2
 #define OPTION_i	3
 #define OPTION_v	4
-#define OPTION_t	5
-#define OPTION_s	6
-#define OPTION_d	7
-#define OPTION_p	8
-#define OPTION_l	9
-#define OPTION_port	10
+#define OPTION_o	5
+#define OPTION_t	6
+#define OPTION_s	7
+#define OPTION_d	8
+#define OPTION_p	9
+#define OPTION_l	10
+#define OPTION_port	11
 
 /******************************************************************************\
  *
@@ -181,7 +257,11 @@ static const char *hours[24] = {"00", "01", "02", "03", "04", "05", "06", "07", 
  *
 \******************************************************************************/
 
+void server_loop(struct soap*);
 void *process_request(void*);	/* multi-threaded request handler */
+void *process_queue(void*);	/* multi-threaded request handler for pool */
+int enqueue(SOAP_SOCKET);
+SOAP_SOCKET dequeue();
 int http_get_handler(struct soap*);	/* HTTP get handler */
 int check_authentication(struct soap*);	/* HTTP authentication check */
 int copy_file(struct soap*, const char*, const char*);	/* copy file as HTTP response */
@@ -208,31 +288,33 @@ void CRYPTO_thread_cleanup();
 \******************************************************************************/
 
 int main(int argc, char **argv)
-{ struct soap soap, *tsoap;
-  struct logging_data *logdata;
-  pthread_t tid;
+{
+  struct soap soap;
+  SOAP_SOCKET master;
   int port = 0;
-  int m, s, i;
+
+  start = time(NULL);
+
   options = copy_options(default_options); /* must copy, so option values can be modified */
   if (parse_options(argc, argv, options))
     exit(0);
+
   if (options[OPTION_port].value)
     port = atol(options[OPTION_port].value);
   if (!port)
     port = 8080;
-  start = time(NULL);
   fprintf(stderr, "Starting Web server on port %d\n", port);
   if (port != 8080)
     fprintf(stderr, "[Note: use port 8080 to test server from browser with test.html and calc.html]\n");
   fprintf(stderr, "[Note: you must enable Linux/Unix SIGPIPE handler to avoid broken pipe]\n");
+
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
-  /* HTTP cookies (to enable: compile all sources with -DWITH_COOKIES) */
-  soap.cookie_domain = options[OPTION_d].value; /* must be the current host name */
-  soap.cookie_path = options[OPTION_p].value; /* the path which is used to filter/set cookies with this destination */
+
   /* SSL init (to enable: compile all sources with -DWITH_OPENSSL) */
 #ifdef WITH_OPENSSL
   if (CRYPTO_thread_setup())
-  { fprintf(stderr, "Cannot setup thread mutex\n");
+  {
+    fprintf(stderr, "Cannot setup thread mutex\n");
     exit(1);
   }
   /* if the port is an odd number, the Web server uses HTTPS only */
@@ -248,7 +330,8 @@ int main(int argc, char **argv)
     NULL,		/* if randfile!=NULL: use a file with random data to seed randomness */ 
     "webserver"		/* server identification for SSL session cache (must be a unique name) */
   ))
-  { soap_print_fault(&soap, stderr);
+  {
+    soap_print_fault(&soap, stderr);
     exit(1);
   }
 #endif
@@ -258,78 +341,197 @@ int main(int argc, char **argv)
   /* Register logging plugin */
   if (soap_register_plugin(&soap, logging))
     soap_print_fault(&soap, stderr);
-  logdata = (struct logging_data*)soap_lookup_plugin(&soap, logging_id); /* need to access plugin's data */
   /* Unix SIGPIPE, this is OS dependent (win does not need this) */
   /* soap.accept_flags = SO_NOSIGPIPE; */ 	/* some systems like this */
   /* soap.socket_flags = MSG_NOSIGNAL; */	/* others need this */
   /* signal(SIGPIPE, sigpipe_handle); */	/* and some older Unix systems may require a sigpipe handler */
-  m = soap_bind(&soap, NULL, port, BACKLOG);
-  if (!soap_valid_socket(m))
-  { soap_print_fault(&soap, stderr);
+  master = soap_bind(&soap, NULL, port, BACKLOG);
+  if (!soap_valid_socket(master))
+  {
+    soap_print_fault(&soap, stderr);
     exit(1);
   }
-  fprintf(stderr, "Port bind successful: master socket = %d\n", m);
-  for (i = 1; ; i++)
-  { if (options[OPTION_s].value)
-      soap.accept_timeout = atol(options[OPTION_s].value);
-    s = soap_accept(&soap);
-    if (!soap_valid_socket(s))
-    { if (soap.errnum)
-      { soap_print_fault(&soap, stderr);
-        fprintf(stderr, "Retry...\n");
-	continue;
-      }
-      fprintf(stderr, "gSOAP Web server timed out\n");
-      break;
-    }
-    if (options[OPTION_v].selected)
-      fprintf(stderr, "Thread %d accepts socket %d connection from IP %d.%d.%d.%d\n", i, s, (int)(soap.ip>>24)&0xFF, (int)(soap.ip>>16)&0xFF, (int)(soap.ip>>8)&0xFF, (int)soap.ip&0xFF);
-    tsoap = soap_copy(&soap);
-    tsoap->cookie_domain = options[OPTION_d].value;
-    tsoap->cookie_path = options[OPTION_p].value;
-    soap_set_cookie(tsoap, "visit", "true", NULL, NULL);
-    soap_set_cookie_expire(tsoap, "visit", 600, NULL, NULL);
-    if (options[OPTION_c].selected)
-      soap_set_omode(tsoap, SOAP_IO_CHUNK); /* use chunked HTTP content (fast) */
-    if (options[OPTION_k].selected)
-      soap_set_omode(tsoap, SOAP_IO_KEEPALIVE);
-    if (options[OPTION_t].value)
-      tsoap->send_timeout = tsoap->recv_timeout = atol(options[OPTION_t].value);
-    logdata->inbound = (options[OPTION_l].selected == 1 || options[OPTION_l].selected == 3);
-    logdata->outbound = (options[OPTION_l].selected == 2 || options[OPTION_l].selected == 3);
-#ifdef WITH_OPENSSL
-    if (secure && soap_ssl_accept(tsoap))
-    { soap_print_fault(tsoap, stderr);
-      fprintf(stderr, "SSL request failed, continue with next call...\n");
-      soap_end(tsoap);
-      soap_done(tsoap);
-      free(tsoap);
-      continue;
-    }
-#endif
-    if (options[OPTION_i].selected)
-    { if (soap_serve(tsoap))
-      { fprintf(stderr, "Thread %d completed with failure %d\n", i, tsoap->error);
-        soap_print_fault(tsoap, stderr);
-      }
-      soap_end(tsoap);
-      soap_done(tsoap);
-      if (options[OPTION_v].selected)
-        fprintf(stderr, "Thread %d completed\n", i);
-      free(tsoap);
-    }
-    else
-    { tsoap->user = (void*)i;
-      pthread_create(&tid, NULL, (void*(*)(void*))process_request, (void*)tsoap);
-    }
-  }
+  fprintf(stderr, "Port bind successful: master socket = %d\n", master);
+  MUTEX_SETUP(queue_cs);
+  COND_SETUP(queue_cv);
+  server_loop(&soap);
+  MUTEX_CLEANUP(queue_cs);
+  COND_CLEANUP(queue_cv);
 #ifdef WITH_OPENSSL
   CRYPTO_thread_cleanup();
 #endif
   free_options(options);
   soap_end(&soap);
   soap_done(&soap);
+  THREAD_EXIT;
   return 0;
+}
+
+void server_loop(struct soap *soap)
+{
+  struct soap *soap_thr[MAX_THR];
+  THREAD_TYPE tid, tids[MAX_THR];
+  int req;
+  struct logging_data *logdata;
+
+  logdata = (struct logging_data*)soap_lookup_plugin(soap, logging_id); /* need to access plugin's data */
+
+  for (req = 1; ; req++)
+  {
+    SOAP_SOCKET sock;
+    int newpoolsize;
+    
+    soap->cookie_domain = options[OPTION_d].value;
+    soap->cookie_path = options[OPTION_p].value;
+    soap_set_cookie(soap, "visit", "true", NULL, NULL);
+    soap_set_cookie_expire(soap, "visit", 600, NULL, NULL);
+
+    if (options[OPTION_c].selected)
+      soap_set_omode(soap, SOAP_IO_CHUNK); /* use chunked HTTP content (fast) */
+    if (options[OPTION_k].selected)
+      soap_set_omode(soap, SOAP_IO_KEEPALIVE);
+    if (options[OPTION_t].value)
+      soap->send_timeout = soap->recv_timeout = atol(options[OPTION_t].value);
+    if (options[OPTION_s].value)
+      soap->accept_timeout = atol(options[OPTION_s].value);
+    logdata->inbound = (options[OPTION_l].selected == 1 || options[OPTION_l].selected == 3);
+    logdata->outbound = (options[OPTION_l].selected == 2 || options[OPTION_l].selected == 3);
+
+    newpoolsize = atol(options[OPTION_o].value);
+
+    if (newpoolsize < 0)
+      newpoolsize = 0;
+    else if (newpoolsize > MAX_THR)
+      newpoolsize = MAX_THR;
+
+    if (poolsize > newpoolsize)
+    {
+      int job;
+
+      for (job = 0; job < poolsize; job++)
+      {
+        while (enqueue(SOAP_INVALID_SOCKET) == SOAP_EOM)
+          sleep(1);
+      }
+
+      for (job = 0; job < poolsize; job++)
+      {
+        fprintf(stderr, "Waiting for thread %d to terminate...\n", job);
+        THREAD_JOIN(tids[job]);
+        fprintf(stderr, "Thread %d has stopped\n", job);
+        soap_done(soap_thr[job]);
+        free(soap_thr[job]);
+      }
+
+      poolsize = 0;
+    }
+
+    if (poolsize < newpoolsize)
+    {
+      int job;
+
+      for (job = poolsize; job < newpoolsize; job++)
+      {
+        soap_thr[job] = soap_copy(soap);
+	if (!soap_thr[job])
+	  break;
+
+        soap_thr[job]->user = (void*)job;
+	
+        fprintf(stderr, "Starting thread %d\n", job);
+        THREAD_CREATE(&tids[job], (void*(*)(void*))process_queue, (void*)soap_thr[job]);
+      }
+
+      poolsize = job;
+    }
+
+    sock = soap_accept(soap);
+    if (!soap_valid_socket(sock))
+    {
+      if (soap->errnum)
+      {
+        soap_print_fault(soap, stderr);
+        fprintf(stderr, "Retry...\n");
+	continue;
+      }
+      fprintf(stderr, "gSOAP Web server timed out\n");
+      break;
+    }
+
+    if (options[OPTION_v].selected)
+      fprintf(stderr, "Request #%d accepted on socket %d connected from IP %d.%d.%d.%d\n", req, sock, (int)(soap->ip>>24)&0xFF, (int)(soap->ip>>16)&0xFF, (int)(soap->ip>>8)&0xFF, (int)soap->ip&0xFF);
+
+    if (poolsize > 0)
+    {
+      while (enqueue(sock) == SOAP_EOM)
+        sleep(1);
+    }
+    else
+    {
+      struct soap *tsoap = NULL;
+
+      if (!options[OPTION_i].selected)
+        tsoap = soap_copy(soap);
+
+      if (tsoap)
+      {
+#ifdef WITH_OPENSSL
+        if (secure && soap_ssl_accept(tsoap))
+        {
+	  soap_print_fault(tsoap, stderr);
+          fprintf(stderr, "SSL request failed, continue with next call...\n");
+          soap_end(tsoap);
+          soap_done(tsoap);
+          free(tsoap);
+          continue;
+        }
+#endif
+        tsoap->user = (void*)req;
+        THREAD_CREATE(&tid, (void*(*)(void*))process_request, (void*)tsoap);
+      }
+      else
+      {
+#ifdef WITH_OPENSSL
+        if (secure && soap_ssl_accept(soap))
+        {
+	  soap_print_fault(soap, stderr);
+          fprintf(stderr, "SSL request failed, continue with next call...\n");
+          soap_end(soap);
+          continue;
+        }
+#endif
+        if (soap_serve(soap))
+        {
+	  fprintf(stderr, "Request #%d completed with failure %d\n", req, soap->error);
+          soap_print_fault(soap, stderr);
+        }
+
+        soap_end(soap);
+        if (options[OPTION_v].selected)
+          fprintf(stderr, "Request #%d completed\n", req);
+      }
+    }
+  }
+
+  if (poolsize > 0)
+  {
+    int job;
+
+    for (job = 0; job < poolsize; job++)
+    {
+      while (enqueue(SOAP_INVALID_SOCKET) == SOAP_EOM)
+        sleep(1);
+    }
+
+    for (job = 0; job < poolsize; job++)
+    {
+      fprintf(stderr, "Waiting for thread %d to terminate... ", job);
+      THREAD_JOIN(tids[job]);
+      fprintf(stderr, "terminated\n");
+      soap_done(soap_thr[job]);
+      free(soap_thr[job]);
+    }
+  }
 }
 
 /******************************************************************************\
@@ -339,19 +541,130 @@ int main(int argc, char **argv)
 \******************************************************************************/
 
 void *process_request(void *soap)
-{ struct soap *tsoap = (struct soap*)soap;
-  pthread_detach(pthread_self());
+{
+  struct soap *tsoap = (struct soap*)soap;
+
+  THREAD_DETACH(THREAD_ID);
+
   if (soap_serve(tsoap))
-  { fprintf(stderr, "Thread %d completed with failure %d\n", (int)tsoap->user, tsoap->error);
+  {
+    fprintf(stderr, "Thread %d completed with failure %d\n", (int)tsoap->user, tsoap->error);
     soap_print_fault(tsoap, stderr);
   }
   else if (options[OPTION_v].selected)
     fprintf(stderr, "Thread %d completed\n", (int)tsoap->user);
   /* soap_destroy((struct soap*)soap); */ /* cleanup class instances (but this is a C app) */
+
   soap_end(tsoap);
   soap_done(tsoap);
   free(soap);
+
   return NULL;
+}
+
+/******************************************************************************\
+ *
+ *	Thread pool (enabled with option -o<num>)
+ *
+\******************************************************************************/
+
+void *process_queue(void *soap)
+{
+  struct soap *tsoap = (struct soap*)soap;
+
+  for (;;)
+  {
+    tsoap->socket = dequeue();
+    if (!soap_valid_socket(tsoap->socket))
+    { if (options[OPTION_v].selected)
+        fprintf(stderr, "Thread %d terminating\n", (int)tsoap->user);
+      break;
+    }
+
+#ifdef WITH_OPENSSL
+    if (secure && soap_ssl_accept(tsoap))
+    {
+      soap_print_fault(tsoap, stderr);
+      fprintf(stderr, "SSL request failed, continue with next call...\n");
+      soap_end(tsoap);
+      soap_done(tsoap);
+      continue;
+    }
+#endif
+
+    if (options[OPTION_v].selected)
+      fprintf(stderr, "Thread %d accepted a request\n", (int)tsoap->user);
+    if (soap_serve(tsoap))
+    {
+      fprintf(stderr, "Thread %d finished serving request with failure %d\n", (int)tsoap->user, tsoap->error);
+      soap_print_fault(tsoap, stderr);
+    }
+    else if (options[OPTION_v].selected)
+      fprintf(stderr, "Thread %d finished serving request\n", (int)tsoap->user);
+
+    soap_destroy(tsoap);
+    soap_end(tsoap);
+  }
+
+  return NULL;
+}
+
+int enqueue(SOAP_SOCKET sock)
+{
+  int status = SOAP_OK;
+  int next;
+  int ret;
+
+  if ((ret = MUTEX_LOCK(queue_cs)))
+    fprintf(stderr, "MUTEX_LOCK error %d\n", ret);
+
+  next = (tail + 1) % MAX_QUEUE;
+  if (head == next)
+  {
+    /* don't block on full queue, return SOAP_EOM */
+    status = SOAP_EOM;
+  }
+  else
+  {
+    queue[tail] = sock;
+    tail = next;
+
+    if (options[OPTION_v].selected)
+      fprintf(stderr, "enqueue(%d)\n", sock);
+
+    if ((ret = COND_SIGNAL(queue_cv)))
+      fprintf(stderr, "COND_SIGNAL error %d\n", ret);
+  }
+
+  if ((ret = MUTEX_UNLOCK(queue_cs)))
+    fprintf(stderr, "MUTEX_UNLOCK error %d\n", ret);
+
+  return status;
+}
+
+SOAP_SOCKET dequeue()
+{
+  SOAP_SOCKET sock;
+  int ret;
+
+  if ((ret = MUTEX_LOCK(queue_cs)))
+    fprintf(stderr, "MUTEX_LOCK error %d\n", ret);
+
+  while (head == tail)
+    if ((ret = COND_WAIT(queue_cv, queue_cs)))
+      fprintf(stderr, "COND_WAIT error %d\n", ret);
+
+  sock = queue[head];
+  
+  head = (head + 1) % MAX_QUEUE;
+
+  if (options[OPTION_v].selected)
+    fprintf(stderr, "dequeue(%d)\n", sock);
+
+  if ((ret = MUTEX_UNLOCK(queue_cs)))
+    fprintf(stderr, "MUTEX_UNLOCK error %d\n", ret);
+
+  return sock;
 }
 
 /******************************************************************************\
@@ -361,22 +674,26 @@ void *process_request(void *soap)
 \******************************************************************************/
 
 int ns__add(struct soap *soap, double a, double b, double *c)
-{ *c = a + b;
+{
+  *c = a + b;
   return SOAP_OK;
 }
 
 int ns__sub(struct soap *soap, double a, double b, double *c)
-{ *c = a - b;
+{
+  *c = a - b;
   return SOAP_OK;
 }
 
 int ns__mul(struct soap *soap, double a, double b, double *c)
-{ *c = a * b;
+{
+  *c = a * b;
   return SOAP_OK;
 }
 
 int ns__div(struct soap *soap, double a, double b, double *c)
-{ *c = a / b;
+{
+  *c = a / b;
   return SOAP_OK;
 }
 
@@ -387,19 +704,23 @@ int ns__div(struct soap *soap, double a, double b, double *c)
 \******************************************************************************/
 
 int ns__addResponse_(struct soap *soap, double a)
-{ return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__addResponse instead */
+{
+  return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__addResponse instead */
 }
 
 int ns__subResponse_(struct soap *soap, double a)
-{ return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__subResponse instead */
+{
+  return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__subResponse instead */
 }
 
 int ns__mulResponse_(struct soap *soap, double a)
-{ return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__mulResponse instead */
+{
+  return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__mulResponse instead */
 }
 
 int ns__divResponse_(struct soap *soap, double a)
-{ return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__divResponse instead */
+{
+  return SOAP_NO_METHOD; /* we don't use this: we use soap_send_ns__divResponse instead */
 }
 
 /******************************************************************************\
@@ -409,7 +730,8 @@ int ns__divResponse_(struct soap *soap, double a)
 \******************************************************************************/
 
 int http_get_handler(struct soap *soap)
-{ /* gSOAP 2.5 soap_response() will do this automatically for us, when sending SOAP_HTML or SOAP_FILE:
+{
+  /* gSOAP >=2.5 soap_response() will do this automatically for us, when sending SOAP_HTML or SOAP_FILE:
   if ((soap->omode & SOAP_IO) != SOAP_IO_CHUNK)
     soap_set_omode(soap, SOAP_IO_STORE); */ /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
 #ifdef WITH_ZLIB
@@ -454,7 +776,8 @@ int http_get_handler(struct soap *soap)
 }
 
 int check_authentication(struct soap *soap)
-{ if (!soap->userid
+{
+  if (!soap->userid
    || !soap->passwd
    || strcmp(soap->userid, AUTH_USERID)
    || strcmp(soap->passwd, AUTH_PASSWD))
@@ -845,25 +1168,6 @@ int html_hist(struct soap *soap, const char *title, size_t barwidth, size_t heig
 
 #ifdef WITH_OPENSSL
 
-#if defined(WIN32)
-# define MUTEX_TYPE		HANDLE
-# define MUTEX_SETUP(x)		(x) = CreateMutex(NULL, FALSE, NULL)
-# define MUTEX_CLEANUP(x)	CloseHandle(x)
-# define MUTEX_LOCK(x)		WaitForSingleObject((x), INFINITE)
-# define MUTEX_UNLOCK(x)	ReleaseMutex(x)
-# define THREAD_ID		GetCurrentThreadId()
-#elif defined(_POSIX_THREADS)
-# define MUTEX_TYPE		pthread_mutex_t
-# define MUTEX_SETUP(x)		pthread_mutex_init(&(x), NULL)
-# define MUTEX_CLEANUP(x)	pthread_mutex_destroy(&(x))
-# define MUTEX_LOCK(x)		pthread_mutex_lock(&(x))
-# define MUTEX_UNLOCK(x)	pthread_mutex_unlock(&(x))
-# define THREAD_ID		pthread_self()
-#else
-# error "You must define mutex operations appropriate for your platform"
-# error	"See OpenSSL /threads/th-lock.c on how to implement mutex on your platform"
-#endif
-
 struct CRYPTO_dynlock_value
 { MUTEX_TYPE mutex;
 };
@@ -903,7 +1207,7 @@ unsigned long id_function()
 
 int CRYPTO_thread_setup()
 { int i;
-  mutex_buf = (MUTEX_TYPE*)malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t));
+  mutex_buf = (MUTEX_TYPE*)malloc(CRYPTO_num_locks() * sizeof(MUTEX_TYPE));
   if (!mutex_buf)
     return SOAP_EOM;
   for (i = 0; i < CRYPTO_num_locks(); i++)
@@ -941,3 +1245,62 @@ void CRYPTO_thread_cleanup()
 
 void sigpipe_handle(int x) { }
 
+/******************************************************************************\
+ *
+ *	Emulation of POSIX condition variables for WIN32
+ *
+\******************************************************************************/
+
+#ifdef WIN32
+
+int emulate_pthread_cond_init(COND_TYPE *cv)
+{
+  cv->waiters_count_ = 0;
+  cv->signal_event_ = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+  return 0;
+}
+
+int emulate_pthread_cond_destroy(COND_TYPE *cv)
+{
+  CloseHandle(cv->signal_event_);
+
+  return 0;
+}
+
+int emulate_pthread_cond_signal(COND_TYPE *cv)
+{
+  int have_waiters;
+
+  EnterCriticalSection(&cv->waiters_count_lock_);
+  have_waiters = cv->waiters_count_ > 0;
+  LeaveCriticalSection(&cv->waiters_count_lock_);
+
+  if (have_waiters)
+    return SetEvent(cv->signal_event_) == 0;
+
+  return 0;
+}
+
+int emulate_pthread_cond_wait(COND_TYPE *cv, MUTEX_TYPE *cs)
+{
+  int result;
+
+  EnterCriticalSection(&cv->waiters_count_lock_);
+  cv->waiters_count_++;
+  LeaveCriticalSection(&cv->waiters_count_lock_);
+
+  LeaveCriticalSection(cs);
+
+  result = (WaitForSingleObject(cv->signal_event_, INFINITE) == WAIT_FAILED);
+
+  EnterCriticalSection(&cv->waiters_count_lock_);
+  cv->waiters_count_--;
+  LeaveCriticalSection(&cv->waiters_count_lock_);
+
+  EnterCriticalSection(cs, INFINITE);
+
+  return result;
+}
+
+#endif 

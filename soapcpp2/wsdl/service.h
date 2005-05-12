@@ -82,6 +82,7 @@ class Service
     const char *URI;
     const char *name;			// binding name
     const char *type;			// portType
+    const char *transport;		// binding transport
     SetOfString location;		// WSDL may specify multiple locations via <Port> -> <Binding>
     vector<Operation*> operation;
     MapOfStringToMessage header;

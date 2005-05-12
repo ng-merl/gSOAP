@@ -98,11 +98,11 @@ platform = @platform@
 ####### This is the input file for automake, which will generate Makefile.in ##########
 AUTOMAKE_OPTIONS = foreign 1.4
 
-noinst_PROGRAMS = uddi
-SOAPHEADER = uddi.h
+noinst_PROGRAMS = udpclient udpserver
 
-AM_CFLAGS = -D$(platform)
-AM_CXXFLAGS = -D$(platform)
+AM_CFLAGS = -D$(platform) -DWITH_UDP
+AM_CXXFLAGS = -D$(platform) -DWITH_UDP
+
 INCLUDES = -I$(top_builddir)/soapcpp2
 SOAP = $(top_builddir)/soapcpp2/src/soapcpp2
 
@@ -110,39 +110,42 @@ SOAP_NS_DEF = ns.nsmap ns.wsdl
 
 SOAP_H_FILES = soapH.h soapStub.h 
 
-SOAP_C_CLIENT = soapClient.c soapC.c
-SOAP_C_SERVER = soapServer.c soapC.c
-SOAP_C_LIB = $(top_builddir)/soapcpp2/libgsoap.a
-SOAP_C_LIB_CK = $(top_builddir)/soapcpp2/libgsoapck.a
+SOAP_C_CLIENT = soapClient.c soapC.c $(top_builddir)/soapcpp2/stdsoap2.c
+SOAP_C_SERVER = soapServer.c soapC.c $(top_builddir)/soapcpp2/stdsoap2.c
 
-SOAP_CPP_CLIENT = soapClient.cpp soapC.cpp
-SOAP_CPP_SERVER = soapServer.cpp soapC.cpp
-SOAP_CPP_LIB = $(top_builddir)/soapcpp2/libgsoap++.a
-SOAP_CPP_LIB_CK = $(top_builddir)/soapcpp2/libgsoapck++.a
+SOAPHEADER = udp.h
+SOAP_NS = udp.nsmap
 
-SOAP_NS = $(SOAP_NS_DEF)
+SOAP_C_SRC = $(SOAP_C_CLIENT) soapServer.c $(SOAP_H_FILES) $(SOAP_NS)
 
-SOAP_CPP_SRC = $(SOAP_CPP_CLIENT) soapServer.cpp $(SOAP_H_FILES) $(SOAP_NS)
+LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
+BUILT_SOURCES = $(SOAP_C_SRC) 
+CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
-LDADD = $(SOAP_CPP_LIB) $(SAMPLE_EXTRA_LIBS)
-BUILT_SOURCES = $(SOAP_CPP_SRC) 
-CLEANFILES = $(SOAP_CPP_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
-
-uddi_SOURCES = uddi.cpp $(SOAPHEADER) $(SOAP_CPP_CLIENT)
-subdir = soapcpp2/samples/uddi
+udpclient_SOURCES = udpclient.c $(SOAPHEADER) $(SOAP_C_CLIENT)
+udpserver_SOURCES = udpserver.c $(SOAPHEADER) $(SOAP_C_SERVER)
+subdir = soapcpp2/samples/udp
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-noinst_PROGRAMS = uddi$(EXEEXT)
+noinst_PROGRAMS = udpclient$(EXEEXT) udpserver$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 
 am__objects_1 =
-am__objects_2 = soapClient.$(OBJEXT) soapC.$(OBJEXT)
-am_uddi_OBJECTS = uddi.$(OBJEXT) $(am__objects_1) $(am__objects_2)
-uddi_OBJECTS = $(am_uddi_OBJECTS)
-uddi_LDADD = $(LDADD)
-uddi_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap++.a
-uddi_LDFLAGS =
+am__objects_2 = soapClient.$(OBJEXT) soapC.$(OBJEXT) stdsoap2.$(OBJEXT)
+am_udpclient_OBJECTS = udpclient.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2)
+udpclient_OBJECTS = $(am_udpclient_OBJECTS)
+udpclient_LDADD = $(LDADD)
+udpclient_DEPENDENCIES =
+udpclient_LDFLAGS =
+am__objects_3 = soapServer.$(OBJEXT) soapC.$(OBJEXT) stdsoap2.$(OBJEXT)
+am_udpserver_OBJECTS = udpserver.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_3)
+udpserver_OBJECTS = $(am_udpserver_OBJECTS)
+udpserver_LDADD = $(LDADD)
+udpserver_DEPENDENCIES =
+udpserver_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -152,38 +155,37 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/soapC.Po ./$(DEPDIR)/soapClient.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/uddi.Po
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	-o $@
-CXXFLAGS = @CXXFLAGS@
-CFLAGS = @CFLAGS@
+@AMDEP_TRUE@	./$(DEPDIR)/soapServer.Po ./$(DEPDIR)/stdsoap2.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/udpclient.Po ./$(DEPDIR)/udpserver.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(uddi_SOURCES)
+CFLAGS = @CFLAGS@
+DIST_SOURCES = $(udpclient_SOURCES) $(udpserver_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(uddi_SOURCES)
+SOURCES = $(udpclient_SOURCES) $(udpserver_SOURCES)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .cpp .o .obj
-$(srcdir)/Makefile.in:  Makefile.am $(srcdir)/../Makefile.defines $(srcdir)/../Makefile.cpp_rules $(top_srcdir)/configure.in $(ACLOCAL_M4)
+.SUFFIXES: .c .o .obj
+$(srcdir)/Makefile.in:  Makefile.am $(srcdir)/../Makefile.c_rules $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  soapcpp2/samples/uddi/Makefile
+	  $(AUTOMAKE) --foreign  soapcpp2/samples/udp/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-uddi$(EXEEXT): $(uddi_OBJECTS) $(uddi_DEPENDENCIES) 
-	@rm -f uddi$(EXEEXT)
-	$(CXXLINK) $(uddi_LDFLAGS) $(uddi_OBJECTS) $(uddi_LDADD) $(LIBS)
+stdsoap2.$(OBJEXT): $(top_builddir)/soapcpp2/stdsoap2.c
+udpclient$(EXEEXT): $(udpclient_OBJECTS) $(udpclient_DEPENDENCIES) 
+	@rm -f udpclient$(EXEEXT)
+	$(LINK) $(udpclient_LDFLAGS) $(udpclient_OBJECTS) $(udpclient_LDADD) $(LIBS)
+udpserver$(EXEEXT): $(udpserver_OBJECTS) $(udpserver_DEPENDENCIES) 
+	@rm -f udpserver$(EXEEXT)
+	$(LINK) $(udpserver_LDFLAGS) $(udpserver_OBJECTS) $(udpserver_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -193,23 +195,38 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapClient.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uddi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdsoap2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/udpclient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/udpserver.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
 
-.cpp.o:
+.c.o:
 @AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXXCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `test -f '$<' || echo '$(srcdir)/'`$<
 
-.cpp.obj:
+.c.obj:
 @AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXXCOMPILE) -c -o $@ `cygpath -w $<`
-CXXDEPMODE = @CXXDEPMODE@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `cygpath -w $<`
+
+stdsoap2.o: $(top_builddir)/soapcpp2/stdsoap2.c
+@AMDEP_TRUE@	source='$(top_builddir)/soapcpp2/stdsoap2.c' object='stdsoap2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/stdsoap2.Po' tmpdepfile='$(DEPDIR)/stdsoap2.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o stdsoap2.o `test -f '$(top_builddir)/soapcpp2/stdsoap2.c' || echo '$(srcdir)/'`$(top_builddir)/soapcpp2/stdsoap2.c
+
+stdsoap2.obj: $(top_builddir)/soapcpp2/stdsoap2.c
+@AMDEP_TRUE@	source='$(top_builddir)/soapcpp2/stdsoap2.c' object='stdsoap2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/stdsoap2.Po' tmpdepfile='$(DEPDIR)/stdsoap2.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o stdsoap2.obj `cygpath -w $(top_builddir)/soapcpp2/stdsoap2.c`
+CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
 ETAGS = etags
@@ -354,8 +371,8 @@ uninstall-am: uninstall-info-am
 	uninstall-info-am
 
 
-$(SOAP_CPP_SRC) : $(SOAPHEADER)
-	$(SOAP) $(SOAP_FLAGS) $< 
+$(SOAP_C_SRC) : $(SOAPHEADER)
+	$(SOAP) -c $(SOAP_FLAGS) $< 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

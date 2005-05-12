@@ -66,6 +66,7 @@ xs__schema::xs__schema()
   soap->proxy_port = proxy_port;
   targetNamespace = NULL;
   version = NULL;
+  updated = false;
 }
 
 xs__schema::xs__schema(struct soap *copy)
@@ -75,6 +76,7 @@ xs__schema::xs__schema(struct soap *copy)
   soap->encodingStyle = NULL;
   targetNamespace = NULL;
   version = NULL;
+  updated = false;
 }
 
 xs__schema::xs__schema(struct soap *copy, const char *location)
@@ -88,6 +90,7 @@ xs__schema::xs__schema(struct soap *copy, const char *location)
   soap->encodingStyle = NULL;
   targetNamespace = NULL;
   version = NULL;
+  updated = false;
   read(location);
 }
 
@@ -97,6 +100,9 @@ xs__schema::~xs__schema()
 int xs__schema::traverse()
 { if (vflag)
     cerr << "schema " << (targetNamespace?targetNamespace:"") << endl;
+  if (updated)
+    return SOAP_OK;
+  updated = true;
   if (!targetNamespace)
   { if (vflag)
       fprintf(stderr, "Warning: Schema has no targetNamespace\n");
@@ -277,22 +283,22 @@ int xs__import::traverse(xs__schema &schema)
       }
       else
 	fprintf(stderr, "Warning: no namespace table\n");
-      if (!iflag && (!p || !p->id)) // don't import any of the schemas in the .nsmap table (or when -i option is used)
-      { const char *s = schemaLocation;
-	if (!s)
-	  s = namespace_;
-        schemaRef = new xs__schema(schema.soap, s);
-        if (schemaPtr())
-        { if (!schemaPtr()->targetNamespace || !*schemaPtr()->targetNamespace)
-            schemaPtr()->targetNamespace = namespace_;
-	  else if (strcmp(schemaPtr()->targetNamespace, namespace_))
-            fprintf(stderr, "Warning: schema import '%s' with schema targetNamespace '%s' mismatch\n", namespace_?namespace_:"", schemaPtr()->targetNamespace);
-	  schemaPtr()->traverse();
-        }
-      }
     }
     else
       fprintf(stderr, "Warning: no namespace in <import>\n");
+    if (!iflag && (!p || !p->id)) // don't import any of the schemas in the .nsmap table (or when -i option is used)
+    { const char *s = schemaLocation;
+      if (!s)
+	s = namespace_;
+      schemaRef = new xs__schema(schema.soap, s);
+      if (schemaPtr())
+      { if (!schemaPtr()->targetNamespace || !*schemaPtr()->targetNamespace)
+          schemaPtr()->targetNamespace = namespace_;
+	else if (!namespace_ || strcmp(schemaPtr()->targetNamespace, namespace_))
+          fprintf(stderr, "Warning: schema import '%s' with schema targetNamespace '%s' mismatch\n", namespace_?namespace_:"", schemaPtr()->targetNamespace);
+	schemaPtr()->traverse();
+      }
+    }
   }
   return SOAP_OK;
 }
@@ -313,7 +319,7 @@ xs__attribute::xs__attribute()
 
 int xs__attribute::traverse(xs__schema &schema)
 { if (vflag)
-    cerr << "schema attribute" << endl;
+    cerr << "schema attribute " << (name?name:"") << endl;
   schemaRef = &schema;
   const char *token = qname_token(ref, schema.targetNamespace);
   attributeRef = NULL;
@@ -431,7 +437,7 @@ xs__element::xs__element()
 
 int xs__element::traverse(xs__schema &schema)
 { if (vflag)
-    cerr << "schema element" << endl;
+    cerr << "schema element " << (name?name:"") << endl;
   schemaRef = &schema;
   const char *token = qname_token(ref, schema.targetNamespace);
   elementRef = NULL;
@@ -545,8 +551,6 @@ int xs__element::traverse(xs__schema &schema)
       else
         cerr << "Warning: could not find element " << (name?name:"") << " type " << type << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
-    else
-      cerr << "Warning: could not find element " << (name?name:"") << " ref or type" << " in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
   }
   return SOAP_OK;
 }
@@ -589,7 +593,7 @@ xs__simpleType::xs__simpleType()
 
 int xs__simpleType::traverse(xs__schema &schema)
 { if (vflag)
-    cerr << "schema simpleType" << endl;
+    cerr << "schema simpleType " << (name?name:"") << endl;
   schemaRef = &schema;
   if (list)
     list->traverse(schema);
@@ -639,7 +643,7 @@ xs__complexType::xs__complexType()
 
 int xs__complexType::traverse(xs__schema &schema)
 { if (vflag)
-    cerr << "schema complexType" << endl;
+    cerr << "schema complexType " << (name?name:"") << endl;
   schemaRef = &schema;
   if (simpleContent)
     simpleContent->traverse(schema);
