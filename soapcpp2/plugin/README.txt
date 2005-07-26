@@ -1,0 +1,13 @@
+This directory contains plugins for extending the gSOAP engine's capabilities.
+
+httpda.*	HTTP Digest Authentication
+httpget.*	HTTP GET method support
+httppost.*	HTTP POST method support for non-SOAP requests
+httpmd5.*	HTTP MD5 checksums
+logging.*	Message logging (selective inbound/outbound)
+plugin.*	Example plugin for aspiring plugin developers
+
+Supporting modules:
+
+md5evp.*	MD5 EVP interface for httpda and httpmd5
+threads.*	Threads, mutex, and condition variables

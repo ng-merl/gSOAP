@@ -1,0 +1,125 @@
+#	WS-typemap.dat
+#
+#-------------------------------------------------------------------------------
+#gSOAP XML Web services tools
+#Copyright (C) 2004-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+#This software is released under one of the following two licenses:
+#GPL or Genivia's license for commercial use.
+#-------------------------------------------------------------------------------
+#GPL license.
+#
+#This program is free software; you can redistribute it and/or modify it under
+#the terms of the GNU General Public License as published by the Free Software
+#Foundation; either version 2 of the License, or (at your option) any later
+#version.
+#
+#This program is distributed in the hope that it will be useful, but WITHOUT ANY
+#WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License along with
+#this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+#Place, Suite 330, Boston, MA 02111-1307 USA
+#
+#Author contact information:
+#engelen@genivia.com / engelen@acm.org
+#-------------------------------------------------------------------------------
+#A commercial use license is available from Genivia, Inc., contact@genivia.com
+#-------------------------------------------------------------------------------
+
+#	Bindings for WS-* protocols:
+
+wsrp	= "http://schemas.xmlsoap.org/rp/"
+wsen	= "http://schemas.xmlsoap.org/ws/2004/09/enumeration"
+wsa	= <http://schemas.xmlsoap.org/ws/2004/08/addressing>
+wsa3	= <http://schemas.xmlsoap.org/ws/2003/03/addressing>
+wsp	= "http://schemas.xmlsoap.org/ws/2004/09/policy"
+
+#	wsa:AttributedQName is a QName element extensible with attributes.
+#	We redeclare it as a QName string, assuming we don't need attributes:
+
+wsa__AttributedQName	= typedef _QName wsa__AttributedQName; | wsa__AttributedQName | wsa__AttributedQName
+wsa3__AttributedQName	= typedef _QName wsa3__AttributedQName; | wsa3__AttributedQName | wsa3__AttributedQName
+
+#	wsa:AttributedURI is an anyURI element extensible with attributes.
+#	We redeclare it as a regular string, assuming we don't need attributes:
+
+wsa__AttributedURI	= typedef char* wsa__AttributedURI; | wsa__AttributedURI | wsa__AttributedURI
+wsa3__AttributedURI	= typedef char* wsa3__AttributedURI; | wsa3__AttributedURI | wsa3__AttributedURI
+
+#	wsa:ReplyAfterType is an nonnegativeInteger extensible with attributes.
+#	We redeclare it here, assuming we don't need attributes:
+
+wsa__ReplyAfterType	= | unsigned int
+
+#	Bindings internally handled
+
+dsig	= <http://www.w3.org/2000/09/xmldsig#>
+xenc	= <http://www.w3.org/2001/04/xmlenc#>
+wsse	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd>
+wsu	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd>
+
+#	WS-Policy imports wsu:Id attribute
+
+_wsu__Id		= typedef char *wsu__Id; | wsu__Id | wsu__Id
+
+#	Use regular char* strings for ID
+
+xsd__ID			= | char* | char*
+
+#	Use regular char* strings for NCName
+
+xsd__NCName		= | char* | char*
+
+#	Use regular char* strings for anyURI
+
+xsd__anyURI		= | char* | char*
+
+#	Use built-in gSOAP _QName
+
+xsd__QName		= | _QName | _QName
+
+#	Map xsd:nonNegativeInteger to unsigned int
+
+xsd__integer		= | int
+
+#	Map xsd:nonNegativeInteger to unsigned int
+
+xsd__nonNegativeInteger	= | unsigned int
+
+#	Map xsd:base64Binary to xsd__base64Binary_ to avoid redefs
+
+xsd__base64Binary	= struct xsd__base64Binary_ { unsigned char *__ptr; int __size; }; | struct xsd__base64Binary_
+
+#	Map xsd:boolean to xsd__boolean_ to avoid redefs
+
+xsd__boolean		= enum xsd__boolean_ { _false, _true }; | enum xsd__boolean_
+
+#	Redeclare wsrp:action_t
+
+wsrp__action_USCOREt	= | char* | char*
+
+#	Redeclare wsrp:to_t
+
+wsrp__to_USCOREt	= | char* | char*
+
+#	Redeclare wsrp:from_t
+
+wsrp__from_USCOREt	= | char* | char*
+
+#	Redeclare wsrp:id_t
+
+wsrp__id_USCOREt	= | char* | char*
+
+#	Redeclare wsrp:relatesTo_t
+
+wsrp__relatesTo_USCOREt	= | char* | char*
+
+#	Redeclare wsrp:faultcode_t
+
+wsrp__faultcode_USCOREt	= | char* | char*
+
+#	Redeclare wsrp:faultreason_t
+
+wsrp__faultreason_USCOREt = | char* | char*
+
