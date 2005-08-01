@@ -3,6 +3,7 @@
 httppost.c
 
 gSOAP HTTP POST plugin for non-SOAP payloads.
+Note: multipart/related and multipart/form-data are already handled in gSOAP.
 
 gSOAP XML Web services tools
 Copyright (C) 2004-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
@@ -55,7 +56,8 @@ engelen@genivia.com / engelen@acm.org
 	int http_post_handler(struct soap*)
 	which will be called from the plugin upon an HTTP POST request that
 	matches the content-type requirements.
-	The function should return an error code or SOAP_OK;
+	The function should return an error code or SOAP_STOP to prevent the
+	gSOAP engine from processing the message body;
 
 	This function should also produce a valid HTTP response, for example:
 	soap_response(soap, SOAP_HTML); // use this to return HTML ...
@@ -74,6 +76,7 @@ const char http_post_id[14] = HTTP_POST_ID;
 static int http_post_init(struct soap *soap, struct http_post_data *data, int (*handler)(struct soap*));
 static void http_post_delete(struct soap *soap, struct soap_plugin *p);
 static int http_post_parse_header(struct soap *soap, const char*, const char*);
+static int http_post_handler(struct soap *soap);
 
 int http_post(struct soap *soap, struct soap_plugin *p, void *arg)
 { p->id = http_post_id;
@@ -90,7 +93,8 @@ int http_post(struct soap *soap, struct soap_plugin *p, void *arg)
 static int http_post_init(struct soap *soap, struct http_post_data *data, int (*handler)(struct soap*))
 { data->fparsehdr = soap->fparsehdr; /* save old HTTP header parser callback */
   soap->fparsehdr = http_post_parse_header; /* replace HTTP header parser callback with ours */
-  soap->fstop = handler;
+  if (handler)
+    soap->fform = handler;
   return SOAP_OK;
 }
 
@@ -105,11 +109,11 @@ static int http_post_parse_header(struct soap *soap, const char *key, const char
   soap->error = data->fparsehdr(soap, key, val); /* parse HTTP header */
   if (soap->error == SOAP_OK)
   { if (!soap_tag_cmp(key, "Content-Type"))
-    { /* check content type: you can filter here any payloads you want */
-      if (!soap_tag_cmp(val, "text/xml*"))
-	return SOAP_OK; /* SOAP/XML content: process as usual */
-      if (!soap_tag_cmp(val, "text/*"))
-        soap->error = SOAP_STOP; /* delegate body parsing to handler */
+    { /* check content type: you can filter any type of payloads here */
+      if (!soap_tag_cmp(val, "application/x-www-form-urlencoded"))
+        soap->error = SOAP_FORM; /* delegate body parsing to handler */
+      else if (!soap_tag_cmp(val, "image/*"))
+        soap->error = SOAP_FORM; /* delegate images of any type */
     }
   }
   return soap->error;

@@ -31,7 +31,7 @@ engelen@genivia.com / engelen@acm.org
 A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 
-TODO:	add support for HTTP operations (non-SOAP access)
+TODO:	consider adding support for non-SOAP HTTP operations
         add headerfault output definitions
 
 */
@@ -410,7 +410,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       fprintf(stream, "#import \"%s/", import_path);
     else
       fprintf(stream, "#import \"");
-    fprintf(stream, "prim.h\"\t// import primitive XSD types.\n", import_path);
+    fprintf(stream, "xsd.h\"\t// import primitive XSD types.\n", import_path);
   }
   for (SetOfString::const_iterator u = exturis.begin(); u != exturis.end(); ++u)
   { bool found = false;
@@ -496,7 +496,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       s = types.usetypemap[t];
       if (s)
       { if (mflag)
-          fprintf(stream, "//  prim.h must define type: %s\n", s);
+          fprintf(stream, "//  xsd.h must define type: %s\n", s);
         types.knames.insert(s);
       }
     }
@@ -517,15 +517,15 @@ void Definitions::compile(const wsdl__definitions& definitions)
       { if (**i == '"')
 	  fprintf(stream, "\n/// Imported type %s from typemap %s.\n", *i, mapfile?mapfile:"");
         else
-	  fprintf(stream, "\n/// Built-in type \"%s\"\n", *i);
+	  fprintf(stream, "\n/// Built-in type \"%s\".\n", *i);
 	if (mflag)
           fprintf(stream, "//  (declaration removed by option -m) ");
-        fprintf(stream, "%s\n", s);
+        types.format(s);
       }
       s = types.usetypemap[t];
       if (s && *s)
       { if (mflag && **i != '"')
-          fprintf(stream, "\n//  prim.h must define type: %s\n", s);
+          fprintf(stream, "\n//  xsd.h must define type: %s\n", s);
         if (types.knames.find(s) == types.knames.end())
           types.knames.insert(s);
       }
@@ -543,7 +543,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       else if (**i == '"')
         fprintf(stream, "\n//  Imported type %s defined by %s\n", *i, t);
       else
-        fprintf(stream, "\n//  prim.h must define type: %s\n", t);
+        fprintf(stream, "\n//  xsd.h must define type: %s\n", t);
       types.deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, NULL, NULL, *i);
     }
     if (pflag && !strncmp(*i, "xs:", 3))		// only xsi types are polymorph
@@ -567,15 +567,15 @@ void Definitions::compile(const wsdl__definitions& definitions)
       { if (**j == '"')
 	  fprintf(stream, "\n/// Imported element %s from typemap %s.\n", *j, mapfile?mapfile:"");
         else
-	  fprintf(stream, "\n/// Built-in element \"%s\"\n", *j);
+	  fprintf(stream, "\n/// Built-in element \"%s\".\n", *j);
 	if (mflag)
           fprintf(stream, "//  (declaration removed by option -m) ");
-        fprintf(stream, "%s\n", s);
+        types.format(s);
       }
       s = types.usetypemap[t];
       if (s && *s)
       { if (mflag && **j != '"')
-          fprintf(stream, "\n//  prim.h must define element: %s\n", s);
+          fprintf(stream, "\n//  xsd.h must define element: %s\n", s);
         if (types.knames.find(s) == types.knames.end())
           types.knames.insert(s);
       }
@@ -585,14 +585,14 @@ void Definitions::compile(const wsdl__definitions& definitions)
       { if (**j == '"')
 	  fprintf(stream, "\n// Imported element %s declared as %s\n", *j, t);
         else
-	{ fprintf(stream, "\n/// Built-in element \"%s\"\n", *j);
+	{ fprintf(stream, "\n/// Built-in element \"%s\".\n", *j);
           fprintf(stream, "typedef _XML %s;\n", t);
         }
       }
       else if (**j == '"')
 	fprintf(stream, "\n//  Imported element %s declared as %s\n", *j, t);
       else
-        fprintf(stream, "\n//  prim.h must define element: %s\n", t);
+        fprintf(stream, "\n//  xsd.h must define element: %s\n", t);
       types.deftname(TYPEDEF, NULL, true, NULL, NULL, *j);	// already pointer
     }
   }
@@ -606,15 +606,15 @@ void Definitions::compile(const wsdl__definitions& definitions)
       { if (**k == '"')
 	  fprintf(stream, "\n/// Imported attribute %s from typemap %s.\n", *k, mapfile?mapfile:"");
         else
-	  fprintf(stream, "\n/// Built-in attribute \"%s\"\n", *k);
+	  fprintf(stream, "\n/// Built-in attribute \"%s\".\n", *k);
 	if (mflag)
           fprintf(stream, "//  (declaration removed by option -m) ");
-        fprintf(stream, "%s\n", s);
+        types.format(s);
       }
       s = types.usetypemap[t];
       if (s && *s)
       { if (mflag && **k != '"')
-          fprintf(stream, "\n//  prim.h must define attribute: %s\n", s);
+          fprintf(stream, "\n//  xsd.h must define attribute: %s\n", s);
         if (types.knames.find(s) == types.knames.end())
           types.knames.insert(s);
       }
@@ -625,14 +625,14 @@ void Definitions::compile(const wsdl__definitions& definitions)
       { if (**k == '"')
           fprintf(stream, "\n// Imported attribute %s declared as %s\n", *k, t);
         else
-        { fprintf(stream, "\n/// Built-in attribute \"%s\"\n", *k);
+        { fprintf(stream, "\n/// Built-in attribute \"%s\".\n", *k);
           fprintf(stream, "typedef %s %s;\n", s, t);
         }
       }
       else if (**k == '"')
         fprintf(stream, "//  Imported attribute %s declared as %s\n", *k, t);
       else
-        fprintf(stream, "//  prim.h must define attribute: %s\n", t);
+        fprintf(stream, "//  xsd.h must define attribute: %s\n", t);
       types.deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, NULL, NULL, *k);
     }
   }
@@ -659,55 +659,6 @@ void Definitions::compile(const wsdl__definitions& definitions)
         { if ((*simpleType).baseLevel() == baseLevel)
           { found = true;
             types.gen((*schema)->targetNamespace, NULL, *simpleType);
-	    // TODO: factor same code as for global elements of complexType
-            for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
-            { if ((*element).name && (*element).simpleTypePtr() == &(*simpleType))
-              { if (!types.is_defined(NULL, (*schema)->targetNamespace, (*element).name))
-                { const char *s = types.tname(NULL, NULL, (*element).type);
-                  const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*element).name);
-	          fprintf(stream, "\n/// Element \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
-	          types.document((*element).annotation);
-		  if (gflag)
-		  { if (strchr(s, '*')) // don't want pointer typedef
-		    { size_t n = strlen(s);
-		      char *r = (char*)malloc(n);
-		      strncpy(r, s, n - 1);
-		      r[n - 1] = '\0';
-		      fprintf(stream, "typedef %s %s;\n", r, t);
-		      free(r);
-		    }
-		    else
-		      fprintf(stream, "typedef %s %s;\n", s, t);
-		  }
-		  else
-	            fprintf(stream, "//  Note: use wsdl2h option -g to generate this global element declaration.\n");
-	        }
-	      }
-	    }
-            for (vector<xs__attribute>::iterator attribute = (*schema)->attribute.begin(); attribute != (*schema)->attribute.end(); ++attribute)
-            { if ((*attribute).name && (*attribute).simpleTypePtr() == &(*simpleType))
-              { if (!types.is_defined(NULL, (*schema)->targetNamespace, (*attribute).name))
-                { const char *s = types.tname(NULL, NULL, (*attribute).type);
-                  const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*attribute).name);
-	          fprintf(stream, "\n/// Attribute \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*attribute).name, (*attribute).type);
-	          types.document((*attribute).annotation);
-		  if (gflag)
-		  { if (strchr(s, '*')) // don't want pointer typedef
-		    { size_t n = strlen(s);
-		      char *r = (char*)malloc(n);
-		      strncpy(r, s, n - 1);
-		      r[n - 1] = '\0';
-		      fprintf(stream, "typedef %s %s;\n", r, t);
-		      free(r);
-		    }
-		    else
-		      fprintf(stream, "typedef %s %s;\n", s, t);
-		  }
-		  else
-	            fprintf(stream, "//  Note: use wsdl2h option -g to generate this global attribute declaration.\n");
-	        }
-	      }
-	    }
           }
         }
         for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
@@ -743,32 +694,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
     { for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
       { for (vector<xs__complexType>::iterator complexType = (*schema)->complexType.begin(); complexType != (*schema)->complexType.end(); ++complexType)
         { if ((*complexType).baseLevel() == baseLevel)
-          { types.gen((*schema)->targetNamespace, NULL, *complexType);
-            for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
-            { if ((*element).name && (*element).complexTypePtr() == &(*complexType))
-              { if (!types.is_defined(NULL, (*schema)->targetNamespace, (*element).name))
-                { const char *s = types.tname(NULL, NULL, (*element).type);
-                  const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*element).name);
-	          fprintf(stream, "\n/// Element \"%s\":%s of complexType %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
-	          types.document((*element).annotation);
-		  if (gflag)
-		  { if (strchr(s, '*')) // don't want pointer typedef
-		    { size_t n = strlen(s);
-		      char *r = (char*)malloc(n);
-		      strncpy(r, s, n - 1);
-		      r[n - 1] = '\0';
-		      fprintf(stream, "typedef %s %s;\n", r, t);
-		      free(r);
-		    }
-		    else
-		      fprintf(stream, "typedef %s %s;\n", s, t);
-		  }
-		  else
-	            fprintf(stream, "//  Note: use wsdl2h option -g to generate this global element declaration.\n");
-	        }
-	      }
-	    }
-	  }
+            types.gen((*schema)->targetNamespace, NULL, *complexType);
         }
         for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
         { if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
@@ -776,15 +702,6 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	    types.document((*element).annotation);
             types.gen((*schema)->targetNamespace, (*element).name, *(*element).complexTypePtr());
 	  }
-	  /*
-          else if ((*element).name && (*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
-	  { fprintf(stream, "/// Element \"%s\":%s of complexType %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
-	    types.document((*element).annotation);
-            const char *s = types.tname(NULL, NULL, (*element).type);
-            const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*element).name);
-	    fprintf(stream, "typedef %s %s;\n", s, t);
-          }
-	  */
         }
       }
     }
@@ -794,6 +711,76 @@ void Definitions::compile(const wsdl__definitions& definitions)
     { types.gen(NULL, (*local).first, *(*local).second);
     }
     */
+    for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
+    { for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
+      { if ((*element).name && (*element).type)
+        { fprintf(stream, "\n/// Element \"%s\":%s of complexType %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
+          types.document((*element).annotation);
+          if (!types.is_defined("_", (*schema)->targetNamespace, (*element).name))
+          { const char *s = types.tname(NULL, NULL, (*element).type);
+            const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*element).name);
+  	    if (gflag)
+  	    { if (strncmp(s, "char", 4) && strchr(s, '*')) // don't want pointer typedef, unless char*
+  	      { size_t n = strlen(s);
+  	        char *r = (char*)malloc(n);
+  	        strncpy(r, s, n - 1);
+  	        r[n - 1] = '\0';
+  	        fprintf(stream, "typedef %s %s;\n", r, t);
+  	        free(r);
+  	      }
+  	      else
+  	        fprintf(stream, "typedef %s %s;\n", s, t);
+  	    }
+  	    else
+              fprintf(stream, "/// Note: use wsdl2h option -g to generate this global element declaration.\n");
+          }
+	  else
+	  { const char *s = types.cname("_", (*schema)->targetNamespace, (*element).name);
+            const char *t = types.deftypemap[s];
+	    if (t && *t)
+	    { fprintf(stream, "/// Imported element %s from typemap %s.\n", s, mapfile?mapfile:"");
+	      types.format(t);
+	    }
+	    else
+              fprintf(stream, "/// '%s' element definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*element).name));
+	  }
+        }
+      }
+      for (vector<xs__attribute>::iterator attribute = (*schema)->attribute.begin(); attribute != (*schema)->attribute.end(); ++attribute)
+      { if ((*attribute).name && (*attribute).type)
+        { fprintf(stream, "\n/// Attribute \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*attribute).name, (*attribute).type);
+          types.document((*attribute).annotation);
+          if (!types.is_defined("_", (*schema)->targetNamespace, (*attribute).name))
+          { const char *s = types.tname(NULL, NULL, (*attribute).type);
+            const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*attribute).name);
+  	    if (gflag)
+  	    { if (strncmp(s, "char", 4) && strchr(s, '*')) // don't want pointer typedef, unless char*
+  	      { size_t n = strlen(s);
+  	        char *r = (char*)malloc(n);
+  	        strncpy(r, s, n - 1);
+  	        r[n - 1] = '\0';
+  	        fprintf(stream, "typedef %s %s;\n", r, t);
+  	        free(r);
+  	      }
+  	      else
+  	        fprintf(stream, "typedef %s %s;\n", s, t);
+  	    }
+  	    else
+              fprintf(stream, "/// Note: use wsdl2h option -g to generate this global attribute declaration.\n");
+          }
+	  else
+	  { const char *s = types.cname("_", (*schema)->targetNamespace, (*attribute).name);
+            const char *t = types.deftypemap[s];
+	    if (t && *t)
+	    { fprintf(stream, "/// Imported attribute %s from typemap %s.\n", s, mapfile?mapfile:"");
+	      types.format(t);
+	    }
+	    else
+              fprintf(stream, "/// '%s' attribute definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*attribute).name));
+	  }
+        }
+      }
+    }
   }
   collect(definitions);
   if (!services.empty())
@@ -1347,7 +1334,7 @@ static const char *find_nmtoken(const char *nmtokens, const char *nmtoken)
 { size_t n = strlen(nmtoken);
   const char *s = nmtokens;
   while (s) 
-  { if (!strcmp(s, nmtoken) && (s[n] == '\0' || s[n] == ' '))
+  { if (!strncmp(s, nmtoken, n) && (s[n] == '\0' || s[n] == ' '))
       return s;
     s = strchr(s, ' ');
     if (s)

@@ -15,13 +15,13 @@
 
 
 
-<title> gSOAP 2.7.4 User Guide</title>
+<title> gSOAP 2.7.5 User Guide</title>
     
-<h1 align="center">gSOAP 2.7.4 User Guide </h1>
+<h1 align="center">gSOAP 2.7.5 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Jul 26, 2005
+<h3 align="center">Aug  1, 2005
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -2691,7 +2691,7 @@ The <i>wsdl2h</i> command line options are:
 <tr><td><i>-h</i>      </td><td>print help information </td></tr>
 <tr><td><i>-I path</i>	</td><td>use path to find files </td></tr>
 <tr><td><i>-l</i>	</td><td>include license information in output </td></tr>
-<tr><td><i>-m</i>	</td><td>create modules for separate compilation </td></tr>
+<tr><td><i>-m</i>	</td><td>use xsd.h module to import primitive types </td></tr>
 <tr><td><i>-n name</i>	</td><td>use <i>name</i> as the base namespace prefix name instead of <i>ns</i> </td></tr>
 <tr><td><i>-N name</i>	</td><td>use <i>name</i> as the base namespace prefix name for service namespaces </td></tr>
 <tr><td><i>-o file</i>  </td><td>output to file </td></tr>
@@ -10265,10 +10265,10 @@ Built-in gSOAP function: <i>tcp_connect</i>
 Should return <i>SOAP_OK</i>, or a gSOAP error code.
 Built-in gSOAP function: <i>http_get</i>
 </td></tr>
-<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fstop)(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
-<tr><td width="602">Called by the main server loop when the <i>fparsehdr</i> callback returned <i>SOAP_STOP</i> to signal that the HTTP body must not be processed based on one or more HTTP header lines.
-Should return <i>SOAP_OK</i>, or a gSOAP error code.
-Built-in gSOAP function: <i>http_stop</i>
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fform)(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
+<tr><td width="602">Called by the main server loop when a user-defined <i>fparsehdr</i> callback returned <i>SOAP_FORM</i> to signal that the HTTP body must be processed by this form handler callback. The HTTP POST form data MUST be read, otherwise keep-alive messages will end up out of sync.
+Should return <i>SOAP_OK</i> or a gSOAP error code.
+Built-in gSOAP function: none.
 </td></tr>
 <tr><td width="602"><i><b>int</b>&nbsp;(*soap.fpost)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*endpoint, <b>const</b>&nbsp;<b>char</b>&nbsp;*host, <b>int</b>&nbsp;port, <b>const</b>&nbsp;<b>char</b>&nbsp;*path, <b>const</b>&nbsp;<b>char</b>&nbsp;*action, size_t count)</i> </td></tr>
 <tr><td width="602">Called from a client proxy to generate the HTTP header to connect to <i>endpoint</i>.
@@ -12691,5 +12691,5 @@ soap_serve(&amp;soap); <br />
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On 26 Jul 2005, 13:27.</small>
+version 3.00.<br />On  1 Aug 2005, 11:04.</small>
 </html>

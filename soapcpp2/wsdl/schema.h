@@ -409,6 +409,23 @@ class xs__include
 	xs__schema			*schemaPtr() const;
 };
 	
+class xs__redefine
+{ public:
+	@xsd__anyURI			schemaLocation;
+	std::vector<xs__group>		group;
+	std::vector<xs__attributeGroup>	attributeGroup;
+	std::vector<xs__simpleType>	simpleType;
+	std::vector<xs__complexType>	complexType;
+  private:
+  	xs__schema			*schemaRef;
+  public:
+					xs__redefine();
+  	int				preprocess(xs__schema&);
+  	int				traverse(xs__schema&);
+	void				schemaPtr(xs__schema*);
+	xs__schema			*schemaPtr() const;
+};
+	
 enum xs__formChoice { unqualified, qualified };
 
 class xs__schema
@@ -418,6 +435,7 @@ class xs__schema
 	@enum xs__formChoice		attributeFormDefault	= unqualified;
 	@enum xs__formChoice		elementFormDefault	= unqualified;
 	std::vector<xs__include>	include;
+	std::vector<xs__redefine>	redefine;
 	std::vector<xs__import>		import;
 	std::vector<xs__attribute>	attribute;
 	std::vector<xs__element>	element;
@@ -438,6 +456,7 @@ class xs__schema
 	virtual				~xs__schema();
 	int				get(struct soap*);	// gSOAP getter is triggered after parsing
 	int				preprocess();
+	int				insert(xs__schema&);
 	int				traverse();
 	int				read(const char*);
 	int				error();

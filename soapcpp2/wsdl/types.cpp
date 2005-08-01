@@ -176,7 +176,7 @@ int Types::read(const char *file)
             if (*use)
               usetypemap[s] = estrdup(use);
 	    else
-	      fprintf(stderr, "\nWarning: type '%s' has incomplete use entry in file '%s'\n", xsd, file);
+              usetypemap[s] = estrdup(xsd);
             if (*ptr)
               ptrtypemap[s] = estrdup(ptr);
           }
@@ -224,11 +224,11 @@ void Types::init()
     usetypemap["xsd__anyType"] = "xsd__anyType*";
   }
   if (cflag)
-  { deftypemap["xsd__base64Binary"] = "struct xsd__base64Binary\n{ unsigned char *__ptr;\n  int __size;\n  char *id, *type, *option; /* NOTE: for DIME and MTOM XOP attachments only */\n};";
+  { deftypemap["xsd__base64Binary"] = "struct xsd__base64Binary\n{\tunsigned char *__ptr;\n\tint __size;\n\tchar *id, *type, *option; /* NOTE: for DIME and MTOM XOP attachments only */\n};";
     usetypemap["xsd__base64Binary"] = "struct xsd__base64Binary";
   }
   else
-  { deftypemap["xsd__base64Binary"] = "class xsd__base64Binary\n{ unsigned char *__ptr;\n  int __size;\n  char *id, *type, *option; /* NOTE: for DIME and MTOM XOP attachments only */\n  struct soap *soap;\n};";
+  { deftypemap["xsd__base64Binary"] = "class xsd__base64Binary\n{\tunsigned char *__ptr;\n\tint __size;\n\tchar *id, *type, *option; /* NOTE: for DIME and MTOM XOP attachments only */\n\tstruct soap *soap;\n};";
     usetypemap["xsd__base64Binary"] = "xsd__base64Binary";
   }
   if (cflag)
@@ -277,7 +277,7 @@ void Types::init()
   usetypemap["xsd__unsignedByte"] = "unsigned char";
   ptrtypemap["xsd__unsignedByte"] = "unsigned short*"; // avoid unsigned char*
   deftypemap["xsd__unsignedInt"] = "";
-  usetypemap["xsd__unsignedInt"] = "unsigned long";
+  usetypemap["xsd__unsignedInt"] = "unsigned int";
   deftypemap["xsd__unsignedLong"] = "";
   usetypemap["xsd__unsignedLong"] = "ULONG64";
   deftypemap["xsd__unsignedShort"] = "";
@@ -481,7 +481,7 @@ const char *Types::fname(const char *prefix, const char *URI, const char *qname,
 }
 
 bool Types::is_defined(const char *prefix, const char *URI, const char *qname)
-{ const char *t = fname(prefix, URI, qname, NULL, NOLOOKUP);
+{ const char *t = fname(prefix, URI, qname, NULL, LOOKUP);
   return usetypemap[t] != NULL;
 }
 
@@ -579,7 +579,7 @@ const char *Types::ename(const char *type, const char *value)
     if (!eflag && *type)
     { // Add prefix to enum
       char *buf = (char*)emalloc(strlen(type) + strlen(s) + 3);
-      if (*s == '_')
+      if (s[0] == '_' && s[1] != 'x')		// _xXXXX is OK here
         sprintf(buf, "%s_%s", type, s);
       else
         sprintf(buf, "%s__%s", type, s);
@@ -665,7 +665,10 @@ void Types::define(const char *URI, const char *name, const xs__complexType& com
       if (t)
       { fprintf(stream, "\n/// Imported complexType \"%s\":%s from typemap %s.\n", URI, name, mapfile?mapfile:"");
         document(complexType.annotation);
-        fprintf(stream, "%s\n", t);
+        if (*t)
+	  format(t);
+        else
+	  fprintf(stream, "/// complexType definition intentionally left blank.\n");
       }
     }
   }
@@ -678,7 +681,10 @@ void Types::define(const char *URI, const char *name, const xs__complexType& com
       if (t)
       { fprintf(stream, "\n/// Imported complexType \"%s\":%s from typemap %s.\n", URI, name, mapfile?mapfile:"");
         document(complexType.annotation);
-        fprintf(stream, "%s\n", t);
+        if (*t)
+	  format(t);
+        else
+	  fprintf(stream, "/// complexType definition intentionally left blank.\n");
       }
     }
   }
@@ -697,7 +703,10 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
     if (t)
     { fprintf(stream, "\n/// Imported simpleType \"%s\":%s from typemap %s.\n", URI, name, mapfile?mapfile:"");
       document(simpleType.annotation);
-      fprintf(stream, "%s\n", t);
+      if (*t)
+	format(t);
+      else
+	fprintf(stream, "/// simpleType definition intentionally left blank.\n");
       return;
     }
   }
@@ -719,17 +728,22 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
       for (vector<xs__enumeration>::const_iterator enumeration1 = simpleType.restriction->enumeration.begin(); enumeration1 != simpleType.restriction->enumeration.end(); ++enumeration1)
       { const char *s;
         if ((s = (*enumeration1).value))
-	  is_numeric = is_integer(s);
+	  is_numeric &= is_integer(s);
       }
+      SetOfString enumvals;
       for (vector<xs__enumeration>::const_iterator enumeration2 = simpleType.restriction->enumeration.begin(); enumeration2 != simpleType.restriction->enumeration.end(); ++enumeration2)
-      { document((*enumeration2).annotation);
-        if ((*enumeration2).value)
-	{ if (is_numeric)
-            fprintf(stream, "\t%s = %s,\t///< %s value=\"%s\"\n", ename(t, (*enumeration2).value), (*enumeration2).value, simpleType.restriction->base, (*enumeration2).value);
-          else if (is_qname && (*enumeration2).value_)
-            fprintf(stream, "\t%s,\t///< %s value=\"%s\"\n", ename(t, (*enumeration2).value_), simpleType.restriction->base, (*enumeration2).value_);
-          else
-            fprintf(stream, "\t%s,\t///< %s value=\"%s\"\n", ename(t, (*enumeration2).value), simpleType.restriction->base, (*enumeration2).value);
+      { const char *s;
+        document((*enumeration2).annotation);
+        if ((s = (*enumeration2).value))
+	{ if (!enumvals.count(s))
+	  { enumvals.insert(s);
+	    if (is_numeric)
+              fprintf(stream, "\t%s = %s,\t///< %s value=\"%s\"\n", ename(t, s), s, simpleType.restriction->base, s);
+            else if (is_qname && (*enumeration2).value_)
+              fprintf(stream, "\t%s,\t///< %s value=\"%s\"\n", ename(t, (*enumeration2).value_), simpleType.restriction->base, (*enumeration2).value_);
+            else
+              fprintf(stream, "\t%s,\t///< %s value=\"%s\"\n", ename(t, s), simpleType.restriction->base, s);
+	  }
 	}
         else
           fprintf(stream, "//\tunrecognized: enumeration '%s' has no value\n", name?name:"");
@@ -801,15 +815,15 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
       if (!simpleType.restriction->attribute.empty())
       { fprintf(stderr, "\nWarning: simpleType '%s' should not have attributes\n", name?name:"");
       }
+      const char *s = tname(NULL, NULL, simpleType.restriction->base);
       if (name)
-      { const char *s = tname(NULL, NULL, simpleType.restriction->base);
-        t = deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, prefix, URI, name);
+      { t = deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, prefix, URI, name);
         if (t)
 	  fprintf(stream, "typedef %s %s", s, t);
       }
       else
       { t = "";
-        fprintf(stream, elementformat, tname(NULL, NULL, simpleType.restriction->base), "");
+        fprintf(stream, elementformat, s, "");
         fprintf(stream, "\n");
       }
       if (t)
@@ -822,13 +836,19 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
           }
           fprintf(stream, "\"");
         }
+	// add range info only when type is numeric
+	bool is_numeric = false;
+	if (!strncmp(s, "unsigned ", 9))
+	  s += 9;
+	if (strstr("char short int LONG64 float double ", s))
+	  is_numeric = true;
         if (name && simpleType.restriction->minLength && simpleType.restriction->minLength->value)
           fprintf(stream, " %s", simpleType.restriction->minLength->value);
-        else if (name && simpleType.restriction->minInclusive && simpleType.restriction->minInclusive->value && is_integer(simpleType.restriction->minInclusive->value))
+        else if (is_numeric && name && simpleType.restriction->minInclusive && simpleType.restriction->minInclusive->value && is_integer(simpleType.restriction->minInclusive->value))
           fprintf(stream, " %s", simpleType.restriction->minInclusive->value);
         if (name && simpleType.restriction->maxLength && simpleType.restriction->maxLength->value)
           fprintf(stream, ":%s", simpleType.restriction->maxLength->value);
-        else if (name && simpleType.restriction->maxInclusive && simpleType.restriction->maxInclusive->value && is_integer(simpleType.restriction->maxInclusive->value))
+        else if (is_numeric && name && simpleType.restriction->maxInclusive && simpleType.restriction->maxInclusive->value && is_integer(simpleType.restriction->maxInclusive->value))
           fprintf(stream, ":%s", simpleType.restriction->maxInclusive->value);
         if (name)
         { fprintf(stream, ";\n");
@@ -1131,7 +1151,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
 	  break;
       }
       while (complextype);
-      fprintf(stream, "/// __item wraps simpleContent.\n");
+      fprintf(stream, "/// __item wraps '%s' simpleContent.\n", base);
       fprintf(stream, elementformat, tname(NULL, NULL, base), "__item");
       fprintf(stream, ";\n");
       gen(NULL, complexType.simpleContent->restriction->attribute);
@@ -1176,7 +1196,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
 	    break;
         }
         while (p);
-        fprintf(stream, "/// __item wraps simpleContent.\n");
+        fprintf(stream, "/// __item wraps '%s' simpleContent.\n", base);
         fprintf(stream, elementformat, tname(NULL, NULL, base), "__item");
         fprintf(stream, ";\n");
         p = &complexType; 
@@ -1218,7 +1238,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
             fprintf(stream, "class %s : public xsd__anyType\n{ public:\n", t);
           else
             fprintf(stream, "class %s\n{ public:\n", t);
-          fprintf(stream, "/// __item wraps simpleContent.\n");
+          fprintf(stream, "/// __item wraps '%s' simpleContent.\n", complexType.simpleContent->extension->base);
           fprintf(stream, elementformat, tname(NULL, NULL, complexType.simpleContent->extension->base), "__item");
           fprintf(stream, ";\n");
 	}
@@ -1804,21 +1824,41 @@ void Types::document(const xs__annotation *annotation)
 }
 
 void Types::modify(const char *name)
-{ // TODO: support removal of elements/attributes with ns__X = $- Y
+{ // TODO: consider support removal of elements/attributes with ns__X = $- Y
   const char *s = modtypemap[name];
   if (s)
   { while (*s)
-    {  if (*s++ == '$')
-       { fprintf(stream, "/// Member declared in %s\n   ", mapfile);
-         while (*s && *s != '$')
-	   fputc(*s++, stream);
-         fputc('\n', stream);
-       }
-       else
-         while (*s && *s != '$')
-	   s++;
+    { if (*s++ == '$')
+        fprintf(stream, "/// Member declared in %s\n   ", mapfile);
+      s = format(s);
     }
   }
+}
+
+const char* Types::format(const char *text)
+{ const char *s = text;
+  if (!s)
+    return NULL;
+  while (*s && *s != '$')
+  { if (*s == '\\')
+    { switch (s[1])
+      { case 'n': 
+          fputc('\n', stream);
+	  break;
+        case 't': 
+          fputc('\t', stream);
+	  break;
+        default:
+          fputc(s[1], stream);
+      }
+      s++;
+    }
+    else
+      fputc(*s, stream);
+    s++;
+  }
+  fputc('\n', stream);
+  return s;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

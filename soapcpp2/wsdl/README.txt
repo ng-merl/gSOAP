@@ -134,7 +134,7 @@ COMMAND LINE OPTIONS
 -h      display help info
 -Ipath  use path to find files
 -l      include license information in output
--m      create modules for separate compilation
+-m      use xsd.h module to import primitive types
 -nname  use name as the base namespace prefix instead of 'ns'
 -Nname  use name as the base namespace prefix for service namespaces
 -ofile  output to file

@@ -38,42 +38,57 @@ wsp	= "http://schemas.xmlsoap.org/ws/2004/09/policy"
 #	wsa:AttributedQName is a QName element extensible with attributes.
 #	We redeclare it as a QName string, assuming we don't need attributes:
 
-wsa__AttributedQName	= typedef _QName wsa__AttributedQName; | wsa__AttributedQName | wsa__AttributedQName
-wsa3__AttributedQName	= typedef _QName wsa3__AttributedQName; | wsa3__AttributedQName | wsa3__AttributedQName
+wsa__AttributedQName	= | _QName
+wsa3__AttributedQName	= | _QName
 
 #	wsa:AttributedURI is an anyURI element extensible with attributes.
 #	We redeclare it as a regular string, assuming we don't need attributes:
 
-wsa__AttributedURI	= typedef char* wsa__AttributedURI; | wsa__AttributedURI | wsa__AttributedURI
-wsa3__AttributedURI	= typedef char* wsa3__AttributedURI; | wsa3__AttributedURI | wsa3__AttributedURI
+wsa__AttributedURI	= | char*
+wsa3__AttributedURI	= | char*
 
 #	wsa:ReplyAfterType is an nonnegativeInteger extensible with attributes.
 #	We redeclare it here, assuming we don't need attributes:
 
 wsa__ReplyAfterType	= | unsigned int
 
-#	Bindings internally handled
+#	Internally handled bindings
 
 dsig	= <http://www.w3.org/2000/09/xmldsig#>
 xenc	= <http://www.w3.org/2001/04/xmlenc#>
 wsse	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd>
 wsu	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd>
 
-#	WS-Policy imports wsu:Id attribute
+#	wsu redefinitions
 
-_wsu__Id		= typedef char *wsu__Id; | wsu__Id | wsu__Id
+_wsu__Id		= | char*
+_wsu__Created		= | time_t
+_wsu__Expires		= | time_t
+
+wsu__AttributedDateTime	= | time_t
+wsu__AttributedURI	= | char*
+
+wsu__TimestampType	=
+
+_wsu__Timestamp		= typedef struct _wsu__Timestamp\n{\t@char*\twsu__Id;\n\ttime_t\t*Created\n\ttime_t\t*Expires;\n} _wsu__Timestamp;
+
+#	wsse redefinitions
+
+wsse__SecurityHeaderType=
+
+_wsse__Security		= typedef struct _wsse__Security\n{\t\n} _wsse__Security;
 
 #	Use regular char* strings for ID
 
-xsd__ID			= | char* | char*
+xsd__ID			= | char*
 
 #	Use regular char* strings for NCName
 
-xsd__NCName		= | char* | char*
+xsd__NCName		= | char*
 
 #	Use regular char* strings for anyURI
 
-xsd__anyURI		= | char* | char*
+xsd__anyURI		= | char*
 
 #	Use built-in gSOAP _QName
 
@@ -97,29 +112,29 @@ xsd__boolean		= enum xsd__boolean_ { _false, _true }; | enum xsd__boolean_
 
 #	Redeclare wsrp:action_t
 
-wsrp__action_USCOREt	= | char* | char*
+wsrp__action_USCOREt	= | char*
 
 #	Redeclare wsrp:to_t
 
-wsrp__to_USCOREt	= | char* | char*
+wsrp__to_USCOREt	= | char*
 
 #	Redeclare wsrp:from_t
 
-wsrp__from_USCOREt	= | char* | char*
+wsrp__from_USCOREt	= | char*
 
 #	Redeclare wsrp:id_t
 
-wsrp__id_USCOREt	= | char* | char*
+wsrp__id_USCOREt	= | char*
 
 #	Redeclare wsrp:relatesTo_t
 
-wsrp__relatesTo_USCOREt	= | char* | char*
+wsrp__relatesTo_USCOREt	= | char*
 
 #	Redeclare wsrp:faultcode_t
 
-wsrp__faultcode_USCOREt	= | char* | char*
+wsrp__faultcode_USCOREt	= | char*
 
 #	Redeclare wsrp:faultreason_t
 
-wsrp__faultreason_USCOREt = | char* | char*
+wsrp__faultreason_USCOREt = | char*
 

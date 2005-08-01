@@ -67,14 +67,13 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 struct SOAP_ENV__Header
 {
-  mustUnderstand wsa__AttributedURI          wsa__MessageID 0; ///< WS-Addressing
-  mustUnderstand wsa__Relationship          *wsa__RelatesTo 0; ///< WS-Addressing
-  mustUnderstand wsa__EndpointReferenceType *wsa__From      0; ///< WS-Addressing
-  mustUnderstand wsa__EndpointReferenceType *wsa__ReplyTo   0; ///< WS-Addressing
-  mustUnderstand wsa__EndpointReferenceType *wsa__FaultTo   0; ///< WS-Addressing
-  mustUnderstand wsa__EndpointReferenceType *wsa__Recipient 0; ///< WS-Addressing
-  mustUnderstand wsa__AttributedURI          wsa__To        0; ///< WS-Addressing
-  mustUnderstand wsa__AttributedURI          wsa__Action    0; ///< WS-Addressing
+  mustUnderstand _wsa__MessageID      wsa__MessageID 0; ///< WS-Addressing
+  mustUnderstand _wsa__RelatesTo     *wsa__RelatesTo 0; ///< WS-Addressing
+  mustUnderstand _wsa__From          *wsa__From      0; ///< WS-Addressing
+  mustUnderstand _wsa__ReplyTo       *wsa__ReplyTo   0; ///< WS-Addressing
+  mustUnderstand _wsa__FaultTo       *wsa__FaultTo   0; ///< WS-Addressing
+  mustUnderstand _wsa__To             wsa__To        0; ///< WS-Addressing
+  mustUnderstand _wsa__Action         wsa__Action    0; ///< WS-Addressing
 };
 
 ////////////////////////////////////////////////////////////////////////////////

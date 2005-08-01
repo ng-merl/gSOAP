@@ -51,13 +51,13 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 	soapcpp2 -c -n -popt opt.h
 	soapcpp2 -c webserver.h
 	Customize your COOKIE_DOMAIN in this file
-	gcc -DWITH_COOKIES -DWITH_ZLIB -o webserver webserver.c options.c httpget.c logging.c stdsoap2.c soapC.c soapClient.c soapServer.c -lpthread -lz
+	gcc -DWITH_COOKIES -DWITH_ZLIB -o webserver webserver.c options.c plugin/httpget.c plugin/httpform.c plugin/logging.c stdsoap2.c soapC.c soapClient.c soapServer.c -lpthread -lz
 
 	Compile with OpenSSL:
 	soapcpp2 -c -n -popt opt.h
 	soapcpp2 -c webserver.h
 	Customize your COOKIE_DOMAIN in this file
-	gcc -DWITH_OPENSSL -DWITH_COOKIES -DWITH_ZLIB -o webserver webserver.c options.c httpget.c logging.c stdsoap2.c soapC.c soapClient.c soapServer.c -lpthread -lz -lssl -lcrypto
+	gcc -DWITH_OPENSSL -DWITH_COOKIES -DWITH_ZLIB -o webserver webserver.c options.c plugin/httpget.c plugin/httpform.c plugin/logging.c stdsoap2.c soapC.c soapClient.c soapServer.c -lpthread -lz -lssl -lcrypto
 
 	Use (HTTP GET):
 	Compile the web server as explained above
@@ -121,6 +121,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "webserver.nsmap"
 #include "options.h"
 #include "httpget.h"
+#include "httpform.h"
 #include "logging.h"
 #include "threads.h"
 /* #include "httpda.h" */	/* enable HTTP Digest Authentication */
@@ -210,9 +211,10 @@ void *process_queue(void*);	/* multi-threaded request handler for pool */
 int enqueue(SOAP_SOCKET);
 SOAP_SOCKET dequeue();
 int http_get_handler(struct soap*);	/* HTTP get handler */
+int http_form_handler(struct soap*);	/* HTTP form handler */
 int check_authentication(struct soap*);	/* HTTP authentication check */
 int copy_file(struct soap*, const char*, const char*);	/* copy file as HTTP response */
-int calc(struct soap*);
+int calcget(struct soap*);
 int calcpost(struct soap*);
 int info(struct soap*);
 int html_hbar(struct soap*, const char*, size_t, size_t, unsigned long);
@@ -284,6 +286,9 @@ int main(int argc, char **argv)
 #endif
   /* Register HTTP GET plugin */
   if (soap_register_plugin_arg(&soap, http_get, (void*)http_get_handler))
+    soap_print_fault(&soap, stderr);
+  /* Register HTTP POST plugin */
+  if (soap_register_plugin_arg(&soap, http_form, (void*)http_form_handler))
     soap_print_fault(&soap, stderr);
   /* Register logging plugin */
   if (soap_register_plugin(&soap, logging))
@@ -718,7 +723,7 @@ int http_get_handler(struct soap *soap)
   if (!soap_tag_cmp(soap->path, "*.ico"))
     return copy_file(soap, soap->path + 1, "image/ico");
   if (!strncmp(soap->path, "/calc?", 6))
-    return calc(soap);
+    return calcget(soap);
   if (!strncmp(soap->path, "/genivia", 8))
   { strcpy(soap->endpoint, "http://genivia.com"); /* redirect */
     strcat(soap->endpoint, soap->path + 8);
@@ -747,6 +752,28 @@ int check_authentication(struct soap *soap)
 #endif
   soap->authrealm = AUTH_REALM;
   return 401;
+}
+
+/******************************************************************************\
+ *
+ *	HTTP POST application/x-www-form-urlencoded handler for plugin
+ *
+\******************************************************************************/
+
+int http_form_handler(struct soap *soap)
+{
+#ifdef WITH_ZLIB
+  if (options[OPTION_z].selected && soap->zlib_out == SOAP_ZLIB_GZIP) /* client accepts gzip */
+    soap_set_omode(soap, SOAP_ENC_ZLIB); /* so we can compress content (gzip) */
+  soap->z_level = 9; /* best compression */
+#endif
+  /* Use soap->path (from request URL) to determine request: */
+  if (options[OPTION_v].selected)
+    fprintf(stderr, "HTTP POST Request: %s\n", soap->endpoint);
+  /* Note: soap->path always starts with '/' */
+  if (!strcmp(soap->path, "/calc"))
+    return calcpost(soap);
+  return 404; /* HTTP not found */
 }
 
 /******************************************************************************\
@@ -783,12 +810,13 @@ int copy_file(struct soap *soap, const char *name, const char *type)
 
 /******************************************************************************\
  *
- *	Example dynamic HTTP GET form-based calculator
+ *	Example dynamic HTTP GET application/x-www-form-urlencoded calculator
  *
 \******************************************************************************/
 
-int calc(struct soap *soap)
-{ int o = 0, a = 0, b = 0;
+int calcget(struct soap *soap)
+{ int o = 0, a = 0, b = 0, val;
+  char buf[256];
   char *s = query(soap); /* get argument string from URL ?query string */
   while (s)
   { char *key = query_key(soap, &s); /* decode next query string key */
@@ -802,23 +830,71 @@ int calc(struct soap *soap)
         b = strtol(val, NULL, 10);
     }
   }
-  /* since the HTTP response header must be produced and output before the SOAP/XML message, we have to make sure that chunking is used or the message is stored for transmission */
-  if ((soap->omode & SOAP_IO) != SOAP_IO_CHUNK)
-    soap_set_omode(soap, SOAP_IO_STORE); /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
-  soap_response(soap, SOAP_OK);
   switch (o)
   { case 'a':
-      return soap_send_ns__addResponse_(soap, "", NULL, a + b);	/* URL="" ensures current socket is used and no HTTP header is produced */
+      val = a + b;
+      break;
     case 's':
-      return soap_send_ns__subResponse_(soap, "", NULL, a - b);	/* URL="" ensures current socket is used and no HTTP header is produced */
+      val = a - b;
       break;
     case 'm':
-      return soap_send_ns__mulResponse_(soap, "", NULL, a * b);	/* URL="" ensures current socket is used and no HTTP header is produced */
+      val = a * b;
+      break;
     case 'd':
-      return soap_send_ns__divResponse_(soap, "", NULL, a / b);	/* URL="" ensures current socket is used and no HTTP header is produced */
+      val = a / b;
+      break;
     default:
       return soap_sender_fault(soap, "Unknown operation", NULL);
   }
+  soap_response(soap, SOAP_HTML);
+  sprintf(buf, "<html>value=%d</html>", val);
+  soap_send(soap, buf);
+  soap_end_send(soap);
+  return SOAP_OK;
+}
+
+/******************************************************************************\
+ *
+ *	Example dynamic HTTP POST application/x-www-form-urlencoded calculator
+ *
+\******************************************************************************/
+
+int calcpost(struct soap *soap)
+{ int o = 0, a = 0, b = 0, val;
+  char buf[256];
+  char *s = form(soap); /* get form data from body */
+  while (s)
+  { char *key = query_key(soap, &s); /* decode next key */
+    char *val = query_val(soap, &s); /* decode next value (if any) */
+    if (key && val)
+    { if (!strcmp(key, "o"))
+        o = val[0];
+      else if (!strcmp(key, "a"))
+        a = strtol(val, NULL, 10);
+      else if (!strcmp(key, "b"))
+        b = strtol(val, NULL, 10);
+    }
+  }
+  switch (o)
+  { case 'a':
+      val = a + b;
+      break;
+    case 's':
+      val = a - b;
+      break;
+    case 'm':
+      val = a * b;
+      break;
+    case 'd':
+      val = a / b;
+      break;
+    default:
+      return soap_sender_fault(soap, "Unknown operation", NULL);
+  }
+  soap_response(soap, SOAP_HTML);
+  sprintf(buf, "<html>value=%d</html>", val);
+  soap_send(soap, buf);
+  soap_end_send(soap);
   return SOAP_OK;
 }
 
@@ -828,7 +904,46 @@ int calc(struct soap *soap)
  *
 \******************************************************************************/
 
-int f__form(struct soap *soap, struct f__formResponse *response)
+int f__form1(struct soap *soap)
+{ int o = 0, a = 0, b = 0, val;
+  char buf[256];
+  struct soap_multipart *content;
+  for (content = soap->mime.list; content; content = content->next)
+  { if (content->id && content->ptr)
+    { /* may have to check content->encoding to convert data when necessary! */
+      if (!strcmp(content->id, "o"))
+        o = content->ptr[0];
+      else if (!strcmp(content->id, "a"))
+        a = strtol(content->ptr, NULL, 10);
+      else if (!strcmp(content->id, "b"))
+        b = strtol(content->ptr, NULL, 10);
+    }
+  }
+  switch (o)
+  { case 'a':
+      val = a + b;
+      break;
+    case 's':
+      val = a - b;
+      break;
+    case 'm':
+      val = a * b;
+      break;
+    case 'd':
+      val = a / b;
+      break;
+    default:
+      return soap_sender_fault(soap, "Unknown operation", NULL);
+  }
+  soap_response(soap, SOAP_HTML);
+  sprintf(buf, "<html>value=%d</html>", val);
+  soap_send(soap, buf);
+  soap_end_send(soap);
+  return SOAP_OK;
+  return SOAP_OK;
+}
+
+int f__form2(struct soap *soap, struct f__formResponse *response)
 { int o = 0, a = 0, b = 0;
   struct soap_multipart *content;
   for (content = soap->mime.list; content; content = content->next)

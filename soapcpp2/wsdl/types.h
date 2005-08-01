@@ -99,6 +99,7 @@ class Types
     void gen(const char *URI, const xs__anyAttribute&);
     void document(const xs__annotation*);
     void modify(const char *name);
+    const char *format(const char *text);
 };
 
 #endif

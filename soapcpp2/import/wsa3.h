@@ -62,10 +62,10 @@ typedef struct wsa3__ServiceNameType wsa3__ServiceNameType;
 typedef struct wsa3__Relationship wsa3__Relationship;
 
 /// Imported complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedQName from typemap WS/WS-typemap.dat.
-typedef _QName wsa3__AttributedQName;
+/// complexType definition intentionally left blank.
 
 /// Imported complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedURI from typemap WS/WS-typemap.dat.
-typedef char* wsa3__AttributedURI;
+/// complexType definition intentionally left blank.
 
 /// "http://schemas.xmlsoap.org/ws/2003/03/addressing":RelationshipTypeValues is a simpleType restriction of xs:QName.
 /// Note: enum values are prefixed with 'wsa3__RelationshipTypeValues' to avoid name clashes, please use wsdl2h option -e to omit this prefix
@@ -80,11 +80,11 @@ typedef enum wsa3__RelationshipTypeValues wsa3__RelationshipTypeValues;
 struct wsa3__EndpointReferenceType
 {
 /// Element Address of type "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedURI.
-    wsa3__AttributedURI                  Address                        1;	///< Required element.
+    char*                                Address                        1;	///< Required element.
 /// Element ReferenceProperties of type "http://schemas.xmlsoap.org/ws/2003/03/addressing":ReferencePropertiesType.
     struct wsa3__ReferencePropertiesType*  ReferenceProperties            0;	///< Optional element.
 /// Element PortType of type "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedQName.
-    wsa3__AttributedQName                PortType                       0;	///< Optional element.
+    _QName*                              PortType                       0;	///< Optional element.
 /// Element ServiceName of type "http://schemas.xmlsoap.org/ws/2003/03/addressing":ServiceNameType.
     struct wsa3__ServiceNameType*        ServiceName                    0;	///< Optional element.
 /// TODO: <any namespace="##other" minOccurs="0" maxOccurs="unbounded">
@@ -99,21 +99,6 @@ struct wsa3__EndpointReferenceType
    @_XML                                 __anyAttribute                ;	///< Catch any attribute content in XML string.
 };
 
-/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReference of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
-typedef struct wsa3__EndpointReferenceType _wsa3__EndpointReference;
-
-/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":From of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
-typedef struct wsa3__EndpointReferenceType _wsa3__From;
-
-/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":ReplyTo of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
-typedef struct wsa3__EndpointReferenceType _wsa3__ReplyTo;
-
-/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":FaultTo of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
-typedef struct wsa3__EndpointReferenceType _wsa3__FaultTo;
-
-/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":Recipient of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
-typedef struct wsa3__EndpointReferenceType _wsa3__Recipient;
-
 /// "http://schemas.xmlsoap.org/ws/2003/03/addressing":ReferencePropertiesType is a complexType.
 struct wsa3__ReferencePropertiesType
 {
@@ -127,7 +112,7 @@ struct wsa3__ReferencePropertiesType
 /// "http://schemas.xmlsoap.org/ws/2003/03/addressing":ServiceNameType is a complexType with simpleContent.
 struct wsa3__ServiceNameType
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:QName' simpleContent.
     _QName                               __item                        ;
 /// Attribute PortName of type xs:NCName.
    @char*                                PortName                       0;	///< Optional attribute.
@@ -141,7 +126,7 @@ struct wsa3__ServiceNameType
 /// "http://schemas.xmlsoap.org/ws/2003/03/addressing":Relationship is a complexType with simpleContent.
 struct wsa3__Relationship
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:anyURI' simpleContent.
     char*                                __item                        ;
 /// Attribute RelationshipType of type xs:QName.
    @_QName                               RelationshipType               0;	///< Optional attribute.
@@ -152,16 +137,31 @@ struct wsa3__Relationship
    @_XML                                 __anyAttribute                ;	///< Catch any attribute content in XML string.
 };
 
+/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReference of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
+typedef struct wsa3__EndpointReferenceType _wsa3__EndpointReference;
+
+/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":MessageID of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedURI.
+typedef char* _wsa3__MessageID;
+
 /// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":RelatesTo of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":Relationship.
 typedef struct wsa3__Relationship _wsa3__RelatesTo;
 
-/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":MessageID of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedURI.
-typedef wsa3__AttributedURI _wsa3__MessageID;
-
 /// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":To of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedURI.
-typedef wsa3__AttributedURI _wsa3__To;
+typedef char* _wsa3__To;
 
 /// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":Action of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":AttributedURI.
-typedef wsa3__AttributedURI _wsa3__Action;
+typedef char* _wsa3__Action;
+
+/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":From of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
+typedef struct wsa3__EndpointReferenceType _wsa3__From;
+
+/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":ReplyTo of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
+typedef struct wsa3__EndpointReferenceType _wsa3__ReplyTo;
+
+/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":FaultTo of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
+typedef struct wsa3__EndpointReferenceType _wsa3__FaultTo;
+
+/// Element "http://schemas.xmlsoap.org/ws/2003/03/addressing":Recipient of complexType "http://schemas.xmlsoap.org/ws/2003/03/addressing":EndpointReferenceType.
+typedef struct wsa3__EndpointReferenceType _wsa3__Recipient;
 
 /* End of wsa3.h */

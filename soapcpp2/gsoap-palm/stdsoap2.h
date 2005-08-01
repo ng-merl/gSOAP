@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.4
+stdsoap2.h 2.7.5
 
 gSOAP runtime
 
@@ -869,13 +869,14 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 /* Exceptional gSOAP HTTP response status codes >= 1000 */
 
 #define SOAP_STOP		1000	/* No HTTP response */
-#define SOAP_HTML		1001	/* Custom HTML response */
-#define SOAP_FILE		1002	/* Custom file-based response */
+#define SOAP_FORM		1001	/* Form request/response */
+#define SOAP_HTML		1002	/* Custom HTML response */
+#define SOAP_FILE		1003	/* Custom file-based response */
 
-/* gSOAP HTTP request status codes */
+/* gSOAP HTTP method codes */
 
-#define SOAP_POST		1003
-#define SOAP_GET		1104
+#define SOAP_POST		2000
+#define SOAP_GET		2001
 
 /* gSOAP DIME */
 
@@ -1330,7 +1331,7 @@ struct soap
   char *passwd;			/* HTTP Basic authorization passwd */
   int (*fpost)(struct soap*, const char*, const char*, int, const char*, const char*, size_t);
   int (*fget)(struct soap*);
-  int (*fstop)(struct soap*);
+  int (*fform)(struct soap*);
   int (*fposthdr)(struct soap*, const char*, const char*);
   int (*fresponse)(struct soap*, int, size_t);
   int (*fparse)(struct soap*);
@@ -1549,13 +1550,13 @@ soap_wchar soap_get1(struct soap*);
 #define soap_unget(soap, c) ((soap)->ahead = c)
 #define soap_register_plugin(soap, plugin) soap_register_plugin_arg(soap, plugin, NULL)
 #define soap_imode(soap, n) ((soap)->mode = (soap)->imode = (n))
-#define soap_set_imode(soap, n) ((soap)->mode = (soap)->imode |= (n))
-#define soap_clr_imode(soap, n) ((soap)->mode = (soap)->imode &= ~(n))
+#define soap_set_imode(soap, n) ((soap)->imode |= (n))
+#define soap_clr_imode(soap, n) ((soap)->imode &= ~(n))
 #define soap_omode(soap, n) ((soap)->mode = (soap)->omode = (n))
-#define soap_set_omode(soap, n) ((soap)->mode = (soap)->omode |= (n))
-#define soap_clr_omode(soap, n) ((soap)->mode = (soap)->omode &= ~(n))
-#define soap_set_mode(soap, n) ((soap)->mode = ((soap)->imode |= (n), (soap)->omode |= (n)))
-#define soap_clr_mode(soap, n) ((soap)->mode = ((soap)->imode &= ~(n), (soap)->omode &= ~(n)))
+#define soap_set_omode(soap, n) ((soap)->omode |= (n))
+#define soap_clr_omode(soap, n) ((soap)->omode &= ~(n))
+#define soap_set_mode(soap, n) ((soap)->imode |= (n), (soap)->omode |= (n))
+#define soap_clr_mode(soap, n) ((soap)->imode &= ~(n), (soap)->omode &= ~(n))
 #define soap_destroy(soap) soap_delete((soap), NULL)
 
 #ifdef HAVE_STRRCHR

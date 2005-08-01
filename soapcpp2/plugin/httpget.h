@@ -69,6 +69,7 @@ int soap_get_connect(struct soap*, const char*, const char*);
 char *query(struct soap*);
 char *query_key(struct soap*, char**);
 char *query_val(struct soap*, char**);
+
 int soap_encode_string(const char*, char*, size_t);
 const char* soap_decode_string(char*, size_t, const char*);
 

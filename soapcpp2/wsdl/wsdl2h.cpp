@@ -336,7 +336,7 @@ static void options(int argc, char **argv)
 -h      display help info\n\
 -Ipath  use path to find files\n\
 -l      include license information in output\n\
--m      create modules for separate compilation\n\
+-m      use xsd.h module to import primitive types\n\
 -nname  use name as the base namespace prefix instead of 'ns'\n\
 -Nname  use name as the base namespace prefix for service namespaces\n\
 -ofile  output to file\n\

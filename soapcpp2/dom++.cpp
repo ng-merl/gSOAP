@@ -5,7 +5,7 @@ dom.c[pp]
 gSOAP DOM implementation
 
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2001-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 
 --------------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap*, const void*, const char*
 SOAP_FMAC3 void *SOAP_FMAC4 soap_getelement(struct soap*, int*);
 
 /* format string for generating DOM namespace prefixes (<= 16 chars total) */
-#define SOAP_DOMID_FORMAT "SOAP-DOM%lu"
+#define SOAP_DOMID_FORMAT "dom%d"
 
 /* namespace name (URI) lookup and store routines */
 static struct soap_ilist *soap_lookup_ns(struct soap*, const char*);
@@ -185,14 +185,12 @@ SOAP_FMAC1
 void
 SOAP_FMAC2
 soap_serialize_xsd__anyType(struct soap *soap, const struct soap_dom_element *node)
-{ if (node)
+{ while (node)
   { if (node->type && node->node)
       soap_markelement(soap, node->node, node->type);
     else if (!node->data && !node->wide)
-    { struct soap_dom_element *elt;
-      for (elt = node->elts; elt; elt = elt->next)
-        soap_serialize_xsd__anyType(soap, elt);
-    }
+      soap_serialize_xsd__anyType(soap, node->elts);
+    node = node->next;
   }
 }
 
@@ -282,11 +280,8 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct soap_dom_element *node, const char *type)
-{ if (node)
-  { struct soap_dom_element *elt;
-    struct soap_dom_attribute *att;
-    register struct soap_ilist *p = NULL, *q;
-    struct Namespace *ns = NULL;
+{ while (node)
+  { register struct soap_ilist *p = NULL;
     const char *prefix;		/* namespace prefix, if namespace is present */
     size_t colon = 0;
     if (node->name)
@@ -317,14 +312,16 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
           return soap->error;
       }
       else
-      { for (ns = soap->local_namespaces; ns && ns->id; ns++)
-          if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
+      { struct Namespace *ns;
+        for (ns = soap->local_namespaces; ns && ns->id; ns++)
+        { if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
           { /* if (soap->encodingStyle || ns == soap->local_namespaces) */
               prefix = ns->id;
             if (out_element(soap, node, ns->id, tag + colon, NULL))
               return soap->error;
             break;
           }
+	}
         if (!ns || !ns->id)
         { sprintf(soap->tag, SOAP_DOMID_FORMAT, soap->idnum++);
           if (!(p = soap_enter_ns(soap, soap->tag, node->nstr)))
@@ -337,69 +334,72 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
     }
     else if (out_element(soap, node, NULL, tag + colon, NULL))
       return soap->error;
-    if (node->type && node->node)
-      return SOAP_OK;
-    for (att = node->atts; att; att = att->next)
-    { if (att->name)
-      { if (att->nstr)
-        { if ((att->nstr == node->nstr || (node->nstr && !strcmp(att->nstr, node->nstr))) && prefix)
-	  { if (out_attribute(soap, prefix, att->name, att->data))
-	      return soap->error;
-	  }
-	  else if ((q = soap_lookup_ns(soap, att->nstr)))
-	  { if (out_attribute(soap, q->id, att->name, att->data))
-	      return soap->error;
-	  }
-	  else
-	  { for (ns = soap->local_namespaces; ns && ns->id; ns++)
-            { if (ns->ns == att->nstr || !strcmp(ns->ns, att->nstr))
-	      { if (out_attribute(soap, ns->id, att->name, att->data))
-	          return soap->error;
-	        break;
-	      }
+    if (!node->type || !node->node)
+    { struct soap_dom_attribute *att;
+      for (att = node->atts; att; att = att->next)
+      { if (att->name)
+        { if (att->nstr)
+          { register struct soap_ilist *q;
+            if ((att->nstr == node->nstr || (node->nstr && !strcmp(att->nstr, node->nstr))) && prefix)
+	    { if (out_attribute(soap, prefix, att->name, att->data))
+	        return soap->error;
 	    }
-	    if (!ns || !ns->id)
-            { sprintf(soap->msgbuf, "xmlns:"SOAP_DOMID_FORMAT, soap->idnum++);
-	      if (soap_attribute(soap, soap->msgbuf, att->nstr))
+	    else if ((q = soap_lookup_ns(soap, att->nstr)))
+	    { if (out_attribute(soap, q->id, att->name, att->data))
 	        return soap->error;
-	      strcat(soap->msgbuf, ":");
-	      strcat(soap->msgbuf, att->name);
-	      if (soap_attribute(soap, soap->msgbuf + 6, att->data))
-	        return soap->error;
+	    }
+	    else
+            { struct Namespace *ns;
+	      for (ns = soap->local_namespaces; ns && ns->id; ns++)
+              { if (ns->ns == att->nstr || !strcmp(ns->ns, att->nstr))
+	        { if (out_attribute(soap, ns->id, att->name, att->data))
+	            return soap->error;
+	          break;
+	        }
+	      }
+	      if (!ns || !ns->id)
+              { sprintf(soap->msgbuf, "xmlns:"SOAP_DOMID_FORMAT, soap->idnum++);
+	        if (soap_attribute(soap, soap->msgbuf, att->nstr))
+	          return soap->error;
+	        strcat(soap->msgbuf, ":");
+	        strcat(soap->msgbuf, att->name);
+	        if (soap_attribute(soap, soap->msgbuf + 6, att->data))
+	          return soap->error;
+              }
             }
           }
-        }
-	else if (soap_attribute(soap, att->name, att->data))
-          return soap->error;
-      }
-    }
-    if (soap_element_start_end_out(soap, NULL))
-      return soap->error;
-    if (node->data || node->wide || node->elts)
-    { if (node->data)
-      { if (soap_string_out(soap, node->data, 0))
-          return soap->error;
-      }
-      else if (node->wide)
-      { if (soap_wstring_out(soap, node->wide, 0))
-          return soap->error;
-      }
-      else
-      { for (elt = node->elts; elt; elt = elt->next)
-          if (soap_out_xsd__anyType(soap, tag, 0, elt, NULL))
+	  else if (soap_attribute(soap, att->name, att->data))
             return soap->error;
+        }
       }
-    }
-    DBGLOG(TEST, SOAP_MESSAGE(fdebug, "End of DOM node '%s'\n", tag + colon));
-    if (soap_send_raw(soap, "</", 2))
-      return soap->error;
-    if (prefix)
-      if (soap_send(soap, prefix) || soap_send_raw(soap, ":", 1))
+      if (soap_element_start_end_out(soap, NULL))
         return soap->error;
-    if (soap_send(soap, tag + colon) || soap_send_raw(soap, ">", 1))
-      return soap->error;
-    if (p)
-      p->level = 0; /* xmlns binding is out of scope */
+      if (node->data || node->wide || node->elts)
+      { if (node->data)
+        { if (soap_string_out(soap, node->data, 0))
+            return soap->error;
+        }
+        else if (node->wide)
+        { if (soap_wstring_out(soap, node->wide, 0))
+            return soap->error;
+        }
+        else
+        { if (soap_out_xsd__anyType(soap, tag, 0, node->elts, NULL))
+            return soap->error;
+        }
+      }
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "End of DOM node '%s'\n", tag + colon));
+      if (soap_send_raw(soap, "</", 2))
+        return soap->error;
+      if (prefix)
+        if (soap_send(soap, prefix) || soap_send_raw(soap, ":", 1))
+          return soap->error;
+      if (soap_send(soap, tag + colon) || soap_send_raw(soap, ">", 1))
+        return soap->error;
+      if (p)
+        p->level = 0; /* xmlns binding is out of scope */
+    }
+    node = node->next;
   }
   return SOAP_OK;
 }
@@ -415,10 +415,22 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
   if (soap_peek_element(soap))
     return NULL;
   if (!node)
-    if (!(node = (struct soap_dom_element*)soap_malloc(soap, sizeof(struct soap_dom_element))))
+  { if (!(node = (struct soap_dom_element*)soap_malloc(soap, sizeof(struct soap_dom_element))))
     { soap->error = SOAP_EOM;
       return NULL;
     }
+  }
+  /* TODO doesn't work, but why???
+  else
+  { while (node->next)
+      node = node->next;
+    if (!(node->next = (struct soap_dom_element*)soap_malloc(soap, sizeof(struct soap_dom_element))))
+    { soap->error = SOAP_EOM;
+      return NULL;
+    }
+    node = node->next;
+  }
+  */
   soap_default_xsd__anyType(soap, node);
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node %s\n", soap->tag));
   np = soap->nlist;

@@ -103,10 +103,20 @@ wsa3	= <http://schemas.xmlsoap.org/ws/2003/03/addressing>
 
 wsp	= <http://schemas.xmlsoap.org/ws/2004/09/policy>
 
-#	wsse and wsu
+#	wsse
 
 wsse	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd>
+
+#	wsu
+
 wsu	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd>
+
+_wsu__Id		= | char*
+_wsu__Created		= | time_t
+_wsu__Expires		= | time_t
+
+wsu__AttributedDateTime	= | time_t
+wsu__AttributedURI	= | char*
 
 #	Bindings for WS-* protocols:
 
@@ -127,10 +137,6 @@ SOAP_ENC__arrayType	= | char* | char*
 #	To use regular char* strings instead of std::string, use:
 
 # xsd__string	= | char* | char*
-
-#	WS-Policy imports wsu:Id attribute
-
-_wsu__Id		= typedef char *wsu__Id; | wsu__Id | wsu__Id
 
 #	To use regular char* strings serialized with xsi:type attributes, use:
 

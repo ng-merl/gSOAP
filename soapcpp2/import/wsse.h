@@ -2,11 +2,12 @@
 
 wsse.h
 
+WS-Security implementation is under construction.
+
 Generated with:
 wsdl2h -cgy -x -o wsse.h -t WS/WS-typemap.dat WS/wsse.xsd
 
 - Removed //gsoapopt
-- Replace #import "wsu.h" with schema import since only wsu__Id is needed
 - Added //gsoap wsse  schema import: http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd
 
 */
@@ -24,16 +25,13 @@ wsdl2h -cgy -x -o wsse.h -t WS/WS-typemap.dat WS/wsse.xsd
  *                                                                            *
 \******************************************************************************/
 
+#import "wsu.h"	// wsu = <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd>
 
 /******************************************************************************\
  *                                                                            *
  * Schema Namespaces                                                          *
  *                                                                            *
 \******************************************************************************/
-
-//gsoap wsu   schema import:    http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd
-//gsoap wsu   schema elementForm:       qualified
-//gsoap wsu   schema attributeForm:     unqualified
 
 //gsoap wsse  schema import:	http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd
 //gsoap wsse  schema elementForm:	qualified
@@ -45,9 +43,6 @@ wsdl2h -cgy -x -o wsse.h -t WS/WS-typemap.dat WS/wsse.xsd
  *                                                                            *
 \******************************************************************************/
 
-
-/// Imported attribute "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id from typemap WS/WS-typemap.dat.
-typedef char *wsu__Id;
 
 
 /// Typedef synonym for struct wsse__AttributedString.
@@ -77,8 +72,9 @@ typedef struct wsse__EmbeddedType wsse__EmbeddedType;
 /// Typedef synonym for struct wsse__SecurityTokenReferenceType.
 typedef struct wsse__SecurityTokenReferenceType wsse__SecurityTokenReferenceType;
 
-/// Typedef synonym for struct wsse__SecurityHeaderType.
-typedef struct wsse__SecurityHeaderType wsse__SecurityHeaderType;
+/// Imported complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityHeaderType from typemap WS/WS-typemap.dat.
+/// @brief This complexType defines header block to use for security-relevant data directed at a specific SOAP actor.
+/// complexType definition intentionally left blank.
 
 /// Typedef synonym for struct wsse__TransformationParametersType.
 typedef struct wsse__TransformationParametersType wsse__TransformationParametersType;
@@ -86,10 +82,6 @@ typedef struct wsse__TransformationParametersType wsse__TransformationParameters
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":tUsage is a simpleType containing a whitespace separated list of xs:anyURI.
 /// @brief Typedef to allow a list of usages (as URIs).
 typedef char* wsse__tUsage;
-
-/// Attribute "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Usage of simpleType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":tUsage.
-/// @brief This global attribute is used to indicate the usage of a referenced or indicated token within the containing context
-typedef wsse__tUsage _wsse__Usage;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":FaultcodeEnum is a simpleType restriction of xs:QName.
 /// Note: enum values are prefixed with 'wsse__FaultcodeEnum' to avoid name clashes, please use wsdl2h option -e to omit this prefix
@@ -117,16 +109,12 @@ struct wsse__UsernameTokenType
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this element.
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// TODO: <anyAttribute namespace="##other">
 ///       Schema extensibility is user-definable.
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":UsernameToken of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":UsernameTokenType.
-/// @brief This element defines the wsse:UsernameToken element per Section 4.1.
-typedef struct wsse__UsernameTokenType _wsse__UsernameToken;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":ReferenceType is a complexType.
 /// @brief This type represents a reference to an external security token.
@@ -141,10 +129,6 @@ struct wsse__ReferenceType
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Reference of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":ReferenceType.
-/// @brief This element defines a security token reference
-typedef struct wsse__ReferenceType _wsse__Reference;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":EmbeddedType is a complexType.
 /// @brief This type represents a reference to an embedded security token.
@@ -172,10 +156,6 @@ union wsse__union_1
 ///       Use wsdl2h option -x to remove this attribute.
 };
 
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Embedded of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":EmbeddedType.
-/// @brief This element defines a security token embedded reference
-typedef struct wsse__EmbeddedType _wsse__Embedded;
-
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityTokenReferenceType is a complexType.
 /// @brief This type is used reference a security token.
 struct wsse__SecurityTokenReferenceType
@@ -195,7 +175,7 @@ union wsse__union_2
     }                                   *__union_2                     ;
 //  END OF CHOICE
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Usage.
 /// @brief This global attribute is used to indicate the usage of a referenced or indicated token within the containing context
    @wsse__tUsage                         wsse__Usage                    0;	///< Optional attribute.
@@ -204,28 +184,6 @@ union wsse__union_2
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityTokenReference of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityTokenReferenceType.
-/// @brief This element defines the wsse:SecurityTokenReference per Section 4.3.
-typedef struct wsse__SecurityTokenReferenceType _wsse__SecurityTokenReference;
-
-/// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityHeaderType is a complexType.
-/// @brief This complexType defines header block to use for security-relevant data directed at a specific SOAP actor.
-struct wsse__SecurityHeaderType
-{
-/// TODO: <any minOccurs="0" maxOccurs="unbounded">
-///       Schema extensibility is user-definable.
-///       Consult the protocol documentation to change and/or insert declarations.
-///       Use wsdl2h option -x to remove this element.
-/// TODO: <anyAttribute namespace="##other">
-///       Schema extensibility is user-definable.
-///       Consult the protocol documentation to change and/or insert declarations.
-///       Use wsdl2h option -x to remove this attribute.
-};
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Security of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityHeaderType.
-/// @brief This element defines the wsse:Security SOAP header element per Section 4.
-typedef struct wsse__SecurityHeaderType _wsse__Security;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":TransformationParametersType is a complexType.
 /// @brief This complexType defines a container for elements to be specified from any namespace as properties/parameters of a DSIG transformation.
@@ -241,18 +199,14 @@ struct wsse__TransformationParametersType
 ///       Use wsdl2h option -x to remove this attribute.
 };
 
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":TransformationParameters of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":TransformationParametersType.
-/// @brief This element contains properties for transformations from any namespace, including DSIG.
-typedef struct wsse__TransformationParametersType _wsse__TransformationParameters;
-
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":AttributedString is a complexType with simpleContent.
 /// @brief This type represents an element with arbitrary attributes.
 struct wsse__AttributedString
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:string' simpleContent.
     char*                                __item                        ;
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// TODO: <anyAttribute namespace="##other">
 ///       Schema extensibility is user-definable.
 ///       Consult the protocol documentation to change and/or insert declarations.
@@ -263,82 +217,113 @@ struct wsse__AttributedString
 /// @brief This type is used for password elements per Section 4.1.
 struct wsse__PasswordString
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:string' simpleContent.
     char*                                __item                        ;
 /// Attribute Type of type xs:anyURI.
    @char*                                Type                           0;	///< Optional attribute.
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// TODO: <anyAttribute namespace="##other">
 ///       Schema extensibility is user-definable.
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Password of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":PasswordString.
-typedef struct wsse__PasswordString _wsse__Password;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":EncodedString is a complexType with simpleContent.
 /// @brief This type is used for elements containing stringified binary data.
 struct wsse__EncodedString
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:string' simpleContent.
     char*                                __item                        ;
 /// Attribute EncodingType of type xs:anyURI.
    @char*                                EncodingType                   0;	///< Optional attribute.
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// TODO: <anyAttribute namespace="##other">
 ///       Schema extensibility is user-definable.
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Nonce of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":EncodedString.
-typedef struct wsse__EncodedString _wsse__Nonce;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":BinarySecurityTokenType is a complexType with simpleContent.
 /// @brief A security token that is encoded in binary
 struct wsse__BinarySecurityTokenType
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:string' simpleContent.
     char*                                __item                        ;
 /// Attribute ValueType of type xs:anyURI.
    @char*                                ValueType                      0;	///< Optional attribute.
 /// Attribute EncodingType of type xs:anyURI.
    @char*                                EncodingType                   0;	///< Optional attribute.
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// TODO: <anyAttribute namespace="##other">
 ///       Schema extensibility is user-definable.
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
-
-/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":BinarySecurityToken of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":BinarySecurityTokenType.
-/// @brief This element defines the wsse:BinarySecurityToken element per Section 4.2.
-typedef struct wsse__BinarySecurityTokenType _wsse__BinarySecurityToken;
 
 /// "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":KeyIdentifierType is a complexType with simpleContent.
 /// @brief A security token key identifier
 struct wsse__KeyIdentifierType
 {
-/// __item wraps simpleContent.
+/// __item wraps 'xs:string' simpleContent.
     char*                                __item                        ;
 /// Attribute ValueType of type xs:anyURI.
    @char*                                ValueType                      0;	///< Optional attribute.
 /// Attribute EncodingType of type xs:anyURI.
    @char*                                EncodingType                   0;	///< Optional attribute.
 /// Attribute reference "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Id.
-   @wsu__Id                              wsu__Id_                       0;	///< Optional attribute.
+   @char*                                wsu__Id                        0;	///< Optional attribute.
 /// TODO: <anyAttribute namespace="##other">
 ///       Schema extensibility is user-definable.
 ///       Consult the protocol documentation to change and/or insert declarations.
 ///       Use wsdl2h option -x to remove this attribute.
 };
 
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":UsernameToken of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":UsernameTokenType.
+/// @brief This element defines the wsse:UsernameToken element per Section 4.1.
+typedef struct wsse__UsernameTokenType _wsse__UsernameToken;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":BinarySecurityToken of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":BinarySecurityTokenType.
+/// @brief This element defines the wsse:BinarySecurityToken element per Section 4.2.
+typedef struct wsse__BinarySecurityTokenType _wsse__BinarySecurityToken;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Reference of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":ReferenceType.
+/// @brief This element defines a security token reference
+typedef struct wsse__ReferenceType _wsse__Reference;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Embedded of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":EmbeddedType.
+/// @brief This element defines a security token embedded reference
+typedef struct wsse__EmbeddedType _wsse__Embedded;
+
 /// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":KeyIdentifier of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":KeyIdentifierType.
 /// @brief This element defines a key identifier reference
 typedef struct wsse__KeyIdentifierType _wsse__KeyIdentifier;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityTokenReference of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityTokenReferenceType.
+/// @brief This element defines the wsse:SecurityTokenReference per Section 4.3.
+typedef struct wsse__SecurityTokenReferenceType _wsse__SecurityTokenReference;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Security of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":SecurityHeaderType.
+/// @brief This element defines the wsse:Security SOAP header element per Section 4.
+/// Imported element _wsse__Security from typemap WS/WS-typemap.dat.
+typedef struct _wsse__Security
+{	
+} _wsse__Security;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":TransformationParameters of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":TransformationParametersType.
+/// @brief This element contains properties for transformations from any namespace, including DSIG.
+typedef struct wsse__TransformationParametersType _wsse__TransformationParameters;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Password of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":PasswordString.
+typedef struct wsse__PasswordString _wsse__Password;
+
+/// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Nonce of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":EncodedString.
+typedef struct wsse__EncodedString _wsse__Nonce;
+
+/// Attribute "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":Usage of simpleType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd":tUsage.
+/// @brief This global attribute is used to indicate the usage of a referenced or indicated token within the containing context
+typedef wsse__tUsage _wsse__Usage;
 
 /* End of wsse.h */
