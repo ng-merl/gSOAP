@@ -29,6 +29,7 @@ ssl:				HTTPS/SSL example (requires OpenSSL)
 udp:				SOAP-over-UDP example client and server
 varparam:			Variable polymorphic parameters client/server
 webserver:			Stand-alone Web server with a lot of features
+wsse:				WS-Security demo
 xml-rpc:			XML-RPC support
 
 To build the example services and clients, type "make" in the 'samples'

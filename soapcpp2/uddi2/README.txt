@@ -1,8 +1,10 @@
 gSOAP UDDI v2
 
-See directory html/index.html for documentation and examples of the UDDI v2 API
-generated with gSOAP and Doxygen. The API is written in C++. However, wsdl2h
-option -c can be used to generate C code serializers for UDDI v2.
+See directory doc/index.html (from the gSOAP installation root) for
+documentation and examples of the UDDI v2 API generated with gSOAP and
+Doxygen. The API is written in C++. However, wsdl2h option -c can be used to
+generate C code serializers for UDDI v2 but you will have to program at a much
+lower level.
 
 The API implementation supports UDDI v2 inquiry and publish operations.
 

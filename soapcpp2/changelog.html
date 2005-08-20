@@ -575,11 +575,25 @@ populated after all else failed to match the delivered XML content.</li>
 </ul>
 <li>Version 2.7.5 (08/01/2005)</li>
 <ul>
-<li>Added xs:redefine support.</li>
+<li>Added xs:redefine support to wsdl2h.</li>
 <li>Added HTML POST application/x-www-form-urlencoded plugin httpform.c
 (demo samples/webserver).</li>
 <li>Improved wsdl2h output.</li>
-<li>Fixed duplicate values in single enum list.</li>
+<li>Fixed wsdl2h handling of duplicate values in single enum list.</li>
+</ul>
+<li>Version 2.7.6 (08/19/2005)</li>
+<ul>
+<li>Added WS-Security authentication, tokens, and signatures with new 'wsse'
+plugin, see documentation in 'doc' directory and 'samples/wsse'.</li>
+<li>Added 'doc' directory for documentation and moved soapdoc2.html and soapdoc2.pdf.</li>
+<li>Added SOAP_XML_INDENT flag.</li>
+<li>Added soap_sender_fault_subcode() and soap_receiver_fault_subcode() for SOAP 1.2 subcodes.</li>
+<li>Added WITH_DOM compile flag to enable flushing serialized and deserialized
+data to DOM (as well as a stream).</li>
+<li>Improved DOM implementation and documentation.</li>
+<li>Fixed wsdl2h multiple schema include issue.</li>
+<li>Fixed soaps2dateTime and soap_timegm functions when timegm is not available.</li>
+<li>Fixed exc-c14n formatting.</li>
 </ul>
 </ul>
 

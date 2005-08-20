@@ -97,12 +97,12 @@ platform = @platform@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src wsdl @SAMPLE_DIRS@
-CLEANFILES = soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp
+CLEANFILES = soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp stdsoap2_ssl.c stdsoap2_ssl_cpp.cpp
 
 AM_CXXFLAGS = $(SOAPCPP2_DEBUG) -D$(platform)
 AM_CFLAGS = $(SOAPCPP2_DEBUG) -D$(platform)
 
-lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a
+lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a libgsoapssl.a libgsoapssl++.a
 libgsoap_a_SOURCES = stdsoap2.c
 libgsoap_a_CFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform)
 libgsoap___a_SOURCES = stdsoap2_cpp.cpp
@@ -111,6 +111,10 @@ libgsoapck_a_SOURCES = stdsoap2_ck.c
 libgsoapck_a_CFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 libgsoapck___a_SOURCES = stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl_a_SOURCES = stdsoap2_ssl.c
+libgsoapssl_a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl___a_SOURCES = stdsoap2_ssl_cpp.cpp
+libgsoapssl___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 
 BUILT_SOURCES = stdsoap2_cpp.cpp $(lib_LIBRARIES)
 
@@ -137,6 +141,14 @@ libgsoapck_a_AR = $(AR) cru
 libgsoapck_a_LIBADD =
 am_libgsoapck_a_OBJECTS = libgsoapck_a-stdsoap2_ck.$(OBJEXT)
 libgsoapck_a_OBJECTS = $(am_libgsoapck_a_OBJECTS)
+libgsoapssl___a_AR = $(AR) cru
+libgsoapssl___a_LIBADD =
+am_libgsoapssl___a_OBJECTS = libgsoapssl___a-stdsoap2_ssl_cpp.$(OBJEXT)
+libgsoapssl___a_OBJECTS = $(am_libgsoapssl___a_OBJECTS)
+libgsoapssl_a_AR = $(AR) cru
+libgsoapssl_a_LIBADD =
+am_libgsoapssl_a_OBJECTS = stdsoap2_ssl.$(OBJEXT)
+libgsoapssl_a_OBJECTS = $(am_libgsoapssl_a_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -148,7 +160,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/libgsoap___a-stdsoap2_cpp.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoap_a-stdsoap2.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po
+@AMDEP_TRUE@	./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/stdsoap2_ssl.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -161,7 +175,8 @@ CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 CXXFLAGS = @CXXFLAGS@
 DIST_SOURCES = $(libgsoap___a_SOURCES) $(libgsoap_a_SOURCES) \
-	$(libgsoapck___a_SOURCES) $(libgsoapck_a_SOURCES)
+	$(libgsoapck___a_SOURCES) $(libgsoapck_a_SOURCES) \
+	$(libgsoapssl___a_SOURCES) $(libgsoapssl_a_SOURCES)
 HEADERS = $(include_HEADERS)
 
 
@@ -171,7 +186,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = $(include_HEADERS) Makefile.am Makefile.in
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libgsoap___a_SOURCES) $(libgsoap_a_SOURCES) $(libgsoapck___a_SOURCES) $(libgsoapck_a_SOURCES)
+SOURCES = $(libgsoap___a_SOURCES) $(libgsoap_a_SOURCES) $(libgsoapck___a_SOURCES) $(libgsoapck_a_SOURCES) $(libgsoapssl___a_SOURCES) $(libgsoapssl_a_SOURCES)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -235,6 +250,15 @@ libgsoapck.a: $(libgsoapck_a_OBJECTS) $(libgsoapck_a_DEPENDENCIES)
 	-rm -f libgsoapck.a
 	$(libgsoapck_a_AR) libgsoapck.a $(libgsoapck_a_OBJECTS) $(libgsoapck_a_LIBADD)
 	$(RANLIB) libgsoapck.a
+libgsoapssl___a-stdsoap2_ssl_cpp.$(OBJEXT): stdsoap2_ssl_cpp.cpp
+libgsoapssl++.a: $(libgsoapssl___a_OBJECTS) $(libgsoapssl___a_DEPENDENCIES) 
+	-rm -f libgsoapssl++.a
+	$(libgsoapssl___a_AR) libgsoapssl++.a $(libgsoapssl___a_OBJECTS) $(libgsoapssl___a_LIBADD)
+	$(RANLIB) libgsoapssl++.a
+libgsoapssl.a: $(libgsoapssl_a_OBJECTS) $(libgsoapssl_a_DEPENDENCIES) 
+	-rm -f libgsoapssl.a
+	$(libgsoapssl_a_AR) libgsoapssl.a $(libgsoapssl_a_OBJECTS) $(libgsoapssl_a_LIBADD)
+	$(RANLIB) libgsoapssl.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -246,6 +270,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoap_a-stdsoap2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdsoap2_ssl.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -322,6 +348,18 @@ libgsoapck___a-stdsoap2_ck_cpp.obj: stdsoap2_ck_cpp.cpp
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po' tmpdepfile='$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoapck___a-stdsoap2_ck_cpp.obj `cygpath -w stdsoap2_ck_cpp.cpp`
+
+libgsoapssl___a-stdsoap2_ssl_cpp.o: stdsoap2_ssl_cpp.cpp
+@AMDEP_TRUE@	source='stdsoap2_ssl_cpp.cpp' object='libgsoapssl___a-stdsoap2_ssl_cpp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.Po' tmpdepfile='$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapssl___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoapssl___a-stdsoap2_ssl_cpp.o `test -f 'stdsoap2_ssl_cpp.cpp' || echo '$(srcdir)/'`stdsoap2_ssl_cpp.cpp
+
+libgsoapssl___a-stdsoap2_ssl_cpp.obj: stdsoap2_ssl_cpp.cpp
+@AMDEP_TRUE@	source='stdsoap2_ssl_cpp.cpp' object='libgsoapssl___a-stdsoap2_ssl_cpp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.Po' tmpdepfile='$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapssl___a_CXXFLAGS) $(CXXFLAGS) -c -o libgsoapssl___a-stdsoap2_ssl_cpp.obj `cygpath -w stdsoap2_ssl_cpp.cpp`
 CXXDEPMODE = @CXXDEPMODE@
 uninstall-info-am:
 includeHEADERS_INSTALL = $(INSTALL_HEADER)
@@ -579,6 +617,12 @@ stdsoap2_cpp.cpp: stdsoap2.cpp
 
 stdsoap2_ck_cpp.cpp: stdsoap2.cpp
 	$(LN_S) stdsoap2.cpp stdsoap2_ck_cpp.cpp
+
+stdsoap2_ssl.c: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_ssl.c
+
+stdsoap2_ssl_cpp.cpp: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_ssl_cpp.cpp
 
 install-data-hook:
 	$(LN_S) $(top_builddir)/soapcpp2/src/soapcpp2 $(top_builddir)/soapcpp2/soapcpp2 || echo "ok, link already exists".

@@ -373,10 +373,10 @@ static void directive()
 					sp->URI = s;
 				sp->WSDL = s;
 			}
-			else if (vflag != 0 && !strcmp(sp->ns, "SOAP-ENV"))
-				sp->URI = envURI;
-			else if (vflag != 0 && !strcmp(sp->ns, "SOAP-ENC"))
-				sp->URI = encURI;
+			else if (!strcmp(sp->ns, "SOAP-ENV"))
+				sp->URI = envURI = s;
+			else if (!strcmp(sp->ns, "SOAP-ENC"))
+				sp->URI = encURI = s;
 			else
 				sp->URI = s;
 		}

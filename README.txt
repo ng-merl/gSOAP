@@ -1,6 +1,4 @@
-
-Please see soapcpp2/README.txt for more info on the gSOAP package. This file
-explains the installation setup with automake and autoconf.
+Please see soapcpp2/README.txt for more info on the gSOAP package.
 
 INSTALLATION NOTES
 
@@ -34,8 +32,12 @@ And you need the following libraries (build from stdsoap2.c[pp]):
 
 soapcpp2/libgsoap++.a		C++ runtime
 soapcpp2/libgsoapck++.a		C++ runtime with HTTP cookie support
+soapcpp2/libgsoapssl++.a	C++ runtime with SSL (HTTPS) support
 soapcpp2/libgsoap.a		C runtime
 soapcpp2/libgsoapck.a		C runtime with HTTP cookie support
+soapcpp2/libgsoapssl.a		C runtime with SSL (HTTPS) support
+
+SSL support requires OpenSSL 0.9.6 or later.
 
 Alternatively, you can use the stdsoap2.c[pp] source codes to build your
 project, see the gSOAP documentation on how to enable HTTP cookies,

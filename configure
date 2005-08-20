@@ -4196,7 +4196,8 @@ done
 
 
 
-for ac_header in arpa/inet.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h
+
+for ac_header in arpa/inet.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h openssl/ssl.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -5952,7 +5953,7 @@ fi
 
 
 
-                                                                                                                                                                                                                                                                                                                                          ac_config_files="$ac_config_files Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile soapcpp2/samples/Makefile soapcpp2/samples/quote/Makefile soapcpp2/samples/quote2/Makefile soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile soapcpp2/samples/quotex/Makefile soapcpp2/samples/calc/Makefile soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile soapcpp2/samples/dime/Makefile soapcpp2/samples/mtom/Makefile soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile soapcpp2/samples/events/Makefile soapcpp2/samples/polytest/Makefile soapcpp2/samples/udp/Makefile"
+                                                                                                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc gsoapssl.pc gsoapssl++.pc soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile soapcpp2/samples/Makefile soapcpp2/samples/quote/Makefile soapcpp2/samples/quote2/Makefile soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile soapcpp2/samples/quotex/Makefile soapcpp2/samples/calc/Makefile soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile soapcpp2/samples/dime/Makefile soapcpp2/samples/mtom/Makefile soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile soapcpp2/samples/events/Makefile soapcpp2/samples/polytest/Makefile soapcpp2/samples/udp/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6514,6 +6515,8 @@ do
   "gsoap++.pc" ) CONFIG_FILES="$CONFIG_FILES gsoap++.pc" ;;
   "gsoapck.pc" ) CONFIG_FILES="$CONFIG_FILES gsoapck.pc" ;;
   "gsoapck++.pc" ) CONFIG_FILES="$CONFIG_FILES gsoapck++.pc" ;;
+  "gsoapssl.pc" ) CONFIG_FILES="$CONFIG_FILES gsoapssl.pc" ;;
+  "gsoapssl++.pc" ) CONFIG_FILES="$CONFIG_FILES gsoapssl++.pc" ;;
   "soapcpp2/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/Makefile" ;;
   "soapcpp2/src/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/src/Makefile" ;;
   "soapcpp2/wsdl/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/wsdl/Makefile" ;;

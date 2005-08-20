@@ -8,4 +8,4 @@ Description: SOAP C++ Web Services
 Version: @VERSION@
 Requires:
 Libs: -L${libdir} -lgsoap++
-Cflags: -I${includedir}
+Cflags: -DWITH_DOM -I${includedir}

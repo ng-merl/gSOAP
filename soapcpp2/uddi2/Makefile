@@ -1,6 +1,6 @@
 .SUFFIXES: .wsdl .xsd
-WSDL2H=wsdl2h
-SOAPCPP=soapcpp2
+WSDL2H=../wsdl2h
+SOAPCPP=../soapcpp2
 CC=gcc
 CPP=g++
 LIBS=

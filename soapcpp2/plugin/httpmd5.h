@@ -55,6 +55,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #ifndef HTTPMD5_H
 #define HTTPMD5_H
 
+#include "stdsoap2.h"
 #include "md5evp.h"
 
 #define HTTP_MD5_ID "HTTP-MD5-1.1" /* plugin identification */

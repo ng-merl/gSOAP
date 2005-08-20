@@ -40,7 +40,7 @@ TODO:
 	Do not generate abstract complexTypes, but include defs in derived types
 	Handle simpleType derivation from base64
 	Option to define base class for all classes, e.g. -b xsd__anyType
-	Look into improving xs:choice and xs:any
+	Look into improving xs:any
 
 */
 

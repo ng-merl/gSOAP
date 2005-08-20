@@ -29,21 +29,21 @@ soap_serve(&soap);
 int ns__method(struct soap *soap, ...)
 { if (soap->userid && soap->passwd) // Basic authentication
   { if (!strcmp(soap->userid, userid) && !strcmp(soap->passwd, passwd))
-    { ...
+    { ... // can also check soap->authrealm 
       return SOAP_OK;
     }
   }
   else if (soap->authrealm && soap->userid) // Digest authentication
   { passwd = ... // database lookup on userid and authrealm to find passwd
     if (!strcmp(soap->authrealm, authrealm) && !strcmp(soap->userid, userid))
-    { if (!http_da_verify_post(soap, passwd))                 
+    { if (!http_da_verify_post(soap, passwd)) // HTTP POST DA verification
       { ...
         return SOAP_OK;
       }
     }
   }
-  soap->authrealm = authrealm;
-  return 401; // Not authorized, challenge digest authentication
+  soap->authrealm = authrealm; // realm to send to client
+  return 401; // Not authorized, challenge with digest authentication
 }
 
 Compile with -DWITH_OPENSSL
@@ -93,7 +93,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 const char http_da_id[12] = HTTP_DA_ID;
 
-/* server-side session database and lock */
+/* session database and lock */
 static struct http_da_session *http_da_session = NULL;
 static MUTEX_TYPE http_da_session_lock;
 
@@ -546,7 +546,7 @@ static int http_da_verify_method(struct soap *soap, char *method, char *passwd)
 
 /******************************************************************************\
  *
- *	Server-side digest authentication session database management
+ *	Digest authentication session database management
  *
 \******************************************************************************/
 
@@ -602,7 +602,7 @@ static int http_da_session_update(const char *realm, const char *nonce, const ch
 
     if (session->nc >= nc)
     {
-      session->modified = 0; /* replay attack: mark session for deletion */
+      session->modified = 0; /* replay attack: terminate session */
       session = NULL;
     }
     else

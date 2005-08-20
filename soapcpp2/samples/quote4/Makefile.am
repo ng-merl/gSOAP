@@ -10,5 +10,5 @@ include ../Makefile.defines
 SOAP_NS=
 include ../Makefile.cpp_rules
 
-quote4_SOURCES = quote4.cpp ../../dom++.cpp soapC.cpp $(SOAPHEADER)
+quote4_SOURCES = quote4.cpp ../../dom.cpp soapC.cpp $(SOAPHEADER)
 

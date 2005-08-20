@@ -4,7 +4,7 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS=src wsdl @SAMPLE_DIRS@
-CLEANFILES=soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp
+CLEANFILES=soapcpp2 stdsoap2_cpp.cpp stdsoap2_ck.c stdsoap2_ck_cpp.cpp stdsoap2_ssl.c stdsoap2_ssl_cpp.cpp
 
 ##	*~ *.req.xml *.res.xml *.nsmap *.wsdl *.xsd *Proxy.h \
 ##	*.o soapH.h soapStub.h soapC.cpp soapC.c soapClient.cpp soapClient.c soapServer.cpp soapServer.c
@@ -22,8 +22,13 @@ stdsoap2_cpp.cpp: stdsoap2.cpp
 stdsoap2_ck_cpp.cpp: stdsoap2.cpp
 	$(LN_S) stdsoap2.cpp stdsoap2_ck_cpp.cpp
 
+stdsoap2_ssl.c: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_ssl.c
 
-lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a
+stdsoap2_ssl_cpp.cpp: stdsoap2.cpp
+	$(LN_S) stdsoap2.cpp stdsoap2_ssl_cpp.cpp
+
+lib_LIBRARIES = libgsoap.a libgsoap++.a libgsoapck.a libgsoapck++.a libgsoapssl.a libgsoapssl++.a
 libgsoap_a_SOURCES=stdsoap2.c
 libgsoap_a_CFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform)
 libgsoap___a_SOURCES=stdsoap2_cpp.cpp
@@ -32,6 +37,10 @@ libgsoapck_a_SOURCES=stdsoap2_ck.c
 libgsoapck_a_CFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 libgsoapck___a_SOURCES=stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl_a_SOURCES=stdsoap2_ssl.c
+libgsoapssl_a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl___a_SOURCES=stdsoap2_ssl_cpp.cpp
+libgsoapssl___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 
 BUILT_SOURCES=stdsoap2_cpp.cpp $(lib_LIBRARIES)
 

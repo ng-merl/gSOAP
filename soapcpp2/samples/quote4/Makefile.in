@@ -130,7 +130,7 @@ LDADD = $(SOAP_CPP_LIB) $(SAMPLE_EXTRA_LIBS)
 BUILT_SOURCES = $(SOAP_CPP_SRC) 
 CLEANFILES = $(SOAP_CPP_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
-quote4_SOURCES = quote4.cpp ../../dom++.cpp soapC.cpp $(SOAPHEADER)
+quote4_SOURCES = quote4.cpp ../../dom.cpp soapC.cpp $(SOAPHEADER)
 subdir = soapcpp2/samples/quote4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -139,7 +139,7 @@ noinst_PROGRAMS = quote4$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 
 am__objects_1 =
-am_quote4_OBJECTS = quote4.$(OBJEXT) dom++.$(OBJEXT) soapC.$(OBJEXT) \
+am_quote4_OBJECTS = quote4.$(OBJEXT) dom.$(OBJEXT) soapC.$(OBJEXT) \
 	$(am__objects_1)
 quote4_OBJECTS = $(am_quote4_OBJECTS)
 quote4_LDADD = $(LDADD)
@@ -153,7 +153,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/dom++.Po ./$(DEPDIR)/quote4.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/dom.Po ./$(DEPDIR)/quote4.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/soapC.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -183,7 +183,7 @@ Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-dom++.$(OBJEXT): ../../dom++.cpp
+dom.$(OBJEXT): ../../dom.cpp
 quote4$(EXEEXT): $(quote4_OBJECTS) $(quote4_DEPENDENCIES) 
 	@rm -f quote4$(EXEEXT)
 	$(CXXLINK) $(quote4_LDFLAGS) $(quote4_OBJECTS) $(quote4_LDADD) $(LIBS)
@@ -194,7 +194,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dom++.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dom.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/quote4.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapC.Po@am__quote@
 
@@ -213,17 +213,17 @@ distclean-depend:
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CXXCOMPILE) -c -o $@ `cygpath -w $<`
 
-dom++.o: ../../dom++.cpp
-@AMDEP_TRUE@	source='../../dom++.cpp' object='dom++.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/dom++.Po' tmpdepfile='$(DEPDIR)/dom++.TPo' @AMDEPBACKSLASH@
+dom.o: ../../dom.cpp
+@AMDEP_TRUE@	source='../../dom.cpp' object='dom.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/dom.Po' tmpdepfile='$(DEPDIR)/dom.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dom++.o `test -f '../../dom++.cpp' || echo '$(srcdir)/'`../../dom++.cpp
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dom.o `test -f '../../dom.cpp' || echo '$(srcdir)/'`../../dom.cpp
 
-dom++.obj: ../../dom++.cpp
-@AMDEP_TRUE@	source='../../dom++.cpp' object='dom++.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/dom++.Po' tmpdepfile='$(DEPDIR)/dom++.TPo' @AMDEPBACKSLASH@
+dom.obj: ../../dom.cpp
+@AMDEP_TRUE@	source='../../dom.cpp' object='dom.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/dom.Po' tmpdepfile='$(DEPDIR)/dom.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dom++.obj `cygpath -w ../../dom++.cpp`
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o dom.obj `cygpath -w ../../dom.cpp`
 CXXDEPMODE = @CXXDEPMODE@
 uninstall-info-am:
 

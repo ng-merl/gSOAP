@@ -157,6 +157,7 @@ Pragma	**pp;
 %type	<e> fname struct class super
 %type	<sym> id arg name
 %type	<s> patt
+%type	<i> cint
 /* expressions and statements */
 %type	<rec> expr cexp oexp obex aexp abex rexp lexp pexp init spec tspec ptrs array arrayck texp qexp occurs
 /* terminals */
@@ -929,26 +930,33 @@ type	: VOID		{ $$ = mkvoid(); }
 			  exitscope();
 			}
 	| STRUCT ID	{ if ((p = entry(classtable, $2)))
-				$$ = p->info.typ;
+			  {	if (p->info.typ->type == Tstruct)
+			  		$$ = p->info.typ;
+			  	else
+				{	sprintf(errbuf, "'struct %s' redeclaration %s", $2->name);
+			  		semerror(errbuf);
+			  		$$ = mkint();
+				}
+			  }
 			  else
 			  {	p = enter(classtable, $2);
 			  	$$ = p->info.typ = mkstruct((Table*)0, 0);
 				p->info.typ->id = $2;
 			  }
 			}
-/*
-	| STRUCT TYPE '{' s2 decls '}'
-			{ sprintf(errbuf, "'struct %s' redeclaration", $2->name);
-			  semerror(errbuf);
-			  $$ = mkint();
-			}
-*/
-	| STRUCT TYPE	{ if ((p = entry(classtable, $2)) && p->info.typ->type == Tstruct)
-				$$ = p->info.typ;
+	| STRUCT TYPE	{ if ((p = entry(classtable, $2)))
+			  {	if (p->info.typ->type == Tstruct)
+					$$ = p->info.typ;
+			  	else
+				{	sprintf(errbuf, "'struct %s' redeclaration %s", $2->name);
+			  		semerror(errbuf);
+			  		$$ = mkint();
+				}
+			  }
 			  else
-			  {	sprintf(errbuf, "'struct %s' redeclaration", $2->name);
-				semerror(errbuf);
-				$$ = mkint();
+			  {	p = enter(classtable, $2);
+			  	$$ = p->info.typ = mkstruct((Table*)0, 0);
+				p->info.typ->id = $2;
 			  }
 			}
 	| UNION '{' s3 decls '}'
@@ -1010,19 +1018,19 @@ type	: VOID		{ $$ = mkvoid(); }
 				p->info.typ->id = $2;
 			  }
 			}
-/*
-	| UNION TYPE '{' s3 decls '}'
-			{ sprintf(errbuf, "'union %s' redeclaration %s", $2->name);
-			  semerror(errbuf);
-			  $$ = mkint();
-			}
-*/
-	| UNION TYPE	{ if ((p = entry(classtable, $2)) && p->info.typ->type == Tunion)
-				$$ = p->info.typ;
+	| UNION TYPE	{ if ((p = entry(classtable, $2)))
+			  {	if (p->info.typ->type == Tunion)
+					$$ = p->info.typ;
+			  	else
+				{	sprintf(errbuf, "'union %s' redeclaration %s", $2->name);
+			  		semerror(errbuf);
+			  		$$ = mkint();
+				}
+			  }
 			  else
-			  {	sprintf(errbuf, "'union %s' redeclaration %s", $2->name);
-				semerror(errbuf);
-				$$ = mkint();
+			  {	p = enter(classtable, $2);
+			  	$$ = p->info.typ = mkunion((Table*) 0, 0);
+				p->info.typ->id = $2;
 			  }
 			}
 	| ENUM '{' s2 dclrs s5 '}'
@@ -1093,19 +1101,12 @@ type	: VOID		{ $$ = mkvoid(); }
 				p->info.typ->id = $2;
 			  }
 			}
-/*
-	| ENUM TYPE '{' s2 dclrs s5 '}'
-			{ sprintf(errbuf, "'enum %s' redeclaration", $2->name);
-			  semerror(errbuf);
-			  $$ = mkint();
-			}
-*/
-	| ENUM TYPE	{ if ((p = entry(enumtable, $2)) && p->info.typ->type == Tenum)
+	| ENUM TYPE	{ if ((p = entry(enumtable, $2)))
 				$$ = p->info.typ;
 			  else
-			  {	sprintf(errbuf, "'enum %s' redeclaration", $2->name);
-				semerror(errbuf);
-				$$ = mkint();
+			  {	p = enter(enumtable, $2);
+			  	$$ = p->info.typ = mkenum((Table*)0);
+				p->info.typ->id = $2;
 			  }
 			}
 	| TYPE		{ if ((p = entry(typetable, $1)))
@@ -1167,24 +1168,6 @@ class	: CLASS id	{ if ((p = entry(classtable, $2)))
 			  $2->token = TYPE;
 			  $$ = p;
 			}
-/*
-	| CLASS TYPE	{ if ((p = entry(classtable, $2)))
-			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "class '%s' already declared (referenced from line %d)", $2->name, p->lineno);
-					semerror(errbuf);
-				}
-				else
-					p = reenter(classtable, $2);
-			  }
-			  else
-			  {	sprintf(errbuf, "invalid class name '%s'", $2->name);
-				semerror(errbuf);
-			   	p = enter(classtable, $2);
-				p->info.typ = mkclass(NULL, 0);
-			  }
-			  $$ = p;
-			}
-*/
 	;
 tname	: CLASS		{ }
 	| TYPENAME	{ }
@@ -1304,22 +1287,22 @@ occurs	: patt
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
-	| patt LNG
+	| patt cint
 			{ $$.minOccurs = $2;
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
-	| patt LNG ':'
+	| patt cint ':'
 			{ $$.minOccurs = $2;
 			  $$.maxOccurs = 1;
 			  $$.pattern = $1;
 			}
-	| patt LNG ':' LNG
+	| patt cint ':' cint
 			{ $$.minOccurs = $2;
 			  $$.maxOccurs = $4;
 			  $$.pattern = $1;
 			}
-	| patt ':' LNG
+	| patt ':' cint
 			{ $$.minOccurs = -1;
 			  $$.maxOccurs = $3;
 			  $$.pattern = $1;
@@ -1327,6 +1310,9 @@ occurs	: patt
 	;
 patt	: /* empty */	{ $$ = NULL; }
 	| STR		{ $$ = $1; }
+	;
+cint	: LNG		{ $$ = $1; }
+	| '-' LNG	{ $$ = -$2; }
 	;
 
 /******************************************************************************\
@@ -1644,8 +1630,8 @@ pointer(Tnode *typ)
 static void
 add_fault(Table *gt)
 { Table *t;
-  Entry *p1, *p2, *p3;
-  Symbol *s1, *s2, *s3;
+  Entry *p1, *p2, *p3, *p4;
+  Symbol *s1, *s2, *s3, *s4;
   /*
   add_XML();
   add_qname();
@@ -1690,10 +1676,25 @@ add_fault(Table *gt)
     p3->info.minOccurs = 0;
     custom_fault = 0;
   }
+  s4 = lookup("SOAP_ENV__Reason");
+  p4 = entry(classtable, s4);
+  if (!p4 || !p4->info.typ->ref)
+  { t = mktable((Table*)0);
+    if (!p4)
+    { p4 = enter(classtable, s4);
+      p4->info.typ = mkstruct(t, 4);
+      p4->info.typ->id = s4;
+    }
+    else
+      p4->info.typ->ref = t;
+    p3 = enter(t, lookup("SOAP_ENV__Text"));
+    p3->info.typ = mkstring();
+    p3->info.minOccurs = 0;
+  }
   s3 = lookup("SOAP_ENV__Fault");
   p3 = entry(classtable, s3);
   if (!p3)
-  { t = mktable((Table*)0);
+  { t = mktable(NULL);
     p3 = enter(classtable, s3);
     p3->info.typ = mkstruct(t, 9*4);
     p3->info.typ->id = s3;
@@ -1712,8 +1713,8 @@ add_fault(Table *gt)
     p3 = enter(t, s1);
     p3->info.typ = mkpointer(p1->info.typ);
     p3->info.minOccurs = 0;
-    p3 = enter(t, lookup("SOAP_ENV__Reason"));
-    p3->info.typ = mkstring();
+    p3 = enter(t, s4);
+    p3->info.typ = mkpointer(p4->info.typ);
     p3->info.minOccurs = 0;
     p3 = enter(t, lookup("SOAP_ENV__Node"));
     p3->info.typ = mkstring();

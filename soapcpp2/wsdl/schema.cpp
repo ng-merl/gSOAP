@@ -115,7 +115,11 @@ int xs__schema::preprocess()
 int xs__schema::insert(xs__schema& schema)
 { bool found;
   if (targetNamespace && schema.targetNamespace && strcmp(targetNamespace, schema.targetNamespace))
-    fprintf(stderr, "Warning: attempt to include schema with different targetNamespace '%s' in schema '%s'\n", schema.targetNamespace, targetNamespace);
+    fprintf(stderr, "Warning: attempt to include schema with unequal targetNamespace '%s' in schema '%s'\n", schema.targetNamespace, targetNamespace);
+  if (elementFormDefault != schema.elementFormDefault)
+    fprintf(stderr, "Warning: attempt to include schema with unequal elementFormDefault in schema '%s'\n", targetNamespace?targetNamespace:"");
+  if (attributeFormDefault != schema.attributeFormDefault)
+    fprintf(stderr, "Warning: attempt to include schema with unequal attributeFormDefault in schema '%s'\n", targetNamespace?targetNamespace:"");
   // insert imports, but only add imports with new namespace
   for (vector<xs__import>::const_iterator im = schema.import.begin(); im != schema.import.end(); ++im)
   { found = false;
@@ -169,7 +173,6 @@ int xs__schema::insert(xs__schema& schema)
     { for (vector<xs__group>::const_iterator g = group.begin(); g != group.end(); ++g)
       { if ((*g).name && !strcmp((*gp).name, (*g).name))
         { found = true;
-          fprintf(stderr, "Warning: attempt to redefine group '%s' in schema '%s'\n", (*gp).name, targetNamespace?targetNamespace:"");
           break;
         }
       }
@@ -184,7 +187,6 @@ int xs__schema::insert(xs__schema& schema)
     { for (vector<xs__attributeGroup>::const_iterator g = attributeGroup.begin(); g != attributeGroup.end(); ++g)
       { if ((*g).name && !strcmp((*ag).name, (*g).name))
         { found = true;
-          fprintf(stderr, "Warning: attempt to redefine attributeGroup '%s' in schema '%s'\n", (*ag).name, targetNamespace?targetNamespace:"");
           break;
         }
       }
@@ -199,7 +201,6 @@ int xs__schema::insert(xs__schema& schema)
     { for (vector<xs__simpleType>::const_iterator s = simpleType.begin(); s != simpleType.end(); ++s)
       { if ((*s).name && !strcmp((*st).name, (*s).name))
         { found = true;
-          fprintf(stderr, "Warning: attempt to redefine simpleType '%s' in schema '%s'\n", (*st).name, targetNamespace?targetNamespace:"");
           break;
         }
       }
@@ -214,7 +215,6 @@ int xs__schema::insert(xs__schema& schema)
     { for (vector<xs__complexType>::const_iterator c = complexType.begin(); c != complexType.end(); ++c)
       { if ((*c).name && !strcmp((*ct).name, (*c).name))
         { found = true;
-          fprintf(stderr, "Warning: attempt to redefine complexType '%s' in schema '%s'\n", (*ct).name, targetNamespace?targetNamespace:"");
           break;
         }
       }

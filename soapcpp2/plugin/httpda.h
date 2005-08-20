@@ -92,6 +92,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #ifndef HTTPDA_H
 #define HTTPDA_H
 
+#include "stdsoap2.h"
 #include "md5evp.h" /* requires MD5 */
 #include "threads.h" /* mutex for multi-threaded server implementations */
 

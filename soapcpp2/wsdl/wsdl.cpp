@@ -273,7 +273,7 @@ again:
 	  (*i)->targetNamespace = targetNamespace;
 	else
 	{ for (vector<xs__schema*>::const_iterator j = types->xs__schema_.begin(); j != types->xs__schema_.end(); ++j)
-	  { if (!strcmp((*i)->targetNamespace, (*j)->targetNamespace))
+	  { if ((*j)->targetNamespace && !strcmp((*i)->targetNamespace, (*j)->targetNamespace))
 	    { found = true;
 	      break;
 	    }
@@ -928,7 +928,7 @@ again:
   for (vector<xs__schema*>::iterator schema3 = xs__schema_.begin(); schema3 != xs__schema_.end(); ++schema3)
   { // artificially extend the <import> of each schema to include others so when we traverse schemas we can resolve references
     for (vector<xs__schema*>::iterator importschema = xs__schema_.begin(); importschema != xs__schema_.end(); ++importschema)
-    { if (schema3 != importschema)
+    { if (schema3 != importschema && (*importschema)->targetNamespace)
       { xs__import *import = new xs__import();
         import->namespace_ = (*importschema)->targetNamespace;
         import->schemaPtr(*importschema);
@@ -949,7 +949,7 @@ again:
 	  cerr << "Schema import namespace " << (*import).namespace_ << " refers to a known external Schema" << endl;
       }
       else
-        cerr << "Warning: Schema import has no namespace" << endl;
+        cerr << "Warning: Schema import " << ((*import).schemaLocation ? (*import).schemaLocation : "") << " has no namespace" << endl;
     }
   }
   // traverse the schemas

@@ -8,7 +8,7 @@ stlvector.h	std::vector serializer
 stl.h		std::deque, std::list, std::set, and std::vector serializer
 soap12.h	SOAP 1.2 namespaces
 
-This directory further contains support for a growing number of WS-*
+This directory further contains files to support a growing number of WS-*
 specifications.
 
 For example, wsa.h is generated from WS/WS-Addressing.xsd with:

@@ -39,7 +39,6 @@ TODO:	consider adding support for non-SOAP HTTP operations
 #include "types.h"
 #include "service.h"
 
-static const char *find_nmtoken(const char *nmtokens, const char *nmtoken);
 static void comment(const char *start, const char *middle, const char *end, const char *text);
 static void page(const char *page, const char *title, const char *text);
 static void section(const char *section, const char *title, const char *text);
@@ -742,7 +741,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	      types.format(t);
 	    }
 	    else
-              fprintf(stream, "/// '%s' element definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*element).name));
+              fprintf(stream, "// '%s' element definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*element).name));
 	  }
         }
       }
@@ -776,7 +775,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	      types.format(t);
 	    }
 	    else
-              fprintf(stream, "/// '%s' attribute definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*attribute).name));
+              fprintf(stream, "// '%s' attribute definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*attribute).name));
 	  }
         }
       }
@@ -867,10 +866,8 @@ void Definitions::generate()
   // Generate SOAP Header definition
   if (!headers.empty())
   { banner("SOAP Header");
-    //if (cflag) always use structs to avoid compilation warnings
-      fprintf(stream, "struct SOAP_ENV__Header\n{\n");
-    //else
-      //fprintf(stream, "class SOAP_ENV__Header\n{ public:\n");
+    fprintf(stream, "/**\n\nThe SOAP Header is part of the gSOAP context and its content is accessed\nthrough the soap.header variable. You may have to set the soap.actor variable\nto serialize SOAP Headers with SOAP-ENV:actor or SOAP-ENV:role attributes.\n\n*/\n");
+    fprintf(stream, "struct SOAP_ENV__Header\n{\n");
     for (MapOfStringToMessage::const_iterator header = headers.begin(); header != headers.end(); ++header)
     { if ((*header).second->URI && !types.uris[(*header).second->URI])
         fprintf(stream, schemaformat, types.nsprefix(NULL, (*header).second->URI), "namespace", (*header).second->URI);
@@ -881,14 +878,18 @@ void Definitions::generate()
         types.gen((*header).second->part->elementPtr()->schemaPtr()->targetNamespace, *(*header).second->part->elementPtr());
       }
       else if ((*header).second->part && (*header).second->part->type)
-      { fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), (*header).first);
+      { fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
+        fprintf(stream, "\n");
+        fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), (*header).first);
         fprintf(stream, ";\n");
       }
       else
-      { if ((*header).second->part->element)
-	  fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->element), (*header).first);
+      { fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
+        fprintf(stream, "\n");
+        if ((*header).second->part && (*header).second->part->element)
+	  fprintf(stream, pointerformat, types.pname(true, NULL, NULL, (*header).second->part->element), (*header).first);
         else
-	  fprintf(stream, elementformat, (*header).first, (*header).first);
+	  fprintf(stream, pointerformat, (*header).first, (*header).first);
         fprintf(stream, ";\t///< TODO: Check element type (imported type)\n");
       }
     }
@@ -1273,7 +1274,7 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
   { for (vector<wsdl__part>::const_iterator part = message->part.begin(); part != message->part.end(); ++part)
     { if (!(*part).name)
         fprintf(stderr, "Error: no part name in message '%s'\n", message->name?message->name:"");
-      else if (!body_parts || find_nmtoken(body_parts, (*part).name))
+      else if (!body_parts || soap_strsearch(body_parts, (*part).name))
       { if (remark && (*part).documentation)
           comment("", (*part).name, "parameter", (*part).documentation);
         else
@@ -1329,19 +1330,6 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
 //	Miscellaneous
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-static const char *find_nmtoken(const char *nmtokens, const char *nmtoken)
-{ size_t n = strlen(nmtoken);
-  const char *s = nmtokens;
-  while (s) 
-  { if (!strncmp(s, nmtoken, n) && (s[n] == '\0' || s[n] == ' '))
-      return s;
-    s = strchr(s, ' ');
-    if (s)
-      s++;
-  }
-  return NULL;
-}
 
 static void comment(const char *start, const char *middle, const char *end, const char *text)
 { if (text)

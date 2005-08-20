@@ -3,7 +3,7 @@
 wsu.h
 
 Generated with:
-wsdl2h -cgy -o wsu.h -t WS/WS-typemap.dat WS/wsu.xsd
+wsdl2h -cegy -o wsu.h -t WS/WS-typemap.dat WS/wsu.xsd
 
 Modified by Robert van Engelen:
 
@@ -64,7 +64,7 @@ Modified by Robert van Engelen:
 /// Note: enum values are prefixed with 'wsu__tTimestampFault' to avoid name clashes, please use wsdl2h option -e to omit this prefix
 enum wsu__tTimestampFault
 {
-	wsu__tTimestampFault__wsu__MessageExpired,	///< xs:QName value=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":MessageExpired"
+	wsu__MessageExpired,	///< xs:QName value=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":MessageExpired"
 };
 /// Typedef synonym for enum wsu__tTimestampFault.
 typedef enum wsu__tTimestampFault wsu__tTimestampFault;
@@ -73,9 +73,9 @@ typedef enum wsu__tTimestampFault wsu__tTimestampFault;
 /// @brief This element allows Timestamps to be applied anywhere element wildcards are present, including as a SOAP header.
 /// Imported element _wsu__Timestamp from typemap WS/WS-typemap.dat.
 typedef struct _wsu__Timestamp
-{	@char*	wsu__Id;
-	time_t	*Created
-	time_t	*Expires;
+{	@char*	wsu__Id;	// use qualified form to enable signature
+	char*	Created;
+	char*	Expires;
 } _wsu__Timestamp;
 
 /// Element "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":Expires of complexType "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd":AttributedDateTime.

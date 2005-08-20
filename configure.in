@@ -76,7 +76,7 @@ AC_SUBST(platform)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h openssl/ssl.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -171,7 +171,8 @@ fi
 AC_SUBST(BISON_DEFINE)
 AC_SUBST(YACC_LIB)
 
-AC_CONFIG_FILES([ Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc \
+AC_CONFIG_FILES([ Makefile \
+    gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc gsoapssl.pc gsoapssl++.pc \
     soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile \
     soapcpp2/samples/Makefile \
     soapcpp2/samples/quote/Makefile  soapcpp2/samples/quote2/Makefile \

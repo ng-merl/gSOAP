@@ -47,8 +47,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "md5evp.h"
 
 int md5_handler(struct soap *soap, void **context, enum md5_action action, char *buf, size_t len)
-{ const EVP_MD *m;
-  EVP_MD_CTX *ctx;
+{ EVP_MD_CTX *ctx;
   unsigned char hash[EVP_MAX_MD_SIZE];
   unsigned int size;
   switch (action)
@@ -56,40 +55,34 @@ int md5_handler(struct soap *soap, void **context, enum md5_action action, char 
 #ifdef WITH_OPENSSL
       OpenSSL_add_all_digests();
 #endif
-      if (!(m = EVP_get_digestbyname("md5")))
-        return SOAP_PLUGIN_ERROR;
       if (!*context)
-        *context = (void*)SOAP_MALLOC(soap, sizeof(EVP_MD_CTX));
+      { *context = (void*)SOAP_MALLOC(soap, sizeof(EVP_MD_CTX));
+        EVP_MD_CTX_init((EVP_MD_CTX*)*context);
+      }
       ctx = (EVP_MD_CTX*)*context;
-#ifdef DEBUG
-      fprintf(stderr, "MD5 Init %p\n", ctx);
-#endif
-      EVP_DigestInit(ctx, m);
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "-- MD5 Init %p\n", ctx));
+      EVP_DigestInit(ctx, EVP_md5());
       break;
     case MD5_UPDATE:
       ctx = (EVP_MD_CTX*)*context;
-#ifdef DEBUG
-      fprintf(stderr, "MD5 Update %p: ", ctx);
-      fwrite(buf, len, 1, stderr);
-      fprintf(stderr, "\n");
-#endif
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "-- MD5 Update %p --\n", ctx));
+      DBGMSG(TEST, buf, len);
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "\n--"));
       EVP_DigestUpdate(ctx, (void*)buf, (unsigned int)len);
       break;
     case MD5_FINAL:
       ctx = (EVP_MD_CTX*)*context;
-#ifdef DEBUG
-      fprintf(stderr, "MD5 Final %p\n", ctx);
-#endif
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "-- MD5 Final %p --\n", ctx));
       EVP_DigestFinal(ctx, (void*)hash, &size);
       memcpy(buf, hash, 16);
       break;
     case MD5_DELETE:
       ctx = (EVP_MD_CTX*)*context;
-#ifdef DEBUG
-      fprintf(stderr, "MD5 Delete %p\n", ctx);
-#endif
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "-- MD5 Delete %p --\n", ctx));
       if (ctx)
+      { EVP_MD_CTX_cleanup(ctx);
         SOAP_FREE(soap, ctx);
+      }
       *context = NULL;
   }
   return SOAP_OK;

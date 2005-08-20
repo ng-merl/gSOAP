@@ -156,6 +156,7 @@ static Keyword keywords[] =
 	"SOAP_ENV__Code",	ID,
 	"SOAP_ENV__Subcode",	ID,
 	"SOAP_ENV__Reason",	ID,
+	"SOAP_ENV__Text",	ID,
 	"SOAP_ENV__Detail",	ID,
 	"SOAP_ENV__Value",	ID,
 	"SOAP_ENV__Node",	ID,

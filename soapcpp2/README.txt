@@ -36,7 +36,7 @@ INSTALLATION
 
 See NOTES.txt for distribution notes and installation instructions.
 
-See soapdoc2.html/.pdf for documentation.
+See the 'doc' directory doc/index.html for documentation.
 
 See the 'samples' directory for example gSOAP Web service applications.
 
@@ -44,6 +44,12 @@ See the 'uddi2' directory to build UDDI v2 registries.
 
 See the 'WS' directory for WS-* protocol support. This part of the software is
 under development as new WS-* protocols are published.
+
+See the 'import' directory for WS-* protocols you can import.
+
+See the 'plugin' directory for plugins.
+
+See the 'custom' directory for example custom serializers.
 
 See the 'mod_gsoap' directory for Apache mod_gsoap, IIS modules, and WinInet.
 

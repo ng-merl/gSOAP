@@ -35,6 +35,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "types.h"
 
+static char *getline(char *s, size_t n, FILE *fd);
 static const char *nonblank(const char *s);
 static const char *fill(char *t, int n, const char *s, int e);
 static const char *utf8(char *t, const char *s);
@@ -138,13 +139,13 @@ int Types::read(const char *file)
     return SOAP_EOF;
   }
   fprintf(stderr, "Reading type map file '%s'\n\n", file);
-  while (fgets(buf, sizeof(buf), fd))
+  while (getline(buf, sizeof(buf), fd))
   { s = buf;
     if (copy)
     { if (*s == ']')
         copy = 0;
       else
-        fputs(buf, stream);
+        fprintf(stream, "%s\n", buf);
     }
     else if (*s == '[')
       copy = 1;
@@ -504,20 +505,26 @@ const char *Types::tname(const char *prefix, const char *URI, const char *qname)
 }
 
 const char *Types::pname(bool flag, const char *prefix, const char *URI, const char *qname)
-{ const char *s, *t = cname(prefix, URI, qname);
+{ const char *r, *s, *t = cname(prefix, URI, qname);
   if (flag)
   { s = ptrtypemap[t];
     if (!s)
     { s = usetypemap[t];
-      if (!s)
+      if (!s || !*s)
       { s = t;
         fprintf(stream, "// Warning: internal error, undefined: %s %s\n", qname, t);
       }
-      if (!strchr(s, '*'))	// already pointer?
-      { char *r = (char*)emalloc(strlen(s) + 2);
-        strcpy(r, s);
-        strcat(r, "*");
-        s = r;
+      r = s;
+      do
+      { r = strchr(r + 1, '*');
+        if (r && *(r-1) != '/' && *(r+1) != '/')
+	  break;
+      } while (r);
+      if (!r)	// already pointer?
+      { char *p = (char*)emalloc(strlen(s) + 2);
+        strcpy(p, s);
+        strcat(p, "*");
+        s = p;
       }
       ptrtypemap[t] = s;
     }
@@ -668,7 +675,7 @@ void Types::define(const char *URI, const char *name, const xs__complexType& com
         if (*t)
 	  format(t);
         else
-	  fprintf(stream, "/// complexType definition intentionally left blank.\n");
+	  fprintf(stream, "// complexType definition intentionally left blank.\n");
       }
     }
   }
@@ -684,7 +691,7 @@ void Types::define(const char *URI, const char *name, const xs__complexType& com
         if (*t)
 	  format(t);
         else
-	  fprintf(stream, "/// complexType definition intentionally left blank.\n");
+	  fprintf(stream, "// complexType definition intentionally left blank.\n");
       }
     }
   }
@@ -706,7 +713,7 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
       if (*t)
 	format(t);
       else
-	fprintf(stream, "/// simpleType definition intentionally left blank.\n");
+	fprintf(stream, "// simpleType definition intentionally left blank.\n");
       return;
     }
   }
@@ -1054,11 +1061,6 @@ static void gen_soap_array(Types *types, const char *name, const char *t, const 
   if (dims)
     *dims++ = '\0';
   fprintf(stream, "/// SOAP encoded array of %s\n", type ? type : "xs:anyType");
-  //if (!name)
-  //{ fprintf(stream, elementformat, "struct {", "");
-    //fprintf(stream, "\n");
-  //}
-  //else
   if (cflag)
     fprintf(stream, "struct %s\n{\n", t);
   else if (pflag)
@@ -1740,7 +1742,7 @@ void Types::gen(const char *URI, const vector<xs__choice>& choices)
 
 void Types::gen(const char *URI, const xs__choice& choice)
 { const char *r = NULL, *s = NULL, *t = NULL;
-  // TODO: Need to improve choice to handle minOccurs/maxOccurs != 1
+  bool use_union = !uflag;
   if (!URI && choice.schemaPtr())
     URI = choice.schemaPtr()->targetNamespace;
   fprintf(stream, "/// CHOICE OF ELEMENTS <choice");
@@ -1749,7 +1751,17 @@ void Types::gen(const char *URI, const xs__choice& choice)
   if (choice.maxOccurs)
     fprintf(stream, " maxOccurs=\"%s\"", choice.maxOccurs);
   fprintf(stream, ">\n");
-  if (!uflag)
+  if (!choice.group.empty() || !choice.sequence.empty())
+    use_union = false;
+  else
+  { for (vector<xs__element>::const_iterator el = choice.element.begin(); el != choice.element.end(); el++)
+    { if ((*el).maxOccurs && strcmp((*el).maxOccurs, "1"))
+      { use_union = false;
+        break;
+      }
+    }
+  }
+  if (use_union)
   { t = uname(URI);
     s = strstr(t, "__");
     if (s)
@@ -1775,14 +1787,15 @@ void Types::gen(const char *URI, const xs__choice& choice)
   gen(NULL, choice.group);
   gen(NULL, choice.sequence);	// TODO: check
   gen(NULL, choice.any);	// TODO: check
-  if (!uflag)
+  if (use_union)
   { fprintf(stream, elementformat, "}", r);
     if (choice.maxOccurs && strcmp(choice.maxOccurs, "1"))
     { fprintf(stream, ";\n");
       fprintf(stream, pointerformat, "}", s);
     }
+    fprintf(stream, ";");
   }
-  fprintf(stream, ";\n//  END OF CHOICE\n");
+  fprintf(stream, "\n//  END OF CHOICE\n");
 }
 
 void Types::gen(const char *URI, const vector<xs__any>& anys)
@@ -1866,6 +1879,39 @@ const char* Types::format(const char *text)
 //	Type map file parsing
 //
 ////////////////////////////////////////////////////////////////////////////////
+
+static char *getline(char *s, size_t n, FILE *fd)
+{ int c;
+  char *t = s;
+  if (n)
+    n--;
+  for (;;)
+  { c = fgetc(fd);
+    if (c == '\r')
+      continue;
+    if (c == '\\')
+    { c = fgetc(fd);
+      if (c == '\r')
+        c = fgetc(fd);
+      if (c < ' ')
+        continue;
+      if (n)
+      { *t++ = '\\';
+        n--;
+      }
+    }
+    if (c == '\n' || c == EOF)
+      break;
+    if (n)
+    { *t++ = c;
+      n--;
+    }
+  }
+  *t++ = '\0';
+  if (c == EOF)
+    return NULL;
+  return s;
+}
 
 static const char *nonblank(const char *s)
 { while (*s && isspace(*s))

@@ -62,6 +62,10 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "stdsoap2.h"
 
+#ifdef WITH_OPENSSL
+#include "openssl/evp.h"
+#endif
+
 enum md5_action { MD5_INIT, MD5_UPDATE, MD5_FINAL, MD5_DELETE };
 
 int md5_handler(struct soap *soap, void **context, enum md5_action action, char *buf, size_t len);
