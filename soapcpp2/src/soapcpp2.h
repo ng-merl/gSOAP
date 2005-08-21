@@ -51,7 +51,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.6" /* Current version */
+#define VERSION "2.7.6a" /* Current version */
 #endif
 
 #if defined(WIN32)
@@ -145,21 +145,23 @@ typedef	enum Type
 
 typedef	enum Storage
 {	Snone		= 0,
-	Sauto		= 0x0001,
-	Sregister	= 0x0002,
-	Sstatic		= 0x0004,
-	Sextern		= 0x0008,
-	Stypedef	= 0x0010,
-	Svirtual	= 0x0020,
-	Sconst		= 0x0040,
-	Sfriend		= 0x0080,
-	Sinline		= 0x0100,
-	Sconstobj	= 0x0200,
-	Sabstract	= 0x0400,
-	SmustUnderstand	= 0x0800,
-	Sreturn		= 0x1000,
-	Sattribute	= 0x2000,
-	Sexplicit	= 0x4000
+	Sauto		= 0x000001,
+	Sregister	= 0x000002,
+	Sstatic		= 0x000004,
+	Sextern		= 0x000008,
+	Stypedef	= 0x000010,
+	Svirtual	= 0x000020,
+	Sconst		= 0x000040,
+	Sfriend		= 0x000080,
+	Sinline		= 0x000100,
+	Sconstobj	= 0x000200,
+	Sabstract	= 0x000400,
+	SmustUnderstand	= 0x000800,
+	Sreturn		= 0x001000,
+	Sattribute	= 0x002000,
+	Sexplicit	= 0x004000,
+	Sprivate	= 0x010000,
+	Sprotected	= 0x020000
 } Storage;
 
 typedef	enum Level { INTERNAL, GLOBAL, PARAM, LOCAL } Level;

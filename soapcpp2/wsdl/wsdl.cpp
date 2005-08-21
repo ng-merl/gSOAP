@@ -138,7 +138,12 @@ int wsdl__definitions::read(int num, char **loc)
 }
 
 int wsdl__definitions::read(const char *location)
-{ if (location)
+{ char *path = NULL;
+  char save_host[sizeof(soap->host)];
+  char save_path[sizeof(soap->path)];
+  strcpy(save_host, soap->host);
+  strcpy(save_path, soap->path);
+  if (location)
   { if (!strncmp(location, "http://", 7) || !strncmp(location, "https://", 8))
     { fprintf(stderr, "Connecting to '%s' to retrieve WSDL/XSD... ", location);
       if (soap_connect_command(soap, SOAP_GET, location, NULL))
@@ -149,14 +154,13 @@ int wsdl__definitions::read(const char *location)
       fprintf(stderr, "connected, receiving...\n");
     }
     else if (*soap->host)
-    { char *URL;
-      URL = strrchr(soap->path, '/');
-      if (URL)
-        *URL = '\0';
-      URL = (char*)soap_malloc(soap, strlen(soap->host) + strlen(soap->path) + strlen(location) + 32);
-      sprintf(URL, "http://%s:%d%s/%s", soap->host, soap->port, soap->path, location);
-      fprintf(stderr, "Connecting to '%s' to retrieve local '%s' WSDL/XSD... ", URL, location);
-      if (soap_connect_command(soap, SOAP_GET, URL, NULL))
+    { path = strrchr(soap->path, '/');
+      if (path)
+        *path = '\0';
+      path = (char*)soap_malloc(soap, strlen(soap->host) + strlen(soap->path) + strlen(location) + 32);
+      sprintf(path, "http://%s:%d%s/%s", soap->host, soap->port, soap->path, location);
+      fprintf(stderr, "Connecting to '%s' to retrieve relative '%s' WSDL/XSD... ", path, location);
+      if (soap_connect_command(soap, SOAP_GET, path, NULL))
       { fprintf(stderr, "connection failed\n");
         exit(1);
       }
@@ -166,18 +170,31 @@ int wsdl__definitions::read(const char *location)
     { fprintf(stderr, "Reading file '%s'\n", location);
       soap->recvfd = open(location, O_RDONLY, 0);
       if (soap->recvfd < 0)
-      { if (import_path)
-        { char *s = (char*)soap_malloc(soap, strlen(import_path) + strlen(location) + 2);
-	  strcpy(s, import_path);
-	  strcat(s, "/");
-	  strcat(s, location);
-          soap->recvfd = open(s, O_RDONLY, 0);
+      { if (*soap->path)
+        { path = strrchr(soap->path, '/');
+          if (path)
+            *path = '\0';
+          path = (char*)soap_malloc(soap, strlen(soap->path) + strlen(location) + 2);
+	  strcpy(path, soap->path);
+	  strcat(path, "/");
+	  strcat(path, location);
+          soap->recvfd = open(path, O_RDONLY, 0);
+        }
+        if (soap->recvfd < 0 && import_path)
+        { path = (char*)soap_malloc(soap, strlen(import_path) + strlen(location) + 2);
+	  strcpy(path, import_path);
+	  strcat(path, "/");
+	  strcat(path, location);
+          soap->recvfd = open(path, O_RDONLY, 0);
 	}
         if (soap->recvfd < 0)
 	{ fprintf(stderr, "Cannot open '%s'\n", location);
           exit(1);
         }
+        location = path;
       }
+      strncpy(soap->path, location, sizeof(soap->path));
+      soap->path[sizeof(soap->path) - 1] = '\0';
     }
   }
   if (!soap_begin_recv(soap))
@@ -228,6 +245,8 @@ int wsdl__definitions::read(const char *location)
   }
   else
     soap_closesock(soap);
+  strcpy(soap->host, save_host);
+  strcpy(soap->path, save_path);
   return SOAP_OK;
 }
 

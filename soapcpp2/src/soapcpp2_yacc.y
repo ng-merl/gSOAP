@@ -83,6 +83,7 @@ Table	*classtable = (Table*)0,
 
 char	*namespaceid = NULL;
 int	transient = 0;
+int	permission = 0;
 int	custom_header = 1;
 int	custom_fault = 1;
 Pragma	*pragmas = NULL;
@@ -262,7 +263,9 @@ pragma	: PRAGMA	{ if ($1[1] >= 'a' && $1[1] <= 'z')
 
 \******************************************************************************/
 
-decls	: /* empty */	{ transient &= ~6; }
+decls	: /* empty */	{ transient &= ~6;
+			  permission = 0;
+			}
 	| dclrs ';' decls
 			{ }
 	| PRIVATE ':' t3 decls
@@ -280,15 +283,13 @@ t1	: '['		{ transient |= 1;
 t2	: ']'		{ transient &= ~1;
 			}
 	;
-t3	:		{ transient &= ~4;
-			  transient |= 2;
+t3	:		{ permission = Sprivate;
 			}
 	;
-t4	:		{ transient &= ~2;
-			  transient |= 4;
+t4	:		{ permission = Sprotected;
 			}
 	;
-t5	:		{ transient &= ~6;
+t5	:		{ permission = 0;
 			}
 	;
 dclrs	: spec		{ }
@@ -328,7 +329,7 @@ dclr	: ptrs ID arrayck occurs init
 			  else
 			  {	p = enter(sp->table, $2);
 			  	p->info.typ = $3.typ;
-			  	p->info.sto = $3.sto;
+			  	p->info.sto = ($3.sto | permission);
 				if ($5.hasval)
 				{	p->info.hasval = True;
 					switch ($3.typ->type)
@@ -1179,12 +1180,14 @@ super	: PROTECTED TYPE{ $$ = entry(classtable, $2); }
 	;
 s2	: /* empty */	{ if (transient == -2)
 			  	transient = 0;
+			  permission = 0;
 			  enterscope(mktable(NULL), 0);
 			  sp->entry = NULL;
 			}
 	;
 s3	: /* empty */	{ if (transient == -2)
 			  	transient = 0;
+			  permission = 0;
 			  enterscope(mktable(NULL), 0);
 			  sp->entry = NULL;
 			  sp->grow = False;
@@ -1201,6 +1204,7 @@ s5	: /* empty */	{ }
 	;
 s6	: /* empty */	{ if (sp->table->level == INTERNAL)
 			  	transient |= 1;
+			  permission = 0;
 			  enterscope(mktable(NULL), 0);
 			  sp->entry = NULL;
 			  sp->table->level = PARAM;

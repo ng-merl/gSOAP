@@ -1069,8 +1069,6 @@ gen_class(FILE *fd, Tnode *typ)
 	    fprintf(fd, ";");
 	  if (Eptr->info.sto & Sreturn)
 	    fprintf(fd, "\t/* RPC return element */");
-	  if (Eptr->info.sto & Sconst)
-	    fprintf(fd, "\t/* const field cannot be deserialized */");
 	  if (is_external(Eptr->info.typ))
 	    fprintf(fd, "\t/* external */");
 	  if (is_transient(Eptr->info.typ))
@@ -1080,7 +1078,9 @@ gen_class(FILE *fd, Tnode *typ)
 	      fprintf(fd, "\t/* required attribute of type %s */", wsdl_type(Eptr->info.typ, ""));
             else
 	      fprintf(fd, "\t/* optional attribute of type %s */", wsdl_type(Eptr->info.typ, ""));
-	  if (Eptr->info.sto & SmustUnderstand)
+	  if (Eptr->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fd, "\t/* not serialized */");
+	  else if (Eptr->info.sto & SmustUnderstand)
 	    fprintf(fd, "\t/* mustUnderstand */");
 	  else if (!is_dynamic_array(typ) && is_repetition(Eptr))
           { if (is_external(Eptr->next->info.typ->ref) && ((Tnode*)Eptr->next->info.typ->ref)->type == Tclass || has_external(Eptr->next->info.typ->ref))
@@ -1100,7 +1100,7 @@ gen_class(FILE *fd, Tnode *typ)
 	    fprintf(fd, "\t/* any type of element <%s> (defined below) */", ns_convert(Eptr->next->sym->name));
 	  else if (is_choice(Eptr))
 	    fprintf(fd, "\t/* union discriminant (of union defined below) */");
-	  else if (Eptr->info.typ->type != Tfun && !(Eptr->info.sto & Sconst) && !(Eptr->info.sto & Sattribute) && !is_transient(Eptr->info.typ) && !is_external(Eptr->info.typ) && strncmp(Eptr->sym->name, "__", 2))
+	  else if (Eptr->info.typ->type != Tfun && !(Eptr->info.sto & (Sconst | Sprivate | Sprotected)) && !(Eptr->info.sto & Sattribute) && !is_transient(Eptr->info.typ) && !is_external(Eptr->info.typ) && strncmp(Eptr->sym->name, "__", 2))
 	  { if (Eptr->info.maxOccurs > 1)
 	      fprintf(fd, "\t/* sequence of %ld to %ld elements of type %s */", Eptr->info.minOccurs, Eptr->info.maxOccurs, wsdl_type(Eptr->info.typ, ""));
 	    else if (Eptr->info.minOccurs >= 1)
@@ -1133,20 +1133,20 @@ gen_class(FILE *fd, Tnode *typ)
   else if (typ->type == Tclass)
   { DBGLOG(fprintf(stderr,"\nclass %s\n", typ->id->name));
     if (typ->ref)
-    { int transient = 0;
+    { int permission = -1;
       fprintf(fd,"class SOAP_CMAC %s", typ->id->name );
       if (typ->base)
         fprintf(fd," : public %s", typ->base->name);
-      fprintf(fd,"\n{\npublic:");
+      fprintf(fd,"\n{");
       for (Eptr = ((Table*)typ->ref)->list; Eptr; Eptr = Eptr->next)
-      { if (transient != Eptr->info.typ->transient)
-        { if (Eptr->info.typ->transient > 0 && (Eptr->info.typ->transient & 2))
+      { if (permission != (Eptr->info.sto & (Sprivate | Sprotected)))
+        { if (Eptr->info.sto & Sprivate)
             fprintf(fd, "\nprivate:");
-          else if (Eptr->info.typ->transient > 0 && (Eptr->info.typ->transient & 4))
+          else if (Eptr->info.sto & Sprotected)
             fprintf(fd, "\nprotected:");
-          else if (Eptr->info.typ->transient >= 0)
+          else
             fprintf(fd, "\npublic:");
-	  transient = Eptr->info.typ->transient;
+	  permission = (Eptr->info.sto & (Sprivate | Sprotected));
 	}
         fprintf(fd,"\n\t%s", c_storage(Eptr->info.sto));
 	/* if (Eptr->info.typ->type == Tclass && !is_external(Eptr->info.typ) && Eptr->info.typ->generated == False || (Eptr->info.typ->type == Tpointer || Eptr->info.typ->type == Treference) && Eptr->info.typ->ref && ((Tnode*)Eptr->info.typ->ref)->type == Tclass && !is_external(Eptr->info.typ->ref) && ((Tnode*)Eptr->info.typ->ref)->generated == False)
@@ -1161,8 +1161,6 @@ gen_class(FILE *fd, Tnode *typ)
 	  fprintf(fd, ";");
 	if (Eptr->info.sto & Sreturn)
 	   fprintf(fd, "\t/* RPC return element */");
-	 if (Eptr->info.sto & Sconst)
-	   fprintf(fd, "\t/* const field cannot be deserialized */");
 	 if (is_external(Eptr->info.typ))
 	   fprintf(fd, "\t/* external */");
 	 if (is_transient(Eptr->info.typ))
@@ -1172,7 +1170,9 @@ gen_class(FILE *fd, Tnode *typ)
 	     fprintf(fd, "\t/* required attribute */");
            else
 	     fprintf(fd, "\t/* optional attribute */");
-	 if (Eptr->info.sto & SmustUnderstand)
+	 if (Eptr->info.sto & (Sconst | Sprivate | Sprotected))
+	   fprintf(fd, "\t/* not serialized */");
+	 else if (Eptr->info.sto & SmustUnderstand)
 	   fprintf(fd, "\t/* mustUnderstand */");
 	 else if (!is_dynamic_array(typ) && is_repetition(Eptr))
          { if (is_external(Eptr->next->info.typ->ref) && ((Tnode*)Eptr->next->info.typ->ref)->type == Tclass || has_external(Eptr->next->info.typ->ref))
@@ -1192,7 +1192,7 @@ gen_class(FILE *fd, Tnode *typ)
 	   fprintf(fd, "\t/* any type of element <%s> (defined below) */", ns_convert(Eptr->next->sym->name));
 	 else if (is_choice(Eptr))
 	   fprintf(fd, "\t/* union discriminant (of union defined below) */");
-	 else if (Eptr->info.typ->type != Tfun && !(Eptr->info.sto & Sconst) && !(Eptr->info.sto & Sattribute) && !is_transient(Eptr->info.typ) && !is_external(Eptr->info.typ) && strncmp(Eptr->sym->name, "__", 2))
+	 else if (Eptr->info.typ->type != Tfun && !(Eptr->info.sto & (Sconst | Sprivate | Sprotected)) && !(Eptr->info.sto & Sattribute) && !is_transient(Eptr->info.typ) && !is_external(Eptr->info.typ) && strncmp(Eptr->sym->name, "__", 2))
 	 { if (Eptr->info.maxOccurs > 1)
 	     fprintf(fd, "\t/* sequence of %ld to %ld elements */", Eptr->info.minOccurs, Eptr->info.maxOccurs);
 	   else if (Eptr->info.minOccurs >= 1)
@@ -1249,7 +1249,7 @@ gen_class(FILE *fd, Tnode *typ)
 	  i++;
 	  fprintf(fd, "\n\t%s", c_storage(Eptr->info.sto));
           fprintf(fd, "%s;", c_type_id(Eptr->info.typ,Eptr->sym->name));
-	  if (Eptr->info.sto & Sconst)
+	  if (Eptr->info.sto & (Sconst | Sprivate | Sprotected))
 	    fprintf(fd, "\t/* const field cannot be deserialized */");
 	  if (is_external(Eptr->info.typ))
 	    fprintf(fd, "\t/* external */");
@@ -6773,8 +6773,8 @@ mark(Tnode *typ)
       for (t = table; t != (Table *) 0; t = t->prev)
       { 
 	for (p = t->list; p != (Entry*) 0; p = p->next) {
-	  if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	  if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -6840,8 +6840,8 @@ mark(Tnode *typ)
       table=(Table*)typ->ref;
       for (t = table; t != (Table *) 0; t = t->prev) { 
 	for (p = t->list; p != (Entry*) 0; p = p->next) {
-	  if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	  if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -6904,8 +6904,8 @@ mark(Tnode *typ)
       fprintf(fout, "\n\tswitch (choice)\n\t{");
       for (t = table; t; t = t->prev)
       { for (p = t->list; p; p = p->next)
-	{ if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	{ if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -7076,7 +7076,6 @@ Tnode* typ;
       fprintf(fout,"\n\nSOAP_FMAC3 void SOAP_FMAC4 soap_default_%s(struct soap *soap, %s)\n{\tsoap_default_%s(soap, a);\n}",c_ident(typ),c_type_id(typ, "*a"),t_ident(typ)); 
     return;
   }
-
   if (p = is_dynamic_array(typ))
   { if (typ->type == Tclass && !is_volatile(typ))
     { if (is_external(typ))
@@ -7167,7 +7166,7 @@ Tnode* typ;
       for (t = table; t != (Table *) 0; t = t->prev)
       { for (p = t->list; p != (Entry*) 0; p = p->next)
 	  if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (is_choice(p))
@@ -7220,7 +7219,7 @@ Tnode* typ;
       for (t = table; t != (Table *) 0; t = t->prev)
       { for (p = t->list; p != (Entry*) 0; p = p->next)
 	  if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (is_choice(p))
@@ -7819,7 +7818,7 @@ soap_out(Tnode *typ)
 	  if (p && is_item(p))
 	    break;
         }
-	  if ((p->info.sto & SmustUnderstand) && !(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
+	  if ((p->info.sto & SmustUnderstand) && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
 	    fprintf(fout, "\n\tsoap->mustUnderstand = 1;");
 	  else if(p->info.typ->type==Tarray){
 	    fprintf(fout,"\n\tsoap_out_%s(soap, tag, id, a->%s, \"%s\");", c_ident(p->info.typ), p->sym->name, xsi_type_u(typ));
@@ -7847,10 +7846,10 @@ soap_out(Tnode *typ)
 	      fprintf(fout,"\n\tif (a->%s)\n\t\tsoap_element_result(soap, \"%s\");", p->sym->name, ns_add(p->sym->name, nse));
             else
 	      fprintf(fout,"\n\tsoap_element_result(soap, \"%s\");", ns_add(p->sym->name, nse));
-	  if ((p->info.sto & SmustUnderstand) && !(p->info.sto & Sconst) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
+	  if ((p->info.sto & SmustUnderstand) && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
 	    fprintf(fout, "\n\tsoap->mustUnderstand = 1;");
-	  if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	  if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -7934,10 +7933,10 @@ soap_out(Tnode *typ)
 	    fprintf(fout,"\n\tif (a->%s)\n\t\tsoap_element_result(soap, \"%s\");", p->sym->name, ns_add(p->sym->name, nse));
           else
 	    fprintf(fout,"\n\tsoap_element_result(soap, \"%s\");", ns_add(p->sym->name, nse));
-	  if ((p->info.sto & SmustUnderstand) && !(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
+	  if ((p->info.sto & SmustUnderstand) && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
 	    fprintf(fout, "\n\tsoap->mustUnderstand = 1;");
-	  if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	  if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -7993,12 +7992,12 @@ soap_out(Tnode *typ)
 	for (j = 0; j< i-1; j++)
 	  t = t->prev;
 	for (p = t->list; p != (Entry*) 0; p = p->next)
-	{ if ((p->info.sto & SmustUnderstand) && !(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
+	{ if ((p->info.sto & SmustUnderstand) && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !is_void(p->info.typ) && p->info.typ->type != Tfun)
 	    fprintf(fout, "\n\tsoap->mustUnderstand = 1;");
 	  if (is_item(p))
 	    ;
-	  else if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	  else if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -8057,8 +8056,8 @@ soap_out(Tnode *typ)
       table = (Table*)typ->ref;
       fprintf(fout, "\n\tswitch (choice)\n\t{");
       for (p = table->list; p; p = p->next)
-      { if (p->info.sto & Sconst)
-	  fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+      { if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	  fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	else if (is_transient(p->info.typ))
 	  fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	else if (p->info.sto & Sattribute)
@@ -8533,7 +8532,7 @@ soap_in(Tnode *typ)
 	if (!is_discriminant(typ))
         { for (t = table; t; t = t->prev)
 	    for (p = t->list; p; p = p->next)
-	    { if (!(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_repetition(p) && !is_template(p->info.typ))
+	    { if (!(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_repetition(p) && !is_template(p->info.typ))
 	      { if (is_anytype(p) || is_choice(p))
 	          p = p->next;
 	        if (a==0)
@@ -8571,8 +8570,8 @@ soap_in(Tnode *typ)
         a=0;
         for (t = table; t; t = t->prev)
 	{ for (p = t->list; p; p = p->next) 
-	    if (p->info.sto & Sconst)
-	      fprintf(fout, "\n\t\t/* const %s skipped */", p->sym->name);
+	    if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	      fprintf(fout, "\n\t\t/* non-serializable %s skipped */", p->sym->name);
 	    else if (is_transient(p->info.typ))
 	      fprintf(fout, "\n\t\t/* transient %s skipped */", p->sym->name);
 	    else if (p->info.sto & Sattribute)
@@ -8698,7 +8697,7 @@ soap_in(Tnode *typ)
 	      continue;
 	    }
 	    if (is_invisible(p->sym->name)
-	      && !(p->info.sto & Sconst) && !is_transient(p->info.typ) && !(p->info.sto & Sattribute) && !is_template(p->info.typ))
+	      && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !is_transient(p->info.typ) && !(p->info.sto & Sattribute) && !is_template(p->info.typ))
 	    { if (is_string(p->info.typ) || is_wstring(p->info.typ) || is_stdstr(p->info.typ))
 	        fprintf(fout,"\n\t\t\tif (soap_flag_%s && (soap->error == SOAP_TAG_MISMATCH || soap->error == SOAP_NO_TAG))",p->sym->name);
               else
@@ -8731,7 +8730,7 @@ soap_in(Tnode *typ)
 	a = 0;
 	if (table && !is_discriminant(typ))
 	{ for (p = table->list; p; p = p->next)
-	  { if (p->info.minOccurs > 0 && p->info.maxOccurs >= 0 && !(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_template(p->info.typ) && !is_repetition(p) && !is_choice(p) && p->info.hasval == False)
+	  { if (p->info.minOccurs > 0 && p->info.maxOccurs >= 0 && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_template(p->info.typ) && !is_repetition(p) && !is_choice(p) && p->info.hasval == False)
 	    { if (is_item(p))
 	        continue;
 	      if (is_anytype(p))
@@ -8928,7 +8927,7 @@ soap_in(Tnode *typ)
 	  t = t->prev;
 	}
 	{for (p = t->list; p != (Entry*) 0; p = p->next)
-	  { if (!(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_repetition(p) && !is_template(p->info.typ))
+	  { if (!(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_repetition(p) && !is_template(p->info.typ))
 	    { if (is_item(p))
 	        continue;
 	      if (is_anytype(p) || is_choice(p))
@@ -8962,8 +8961,8 @@ soap_in(Tnode *typ)
 	for (p = t->list; p != (Entry*) 0; p = p->next)
 	{ if (is_item(p))
 	    ;
-	  else if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t\t\t/* const %s skipped */", p->sym->name);
+	  else if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t\t\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t\t\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)
@@ -9098,7 +9097,7 @@ soap_in(Tnode *typ)
 	      continue;
 	    }
 	    if (is_invisible(p->sym->name)
-	      && !(p->info.sto & Sconst) && !is_transient(p->info.typ) && !(p->info.sto & Sattribute) && !is_template(p->info.typ))
+	      && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !is_transient(p->info.typ) && !(p->info.sto & Sattribute) && !is_template(p->info.typ))
 	    { if (is_string(p->info.typ) || is_wstring(p->info.typ) || is_stdstr(p->info.typ))
 	       fprintf(fout,"\n\t\t\tif (soap_flag_%s%d && (soap->error == SOAP_TAG_MISMATCH || soap->error == SOAP_NO_TAG))",p->sym->name, i);
              else
@@ -9139,7 +9138,7 @@ soap_in(Tnode *typ)
 	for (j = 0; j < i-1; j++)
 	  t = t->prev;
 	for (p = t->list; p; p = p->next)
-	  { if (p->info.minOccurs > 0 && p->info.maxOccurs >= 0 && !(p->info.sto & Sconst) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_template(p->info.typ) && !is_repetition(p) && !is_choice(p) && p->info.hasval == False)
+	  { if (p->info.minOccurs > 0 && p->info.maxOccurs >= 0 && !(p->info.sto & (Sconst | Sprivate | Sprotected)) && !(p->info.sto & Sattribute) && p->info.typ->type != Tfun && !is_void(p->info.typ) && !is_transient(p->info.typ) && !is_template(p->info.typ) && !is_repetition(p) && !is_choice(p) && p->info.hasval == False)
 	    { if (is_item(p))
 	        continue;
 	      if (is_anytype(p))
@@ -9247,8 +9246,8 @@ soap_in(Tnode *typ)
       fprintf(fout, "\tsoap->error = SOAP_TAG_MISMATCH;");
       table = (Table *)typ->ref;
       for (p = table->list; p; p = p->next) 
-	{ if (p->info.sto & Sconst)
-	    fprintf(fout, "\n\t/* const %s skipped */", p->sym->name);
+	{ if (p->info.sto & (Sconst | Sprivate | Sprotected))
+	    fprintf(fout, "\n\t/* non-serializable %s skipped */", p->sym->name);
 	  else if (is_transient(p->info.typ))
 	    fprintf(fout, "\n\t/* transient %s skipped */", p->sym->name);
 	  else if (p->info.sto & Sattribute)

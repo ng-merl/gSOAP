@@ -1,7 +1,7 @@
 #define PALM_1
 /*
 
-stdsoap2.c[pp] 2.7.6
+stdsoap2.c[pp] 2.7.6a
 
 gSOAP runtime
 
@@ -65,10 +65,10 @@ when locally allocated data exceeds 64K.
 #include "stdsoap2.h"
 
 #ifdef __cplusplus
-SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.6 2005-08-19 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.6a 2005-08-19 12:00:00 GMT")
 extern "C" {
 #else
-SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.6 2005-08-19 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.6a 2005-08-19 12:00:00 GMT")
 #endif
 
 /* 8bit character representing unknown/nonrepresentable character data (e.g. not supported by current locale with multibyte support enabled) */
@@ -10918,6 +10918,8 @@ soap_putcookies(struct soap *soap, const char *domain, const char *path, int sec
   char *s, tmp[4096];
   p = &soap->cookies;
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Sending cookies for domain=%s path=%s\n", domain, path));
+  if (*path == '/')
+    path++;
   while ((q = *p))
   { if (q->expire && now > q->expire)
     { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Cookie %s expired\n", q->name));
