@@ -59,6 +59,7 @@ int iflag = 0;		/* when set, generate new style proxy/object classes inherited f
 int mflag = 0;		/* when set, generate code that requires array/binary classes to explicitly remove malloced array */
 int nflag = 0;		/* when set, names the namespaces global struct '%NAME%_namespaces */
 int lflag = 0;		/* when set, create library */
+int Lflag = 0;		/* when set, don't generate soapClientLib/soapServerLib */
 int Sflag = 0;		/* when set, generate only files for servers */
 int tflag = 0;		/* when set, generates typed messsages (with xsi:type attributes) */
 int xflag = 0;		/* when set, excludes imported types */
@@ -121,13 +122,14 @@ main(int argc, char **argv)
 						break;
 					case '?':
 					case 'h':
-						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-C|-S] [-c] [-d path] [-e] [-h] [-i] [-I path:path:...] [-m] [-n] [-p name] [-t] [-v] [-w] [infile]\n\n");
+						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-C|-S] [-L] [-c] [-d path] [-e] [-h] [-i] [-I path:path:...] [-m] [-n] [-p name] [-t] [-v] [-w] [-x] [infile]\n\n");
 						fprintf(stderr, "\
 -1      generate SOAP 1.1 bindings\n\
 -2      generate SOAP 1.2 bindings\n\
 -e	generate SOAP RPC encoding style bindings\n\
 -C	generate client-side code only\n\
 -S	generate server-side code only\n\
+-L	don't generate soapClientLib/soapServerLib\n\
 -c      generate C source code\n\
 -i      generate service proxies and objects inherited from soap struct\n\
 -dpath  use path to save files\n\
@@ -136,7 +138,8 @@ main(int argc, char **argv)
 -n      use service name to rename service functions and namespace table\n\
 -pname  save files with new prefix name instead of 'soap'\n\
 -t      generate code for fully xsi:type typed SOAP/XML messaging\n\
--w	disable WSDL and schema file generation\n\
+-w	don't generate WSDL and schema files\n\
+-x	don't generate sample XML message files\n\
 -h	display help info\n\
 -v	display version info\n\
 infile	header file to parse (or stdin)\n\
@@ -173,6 +176,9 @@ infile	header file to parse (or stdin)\n\
 						break;
 					case 'l':
 						lflag = 1;
+						break;
+					case 'L':
+						Lflag = 1;
 						break;
 					case 'S':
 						Sflag = 1;

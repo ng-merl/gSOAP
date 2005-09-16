@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.6a
+stdsoap2.h 2.7.6c
 
 gSOAP runtime
 
@@ -360,7 +360,6 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_SSCANF
 #  define HAVE_STRTOL
 #  define HAVE_STRTOUL
-#  define HAVE_RAND_R
 #  define HAVE_PGMTIME_R
 #  define HAVE_PLOCALTIME_R
 #  define HAVE_MKTIME
@@ -458,6 +457,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #   include <sys/socket.h>
 #   ifdef VXWORKS
 #    include <sockLib.h>
+#    include <selectLib.h>
 #   endif
 #   ifndef VXWORKS
 #    ifndef SYMBIAN
@@ -469,7 +469,9 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #    include <sys/socketvar.h>		/* SUN < 2.8 (?) */
 #   endif
 #   ifdef VXWORKS
-#    include <sys/times.h>
+#    ifdef _WRS_KERNEL
+#     include <sys/times.h>
+#    endif
 #   else
 #    include <sys/time.h>
 #   endif

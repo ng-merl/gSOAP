@@ -103,11 +103,12 @@ wsa3	= <http://schemas.xmlsoap.org/ws/2003/03/addressing>
 
 wsp	= <http://schemas.xmlsoap.org/ws/2004/09/policy>
 
-#	wsse
+#	wsse 2004 and old wsse 2002 schema
 
 wsse	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd>
+wsse2	= <http://schemas.xmlsoap.org/ws/2002/12/secext>
 
-#	wsu
+#	wsu 2004
 
 wsu	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd>
 
@@ -118,11 +119,29 @@ _wsu__Expires		= | time_t
 wsu__AttributedDateTime	= | time_t
 wsu__AttributedURI	= | char*
 
-#	Bindings for WS-* protocols:
+#	Bindings for ds and xenc for WS-Security protocols:
 
-dsig	= "http://www.w3.org/2000/09/xmldsig#"
-xenc	= "http://www.w3.org/2001/04/xmlenc#"
-wsrp	= "http://schemas.xmlsoap.org/rp/"
+ds	= <http://www.w3.org/2000/09/xmldsig#>
+xenc	= <http://www.w3.org/2001/04/xmlenc#>
+
+#	xlink
+
+xlink	= <http://www.w3.org/1999/xlink>
+
+_xlink__actuate		= | char*
+_xlink__arcrole		= | char*
+_xlink__from		= | char*
+_xlink__href		= | char*
+_xlink__label		= | char*
+_xlink__role		= | char*
+_xlink__show		= | char*
+_xlink__to		= | char*
+_xlink__title		= | char*
+_xlink__type		= | char*
+
+#	wsrp
+
+wsrp	= <http://schemas.xmlsoap.org/rp/>
 
 #	Remember: type bindings are given on a single line.
 #	Example XML schema and C/C++ type bindings:

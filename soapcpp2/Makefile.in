@@ -112,9 +112,9 @@ libgsoapck_a_CFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -
 libgsoapck___a_SOURCES = stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 libgsoapssl_a_SOURCES = stdsoap2_ssl.c
-libgsoapssl_a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl_a_CFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_OPENSSL -DWITH_DOM
 libgsoapssl___a_SOURCES = stdsoap2_ssl_cpp.cpp
-libgsoapssl___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl___a_CXXFLAGS = $(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_OPENSSL -DWITH_DOM
 
 BUILT_SOURCES = stdsoap2_cpp.cpp $(lib_LIBRARIES)
 
@@ -147,7 +147,7 @@ am_libgsoapssl___a_OBJECTS = libgsoapssl___a-stdsoap2_ssl_cpp.$(OBJEXT)
 libgsoapssl___a_OBJECTS = $(am_libgsoapssl___a_OBJECTS)
 libgsoapssl_a_AR = $(AR) cru
 libgsoapssl_a_LIBADD =
-am_libgsoapssl_a_OBJECTS = stdsoap2_ssl.$(OBJEXT)
+am_libgsoapssl_a_OBJECTS = libgsoapssl_a-stdsoap2_ssl.$(OBJEXT)
 libgsoapssl_a_OBJECTS = $(am_libgsoapssl_a_OBJECTS)
 
 DEFS = @DEFS@
@@ -162,7 +162,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/stdsoap2_ssl.Po
+@AMDEP_TRUE@	./$(DEPDIR)/libgsoapssl_a-stdsoap2_ssl.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -255,6 +255,7 @@ libgsoapssl++.a: $(libgsoapssl___a_OBJECTS) $(libgsoapssl___a_DEPENDENCIES)
 	-rm -f libgsoapssl++.a
 	$(libgsoapssl___a_AR) libgsoapssl++.a $(libgsoapssl___a_OBJECTS) $(libgsoapssl___a_LIBADD)
 	$(RANLIB) libgsoapssl++.a
+libgsoapssl_a-stdsoap2_ssl.$(OBJEXT): stdsoap2_ssl.c
 libgsoapssl.a: $(libgsoapssl_a_OBJECTS) $(libgsoapssl_a_DEPENDENCIES) 
 	-rm -f libgsoapssl.a
 	$(libgsoapssl_a_AR) libgsoapssl.a $(libgsoapssl_a_OBJECTS) $(libgsoapssl_a_LIBADD)
@@ -271,7 +272,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck___a-stdsoap2_ck_cpp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapssl___a-stdsoap2_ssl_cpp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stdsoap2_ssl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libgsoapssl_a-stdsoap2_ssl.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -311,6 +312,18 @@ libgsoapck_a-stdsoap2_ck.obj: stdsoap2_ck.c
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapck_a-stdsoap2_ck.Po' tmpdepfile='$(DEPDIR)/libgsoapck_a-stdsoap2_ck.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapck_a_CFLAGS) $(CFLAGS) -c -o libgsoapck_a-stdsoap2_ck.obj `cygpath -w stdsoap2_ck.c`
+
+libgsoapssl_a-stdsoap2_ssl.o: stdsoap2_ssl.c
+@AMDEP_TRUE@	source='stdsoap2_ssl.c' object='libgsoapssl_a-stdsoap2_ssl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapssl_a-stdsoap2_ssl.Po' tmpdepfile='$(DEPDIR)/libgsoapssl_a-stdsoap2_ssl.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapssl_a_CFLAGS) $(CFLAGS) -c -o libgsoapssl_a-stdsoap2_ssl.o `test -f 'stdsoap2_ssl.c' || echo '$(srcdir)/'`stdsoap2_ssl.c
+
+libgsoapssl_a-stdsoap2_ssl.obj: stdsoap2_ssl.c
+@AMDEP_TRUE@	source='stdsoap2_ssl.c' object='libgsoapssl_a-stdsoap2_ssl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libgsoapssl_a-stdsoap2_ssl.Po' tmpdepfile='$(DEPDIR)/libgsoapssl_a-stdsoap2_ssl.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libgsoapssl_a_CFLAGS) $(CFLAGS) -c -o libgsoapssl_a-stdsoap2_ssl.obj `cygpath -w stdsoap2_ssl.c`
 CCDEPMODE = @CCDEPMODE@
 
 .cpp.o:

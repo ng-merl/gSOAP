@@ -38,9 +38,9 @@ libgsoapck_a_CFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DW
 libgsoapck___a_SOURCES=stdsoap2_ck_cpp.cpp
 libgsoapck___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
 libgsoapssl_a_SOURCES=stdsoap2_ssl.c
-libgsoapssl_a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl_a_CFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_OPENSSL -DWITH_DOM
 libgsoapssl___a_SOURCES=stdsoap2_ssl_cpp.cpp
-libgsoapssl___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_COOKIES
+libgsoapssl___a_CXXFLAGS=$(SOAPCPP2_DEBUG) $(SOAPCPP2_NONAMESPACES) -D$(platform) -DWITH_OPENSSL -DWITH_DOM
 
 BUILT_SOURCES=stdsoap2_cpp.cpp $(lib_LIBRARIES)
 

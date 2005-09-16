@@ -628,8 +628,6 @@ int xs__attribute::traverse(xs__schema &schema)
       else
         cerr << "Warning: could not find attribute '" << (name?name:"") << "' type '" << type << "' in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
     }
-    else
-      cerr << "Warning: could not find attribute '" << (name?name:"") << "' ref or type in schema " << (schema.targetNamespace?schema.targetNamespace:"") << endl;
   }
   return SOAP_OK;
 }
@@ -909,6 +907,8 @@ int xs__complexType::baseLevel()
       { level = -1;
         if (simpleContent->restriction->simpleTypePtr())
           level = simpleContent->restriction->simpleTypePtr()->baseLevel() + 1;
+        else if (simpleContent->restriction->complexTypePtr())
+          level = simpleContent->restriction->complexTypePtr()->baseLevel() + 1;
         else
           level = 2;
       }
@@ -916,6 +916,8 @@ int xs__complexType::baseLevel()
       { level = -1;
         if (simpleContent->extension->simpleTypePtr())
           level = simpleContent->extension->simpleTypePtr()->baseLevel() + 1;
+        else if (simpleContent->extension->complexTypePtr())
+          level = simpleContent->extension->complexTypePtr()->baseLevel() + 1;
         else
           level = 2;
       }
@@ -1314,6 +1316,8 @@ int xs__attributeGroup::traverse(xs__schema& schema)
   schemaRef = &schema;
   for (vector<xs__attribute>::iterator at = attribute.begin(); at != attribute.end(); ++at)
     (*at).traverse(schema);
+  for (vector<xs__attributeGroup>::iterator ag = attributeGroup.begin(); ag != attributeGroup.end(); ++ag)
+    (*ag).traverse(schema);
   attributeGroupRef = NULL;
   if (ref)
   { const char *token = qname_token(ref, schema.targetNamespace);

@@ -581,7 +581,7 @@ populated after all else failed to match the delivered XML content.</li>
 <li>Improved wsdl2h output.</li>
 <li>Fixed wsdl2h handling of duplicate values in single enum list.</li>
 </ul>
-<li>Version 2.7.6 (08/19/2005)</li>
+<li>Version 2.7.6a/b/c (08/19/2005)</li>
 <ul>
 <li>Added WS-Security authentication, tokens, and signatures with new 'wsse'
 plugin, see documentation in 'doc' directory and 'samples/wsse'.</li>
@@ -590,11 +590,15 @@ plugin, see documentation in 'doc' directory and 'samples/wsse'.</li>
 <li>Added soap_sender_fault_subcode() and soap_receiver_fault_subcode() for SOAP 1.2 subcodes.</li>
 <li>Added WITH_DOM compile flag to enable flushing serialized and deserialized
 data to DOM (as well as a stream).</li>
+<li>Added soapcpp2 option -L.</li>
 <li>Improved DOM implementation and documentation.</li>
 <li>Fixed wsdl2h multiple schema include issue.</li>
 <li>Fixed soaps2dateTime and soap_timegm functions when timegm is not available.</li>
 <li>Fixed exc-c14n formatting.</li>
 <li>Fixed SOAP 1.2 fault handling.</li>
+<li>Fixed missing soap_flag___item2 issue.</li>
+<li>Fixed partial MIME boundary parsing issue.</li>
+<li>Fixed base64 parsing with WITH_FAST.</li>
 </ul>
 </ul>
 

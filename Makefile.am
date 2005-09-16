@@ -13,9 +13,9 @@ AUTOMAKE_OPTIONS = foreign 1.4
 ##
 ## Add support for pkg-config
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc
+pkgconfig_DATA = gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc  gsoapssl.pc gsoapssl++.pc
 
-EXTRA_DIST = gsoap.pc.in gsoap++.pc.in gsoapck.pc.in gsoapck++.pc.in
+EXTRA_DIST = gsoap.pc.in gsoap++.pc.in gsoapck.pc.in gsoapck++.pc.in gsoapssl.pc.in gsoapssl++.pc.in
 
 .PHONY: backup
 

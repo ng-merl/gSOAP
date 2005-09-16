@@ -644,8 +644,22 @@ void Definitions::compile(const wsdl__definitions& definitions)
     { for (vector<xs__complexType>::const_iterator complexType = (*schema4)->complexType.begin(); complexType != (*schema4)->complexType.end(); ++complexType)
         types.define((*schema4)->targetNamespace, NULL, *complexType);
       for (vector<xs__element>::const_iterator element = (*schema4)->element.begin(); element != (*schema4)->element.end(); ++element)
-      { if (!(*element).type && (*element).complexTypePtr())
-          types.define((*schema4)->targetNamespace, (*element).name, *(*element).complexTypePtr());
+      { if (!(*element).type)
+        { if ((*element).complexTypePtr())
+            types.define((*schema4)->targetNamespace, (*element).name, *(*element).complexTypePtr());
+	  else
+          { fprintf(stream, "\n/// Element \"%s\":%s.\n", (*schema4)->targetNamespace, (*element).name);
+            if (gflag)
+	    { const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema4)->targetNamespace, (*element).name);
+  	      fprintf(stream, "typedef _XML %s;\n", t);
+	    }
+	    else
+	    { const char *s = types.cname("_", (*schema4)->targetNamespace, (*element).name);
+              types.ptrtypemap[s] = types.usetypemap[s] = "_XML";
+	      fprintf(stream, "/// Note: use wsdl2h option -g to generate this global element declaration.\n");
+	    }
+	  }
+        }
       }
     }  
     // visit types with lowest base level first
@@ -697,7 +711,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
         }
         for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
         { if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
-	  { fprintf(stream, "\n\n/// Element \"%s\":%s of complexType.", (*schema)->targetNamespace, (*element).name);
+	  { fprintf(stream, "\n\n/// Element \"%s\":%s of complexType.\n", (*schema)->targetNamespace, (*element).name);
 	    types.document((*element).annotation);
             types.gen((*schema)->targetNamespace, (*element).name, *(*element).complexTypePtr());
 	  }
@@ -713,7 +727,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
     for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
     { for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
       { if ((*element).name && (*element).type)
-        { fprintf(stream, "\n/// Element \"%s\":%s of complexType %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
+        { fprintf(stream, "\n/// Element \"%s\":%s of type %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
           types.document((*element).annotation);
           if (!types.is_defined("_", (*schema)->targetNamespace, (*element).name))
           { const char *s = types.tname(NULL, NULL, (*element).type);
@@ -742,7 +756,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	    }
 	    else
               fprintf(stream, "// '%s' element definition intentionally left blank.\n", types.cname("_", (*schema)->targetNamespace, (*element).name));
-	  }
+          }
         }
       }
       for (vector<xs__attribute>::iterator attribute = (*schema)->attribute.begin(); attribute != (*schema)->attribute.end(); ++attribute)
@@ -978,7 +992,7 @@ void Service::generate(Types& types)
       { if ((*op2)->style == document)
           flag = (*op2)->output->message && (*op2)->output->message->part.size() == 1;
         else if (!wflag)
-          flag = (*op2)->output->message && (*op2)->output->message->part.size() == 1 && !(*(*op2)->output->message->part.begin()).simpleTypePtr() && !(*(*op2)->output->message->part.begin()).complexTypePtr();
+          flag = (*op2)->output->message && (*op2)->output->use == encoded && (*op2)->output->message->part.size() == 1 && !(*(*op2)->output->message->part.begin()).simpleTypePtr() && !(*(*op2)->output->message->part.begin()).complexTypePtr();
         if (flag && (*op2)->input->message && (*(*op2)->output->message->part.begin()).element)
           for (vector<wsdl__part>::const_iterator part = (*op2)->input->message->part.begin(); part != (*op2)->input->message->part.end(); ++part)
             if ((*part).element && !strcmp((*part).element, (*(*op2)->output->message->part.begin()).element))
@@ -1235,7 +1249,7 @@ void Operation::generate(Types &types)
   { if (style == document)
       flag = output->message && output->message->part.size() == 1;
     else if (!wflag)
-      flag = output->message && output->message->part.size() == 1 && !(*output->message->part.begin()).simpleTypePtr() && !(*output->message->part.begin()).complexTypePtr();
+      flag = output->message && output->use == encoded && output->message->part.size() == 1 && !(*output->message->part.begin()).simpleTypePtr() && !(*output->message->part.begin()).complexTypePtr();
     if (flag && input->message && (*output->message->part.begin()).element)
       for (vector<wsdl__part>::const_iterator part = input->message->part.begin(); part != input->message->part.end(); ++part)
         if ((*part).element && !strcmp((*part).element, (*output->message->part.begin()).element))

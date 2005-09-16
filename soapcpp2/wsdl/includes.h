@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.2.6"
+#define VERSION "1.2.6c"
 
 #include <utility>
 #include <iterator>

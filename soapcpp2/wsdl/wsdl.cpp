@@ -278,7 +278,7 @@ again:
   }
   // merge <types>
   for (vector<wsdl__import>::iterator im3 = import.begin(); im3 != import.end(); ++im3)
-  { if ((*im3).definitionsPtr()->types)
+  { if ((*im3).definitionsPtr() && (*im3).definitionsPtr()->types)
     { if (!types)
       { types = soap_new_wsdl__types(soap, -1);
         types->soap_default(soap);
@@ -987,10 +987,19 @@ again:
 }
 
 int wsdl__import::preprocess(wsdl__definitions& definitions)
-{ if (vflag)
+{ bool found = false;
+  if (vflag)
     cerr << "preprocess wsdl import " << (location?location:"") << endl;
   definitionsRef = NULL;
-  if (location)
+  if (namespace_)
+  { for (SetOfString::const_iterator i = exturis.begin(); i != exturis.end(); ++i)
+    { if (!soap_tag_cmp(namespace_, *i))
+      { found = true;
+        break;
+      }
+    }
+  }
+  if (!found && location)
   { // parse imported definitions
     definitionsRef = new wsdl__definitions(definitions.soap, location);
     if (!definitionsRef)
@@ -1002,7 +1011,7 @@ int wsdl__import::preprocess(wsdl__definitions& definitions)
     else if (strcmp(namespace_, definitionsRef->targetNamespace))
       cerr << "Error: WSDL definitions/import " << location << " namespace " << namespace_ << " does not match imported targetNamespace " << definitionsRef->targetNamespace << endl;
   }
-  else
+  else if (!found)
     cerr << "WSDL definitions/import has no location attribute" << endl;
   return SOAP_OK;
 }

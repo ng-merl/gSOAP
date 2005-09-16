@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.c[pp] 2.7.6a
+stdsoap2.c[pp] 2.7.6c
 
 gSOAP runtime
 
@@ -11,7 +11,7 @@ GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
 Contributors:
 
-Wind River Systems, Inc., for the following additions (marked WR[...]):
+Wind River Systems, Inc., for the following additions:
   - vxWorks compatible
 --------------------------------------------------------------------------------
 gSOAP public license.
@@ -64,10 +64,10 @@ when locally allocated data exceeds 64K.
 #include "stdsoap2.h"
 
 #ifdef __cplusplus
-SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.6a 2005-08-19 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.6c 2005-09-15 12:00:00 GMT")
 extern "C" {
 #else
-SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.6a 2005-08-19 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.6c 2005-09-15 12:00:00 GMT")
 #endif
 
 /* 8bit character representing unknown/nonrepresentable character data (e.g. not supported by current locale with multibyte support enabled) */
@@ -180,11 +180,9 @@ static int tcp_shutdownsocket(struct soap*, SOAP_SOCKET, int);
 static const char *soap_strerror(struct soap*);
 #endif
 
-/* WR[ */
 #ifdef VXWORKS
 static int vx_nonblocking = TRUE; /* ioctl argument */
 #endif
-/* ]WR */
 
 #if defined(PALM) && !defined(PALM_2)
 unsigned short errno;
@@ -537,19 +535,15 @@ fsend(struct soap *soap, const char *s, size_t n)
 #ifdef UNDER_CE
       nwritten = fwrite(s, 1, n, soap->sendfd);
 #else
-/* WR[ */
 #ifdef VXWORKS
 #ifdef WMW_RPM_IO
       if (soap->rpmreqid)
-      { httpBlockPut(soap->rpmreqid, s, n); 
-        nwritten = n;
-      }
+        nwritten = (httpBlockPut(soap->rpmreqid, s, n) == 0) ? n : -1; 
       else
         nwritten = fwrite(s, sizeof(char), n, fdopen(soap->sendfd, "w"));
 #else
       nwritten = fwrite(s, sizeof(char), n, fdopen(soap->sendfd, "w"));
 #endif /* WMW_RPM_IO */
-/* ]WR */
 #else
       nwritten = write((SOAP_SOCKET)soap->sendfd, s, n);
 #endif
@@ -835,18 +829,12 @@ frecv(struct soap *soap, char *s, size_t n)
 #ifdef WMW_RPM_IO
   if (soap->rpmreqid)
     r = httpBlockRead(soap->rpmreqid, s, n);
-  else
-    r = read(soap->recvfd, s, n);
-  if (r >= 0)
-    return r;
-  return 0;
-#else
+#endif
   r = read((SOAP_SOCKET)soap->recvfd, s, n);
   if (r >= 0)
     return (size_t)r;
   soap->errnum = soap_errno;
   return 0;
-#endif
 #endif
 #endif
 }
@@ -1600,11 +1588,11 @@ soap_getbase64(struct soap *soap, int *n, int malloc_flag)
     if (soap_append_lab(soap, NULL, 2))
       return NULL;
     s = soap->labbuf + soap->labidx;
-    k = 3 * ((soap->lablen - soap->labidx) / 3);
+    k = soap->lablen - soap->labidx;
     soap->labidx = 3 * (soap->lablen / 3);
     if (!s)
       return NULL;
-    for (i = 0; i < k; i += 3)
+    for (i = 0; i < k - 2; i += 3)
     { register unsigned long m = 0;
       register int j = 0;
       do
@@ -3049,7 +3037,6 @@ static int
 tcp_gethost(struct soap *soap, const char *addr, struct in_addr *inaddr)
 { soap_int32 iadd = -1;
   struct hostent hostent, *host = &hostent;
-/* WR[ */
 #ifdef VXWORKS
   int hostint;
   char *addrcopy = (char*)SOAP_MALLOC(soap, strlen(addr) + 1); /*copy of addr. */
@@ -3057,7 +3044,6 @@ tcp_gethost(struct soap *soap, const char *addr, struct in_addr *inaddr)
   strncpy(addrcopy, addr, strlen(addr)+1);
   iadd = inet_addr(addrcopy);
 #else
-/* ]WR */
 #if defined(_AIXVERSION_431) || defined(TRU64)
   struct hostent_data ht_data;
 #endif
@@ -3065,11 +3051,9 @@ tcp_gethost(struct soap *soap, const char *addr, struct in_addr *inaddr)
 #endif
   if (iadd != -1)
   { memcpy(inaddr, &iadd, sizeof(iadd));
-/* WR[ */
 #ifdef VXWORKS
     SOAP_FREE(soap, addrcopy);
 #endif
-/* ]WR */
     return SOAP_OK;
   }
 #if defined(__GLIBC__)
@@ -3083,7 +3067,6 @@ tcp_gethost(struct soap *soap, const char *addr, struct in_addr *inaddr)
   }
 #elif defined(HAVE_GETHOSTBYNAME_R)
   host = gethostbyname_r(addr, &hostent, soap->buf, SOAP_BUFLEN, &soap->errnum);
-/* WR[ */
 #elif defined(VXWORKS)
   /* If the DNS resolver library resolvLib has been configured in the vxWorks
    * image, a query for the host IP address is sent to the DNS server, if the
@@ -3095,7 +3078,6 @@ tcp_gethost(struct soap *soap, const char *addr, struct in_addr *inaddr)
   }
   SOAP_FREE(soap, addrcopy);  /*free() is placed after the error checking to assure that
 		    * errno captured is that from hostGetByName() */
-/* ]WR */
 #else
   if (!(host = gethostbyname(addr)))
     soap->errnum = h_errno;
@@ -3104,10 +3086,8 @@ tcp_gethost(struct soap *soap, const char *addr, struct in_addr *inaddr)
   { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Host name not found\n"));
     return SOAP_ERR;
   }
-/* WR[ */
 #ifdef VXWORKS
   inaddr->s_addr = hostint;
-/* ]WR */
 #else
   memcpy(inaddr, host->h_addr, host->h_length);
 #endif
@@ -3263,12 +3243,10 @@ again:
   { u_long nonblocking = 1;
     ioctlsocket((SOAP_SOCKET)fd, FIONBIO, &nonblocking);
   }
-/* WR[ */
 #elif defined(VXWORKS)
   { vx_nonblocking = TRUE;
     ioctl((SOAP_SOCKET)fd, FIONBIO, (int)(&vx_nonblocking)); /* modified to use fd */
   }
-/* ]WR */
 #else
     fcntl((SOAP_SOCKET)fd, F_SETFL, fcntl((SOAP_SOCKET)fd, F_GETFL)|O_NONBLOCK);
 #endif
@@ -3277,12 +3255,10 @@ again:
   { u_long blocking = 0;
     ioctlsocket((SOAP_SOCKET)fd, FIONBIO, &blocking);
   }
-/* WR[ */
 #elif defined(VXWORKS)
   { vx_nonblocking = FALSE;
     ioctl((SOAP_SOCKET)fd, FIONBIO, (int)(&vx_nonblocking)); /* modified to use fd */
   }
-/* ]WR */
 #else
     fcntl((SOAP_SOCKET)fd, F_SETFL, fcntl((SOAP_SOCKET)fd, F_GETFL)&~O_NONBLOCK);
 #endif
@@ -3369,12 +3345,10 @@ again:
   { u_long blocking = 0;
     ioctlsocket((SOAP_SOCKET)fd, FIONBIO, &blocking);
   }
-/* WR[ */
 #elif defined(VXWORKS)
   { vx_nonblocking = FALSE;
     ioctl((SOAP_SOCKET)fd, FIONBIO, (int)(&vx_nonblocking)); /* modified to use fd */
   }
-/* ]WR */
 #else
     fcntl((SOAP_SOCKET)fd, F_SETFL, fcntl((SOAP_SOCKET)fd, F_GETFL)&~O_NONBLOCK);
 #endif
@@ -3813,12 +3787,10 @@ soap_accept(struct soap *soap)
 	{ u_long nonblocking = 1;
           ioctlsocket((SOAP_SOCKET)soap->master, FIONBIO, &nonblocking);
         }
-/* WR[ */
 #elif defined(VXWORKS)
         { vx_nonblocking = TRUE;
           ioctl((SOAP_SOCKET)soap->master, FIONBIO, (int)(&vx_nonblocking));
         }
-/* ]WR */
 #else
         fcntl((SOAP_SOCKET)soap->master, F_SETFL, fcntl((SOAP_SOCKET)soap->master, F_GETFL)|O_NONBLOCK);
 #endif
@@ -3828,12 +3800,10 @@ soap_accept(struct soap *soap)
       { u_long blocking = 0;
         ioctlsocket((SOAP_SOCKET)soap->master, FIONBIO, &blocking);
       }
-/* WR[ */
 #elif defined(VXWORKS)
       { vx_nonblocking = FALSE;
         ioctl((SOAP_SOCKET)soap->master, FIONBIO, (int)(&vx_nonblocking));
       }
-/* ]WR */
 #else
         fcntl((SOAP_SOCKET)soap->master, F_SETFL, fcntl((SOAP_SOCKET)soap->master, F_GETFL)&~O_NONBLOCK);
 #endif
@@ -3905,12 +3875,10 @@ soap_accept(struct soap *soap)
           u_long blocking = 0;
           ioctlsocket((SOAP_SOCKET)soap->master, FIONBIO, &blocking);
           ioctlsocket((SOAP_SOCKET)soap->socket, FIONBIO, &blocking);
-/* WR[ */
 #elif defined(VXWORKS)
           vx_nonblocking = FALSE;
           ioctl((SOAP_SOCKET)soap->master, FIONBIO, (int)(&vx_nonblocking));
           ioctl((SOAP_SOCKET)soap->socket, FIONBIO, (int)(&vx_nonblocking));
-/* ]WR */
 #elif defined(PALM)
           fcntl((SOAP_SOCKET)soap->master, F_SETFL, fcntl((SOAP_SOCKET)soap->master, F_GETFL,0)&~O_NONBLOCK);
           fcntl((SOAP_SOCKET)soap->socket, F_SETFL, fcntl((SOAP_SOCKET)soap->socket, F_GETFL,0)&~O_NONBLOCK);
@@ -4442,8 +4410,7 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_reference(struct soap *soap, const void *p, int t)
-{ 
-  struct soap_plist *pp;
+{ struct soap_plist *pp;
   if (!p || (soap->mode & SOAP_XML_TREE))
     return 1;
   if (soap_pointer_lookup(soap, p, t, &pp))
@@ -4473,7 +4440,7 @@ SOAP_FMAC2
 soap_array_reference(struct soap *soap, const void *p, const struct soap_array *a, int n, int t)
 { register int i;
   struct soap_plist *pp;
-  if (!p)
+  if (!p || !a->__ptr)
     return 1;
   i = soap_array_pointer_lookup(soap, p, a, n, t, &pp);
   if (i)
@@ -7524,9 +7491,14 @@ soap_string_in(struct soap *soap, int flag, long minlen, long maxlen)
     if (*soap->tag)
     { n = 1;
       soap->peeked = 0;
+#ifndef WITH_LEAN
+      t = soap->tmpbuf;
+      t[0] = '<';
+      strncpy(t + 1, soap->tag, sizeof(soap->tmpbuf) - 1);
+      strncat(t, ">", sizeof(soap->tmpbuf));
+      m = strlen(soap->tag) + 2;
+#endif
     }
-    if (soap->error == SOAP_NO_TAG)
-      soap->error = SOAP_OK;
   }
 #ifdef WITH_CDATA
   if (!flag)
@@ -8032,8 +8004,6 @@ soap_wstring_in(struct soap *soap, int flag, long minlen, long maxlen)
     { n = 1;
       soap->peeked = 0;
     }
-    if (soap->error == SOAP_NO_TAG)
-      soap->error = SOAP_OK;
   }
   if (soap_new_block(soap))
     return NULL;
@@ -8167,7 +8137,7 @@ soap_s2int(struct soap *soap, const char *s, int *p)
 { if (s)
   { char *r;
     *p = (int)soap_strtol(s, &r, 10);
-    if (s == r || *r
+    if ((s == r && (soap->mode & SOAP_XML_STRICT)) || *r
 #ifndef WITH_NOIO
 #ifndef WITH_LEAN
      || soap_errno == SOAP_ERANGE
@@ -8245,7 +8215,7 @@ soap_s2long(struct soap *soap, const char *s, long *p)
 { if (s)
   { char *r;
     *p = soap_strtol(s, &r, 10);
-    if (s == r || *r
+    if ((s == r && (soap->mode & SOAP_XML_STRICT)) || *r
 #ifndef WITH_NOIO
 #ifndef WITH_LEAN
      || soap_errno == SOAP_ERANGE
@@ -8320,22 +8290,25 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_s2LONG64(struct soap *soap, const char *s, LONG64 *p)
-{
+{ if (s)
+  {
 #ifdef HAVE_STRTOLL
-  char *r;
-  if (s && ((*p = strtoll(s, &r, 10)), *r
+    char *r;
+    *p = strtoll(s, &r, 10);
+    if ((s == r && (soap->mode & SOAP_XML_STRICT)) || *r
 #ifndef WITH_NOIO
 #ifndef WITH_LEAN
-     || soap_errno == SOAP_ERANGE
+       || soap_errno == SOAP_ERANGE
 #endif
 #endif
-    ))
+      )
 #else
 # ifdef HAVE_SSCANF
-  if (s && sscanf(s, SOAP_LONG_FORMAT, p) != 1)
+    if (sscanf(s, SOAP_LONG_FORMAT, p) != 1)
 # endif
 #endif
-    soap->error = SOAP_TYPE;
+      soap->error = SOAP_TYPE;
+  }
   return soap->error;
 }
 #endif
@@ -8919,7 +8892,7 @@ soap_s2unsignedInt(struct soap *soap, const char *s, unsigned int *p)
 { if (s)
   { char *r;
     *p = (unsigned int)soap_strtoul(s, &r, 10);
-    if (s == r || *r
+    if ((s == r && (soap->mode & SOAP_XML_STRICT)) || *r
 #ifndef WITH_NOIO
 #ifndef WITH_LEAN
      || soap_errno == SOAP_ERANGE
@@ -8997,7 +8970,7 @@ soap_s2unsignedLong(struct soap *soap, const char *s, unsigned long *p)
 { if (s)
   { char *r;
     *p = soap_strtoul(s, &r, 10);
-    if (s == r || *r
+    if ((s == r && (soap->mode & SOAP_XML_STRICT)) || *r
 #ifndef WITH_NOIO
 #ifndef WITH_LEAN
      || soap_errno == SOAP_ERANGE
@@ -9072,22 +9045,25 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_s2ULONG64(struct soap *soap, const char *s, ULONG64 *p)
-{
+{ if (s)
+  {
 #ifdef HAVE_STRTOULL
-  char *r;
-  if (s && (*p = strtoull(s, &r, 10), *r
+    char *r;
+    *p = strtoull(s, &r, 10);
+    if ((s == r && (soap->mode & SOAP_XML_STRICT)) || *r
 #ifndef WITH_NOIO
 #ifndef WITH_LEAN
-     || soap_errno == SOAP_ERANGE
+       || soap_errno == SOAP_ERANGE
 #endif
 #endif
-    ))
+      )
 #else
 # ifdef HAVE_SSCANF
-  if (s && sscanf(s, SOAP_ULONG_FORMAT, p) != 1)
+    if (sscanf(s, SOAP_ULONG_FORMAT, p) != 1)
 # endif
 #endif
-    soap->error = SOAP_TYPE;
+      soap->error = SOAP_TYPE;
+  }
   return soap->error;
 }
 #endif
@@ -9483,6 +9459,7 @@ soap_s2dateTime(struct soap *soap, const char *s, time_t *p)
     else /* parse non-XSD-standard alternative ISO 8601 format */
       t = "%4d%2d%2dT%2d%2d%2d%15s";
     sscanf(s, t, &T.tm_year, &T.tm_mon, &T.tm_mday, &T.tm_hour, &T.tm_min, &T.tm_sec, zone);
+    T.tm_isdst = -1;
     if (T.tm_year == 1)
       T.tm_year = 70;
     else
@@ -10265,7 +10242,7 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_getmime(struct soap *soap)
-{ register soap_wchar c;
+{ register soap_wchar c = 0;
   if (!soap->mime.last)
     return SOAP_OK;
   for (;;)
@@ -10276,18 +10253,22 @@ soap_getmime(struct soap *soap)
     if (soap_new_block(soap))
       return soap->error = SOAP_EOM;
     for (;;)
-    { if (!(s = (char*)soap_push_block(soap, SOAP_BLKLEN)))
+    { register short flag = 0;
+      if (!(s = (char*)soap_push_block(soap, SOAP_BLKLEN)))
         return soap->error = SOAP_EOM;
       for (i = 0; i < SOAP_BLKLEN; i++)
       { if (m > 0)
-        { *s++ = *t++;
+        { flag = (*t == '\r');
+	  *s++ = *t++;
 	  m--;
 	}
 	else
-        { c = soap_get1(soap);
-	  if ((int)c == EOF)
-	    return soap->error = SOAP_EOF;
-	  if (c == '\r')
+        { if (!flag)
+	  { c = soap_get1(soap);
+	    if ((int)c == EOF)
+	      return soap->error = SOAP_EOF;
+	  }
+	  if (flag || c == '\r')
 	  { t = soap->tmpbuf;
 	    memset(t, 0, sizeof(soap->tmpbuf));
             strcpy(t, "\n--");

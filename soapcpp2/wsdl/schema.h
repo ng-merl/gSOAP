@@ -203,6 +203,7 @@ class xs__attributeGroup
 	@xsd__QName			ref;
 	xs__annotation			*annotation;
 	std::vector<xs__attribute>	attribute;
+	std::vector<xs__attributeGroup>	attributeGroup;
 	xs__anyAttribute		*anyAttribute;
   private:
 	xs__schema			*schemaRef;

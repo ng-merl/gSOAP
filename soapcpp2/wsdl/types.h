@@ -58,6 +58,7 @@ class Types
     MapOfPairToString	enames;	// enum symbolic names
     int snum; // struct name index, TODO: consider map of URI to count per URI
     int unum; // union name index, TODO: consider map of URI to count per URI
+    int gnum; // enum name index, TODO: consider map of URI to count per URI
     Types();
     void init();
     int read(const char *file);
@@ -72,6 +73,7 @@ class Types
     const char *ename(const char *type, const char *value);
     const char *sname(const char *URI);
     const char *uname(const char *URI);
+    const char *gname(const char *URI);
     const char *nsprefix(const char *prefix, const char *URI);
     const char *deftname(enum Type type, const char *pointer, bool is_pointer, const char *prefix, const char *URI, const char *qname);
     bool is_defined(const char *prefix, const char *URI, const char *qname);
