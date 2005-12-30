@@ -8,7 +8,9 @@ Iterators and iostream operators are declared in xml-rpc-iters.h
 
 Example calling sequence:
 
-#include "soapH.h"		// get XML-RPC serializers
+// get XML-RPC serializers
+#include "soapH.h"
+#include "xml-rpc-io.h"
 
 // set up context
 soap *ctx = soap_new();
@@ -22,7 +24,7 @@ input[1] = ...;
 // make the call
 params output = myMethod(input);
 // error?
-if (ping.error())
+if (myMethod.error())
   soap_print_fault(ctx, stderr);
 else if (output.empty())
   cout << myMethod.fault() << endl;
@@ -132,7 +134,7 @@ bool value::is_struct() const
 }
 
 bool value::is_string() const
-{ return __any || __type == SOAP_TYPE__string;
+{ return __type == SOAP_TYPE__string || (__any && *__any);
 }
 
 bool value::is_true() const
@@ -236,8 +238,9 @@ bool value::operator=(bool b)
 }
 
 char* value::operator=(char *s)
-{ __type = 0;
-  __any = soap_strdup(soap, s);
+{ __type = SOAP_TYPE__string;
+  __any = NULL;
+  ref = soap_strdup(soap, s);
   return s;
 }
 
@@ -331,41 +334,41 @@ _array::_array(struct soap *soap)
 
 _array::_array(struct soap *soap, int len)
 { soap_default__array(soap, this);
-  __size = len;
-  value = (struct value*)soap_malloc(soap, __size * sizeof(struct value));
-  for (int i = 0; i < __size; i++)
-    soap_default_value(soap, &value[i]);
+  data.__size = len;
+  data.value = (struct value*)soap_malloc(soap, data.__size * sizeof(struct value));
+  for (int i = 0; i < data.__size; i++)
+    soap_default_value(soap, &data.value[i]);
 }
 
 bool _array::empty() const
-{ return __size == 0;
+{ return data.__size == 0;
 }
 
 int _array::size() const
-{ return __size;
+{ return data.__size;
 }
 
 struct value& _array::operator[](int n)
-{ if (!value)
-  { __size = n + 1;
-    value = (struct value*)soap_malloc(soap, __size * sizeof(struct value));
-    for (int i = 0; i < __size; i++)
-      soap_default_value(soap, &value[i]);
+{ if (!data.value)
+  { data.__size = n + 1;
+    data.value = (struct value*)soap_malloc(soap, data.__size * sizeof(struct value));
+    for (int i = 0; i < data.__size; i++)
+      soap_default_value(soap, &data.value[i]);
   }
-  else if (__size <= n)
-  { int oldsize = __size;
-    __size = n + 1;
-    struct value *newvalue = (struct value*)soap_malloc(soap, __size * sizeof(struct value));
+  else if (data.__size <= n)
+  { int oldsize = data.__size;
+    data.__size = n + 1;
+    struct value *newvalue = (struct value*)soap_malloc(soap, data.__size * sizeof(struct value));
     int i;
     for (i = 0; i < oldsize; i++)
-      newvalue[i] = value[i];
-    for (; i < __size; i++)
+      newvalue[i] = data.value[i];
+    for (; i < data.__size; i++)
       soap_default_value(soap, &newvalue[i]);
-    soap_unlink(soap, value);
-    free(value);
-    value = newvalue;
+    soap_unlink(soap, data.value);
+    free(data.value);
+    data.value = newvalue;
   }
-  return value[n];
+  return data.value[n];
 }
 
 _array_iterator _array::begin()
@@ -375,7 +378,7 @@ _array_iterator _array::begin()
 
 _array_iterator _array::end()
 { _array_iterator iter(this);
-  iter += __size;
+  iter += data.__size;
   return iter;
 }
 
@@ -513,7 +516,7 @@ _array_iterator::_array_iterator()
 }
 
 _array_iterator::_array_iterator(const struct _array* a)
-{ value = start = a->value;
+{ value = start = a->data.value;
 }
 
 bool _array_iterator::operator==(const _array_iterator& that) const

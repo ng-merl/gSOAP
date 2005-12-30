@@ -51,10 +51,10 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.6c" /* Current version */
+#define VERSION "2.7.6d" /* Current version */
 #endif
 
-#if defined(WIN32)
+#ifdef WIN32
 #ifndef WITH_BISON
 #define WITH_BISON
 #endif
@@ -87,17 +87,23 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #endif
 
 #ifdef WIN32
+#define SOAP_PATHCAT "\\"
+#define SOAP_PATHSEP ";"
 #define LONG64 __int64
 #else
+#define SOAP_PATHCAT "/"
+#define SOAP_PATHSEP ":"
 #define LONG64 long long
 #endif
 
 #if defined(WIN32)
 #define SOAP_LONG_FORMAT "%I64d"
 #define SOAP_ULONG_FORMAT "%I64u"
+#define SOAP_XLONG_FORMAT "%I64x"
 #elif defined(TRU64)
 #define SOAP_LONG_FORMAT "%ld"
 #define SOAP_ULONG_FORMAT "%lu"
+#define SOAP_XLONG_FORMAT "%lx"
 #endif
 
 #ifndef SOAP_LONG_FORMAT
@@ -105,6 +111,9 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #endif
 #ifndef SOAP_ULONG_FORMAT
 #define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
+#endif
+#ifndef SOAP_XLONG_FORMAT
+#define SOAP_XLONG_FORMAT "%llx"	/* printf format for unsigned 64 bit hex ints */
 #endif
 
 extern int yylineno;
@@ -340,6 +349,9 @@ extern void compile(Table*);
 extern void freetable(Table*);
 extern Entry *unlinklast(Table*); 
 
+extern FILE *fmsg;
+
+extern int aflag;
 extern int vflag;
 extern int wflag;
 extern int cflag;
@@ -353,6 +365,7 @@ extern int Lflag;
 extern int Sflag;
 extern int tflag;
 extern int xflag;
+extern int is_module;
 extern char dirpath[1024];
 extern char filename[1024];
 extern char *prefix;

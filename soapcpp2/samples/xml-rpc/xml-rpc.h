@@ -97,11 +97,17 @@ public:
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
+/// <data> element
+
+struct data
+{ int			__size;		///< number of array elements
+  struct value*		value;		///< pointer to array elements
+};
+
 /// <array> element
 
 struct _array
-{ int			__size;		///< number of array elements
-  struct value*		value;		///< pointer to array elements
+{ struct data		data;		///< data with values
 // C++ function members, not available in C (when using stdsoap2 -c)
 public:
   typedef _array_iterator iterator;

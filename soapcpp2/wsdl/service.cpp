@@ -191,6 +191,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
               o->input->message = input->messagePtr();
               o->input->part = NULL;
 	      o->input->multipartRelated = ext_input->mime__multipartRelated_;
+	      o->input->content = NULL;
 	      if (ext_input->mime__multipartRelated_ && !ext_input->mime__multipartRelated_->part.empty())
                 o->input->header = ext_input->mime__multipartRelated_->part.front().soap__header_;
 	      else
@@ -218,39 +219,56 @@ void Definitions::analyze(const wsdl__definitions &definitions)
 	              break;
 	            }
 		}
-                o->output = new Message();
-                o->output->name = (*operation).name; // RPC uses operation/@name with suffix 'Response' as set below
-                o->output->use = output_body->use;
-                // the code below is a hack around the RPC encoded response message element tag mismatch with Axis:
-                if (!output_body->namespace_ || o->output->use == encoded)
-                  o->output->URI = o->input->URI; // encoded seems (?) to require the request's namespace
-                else
-                  o->output->URI = output_body->namespace_;
-                o->output->encodingStyle = output_body->encodingStyle;
-                o->output->message = output->messagePtr();
-                o->output->part = NULL;
-	        o->output->multipartRelated = ext_output->mime__multipartRelated_;
-	        if (ext_output->mime__multipartRelated_ && !ext_output->mime__multipartRelated_->part.empty())
-                  o->output->header = ext_output->mime__multipartRelated_->part.front().soap__header_;
-	        else
-                  o->output->header = ext_output->soap__header_;
-	        if (ext_output->mime__multipartRelated_ && !ext_output->mime__multipartRelated_->part.empty() && ext_output->mime__multipartRelated_->part.front().soap__body_)
-	          o->output->body_parts = ext_output->mime__multipartRelated_->part.front().soap__body_->parts;
-                else
-	          o->output->body_parts = output_body->parts;
-	        if (ext_output->dime__message_)
-	          o->output->layout = ext_output->dime__message_->layout;
-	        else
-	          o->output->layout = NULL;
-                o->output->documentation = output->documentation;
-                o->output->ext_documentation = ext_output->documentation;
-                char *s = (char*)soap_malloc(definitions.soap, strlen(o->output->name) + 9);
-                strcpy(s, o->output->name);
-                strcat(s, "Response");
-                if (soap__operation_style == document)
-                  o->output_name = types.oname("__", o->URI, s);
-                else
-                  o->output_name = types.oname(NULL, o->output->URI, s);
+		if (ext_output->mime__content_)
+                { o->output = new Message();
+                  o->output->name = NULL;
+                  o->output->URI = NULL;
+                  o->output->encodingStyle = NULL;
+                  o->output->body_parts = NULL;
+                  o->output->part = NULL;
+                  o->output->multipartRelated = NULL;
+                  o->output->content = ext_output->mime__content_;
+                  o->output->message = output->messagePtr();
+                  o->output->layout = NULL;
+                  o->output->documentation = output->documentation;
+                  o->output->ext_documentation = ext_output->documentation;
+		}
+		else if (output_body)
+                { o->output = new Message();
+                  o->output->name = (*operation).name; // RPC uses operation/@name with suffix 'Response' as set below
+                  o->output->use = output_body->use;
+                  // the code below is a hack around the RPC encoded response message element tag mismatch with Axis:
+                  if (!output_body->namespace_ || output_body->use == encoded)
+                    o->output->URI = o->input->URI; // encoded seems (?) to require the request's namespace
+                  else
+                    o->output->URI = output_body->namespace_;
+                  o->output->encodingStyle = output_body->encodingStyle;
+                  o->output->message = output->messagePtr();
+                  o->output->part = NULL;
+	          o->output->multipartRelated = ext_output->mime__multipartRelated_;
+                  o->output->content = NULL;
+	          if (ext_output->mime__multipartRelated_ && !ext_output->mime__multipartRelated_->part.empty())
+                    o->output->header = ext_output->mime__multipartRelated_->part.front().soap__header_;
+	          else
+                    o->output->header = ext_output->soap__header_;
+	          if (ext_output->mime__multipartRelated_ && !ext_output->mime__multipartRelated_->part.empty() && ext_output->mime__multipartRelated_->part.front().soap__body_)
+	            o->output->body_parts = ext_output->mime__multipartRelated_->part.front().soap__body_->parts;
+                  else
+	            o->output->body_parts = output_body->parts;
+	          if (ext_output->dime__message_)
+	            o->output->layout = ext_output->dime__message_->layout;
+	          else
+	            o->output->layout = NULL;
+                  o->output->documentation = output->documentation;
+                  o->output->ext_documentation = ext_output->documentation;
+                  char *s = (char*)soap_malloc(definitions.soap, strlen(o->output->name) + 9);
+                  strcpy(s, o->output->name);
+                  strcat(s, "Response");
+                  if (soap__operation_style == document)
+                    o->output_name = types.oname("__", o->URI, s);
+                  else
+                    o->output_name = types.oname(NULL, o->output->URI, s);
+	        }
               }
               else
               { o->output_name = NULL;
@@ -286,6 +304,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                   h->encodingStyle = (*header).encodingStyle;
                   h->use = (*header).use;
 		  h->multipartRelated = NULL;
+		  h->content = NULL;
 		  h->layout = NULL;
                   h->ext_documentation = NULL;	// TODO: add document content
                   h->documentation = NULL;		// TODO: add document content
@@ -325,6 +344,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
     	          h->encodingStyle = (*header).encodingStyle;
     	          h->use = (*header).use;
 		  h->multipartRelated = NULL;
+		  h->content = NULL;
 		  h->layout = NULL;
     	          h->ext_documentation = NULL;	// TODO: add document content
     	          h->documentation = NULL;	// TODO: add document content
@@ -345,6 +365,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
     	          f->URI = (*ext_fault).soap__fault_->namespace_;
     	          f->use = (*ext_fault).soap__fault_->use;
 		  f->multipartRelated = NULL;
+		  f->content = NULL;
 		  f->layout = NULL;
     	          f->ext_documentation = (*ext_fault).documentation;
                   f->name = types.aname("_", f->URI, f->message->name);
@@ -398,6 +419,12 @@ void Definitions::compile(const wsdl__definitions& definitions)
   else
     fprintf(stream, "//gsoapopt w\n");
   banner("Import");
+  if (dflag)
+  { if (import_path)
+      fprintf(stream, "#import \"%s/dom.h\"\n", import_path);
+    else
+      fprintf(stream, "#import \"dom.h\"\n");
+  }
   if (!cflag && !sflag)
   { if (import_path)
       fprintf(stream, "#import \"%s/stlvector.h\"\n", import_path);
@@ -671,7 +698,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       { for (vector<xs__simpleType>::iterator simpleType = (*schema)->simpleType.begin(); simpleType != (*schema)->simpleType.end(); ++simpleType)
         { if ((*simpleType).baseLevel() == baseLevel)
           { found = true;
-            types.gen((*schema)->targetNamespace, NULL, *simpleType);
+            types.gen((*schema)->targetNamespace, NULL, *simpleType, false);
           }
         }
         for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
@@ -680,7 +707,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	    if ((*element).type)
 	      fprintf(stream, "/// Element \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
 	    types.document((*element).annotation);
-            types.gen((*schema)->targetNamespace, (*element).name, *(*element).simpleTypePtr());
+            types.gen((*schema)->targetNamespace, (*element).name, *(*element).simpleTypePtr(), false);
           }
           if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
             found = true;
@@ -691,7 +718,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	    if ((*attribute).type)
 	      fprintf(stream, "/// Attribute \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*attribute).name, (*attribute).type);
 	    types.document((*attribute).annotation);
-            types.gen((*schema)->targetNamespace, (*attribute).name, *(*attribute).simpleTypePtr()); // URI = NULL won't generate type in schema (type without namespace qualifier)
+            types.gen((*schema)->targetNamespace, (*attribute).name, *(*attribute).simpleTypePtr(), false); // URI = NULL won't generate type in schema (type without namespace qualifier)
           }
         }
         for (vector<xs__complexType>::iterator complexType = (*schema)->complexType.begin(); complexType != (*schema)->complexType.end(); ++complexType)
@@ -707,13 +734,13 @@ void Definitions::compile(const wsdl__definitions& definitions)
     { for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
       { for (vector<xs__complexType>::iterator complexType = (*schema)->complexType.begin(); complexType != (*schema)->complexType.end(); ++complexType)
         { if ((*complexType).baseLevel() == baseLevel)
-            types.gen((*schema)->targetNamespace, NULL, *complexType);
+            types.gen((*schema)->targetNamespace, NULL, *complexType, false);
         }
         for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
         { if (!(*element).type && (*element).complexTypePtr() && (*element).complexTypePtr()->baseLevel() == baseLevel)
 	  { fprintf(stream, "\n\n/// Element \"%s\":%s of complexType.\n", (*schema)->targetNamespace, (*element).name);
 	    types.document((*element).annotation);
-            types.gen((*schema)->targetNamespace, (*element).name, *(*element).complexTypePtr());
+            types.gen((*schema)->targetNamespace, (*element).name, *(*element).complexTypePtr(), false);
 	  }
         }
       }
@@ -889,7 +916,7 @@ void Definitions::generate()
       comment("Header", (*header).first, "SOAP", (*header).second->documentation);
       if ((*header).second->part && (*header).second->part->elementPtr())
       { fprintf(stream, "/// \"%s\" SOAP Header part element\n", (*header).second->part->name);
-        types.gen((*header).second->part->elementPtr()->schemaPtr()->targetNamespace, *(*header).second->part->elementPtr());
+        types.gen(NULL, *(*header).second->part->elementPtr());
       }
       else if ((*header).second->part && (*header).second->part->type)
       { fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
@@ -1010,23 +1037,31 @@ void Service::generate(Types& types)
       if ((*op2)->operation_documentation)
         text((*op2)->operation_documentation);
       if ((*op2)->input->documentation)
-      { fprintf(stream, "Input:\n");
+      { fprintf(stream, "Input request:\n");
 	text((*op2)->input->documentation);
       }
       if ((*op2)->input->ext_documentation)
-      { fprintf(stream, "Input:\n");
+      { fprintf(stream, "Input request:\n");
         text((*op2)->input->ext_documentation);
       }
       if ((*op2)->output)
       { if ((*op2)->output->documentation)
-        { fprintf(stream, "Output:\n");
+        { fprintf(stream, "Output response:\n");
 	  text((*op2)->output->documentation);
 	}
         if ((*op2)->output->ext_documentation)
-        { fprintf(stream, "Output:\n");
+        { fprintf(stream, "Output response:\n");
 	  text((*op2)->output->ext_documentation);
         }
       }
+      if ((*op2)->output)
+      { if ((*op2)->output->content)
+	{ fprintf(stream, "  - Response has MIME content '%s'\n", ((*op2)->output->content->type?(*op2)->output->content->type:"?"));
+	  fprintf(stream, "    TODO: this form of MIME content response is not automatically handled.\n    Use one-way request and implement code to parse response.\n");
+        }
+      }
+      else
+	fprintf(stream, "  - One-way message\n");
       if ((*op2)->style == document)
         fprintf(stream, "  - SOAP document/literal style\n");
       else
@@ -1125,7 +1160,7 @@ void Service::generate(Types& types)
       }
       if ((*op2)->output && (*op2)->output_name && (*op2)->output->layout)
         fprintf(stream, "  - Response message has DIME attachments in compliance with %s\n", (*op2)->output->layout);
-      fprintf(stream, "\nC stub function (defined in soapClient.c[pp]):\n@code\n  int soap_call_%s(struct soap *soap,\n    NULL, // char *endpoint = NULL selects default endpoint for this operation\n    NULL, // char *action = NULL selects default action for this operation\n    // request parameters:", (*op2)->input_name);
+      fprintf(stream, "\nC stub function (defined in soapClient.c[pp] after running soapcpp2):\n@code\n  int soap_call_%s(struct soap *soap,\n    NULL, // char *endpoint = NULL selects default endpoint for this operation\n    NULL, // char *action = NULL selects default action for this operation\n    // request parameters:", (*op2)->input_name);
       (*op2)->input->generate(types, ",", false, false, false);
       fprintf(stream, "\n    // response parameters:");
       if ((*op2)->output && (*op2)->output_name)
@@ -1266,15 +1301,17 @@ void Operation::generate(Types &types)
       else if ((*output->message->part.begin()).name)
       { fprintf(stream, "\n");
         fprintf(stream, anonymous ? anonformat : paraformat, types.tname(NULL, NULL, (*output->message->part.begin()).type), cflag ? "*" : "&", types.aname(NULL, NULL, (*output->message->part.begin()).name), "");
+        fprintf(stream, "\t///< Response parameter");
       }
     }
     else
     { fprintf(stream, "\n    struct %-28s%s", output_name, cflag ? "*" : "&");
+      fprintf(stream, "\t///< Response struct parameter");
     }
-    fprintf(stream, " ///< response parameter\n);\n");
+    fprintf(stream, "\n);\n");
   }
   else
-    fprintf(stream, " void\n);\n");
+    fprintf(stream, "\n    void\t///< One-way message: no response parameter\n);\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1310,9 +1347,14 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
 	    if (response)
             { const char *t = types.tname(NULL, URI, type);
 	      fprintf(stream, anonymous ? anonformat : paraformat, t, strchr(t, '*') != NULL ? " " : cflag ? "*" : "&", types.aname(NULL, URI, name), sep);
+	      if (remark)
+	        fprintf(stream, "\t///< Response parameter");
 	    }
 	    else
-              fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, NULL, URI, type), " ", types.aname(NULL, URI, name), sep);
+            { fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, NULL, URI, type), " ", types.aname(NULL, URI, name), sep);
+	      if (remark && *sep == ',')
+	        fprintf(stream, "\t///< Request parameter");
+	    }
           }
 	  else
           { fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, NULL, NULL, (*part).element), " ", types.aname(NULL, NULL, (*part).element), sep);
@@ -1326,9 +1368,14 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
 	  if (response)
           { const char *t = types.tname(NULL, NULL, (*part).type);
 	    fprintf(stream, anonymous ? anonformat : paraformat, t, strchr(t, '*') != NULL ? " " : cflag ? "*" : "&", types.aname(NULL, NULL, (*part).name), sep);
+	    if (remark)
+              fprintf(stream, "\t///< Response parameter");
 	  }
           else
-	    fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, NULL, NULL, (*part).type), " ", types.aname(NULL, NULL, (*part).name), sep);
+	  { fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, NULL, NULL, (*part).type), " ", types.aname(NULL, NULL, (*part).name), sep);
+	    if (remark && *sep == ',')
+              fprintf(stream, "\t///< Request parameter");
+	  }
         }
         else
           fprintf(stderr, "Error: no wsdl:definitions/message/part/@type in part '%s'\n", (*part).name);

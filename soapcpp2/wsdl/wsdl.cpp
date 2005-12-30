@@ -138,11 +138,12 @@ int wsdl__definitions::read(int num, char **loc)
 }
 
 int wsdl__definitions::read(const char *location)
-{ char *path = NULL;
-  char save_host[sizeof(soap->host)];
-  char save_path[sizeof(soap->path)];
-  strcpy(save_host, soap->host);
-  strcpy(save_path, soap->path);
+{ char *local_path = NULL;
+  char save_host[sizeof(last_host)];
+  char save_path[sizeof(last_path)];
+  int save_port = last_port;
+  strcpy(save_host, last_host);
+  strcpy(save_path, last_path);
   if (location)
   { if (!strncmp(location, "http://", 7) || !strncmp(location, "https://", 8))
     { fprintf(stderr, "Connecting to '%s' to retrieve WSDL/XSD... ", location);
@@ -152,49 +153,57 @@ int wsdl__definitions::read(const char *location)
         exit(1);
       }
       fprintf(stderr, "connected, receiving...\n");
+      strcpy(last_host, soap->host);
+      strcpy(last_path, soap->path);
+      last_port = soap->port;
     }
-    else if (*soap->host)
-    { path = strrchr(soap->path, '/');
-      if (path)
-        *path = '\0';
-      path = (char*)soap_malloc(soap, strlen(soap->host) + strlen(soap->path) + strlen(location) + 32);
-      sprintf(path, "http://%s:%d%s/%s", soap->host, soap->port, soap->path, location);
-      fprintf(stderr, "Connecting to '%s' to retrieve relative '%s' WSDL/XSD... ", path, location);
-      if (soap_connect_command(soap, SOAP_GET, path, NULL))
+    else if (*last_host)
+    { local_path = strrchr(last_path, '/');
+      if (local_path)
+        *local_path = '\0';
+      local_path = (char*)soap_malloc(soap, strlen(last_host) + strlen(last_path) + strlen(location) + 32);
+      sprintf(local_path, "http://%s:%d%s/%s", last_host, last_port, last_path, location);
+      fprintf(stderr, "Connecting to '%s' to retrieve relative '%s' WSDL/XSD... ", local_path, location);
+      if (soap_connect_command(soap, SOAP_GET, local_path, NULL))
       { fprintf(stderr, "connection failed\n");
         exit(1);
       }
       fprintf(stderr, "connected, receiving...\n");
+      strcpy(last_host, soap->host);
+      strcpy(last_path, soap->path);
+      last_port = soap->port;
     }
     else
     { fprintf(stderr, "Reading file '%s'\n", location);
       soap->recvfd = open(location, O_RDONLY, 0);
       if (soap->recvfd < 0)
-      { if (*soap->path)
-        { path = strrchr(soap->path, '/');
-          if (path)
-            *path = '\0';
-          path = (char*)soap_malloc(soap, strlen(soap->path) + strlen(location) + 2);
-	  strcpy(path, soap->path);
-	  strcat(path, "/");
-	  strcat(path, location);
-          soap->recvfd = open(path, O_RDONLY, 0);
+      { if (*last_path)
+        { local_path = strrchr(last_path, '/');
+          if (local_path)
+            *local_path = '\0';
+          local_path = (char*)soap_malloc(soap, strlen(last_path) + strlen(location) + 2);
+	  strcpy(local_path, last_path);
+	  strcat(local_path, "/");
+	  strcat(local_path, location);
+          fprintf(stderr, "Opening '%s'\n", local_path);
+          soap->recvfd = open(local_path, O_RDONLY, 0);
         }
         if (soap->recvfd < 0 && import_path)
-        { path = (char*)soap_malloc(soap, strlen(import_path) + strlen(location) + 2);
-	  strcpy(path, import_path);
-	  strcat(path, "/");
-	  strcat(path, location);
-          soap->recvfd = open(path, O_RDONLY, 0);
+        { local_path = (char*)soap_malloc(soap, strlen(import_path) + strlen(location) + 2);
+	  strcpy(local_path, import_path);
+	  strcat(local_path, "/");
+	  strcat(local_path, location);
+          fprintf(stderr, "Opening '%s'\n", local_path);
+          soap->recvfd = open(local_path, O_RDONLY, 0);
 	}
         if (soap->recvfd < 0)
 	{ fprintf(stderr, "Cannot open '%s'\n", location);
           exit(1);
         }
-        location = path;
+        location = local_path;
       }
-      strncpy(soap->path, location, sizeof(soap->path));
-      soap->path[sizeof(soap->path) - 1] = '\0';
+      strncpy(last_path, location, sizeof(last_path));
+      last_path[sizeof(last_path) - 1] = '\0';
     }
   }
   if (!soap_begin_recv(soap))
@@ -245,8 +254,9 @@ int wsdl__definitions::read(const char *location)
   }
   else
     soap_closesock(soap);
-  strcpy(soap->host, save_host);
-  strcpy(soap->path, save_path);
+  strcpy(last_host, save_host);
+  strcpy(last_path, save_path);
+  last_port = save_port;
   return SOAP_OK;
 }
 
@@ -306,6 +316,8 @@ again:
       }
     }
   }
+  if (types)
+    types->preprocess(*this);
   return SOAP_OK;
 }
 
@@ -875,7 +887,7 @@ xs__complexType *wsdl__part::complexTypePtr() const
 { return complexTypeRef;
 }
 
-int wsdl__types::traverse(wsdl__definitions& definitions)
+int wsdl__types::preprocess(wsdl__definitions& definitions)
 { if (vflag)
     cerr << "wsdl types" << endl;
   // link imported schemas, need to repeat when <types> is extended with new imported schema (from inside another schema, etc.)
@@ -944,6 +956,12 @@ again:
       }
     }
   }
+  return SOAP_OK;
+}
+
+int wsdl__types::traverse(wsdl__definitions& definitions)
+{ if (vflag)
+    cerr << "wsdl types" << endl;
   for (vector<xs__schema*>::iterator schema3 = xs__schema_.begin(); schema3 != xs__schema_.end(); ++schema3)
   { // artificially extend the <import> of each schema to include others so when we traverse schemas we can resolve references
     for (vector<xs__schema*>::iterator importschema = xs__schema_.begin(); importschema != xs__schema_.end(); ++importschema)

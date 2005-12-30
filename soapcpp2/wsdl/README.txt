@@ -127,7 +127,9 @@ generated gSOAP source code output when you purchased a commercial license.
 
 COMMAND LINE OPTIONS
 
+-a      generate indexed struct names for local elements with anonymous types
 -c      generate C source code
+-d      use DOM to populate xs:any and xsd:anyType elements
 -e      don't qualify enum names
 -f      generate flat C++ class hierarchy
 -g      generate global top-level element declarations

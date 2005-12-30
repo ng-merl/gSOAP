@@ -2025,7 +2025,7 @@ soap_wsse_add_KeyInfo_SecurityTokenReferenceEmbedded(struct soap *soap, const ch
 int
 soap_wsse_fault(struct soap *soap, wsse__FaultcodeEnum fault, const char *detail)
 { const char *code = soap_wsse__FaultcodeEnum2s(soap, fault);
-  DBGFUN2("soap_wsse_fault", "fault=%d", fault, "code=%s", code?code:"");
+  DBGFUN2("soap_wsse_fault", "fault=%s", code?code:"", "detail=%s", detail?detail:"");
   /* remove incorrect or incomplete Security header */
   soap_wsse_delete_Security(soap);
   /* populate the SOAP Fault as per WS-Security spec */

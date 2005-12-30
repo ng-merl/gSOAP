@@ -7,7 +7,7 @@ Yacc/Bison grammar.
 Notes:
 
 Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small Compile with
--DYYINITDEPTH=1000
+-DYYINITDEPTH=5000
 
 This grammar has one shift/reduce conflict related to the use of a class
 declaration with a base class (e.g. class Y : public X) and the use of a
@@ -62,7 +62,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 extern int soapcpp2lex();
 #endif
 
-#define MAXNEST 8	/* max. nesting depth of scopes */
+#define MAXNEST 16	/* max. nesting depth of scopes */
 
 struct Scope
 {	Table	*table;
@@ -111,7 +111,9 @@ Pragma	**pp;
 
 %}
 
+/* we expect one shift-reduce conflict */
 %expect 1
+/* remove this line if necessary to allow Yacc to proceed */
 
 %union
 {	Symbol	*sym;
@@ -215,17 +217,17 @@ s1	: /* empty */	{ classtable = mktable((Table*)0);
 			  p->info.typ = mkint();
 			  p->info.val.i = 1;
 			  mkscope(mktable(mktable((Table*)0)), 0);
-			  if (!lflag)
-			  {	add_XML();
-				add_qname();
-			  }
 			}
 	;
 exts	: NAMESPACE ID '{' exts1 '}'
 			{ namespaceid = $2->name; }
 	| exts1		{ namespaceid = NULL; }
 	;
-exts1	: /* empty */	{ }
+exts1	: /* empty */	{ if (!lflag)
+			  {	add_XML();
+				add_qname();
+			  }
+			}
 	| exts1 ext	{ }
 	;
 ext	: dclrs ';'	{ }
@@ -314,14 +316,10 @@ dclr	: ptrs ID arrayck occurs init
 						p->info.typ->transient = $3.typ->transient;
 			  		p->info.sto = $3.sto;
 					p->info.typ->pattern = $4.pattern;
-					if ($4.minOccurs >= 0)
+					if ($4.minOccurs != -1)
 					{	p->info.typ->minLength = $4.minOccurs;
-						if ($4.minOccurs > $4.maxOccurs)
-							p->info.typ->maxLength = $4.minOccurs;
-						else
-							p->info.typ->maxLength = $4.maxOccurs;
 					}
-					else if ($4.maxOccurs > 1)
+					if ($4.maxOccurs > 1)
 						p->info.typ->maxLength = $4.maxOccurs;
 				}
 				$2->token = TYPE;
@@ -1636,10 +1634,6 @@ add_fault(Table *gt)
 { Table *t;
   Entry *p1, *p2, *p3, *p4;
   Symbol *s1, *s2, *s3, *s4;
-  /*
-  add_XML();
-  add_qname();
-  */
   s1 = lookup("SOAP_ENV__Code");
   p1 = entry(classtable, s1);
   if (!p1 || !p1->info.typ->ref)
@@ -1735,17 +1729,23 @@ add_fault(Table *gt)
 static void
 add_XML()
 { Symbol *s = lookup("_XML");
+  int tmp = imports;
+  imports = 0;
   p = enter(typetable, s);
-  xml = p->info.typ = mksymtype(mkpointer(mkchar()), s);
+  xml = p->info.typ = mksymtype(mkstring(), s);
   p->info.sto = Stypedef;
+  imports = tmp;
 }
 
 static void
 add_qname()
 { Symbol *s = lookup("_QName");
+  int tmp = imports;
   p = enter(typetable, s);
-  qname = p->info.typ = mksymtype(mkpointer(mkchar()), s);
+  qname = p->info.typ = mksymtype(mkstring(), s);
+  qname->imports = 0;
   p->info.sto = Stypedef;
+  imports = tmp;
 }
 
 static void

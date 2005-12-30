@@ -65,6 +65,7 @@ static int lnstk[MAX_IMPORT_DEPTH];
 static YY_BUFFER_STATE instk[MAX_IMPORT_DEPTH];
 #endif
 int imports = 0;
+int is_module = 0;
 static Token install_id();
 static Token install_int();
 static Token install_hex();
@@ -185,11 +186,7 @@ install_id()
 static Token
 install_int()
 {
-#ifdef WIN32
-	sscanf(yytext, "%I64u", &yylval.i);
-#else
-	yylval.i = strtoull(yytext, NULL, 10);
-#endif
+	sscanf(yytext, SOAP_ULONG_FORMAT, &yylval.i);
 	return LNG;
 }
 
@@ -199,11 +196,7 @@ install_int()
 static Token
 install_hex()
 {
-#ifdef WIN32
-	sscanf(yytext, "%I64x", &yylval.i);
-#else
-	yylval.i = strtoull(yytext + 2, NULL, 16);
-#endif
+	sscanf(yytext, SOAP_XLONG_FORMAT, &yylval.i);
 	return LNG;
 }
 
@@ -790,8 +783,8 @@ static void module(const char *name)
       *pp = (Pragma*)emalloc(sizeof(Pragma));
       (*pp)->pragma = s;
       (*pp)->next = NULL;
-      xflag = 1;
-      fprintf(stderr, "Importing module %s\n", name);
+      is_module = 1;
+      fprintf(stderr, "Importing module %s\n\n", name);
     }
   }
   else
@@ -799,7 +792,7 @@ static void module(const char *name)
     typeNO = magic(name);
     prefix = emalloc(strlen(name)+1);
     strcpy(prefix, name);
-    fprintf(stderr, "Module %s\n", name);
+    fprintf(stderr, "Module %s magic number = %d\n\n", name, typeNO);
   }
 }
 
@@ -840,11 +833,11 @@ static void import(const char *file)
     { char *s, *t;
       s = importpath;
       do
-      { t = strchr(s, ':');
+      { t = strstr(s, SOAP_PATHSEP);
         if (t)
         { strncpy(buf, s, t - s);
 	  buf[t - s] = '\0';
-	  s = t + 1;
+	  s = t + sizeof(SOAP_PATHSEP) - 1;
 	}
 	else
         { strcpy(buf, s);
@@ -857,7 +850,7 @@ static void import(const char *file)
       while (s && !yyin);
     }
     if (!yyin)
-    { sprintf(errbuf, "#import: Cannot open file \"%s\" for reading.\nHint: use option -I<path> (you can define multiple paths separated with ':')", file);
+    { sprintf(errbuf, "#import: Cannot open file \"%s\" for reading.\nHint: use option -I<path> (you can define multiple paths separated with '"SOAP_PATHSEP"')", file);
       execerror(errbuf);
     }
   }

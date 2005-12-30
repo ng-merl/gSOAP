@@ -55,7 +55,7 @@ class xs__union;			// forward declaration
 
 class xs__annotation
 { public:
-	char *documentation;
+	char				*documentation;
 };
 
 class xs__element

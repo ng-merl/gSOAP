@@ -50,6 +50,7 @@ class Message
     wsdl__part *part;
     vector<soap__header> header;
     mime__multipartRelated *multipartRelated;	// MIME
+    mime__content *content;			// MIME
     const char *layout;				// DIME
     const char *documentation;
     const char *ext_documentation;

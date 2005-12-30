@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.2.6c"
+#define VERSION "1.2.6d"
 
 #include <utility>
 #include <iterator>
@@ -72,7 +72,11 @@ typedef map<Pair, const char*, ltpair> MapOfPairToString;
 
 typedef map<const char*, size_t, ltstr> MapOfStringToNum;
 
-extern int cflag,
+typedef vector<const char*> VectorOfString;
+
+extern int aflag,
+	   cflag,
+	   dflag,
 	   eflag,
 	   fflag,
 	   gflag,
@@ -95,6 +99,9 @@ extern int infiles;
 extern char *infile[100], *outfile, *mapfile, *proxy_host, *import_path;
 
 extern int proxy_port;
+
+extern char last_host[SOAP_TAGLEN], last_path[SOAP_TAGLEN];
+extern int last_port;
 
 extern const char *service_prefix;
 extern const char *schema_prefix;

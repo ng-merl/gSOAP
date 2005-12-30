@@ -68,6 +68,7 @@ class wsdl__types
 	xsd__string			documentation;		// <wsdl:documentation>?
 	std::vector<xs__schema*>	xs__schema_; 		// <xs:schema>*
   public:
+	int				preprocess(wsdl__definitions&);
 	int				traverse(wsdl__definitions&);
 };
 
@@ -170,6 +171,7 @@ class wsdl__ext_input			// extensibility element
 	dime__message			*dime__message_;	// <dime:message>?
 	soap__body			*soap__body_;		// <soap:body>?
 	mime__multipartRelated		*mime__multipartRelated_;// <mime:multipartRelated>?
+	mime__content			*mime__content_;	// <mime:content>?
 	std::vector<soap__header>	soap__header_;		// <soap:header>*
   public:
   	int				traverse(wsdl__definitions&);
@@ -181,6 +183,7 @@ class wsdl__ext_output			// extensibility element
 	dime__message			*dime__message_;	// <dime:message>?
 	soap__body			*soap__body_;		// <soap:body>?
 	mime__multipartRelated		*mime__multipartRelated_;// <mime:multipartRelated>?
+	mime__content			*mime__content_;	// <mime:content>?
 	std::vector<soap__header>	soap__header_;		// <soap:header>*
   public:
   	int				traverse(wsdl__definitions&);

@@ -98,7 +98,7 @@ platform = @platform@
 ####### This is the input file for automake, which will generate Makefile.in ##########
 AUTOMAKE_OPTIONS = foreign 1.4
 
-noinst_PROGRAMS = ssl
+noinst_PROGRAMS = sslclient sslserver
 SOAPHEADER = ssl.h
 
 AM_CFLAGS = -D$(platform)
@@ -130,21 +130,30 @@ LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
 BUILT_SOURCES = $(SOAP_C_SRC) 
 CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
-ssl_SOURCES = ssl.c $(SOAPHEADER) $(SOAP_C_CLIENT)
+sslclient_SOURCES = sslclient.c $(SOAPHEADER) $(SOAP_C_CLIENT)
+sslserver_SOURCES = sslserver.c $(SOAPHEADER) $(SOAP_C_SERVER)
+sslclient_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lssl -lcrypto
+sslserver_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lssl -lcrypto
 subdir = soapcpp2/samples/ssl
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-noinst_PROGRAMS = ssl$(EXEEXT)
+noinst_PROGRAMS = sslclient$(EXEEXT) sslserver$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 
 am__objects_1 =
 am__objects_2 = soapClient.$(OBJEXT) soapC.$(OBJEXT)
-am_ssl_OBJECTS = ssl.$(OBJEXT) $(am__objects_1) $(am__objects_2)
-ssl_OBJECTS = $(am_ssl_OBJECTS)
-ssl_LDADD = $(LDADD)
-ssl_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap.a
-ssl_LDFLAGS =
+am_sslclient_OBJECTS = sslclient.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2)
+sslclient_OBJECTS = $(am_sslclient_OBJECTS)
+sslclient_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap.a
+sslclient_LDFLAGS =
+am__objects_3 = soapServer.$(OBJEXT) soapC.$(OBJEXT)
+am_sslserver_OBJECTS = sslserver.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_3)
+sslserver_OBJECTS = $(am_sslserver_OBJECTS)
+sslserver_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap.a
+sslserver_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -154,15 +163,16 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/soapC.Po ./$(DEPDIR)/soapClient.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ssl.Po
+@AMDEP_TRUE@	./$(DEPDIR)/soapServer.Po ./$(DEPDIR)/sslclient.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/sslserver.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(ssl_SOURCES)
+DIST_SOURCES = $(sslclient_SOURCES) $(sslserver_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(ssl_SOURCES)
+SOURCES = $(sslclient_SOURCES) $(sslserver_SOURCES)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -177,9 +187,12 @@ Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-ssl$(EXEEXT): $(ssl_OBJECTS) $(ssl_DEPENDENCIES) 
-	@rm -f ssl$(EXEEXT)
-	$(LINK) $(ssl_LDFLAGS) $(ssl_OBJECTS) $(ssl_LDADD) $(LIBS)
+sslclient$(EXEEXT): $(sslclient_OBJECTS) $(sslclient_DEPENDENCIES) 
+	@rm -f sslclient$(EXEEXT)
+	$(LINK) $(sslclient_LDFLAGS) $(sslclient_OBJECTS) $(sslclient_LDADD) $(LIBS)
+sslserver$(EXEEXT): $(sslserver_OBJECTS) $(sslserver_DEPENDENCIES) 
+	@rm -f sslserver$(EXEEXT)
+	$(LINK) $(sslserver_LDFLAGS) $(sslserver_OBJECTS) $(sslserver_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -189,7 +202,9 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapClient.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ssl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sslclient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sslserver.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

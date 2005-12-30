@@ -53,9 +53,10 @@ class Types
     MapOfPairToString	qnames;	// (URI,name) -> name
     MapOfStringToString	uris;	// URI -> prefix
     MapOfStringToNum	syms;	// prefix -> count (ns1, ns2, ...)
-    SetOfString		rnames;	// enum reserved symbolic names to avoid reuse
+    SetOfString		rnames;	// reserved symbolic names to avoid clashes
     SetOfString		onames;	// service operator names
     MapOfPairToString	enames;	// enum symbolic names
+    VectorOfString	scope;	// de-anonymizer stack
     int snum; // struct name index, TODO: consider map of URI to count per URI
     int unum; // union name index, TODO: consider map of URI to count per URI
     int gnum; // enum name index, TODO: consider map of URI to count per URI
@@ -71,9 +72,9 @@ class Types
     const char *oname(const char *prefix, const char *URI, const char *qname);
     const char *pname(bool flag, const char *prefix, const char *URI, const char *qname);
     const char *ename(const char *type, const char *value);
-    const char *sname(const char *URI);
+    const char *sname(const char *URI, const char *name);
+    const char *gname(const char *URI, const char *name);
     const char *uname(const char *URI);
-    const char *gname(const char *URI);
     const char *nsprefix(const char *prefix, const char *URI);
     const char *deftname(enum Type type, const char *pointer, bool is_pointer, const char *prefix, const char *URI, const char *qname);
     bool is_defined(const char *prefix, const char *URI, const char *qname);
@@ -89,14 +90,14 @@ class Types
     void gen(const char *URI, const vector<xs__group>&);
     void gen(const char *URI, const vector<xs__choice>&);
     void gen(const char *URI, const vector<xs__any>&);
-    void gen(const char *URI, const char *name, const xs__simpleType&);
-    void gen(const char *URI, const char *name, const xs__complexType&);
+    void gen(const char *URI, const char *name, const xs__simpleType&, bool anonymous);
+    void gen(const char *URI, const char *name, const xs__complexType&, bool anonymous);
     void gen(const char *URI, const xs__attribute&);
     void gen(const char *URI, const xs__all&);
     void gen(const char *URI, const xs__sequence&);
     void gen(const char *URI, const xs__element&);
     void gen(const char *URI, const xs__group&);
-    void gen(const char *URI, const xs__choice&);
+    void gen(const char *URI, const char *name, const xs__choice&);
     void gen(const char *URI, const xs__any&);
     void gen(const char *URI, const xs__anyAttribute&);
     void document(const xs__annotation*);

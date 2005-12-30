@@ -366,7 +366,7 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
   }
   soap_default_xsd__anyType(soap, node);
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node %s\n", soap->tag));
-  node->nstr = soap_dom_current_nstr(soap, soap->tag);
+  node->nstr = soap_current_namespace(soap, soap->tag);
   node->name = soap_strdup(soap, soap->tag);
   if ((soap->mode & SOAP_DOM_NODE) || (!(soap->mode & SOAP_DOM_TREE) && *soap->id))
   { if ((node->node = soap_getelement(soap, &node->type)))
@@ -388,7 +388,7 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
         return NULL;
       }
       (*att)->next = NULL;
-      (*att)->nstr = soap_dom_current_nstr(soap, tp->name);
+      (*att)->nstr = soap_current_namespace(soap, tp->name);
       (*att)->name = soap_strdup(soap, tp->name);
       if (tp->visible == 2)
         (*att)->data = soap_strdup(soap, tp->value);
@@ -435,32 +435,6 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, "End of DOM node '%s'\n", node->name));
   }
   return node;
-}
-
-SOAP_FMAC1
-const char*
-SOAP_FMAC2
-soap_dom_current_nstr(struct soap *soap, const char *tag)
-{ struct soap_nlist *np;
-  const char *s;
-  np = soap->nlist;
-  if (!(s = strchr(tag, ':')))
-  { while (np && *np->id) /* find default namespace, if present */
-      np = np->next;
-  }
-  else
-  { while (np && (strncmp(np->id, tag, s - tag) || np->id[s - tag]))
-      np = np->next;
-    if (!np)
-      soap->error = SOAP_NAMESPACE;
-  }
-  if (np)
-  { if (np->index >= 0)
-      return soap->namespaces[np->index].ns;
-    if (np->ns)
-      return soap_strdup(soap, np->ns);
-  }
-  return NULL;
 }
 
 /******************************************************************************\

@@ -34,44 +34,47 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "xml-rpc-io.h"
 
 std::ostream& operator<<(std::ostream& o, const struct value& v)
-{ if (v.__any)
-    o << v.__any;
-  else
-    switch (v.__type)
-    { case SOAP_TYPE__array: 
-        o << "{array" << endl;
-	for (_array::iterator i = ((struct _array)v).begin(); i != ((struct _array)v).end(); ++i)
-	  o << "[" << i.index() << "]=" << *i << endl;
-	o << "}";
-        break;
-      case SOAP_TYPE__base64: 
-        o << "{base64 " << ((struct _base64)v).size() << " bytes}";
-        break;
-      case SOAP_TYPE__boolean: 
-        if (v.is_true())
-	  o << "TRUE";
-        else
-	  o << "FALSE";
-        break;
-      case SOAP_TYPE__dateTime_DOTiso8601: 
-        break;
-      case SOAP_TYPE__double: 
-        o << (double)v;
-        break;
-      case SOAP_TYPE__i4: 
-      case SOAP_TYPE__int: 
-        o << (int)v;
-        break;
-      case SOAP_TYPE__string: 
-        o << (const char*)v;
-        break;
-      case SOAP_TYPE__struct: 
-        o << "{struct" << endl;
-	for (struct _struct::iterator i = ((struct _struct)v).begin(); i != ((struct _struct)v).end(); ++i)
-	  o << "[" << i.index() << "]=" << *i << endl;
-	o << "}";
-        break;
-    }
+{ switch (v.__type)
+  { case SOAP_TYPE__array: 
+      o << "{array" << std::endl;
+      for (_array::iterator i = ((struct _array)v).begin(); i != ((struct _array)v).end(); ++i)
+	  o << "[" << i.index() << "]=" << *i << std::endl;
+      o << "}";
+      break;
+    case SOAP_TYPE__base64: 
+      o << "{base64 " << ((struct _base64)v).size() << " bytes}";
+      break;
+    case SOAP_TYPE__boolean: 
+      if (v.is_true())
+        o << "TRUE";
+      else
+	o << "FALSE";
+      break;
+    case SOAP_TYPE__dateTime_DOTiso8601: 
+      o << (const char*)v;
+      break;
+    case SOAP_TYPE__double: 
+      o << (double)v;
+      break;
+    case SOAP_TYPE__i4: 
+    case SOAP_TYPE__int: 
+      o << (int)v;
+      break;
+    case SOAP_TYPE__string: 
+      o << (const char*)v;
+      break;
+    case SOAP_TYPE__struct: 
+      o << "{struct" << std::endl;
+      for (struct _struct::iterator i = ((struct _struct)v).begin(); i != ((struct _struct)v).end(); ++i)
+        o << "[" << i.index() << "]=" << *i << std::endl;
+      o << "}";
+      break;
+    default:
+      if (v.__any)
+        o << v.__any;
+      else
+        o << "{?}";
+  }
   return o;
 }
 

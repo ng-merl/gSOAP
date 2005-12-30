@@ -50,10 +50,13 @@ extern int init();
 extern int yyparse();
 extern FILE *yyin;
 
+FILE *fmsg;		/* fd to flush compiler messages */
+
 int vflag = 0;		/* SOAP version, 0=not set, 1=1.1, 2=1.2 */
 int wflag = 0;		/* when set, don't generate WSDL and schema files */
 int Cflag = 0;		/* when set, generate only files for clients */
 int cflag = 0;		/* when set, generate files with .c extension */
+int aflag = 0;		/* when set, use value of SOAP Action to dispatch method at server side */
 int eflag = 0;		/* when set, use SOAP RPC encoding by default */
 int iflag = 0;		/* when set, generate new style proxy/object classes inherited from soap struct */
 int mflag = 0;		/* when set, generate code that requires array/binary classes to explicitly remove malloced array */
@@ -84,6 +87,7 @@ int
 main(int argc, char **argv)
 {	int i, g;
 	char *a, *s;
+	fmsg = stderr;
 	strcpy(filename, "<stdin>");
 	for (i = 1; i < argc; i++)
 	{	a = argv[i];
@@ -111,37 +115,38 @@ main(int argc, char **argv)
 						else
 							execerror("Option -d requires a directory path");
 						if (*dirpath && dirpath[strlen(dirpath)-1] != '/' && dirpath[strlen(dirpath)-1] != '\\')
-#ifdef WIN32
-							strcat(dirpath, "\\");
-#else
-							strcat(dirpath, "/");
-#endif
+							strcat(dirpath, SOAP_PATHCAT);
 						break;
 					case 'e':
 						eflag = 1;
 						break;
+					case 'a':
+						aflag = 1;
+						break;
 					case '?':
 					case 'h':
-						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-C|-S] [-L] [-c] [-d path] [-e] [-h] [-i] [-I path:path:...] [-m] [-n] [-p name] [-t] [-v] [-w] [-x] [infile]\n\n");
+						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-C|-S] [-L] [-a] [-c] [-d path] [-e] [-h] [-i] [-I path"SOAP_PATHSEP"path"SOAP_PATHSEP"...] [-l] [-m] [-n] [-p name] [-t] [-v] [-w] [-x] [infile]\n\n");
 						fprintf(stderr, "\
 -1      generate SOAP 1.1 bindings\n\
 -2      generate SOAP 1.2 bindings\n\
--e	generate SOAP RPC encoding style bindings\n\
 -C	generate client-side code only\n\
 -S	generate server-side code only\n\
 -L	don't generate soapClientLib/soapServerLib\n\
+-a	use value of SOAPAction HTTP header to dispatch method at server side\n\
 -c      generate C source code\n\
--i      generate service proxies and objects inherited from soap struct\n\
 -dpath  use path to save files\n\
+-e	generate SOAP RPC encoding style bindings\n\
+-h	display help info\n\
+-i      generate service proxies and objects inherited from soap struct\n\
 -Ipath  use path(s) for #import\n\
--m      generate modules (experimental)\n\
+-l      generate linkable modules (experimental)\n\
+-m      generate Matlab(tm) code for MEX compiler\n\
 -n      use service name to rename service functions and namespace table\n\
 -pname  save files with new prefix name instead of 'soap'\n\
 -t      generate code for fully xsi:type typed SOAP/XML messaging\n\
+-v	display version info\n\
 -w	don't generate WSDL and schema files\n\
 -x	don't generate sample XML message files\n\
--h	display help info\n\
--v	display version info\n\
 infile	header file to parse (or stdin)\n\
 \n");
 						exit(0);
@@ -158,7 +163,7 @@ infile	header file to parse (or stdin)\n\
 						if (importpath && s)
 						{	char *t	= emalloc(strlen(importpath) + strlen(s) + 2);
 							strcpy(t, importpath);
-							strcat(t, ":");
+							strcat(t, SOAP_PATHSEP);
 							strcat(t, s);
 							importpath = t;
 						}
@@ -228,7 +233,7 @@ infile	header file to parse (or stdin)\n\
 		else
 			strcpy(filename, argv[i]);
 	}
-	fprintf(stdout, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
+	fprintf(fmsg, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
 	if (stop_flag)
 	  exit(0);
 	init();

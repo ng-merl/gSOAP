@@ -41,6 +41,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "soapH.h"
 #include "xml-rpc-io.h"
 
+using namespace std;
+
 #define ENDPOINT "http://rpc.weblogs.com/RPC2"
 
 int main()

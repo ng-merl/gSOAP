@@ -82,6 +82,10 @@ s	= "http://www.soapinterop.org/xsd"
 
 aws	= "urn:PI/DevCentral/SoapService"
 
+#	Mappoint Web services:
+
+mpt	= "http://s.mappoint.net/mappoint-30/"
+
 #	MTOM xop and xmime are imported from xop.h, xmime.h, and xmlmime.h:
 
 xop	= <http://www.w3.org/2004/08/xop/include>

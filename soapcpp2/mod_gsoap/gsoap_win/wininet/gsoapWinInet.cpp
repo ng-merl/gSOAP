@@ -25,6 +25,7 @@
 
 #define UNUSED_ARG(x)           (x)
 #define INVALID_BUFFER_LENGTH  ((DWORD)-1)
+typedef unsigned long DWORD_PTR;
 
 /* plugin id */
 static const char wininet_id[] = "wininet-2.0";
@@ -853,10 +854,11 @@ wininet_callback(
         DBGLOG(TEST, SOAP_MESSAGE(fdebug,
             "wininet %p: INTERNET_STATUS_HANDLE_CLOSING\n", soap));
         break;
-    case INTERNET_STATUS_DETECTING_PROXY:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_DETECTING_PROXY\n", soap));
-        break;
+// Removed to avoid compile errors
+//    case INTERNET_STATUS_DETECTING_PROXY:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_DETECTING_PROXY\n", soap));
+//        break;
     case INTERNET_STATUS_REQUEST_COMPLETE:
         DBGLOG(TEST, SOAP_MESSAGE(fdebug,
             "wininet %p: INTERNET_STATUS_REQUEST_COMPLETE\n", soap));
@@ -870,38 +872,40 @@ wininet_callback(
         DBGLOG(TEST, SOAP_MESSAGE(fdebug,
             "wininet %p: INTERNET_STATUS_INTERMEDIATE_RESPONSE\n", soap));
         break;
-    case INTERNET_STATUS_USER_INPUT_REQUIRED:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_USER_INPUT_REQUIRED\n", soap));
-        break;
+// Removed to avoid compile errors
+//    case INTERNET_STATUS_USER_INPUT_REQUIRED:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_USER_INPUT_REQUIRED\n", soap));
+//        break;
     case INTERNET_STATUS_STATE_CHANGE:
         DBGLOG(TEST, SOAP_MESSAGE(fdebug,
             "wininet %p: INTERNET_STATUS_STATE_CHANGE\n", soap));
         break;
-    case INTERNET_STATUS_COOKIE_SENT:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_COOKIE_SENT\n", soap));
-        break;
-    case INTERNET_STATUS_COOKIE_RECEIVED:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_COOKIE_RECEIVED\n", soap));
-        break;
-    case INTERNET_STATUS_PRIVACY_IMPACTED:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_PRIVACY_IMPACTED\n", soap));
-        break;
-    case INTERNET_STATUS_P3P_HEADER:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_P3P_HEADER\n", soap));
-        break;
-    case INTERNET_STATUS_P3P_POLICYREF:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_P3P_POLICYREF\n", soap));
-        break;
-    case INTERNET_STATUS_COOKIE_HISTORY:
-        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
-            "wininet %p: INTERNET_STATUS_COOKIE_HISTORY\n", soap));
-        break;
+// Removed to avoid compile errors
+//    case INTERNET_STATUS_COOKIE_SENT:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_COOKIE_SENT\n", soap));
+//        break;
+//    case INTERNET_STATUS_COOKIE_RECEIVED:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_COOKIE_RECEIVED\n", soap));
+//        break;
+//    case INTERNET_STATUS_PRIVACY_IMPACTED:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_PRIVACY_IMPACTED\n", soap));
+//        break;
+//    case INTERNET_STATUS_P3P_HEADER:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_P3P_HEADER\n", soap));
+//        break;
+//    case INTERNET_STATUS_P3P_POLICYREF:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_P3P_POLICYREF\n", soap));
+//        break;
+//    case INTERNET_STATUS_COOKIE_HISTORY:
+//        DBGLOG(TEST, SOAP_MESSAGE(fdebug,
+//            "wininet %p: INTERNET_STATUS_COOKIE_HISTORY\n", soap));
+//        break;
     }
 }
 

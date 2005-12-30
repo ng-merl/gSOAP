@@ -30,6 +30,6 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 */
 
-extern ostream& operator<<(ostream&, const struct value&);
-extern istream& operator>>(istream&, struct value&);
+extern std::ostream& operator<<(std::ostream&, const struct value&);
+extern std::istream& operator>>(std::istream&, struct value&);
 

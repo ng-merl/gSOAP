@@ -51,7 +51,9 @@ TODO:
 static void init();
 static void options(int argc, char **argv);
 
-int cflag = 0,
+int aflag = 0,
+    cflag = 0,
+    dflag = 0,
     eflag = 0,
     fflag = 0,
     gflag = 0,
@@ -76,6 +78,9 @@ char *infile[100],
 int proxy_port = 8080;
 
 FILE *stream = stdout;
+
+char last_host[SOAP_TAGLEN] = "", last_path[SOAP_TAGLEN] = "";
+int last_port = 80;
 
 SetOfString exturis;
 
@@ -213,9 +218,15 @@ static void options(int argc, char **argv)
     { int g = 1;
       while (g && *++a)
       { switch (*a)
-        { case 'c':
+        { case 'a':
+            aflag = 1;
+       	    break;
+          case 'c':
             cflag = 1;
        	    break;
+	  case 'd':
+	    dflag = 1;
+	    break;
 	  case 'e':
 	    eflag = 1;
 	    break;
@@ -327,9 +338,11 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-c] [-e] [-f] [-g] [-h] [-I path] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
+            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
             fprintf(stderr, "\
+-a      generate indexed struct names for local elements with anonymous types\n\
 -c      generate C source code\n\
+-d      use DOM to populate xs:any and xsd:anyType elements\n\
 -e      don't qualify enum names\n\
 -f      generate flat C++ class hierarchy\n\
 -g      generate global top-level element declarations\n\

@@ -21,7 +21,7 @@
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Sep  2, 2005
+<h3 align="center">Dec 29, 2005
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -2681,12 +2681,14 @@ from a Web location is accessed, the header output will be produced on the
 standard output. Schema files (<i>.xsd</i>) can also be parsed and processed.
 
 <p>
-The <i>wsdl2h</i> command line options are:
+The <i>wsdl2h</i> command-line options are:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
 <table>
 <tr><td><font color="#FF0000"><b>Option</b></font>	</td><td><font color="#FF0000"><b>Description</b></font> </td></tr>
+<tr><td><i>-a</i>	</td><td>generate indexed struct names for local elements with anonymous types </td></tr>
 <tr><td><i>-c</i>	</td><td>generate C source code </td></tr>
+<tr><td><i>-d</i>	</td><td>use DOM to populate xs:any and xsd:anyType elements </td></tr>
 <tr><td><i>-e</i>	</td><td>don't qualify enum names </td></tr>
 <tr><td></td><td>This option is for backward compatibility with gSOAP 2.4.1 and earlier. </td></tr>
 <tr><td></td><td>The option does not produce code that conforms to WS-I Basic Profile 1.0a. </td></tr>
@@ -2704,6 +2706,7 @@ The <i>wsdl2h</i> command line options are:
 <tr><td><i>-r host:port</i>      </td><td>connect via proxy host and port </td></tr>
 <tr><td><i>-s</i>      </td><td>don't generate STL code (no std::string and no std::vector) </td></tr>
 <tr><td><i>-t file</i>  </td><td>use type map file instead of the default file typemap.dat </td></tr>
+<tr><td><i>-u</i>	</td><td>don't generate unions </td></tr>
 <tr><td><i>-v</i>      </td><td>verbose output </td></tr>
 <tr><td><i>-w</i>      </td><td>always wrap response parameters in a response struct </td></tr>
 <tr><td><i>-x</i>	</td><td>don't generate <i>_XML any/anyAttribute</i> extensibility elements </td></tr>
@@ -3768,19 +3771,24 @@ The compiler supports the following options:
 <tr><td><i>-C</i>	</td><td>Generate client-side code only </td></tr>
 <tr><td><i>-S</i>	</td><td>Generate server-side code only </td></tr>
 <tr><td><i>-L</i>	</td><td>Do not generate soapClientLib/soapServerLib </td></tr>
+<tr><td><i>-a</i>	</td><td>use value of SOAPAction HTTP header to dispatch method at server side </td></tr>
 <tr><td><i>-c</i>	</td><td>Generate pure C code </td></tr>
-<tr><td><i>-h</i>	</td><td>Print a brief usage message </td></tr>
-<tr><td><i>-w</i>	</td><td>Do not generate WSDL and schema files </td></tr>
-<tr><td><i>-x</i>	</td><td>Do not generate sample XML message files </td></tr>
-<tr><td><i>-m</i>	</td><td>Generate Matlab<sup><span class="roman">tm</span></sup> code for MEX compiler </td></tr>
-<tr><td><i>-I  &lt; path &gt; </i>	</td><td>Use <i> &lt; path &gt; </i> (or paths separated with `:') for <i>#import</i> </td></tr>
 <tr><td><i>-d  &lt; path &gt; </i>	</td><td>Save sources in directory specified by <i> &lt; path &gt; </i> </td></tr>
-<tr><td><i>-p  &lt; name &gt; </i>	</td><td>Save sources with file name prefix <i> &lt; name &gt; </i> instead of ``<i>soap</i>'' </td></tr>
+<tr><td><i>-e</i>	</td><td>Generate SOAP RPC encoding style bindings </td></tr>
+<tr><td><i>-h</i>	</td><td>Print a brief usage message </td></tr>
+<tr><td><i>-i</i>	</td><td>Generate service proxies and objects inherited from soap struct </td></tr>
+<tr><td><i>-I  &lt; path &gt; </i>	</td><td>Use <i> &lt; path &gt; </i> (or paths separated with `:') for <i>#import</i> </td></tr>
+<tr><td><i>-l</i>	</td><td>Generate linkable modules (experimental) </td></tr>
+<tr><td><i>-m</i>	</td><td>Generate Matlab<sup><span class="roman">tm</span></sup> code for MEX compiler </td></tr>
 <tr><td><i>-n</i>	</td><td>When used with <i>-p</i>, enables multi-client and multi-server builds: </td></tr>
 <tr><td></td><td>Sets compiler option <i>WITH_NONAMESPACES</i>, see Section&nbsp;<a href="#sec:compilerflags">9.11</a> </td></tr>
 <tr><td></td><td>Saves the namespace mapping table with name <i> &lt; name &gt; _namespaces</i> instead of <i>namespaces</i> </td></tr>
 <tr><td></td><td>Renames <i>soap_serve()</i> into <i> &lt; name &gt; _serve()</i> and <i>soap_destroy()</i> into <i> &lt; name &gt; _destroy()</i> </td></tr>
-<tr><td><i>-t</i>	</td><td>Generates code to send typed messages (with the <tt>xsi:type</tt> attribute) </td></tr></table>
+<tr><td><i>-p  &lt; name &gt; </i>	</td><td>Save sources with file name prefix <i> &lt; name &gt; </i> instead of ``<i>soap</i>'' </td></tr>
+<tr><td><i>-t</i>	</td><td>Generates code to send typed messages (with the <tt>xsi:type</tt> attribute) </td></tr>
+<tr><td><i>-v</i>	</td><td>Display version info</td></tr>
+<tr><td><i>-w</i>	</td><td>Do not generate WSDL and schema files </td></tr>
+<tr><td><i>-x</i>	</td><td>Do not generate sample XML message files </td></tr></table>
 
 </td></tr></table><br></span>
 For example
@@ -4143,6 +4151,7 @@ The following macros (<i>#define</i>s) can be used to enable certain optional fe
 <tr><td><i>WITH_COOKIES</i>	</td><td>enables HTTP cookies, see Sections&nbsp;<a href="#sec:clientcookie">19.26</a>&nbsp;<a href="#sec:servercookie">19.27</a> </td></tr>
 <tr><td><i>WITH_OPENSSL</i>	</td><td>enables OpenSSL, see Sections&nbsp;<a href="#sec:clientopenssl">19.20</a>&nbsp;<a href="#sec:serveropenssl">19.19</a> </td></tr>
 <tr><td><i>WITH_IPV6</i>	</td><td>enables IPv6 support </td></tr>
+<tr><td><i>WITH_TCPFIN</i>	</td><td>use TCP FIN after sends when socket is ready to close </td></tr>
 <tr><td><i>WITH_FASTCGI</i>	</td><td>enables FastCGI, see Sections&nbsp;<a href="#sec:fastcgi">19.29</a> </td></tr>
 <tr><td><i>WITH_GZIP</i>	</td><td>enables gzip and deflate compression, see Section&nbsp;<a href="#sec:compression">19.25</a> </td></tr>
 <tr><td><i>WITH_ZLIB</i>	</td><td>enables deflate compression only, see Section&nbsp;<a href="#sec:compression">19.25</a> </td></tr>
@@ -12580,7 +12589,7 @@ To enable the plug-in in your code, register the plug-in as follows:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 #include "httpmd5.h" <br />
 ... <br />
-<b>if</b>&nbsp;(soap_register_plugin(&amp;soap, httpmd5)) <br />
+<b>if</b>&nbsp;(soap_register_plugin(&amp;soap, http_md5)) <br />
 &nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); // failed to register
 </td></tr></table><br></i>
 Once registered, MD5 checksums are produced for all outbound messages. Inbound messages with MD5 checksums in the HTTP header are automatically verified.
@@ -12592,7 +12601,7 @@ The plug-in requires you to set the <i>SOAP_IO_STORE</i> flag when sending SOAP 
 ... <br />
 <b>struct</b>&nbsp;soap soap; <br />
 soap_init1(&amp;soap, SOAP_IO_STORE); <br />
-<b>if</b>&nbsp;(soap_register_plugin(&amp;soap, httpmd5) <br />
+<b>if</b>&nbsp;(soap_register_plugin(&amp;soap, http_md5) <br />
 &nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); // failed to register <br />
 ... now safe to send SOAP with attachments ...
 </td></tr></table><br></i>
@@ -12703,5 +12712,5 @@ soap_serve(&amp;soap); <br />
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.00.<br />On  2 Sep 2005, 08:48.</small>
+version 3.00.<br />On 29 Dec 2005, 22:03.</small>
 </html>

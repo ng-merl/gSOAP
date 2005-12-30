@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.6c
+stdsoap2.h 2.7.6d
 
 gSOAP runtime
 
@@ -375,7 +375,20 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
 #  define HAVE_WCTOMB
-#  define HAVE_MB
+#  define HAVE_MBTOWC
+# elif defined(AS400)
+#  define HAVE_STRRCHR
+#  define HAVE_STRTOD
+#  define HAVE_SSCANF
+#  define HAVE_STRTOL
+#  define HAVE_STRTOUL
+#  define HAVE_SYS_TIMEB_H
+#  define HAVE_FTIME
+#  define HAVE_RAND_R
+#  define HAVE_GMTIME_R
+#  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
 # else
 /* Default asumptions on supported functions */
 #  define HAVE_STRRCHR
@@ -558,9 +571,11 @@ extern "C" {
 #endif
 
 /* Portability: define SOAP_SOCKLEN_T */
-#if defined(SOCKLEN_T)
+#if defined(_AIX)
+# define SOAP_SOCKLEN_T socklen_t
+#elif defined(SOCKLEN_T)
 # define SOAP_SOCKLEN_T SOCKLEN_T
-#elif defined(__socklen_t_defined) || defined(_SOCKLEN_T) || defined(CYGWIN) || defined(FREEBSD) || defined(__FreeBSD__) || defined(__QNX__) || defined(QNX) || defined(_AIX)
+#elif defined(__socklen_t_defined) || defined(_SOCKLEN_T) || defined(CYGWIN) || defined(FREEBSD) || defined(__FreeBSD__) || defined(__QNX__) || defined(QNX)
 # define SOAP_SOCKLEN_T socklen_t
 #elif defined(IRIX) || defined(WIN32) || defined(__APPLE__) || defined(HP_UX) || defined(SUN_OS) || defined(OPENSERVER) || defined(TRU64) || defined(VXWORKS)
 # define SOAP_SOCKLEN_T int
@@ -568,11 +583,13 @@ extern "C" {
 # define SOAP_SOCKLEN_T size_t
 #endif
 
-#ifdef WIN32
-# define SOAP_SOCKET SOCKET
-#else
-# define SOAP_SOCKET int
-# define closesocket(n) close(n)
+#ifndef SOAP_SOCKET
+# ifdef WIN32
+#  define SOAP_SOCKET SOCKET
+# else
+#  define SOAP_SOCKET int
+#  define closesocket(n) close(n)
+# endif
 #endif
 
 #define SOAP_INVALID_SOCKET (-1)
@@ -627,17 +644,21 @@ extern "C" {
 # ifdef UNDER_CE
 #  define soap_errno GetLastError()
 #  define soap_socket_errno GetLastError()
+#  define soap_reset_errno SetLastError(0)
 # else
 #  define soap_errno GetLastError()
 #  define soap_socket_errno WSAGetLastError()
+#  define soap_reset_errno SetLastError(0)
 # endif
 #else
 # ifndef WITH_NOIO
 #  define soap_errno errno
 #  define soap_socket_errno errno
+#  define soap_reset_errno (errno = 0)
 # else
 #  define soap_errno 0
 #  define soap_socket_errno 0
+#  define soap_reset_errno
 # endif
 #endif
 
@@ -681,7 +702,7 @@ extern "C" {
 #endif
 #ifndef SOAP_TAGLEN
 # ifndef WITH_LEAN
-#  define SOAP_TAGLEN   (256) /* maximum length of XML element tag/attribute name or host/path name + 1 */
+#  define SOAP_TAGLEN  (1024) /* maximum length of XML element tag/attribute name or host/path name + 1 */
 # else
 #  define SOAP_TAGLEN    (64)
 # endif
@@ -1345,7 +1366,6 @@ struct soap_dom_element
   ~soap_dom_element();
 #endif
 };
-SOAP_FMAC1 const char* SOAP_FMAC2 soap_dom_current_nstr(struct soap *soap, const char *tag);
 SOAP_FMAC1 struct soap_dom_element * SOAP_FMAC2 soap_dom_next_element(struct soap_dom_element *elt);
 SOAP_FMAC1 struct soap_dom_attribute * SOAP_FMAC2 soap_dom_next_attribute(struct soap_dom_attribute *att);
 #endif
@@ -1564,11 +1584,9 @@ struct soap
   float z_ratio_in;		/* detected compression ratio compressed_length/length of inbound message */
   float z_ratio_out;		/* detected compression ratio compressed_length/length of outbound message */
 #endif
-/* WR[ */
 #ifdef WMW_RPM_IO
   void *rpmreqid;
-#endif /* WMW_RPM_IO */
-/* ]WR */
+#endif
 };
 
 struct soap_code_map
@@ -1804,6 +1822,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_closesock(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new(void);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new1(soap_mode);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new2(soap_mode, soap_mode);
+SOAP_FMAC1 void SOAP_FMAC2 soap_del(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy_context(struct soap*,struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_init(struct soap*);
@@ -1869,6 +1888,7 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_set_local_namespaces(struct soap*);
 
 SOAP_FMAC1 void SOAP_FMAC2 soap_pop_namespace(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_push_namespace(struct soap*, const char *,const char *);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_current_namespace(struct soap *soap, const char *tag);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_store_lab(struct soap*, const char*, size_t);
 SOAP_FMAC1 int SOAP_FMAC2 soap_append_lab(struct soap*, const char*, size_t);
@@ -1926,6 +1946,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_s2string(struct soap*, const char*, char**);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2QName(struct soap*, const char*, char**);
 
 #ifndef WITH_LEAN
+SOAP_FMAC1 int SOAP_FMAC2 soap_s2wchar(struct soap*, const char*, wchar_t**);
 SOAP_FMAC1 int SOAP_FMAC2 soap_s2dateTime(struct soap*, const char*, time_t*);
 SOAP_FMAC1 char* SOAP_FMAC2 soap_s2base64(struct soap*, const unsigned char*, char*, int);
 SOAP_FMAC1 char* SOAP_FMAC2 soap_s2hex(struct soap*, const unsigned char*, char*, int);
@@ -1946,6 +1967,7 @@ SOAP_FMAC1 const char* SOAP_FMAC2 soap_ULONG642s(struct soap*, ULONG64);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_QName2s(struct soap*, const char*);
 
 #ifndef WITH_LEAN
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_wchar2s(struct soap*, const wchar_t*);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_dateTime2s(struct soap*, time_t);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_base642s(struct soap*, const char*, char*, size_t, int*);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_hex2s(struct soap*, const char*, char*, size_t, int*);
