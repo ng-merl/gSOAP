@@ -17,12 +17,11 @@ soap *ctx = soap_new();
 // define method
 methodCall myMethod(ctx, "<endpoint-URL>", "<method-name>");
 // populate input parameters
-params input(ctx);
-input[0] = ...;
-input[1] = ...;
+myMethod[0] = ...; // first param
+myMethod[1] = ...; // second param
 ...
-// make the call
-params output = myMethod(input);
+// make the call and get the response parameters
+params output = myMethod();
 // error?
 if (myMethod.error())
   soap_print_fault(ctx, stderr);
@@ -31,7 +30,11 @@ else if (output.empty())
 else
   for (params::iterator arg = output.begin(); arg != output.end(); ++arg)
     cout << *arg << endl;
-
+// delete all
+soap_destroy(ctx);
+soap_end(ctx);
+soap_done(ctx);
+free(ctx);
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
@@ -144,29 +147,29 @@ bool value::is_true() const
 value::operator struct _array&()
 { if (__type == SOAP_TYPE__array)
     return *(struct _array*)ref;
-  return *new _array(soap);
+  return *soap_new__array(soap, -1);
 }
 
 value::operator const struct _array&() const
 { if (__type == SOAP_TYPE__array)
     return *(const struct _array*)ref;
-  return *new _array(soap);
+  return *soap_new__array(soap, -1);
 }
 
 value::operator struct _base64&()
 { if (__type == SOAP_TYPE__base64)
     return *(struct _base64*)ref;
-  return *new _base64(soap);
+  return *soap_new__base64(soap, -1);
 }
 
 value::operator const struct _base64&() const
 { if (__type == SOAP_TYPE__base64)
     return *(const struct _base64*)ref;
-  return *new _base64(soap);
+  return *soap_new__base64(soap, -1);
 }
 
 value::operator char*()
-{ if (__type == SOAP_TYPE__string)
+{ if (__type == SOAP_TYPE__string || __type == SOAP_TYPE__dateTime_DOTiso8601)
     return (char*)ref;
   if (__any)
     return __any;
@@ -174,7 +177,7 @@ value::operator char*()
 }
 
 value::operator const char*() const
-{ if (__type == SOAP_TYPE__string)
+{ if (__type == SOAP_TYPE__string || __type == SOAP_TYPE__dateTime_DOTiso8601)
     return (const char*)ref;
   if (__any)
     return __any;
@@ -198,13 +201,13 @@ value::operator int() const
 value::operator struct _struct&()
 { if (__type == SOAP_TYPE__struct)
     return *(struct _struct*)ref;
-  return *new _struct(soap);
+  return *soap_new__struct(soap, -1);
 }
 
 value::operator const struct _struct&() const
 { if (__type == SOAP_TYPE__struct)
     return *(const struct _struct*)ref;
-  return *new _struct(soap);
+  return *soap_new__struct(soap, -1);
 }
 
 struct value& value::operator[](int n)
@@ -265,6 +268,13 @@ struct _struct& value::operator=(struct _struct& r)
   __any = NULL;
   ref = &r;
   return r;
+}
+
+time_t value::operator=(time_t t)
+{ __type = SOAP_TYPE__dateTime_DOTiso8601;
+  __any = NULL;
+  ref = soap_strdup(soap, soap_dateTime2s(soap, t));
+  return t;
 }
 
 _struct::_struct()
@@ -464,13 +474,15 @@ methodCall::methodCall(struct soap *soap, const char *endpoint, const char *name
   methodResponse = NULL;
 }
 
-struct params& methodCall::operator()(const struct params& args)
+struct value& methodCall::operator[](int n)
+{ return params[n];
+}
+
+struct params& methodCall::operator()()
 { /* no namespaces */
   soap->namespaces = NULL;
   /* no SOAP encodingStyle */
   soap->encodingStyle = NULL;
-  /* parameters */
-  params = args;
   /* connect, send request, and receive response */
   if (soap_connect(soap, methodEndpoint, NULL)
    || soap_begin_send(soap)
@@ -483,21 +495,28 @@ struct params& methodCall::operator()(const struct params& args)
   soap_closesock(soap);
   if (methodResponse && methodResponse->params)
     return *methodResponse->params;
-  return *new ::params(soap);
+  return *soap_new_params(soap, -1);
+}
+
+struct params& methodCall::operator()(const struct params& args)
+{ /* parameters */
+  params = args;
+  /* invoke */
+  return (*this)();
 }
 
 struct params& methodCall::response()
 { if (!methodResponse)
-    methodResponse = new ::methodResponse(soap);
+    methodResponse = soap_new_methodResponse(soap, -1);
   if (!methodResponse->params)
-    methodResponse->params = new ::params(soap);
+    methodResponse->params = soap_new_params(soap, -1);
   return *methodResponse->params;
 }
 
 struct value& methodCall::fault()
 { if (methodResponse && methodResponse->fault)
     return methodResponse->fault->value;
-  return *new value(soap);
+  return *soap_new_value(soap, -1);
 }
 
 int methodCall::error() const

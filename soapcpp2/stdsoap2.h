@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.6d
+stdsoap2.h 2.7.6e
 
 gSOAP runtime
 
@@ -973,7 +973,14 @@ typedef soap_int32 soap_mode;
 
 #define SOAP_SSL_DEFAULT			SOAP_SSL_REQUIRE_SERVER_AUTHENTICATION
 
-/* */
+/* state */
+
+#define SOAP_INIT	1
+#define SOAP_COPY	2
+
+#define soap_check_state(soap) (!(soap) || ((soap)->state != SOAP_INIT && (soap)->state != SOAP_COPY))
+
+/* part */
 
 #define SOAP_BEGIN		0
 #define SOAP_IN_ENVELOPE	2
@@ -1019,7 +1026,7 @@ typedef soap_int32 soap_mode;
 #  define DBGLOG(DBGFILE, CMD) \
 { if (soap)\
   { if (!soap->fdebug[SOAP_INDEX_##DBGFILE])\
-      soap_open_logfile(soap, SOAP_INDEX_##DBGFILE);\
+      soap_open_logfile((struct soap*)soap, SOAP_INDEX_##DBGFILE);\
     if (soap->fdebug[SOAP_INDEX_##DBGFILE])\
     { FILE *fdebug = soap->fdebug[SOAP_INDEX_##DBGFILE];\
       CMD;\
@@ -1032,7 +1039,7 @@ typedef soap_int32 soap_mode;
 #  define DBGMSG(DBGFILE, MSG, LEN) \
 { if (soap)\
   { if (!soap->fdebug[SOAP_INDEX_##DBGFILE])\
-      soap_open_logfile(soap, SOAP_INDEX_##DBGFILE);\
+      soap_open_logfile((struct soap*)soap, SOAP_INDEX_##DBGFILE);\
     if (soap->fdebug[SOAP_INDEX_##DBGFILE])\
     { fwrite((MSG), 1, (LEN), soap->fdebug[SOAP_INDEX_##DBGFILE]);\
       fflush(soap->fdebug[SOAP_INDEX_##DBGFILE]);\
@@ -1380,8 +1387,8 @@ extern "C" {
 /******************************************************************************/
 
 struct soap
-{ short version;		/* 1 = SOAP1.1 and 2 = SOAP1.2 (set automatically from namespace URI in nsmap table) */
-  short copy;			/* 1 = copy of another soap struct */
+{ short state;			/* 0 = uninitialized, 1 = initialized, 2 = copy of another soap struct */
+  short version;		/* 1 = SOAP1.1 and 2 = SOAP1.2 (set automatically from namespace URI in nsmap table) */
   soap_mode mode;
   soap_mode imode;
   soap_mode omode;
@@ -1587,6 +1594,15 @@ struct soap
 #ifdef WMW_RPM_IO
   void *rpmreqid;
 #endif
+#ifndef WITH_LEAN
+#ifdef __cplusplus
+  soap();
+  soap(soap_mode);
+  soap(soap_mode, soap_mode);
+  soap(struct soap&);
+  ~soap();
+#endif
+#endif
 };
 
 struct soap_code_map
@@ -1600,7 +1616,8 @@ struct soap_flist
   int type;
   void *ptr;
   unsigned int level;
-  void (*fcopy)(struct soap*, int, int, void*, const void*, size_t);
+  size_t len;
+  void (*fcopy)(struct soap*, int, int, void*, size_t, const void*, size_t);
 };
 
 /* id-ref forwarding list */
@@ -1679,7 +1696,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_rand();
 #ifdef WITH_NOIDREF
 # define soap_embedded(s, p, t) (0)
 # define soap_id_lookup(s, i, p, t, n, k) (p)
-# define soap_id_forward(s, h, p, st, tt, n, k, fc) (p)
+# define soap_id_forward(s, h, p, len, st, tt, n, k, fc) (p)
 # define soap_reference(s, a, t) (1)
 # define soap_array_reference(s, p, a, n, t) (1)
 # define soap_embed(s, p, a, n, t, pp) (0)
@@ -1706,6 +1723,7 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_serializefault(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_putfault(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_getfault(struct soap*);
 
+SOAP_FMAC1 void SOAP_FMAC2 soap_ssl_init();
 SOAP_FMAC1 int SOAP_FMAC2 soap_poll(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect_command(struct soap*, int, const char*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect(struct soap*, const char*, const char*);
@@ -1800,10 +1818,10 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_track_free(struct soap*, const char*, int, void*
 #ifndef WITH_NOIDREF
 SOAP_FMAC1 int SOAP_FMAC2 soap_lookup_type(struct soap*, const char *id);
 SOAP_FMAC1 void* SOAP_FMAC2 soap_id_lookup(struct soap*, const char *id, void **p, int t, size_t n, unsigned int k);
-SOAP_FMAC1 void* SOAP_FMAC2 soap_id_forward(struct soap*, const char *id, void *p, int st, int tt, size_t n, unsigned int k, void(*fcopy)(struct soap*, int, int, void*, const void*, size_t));
+SOAP_FMAC1 void* SOAP_FMAC2 soap_id_forward(struct soap*, const char *id, void *p, size_t len, int st, int tt, size_t n, unsigned int k, void(*fcopy)(struct soap*, int, int, void*, size_t, const void*, size_t));
 #endif
 SOAP_FMAC1 void* SOAP_FMAC2 soap_id_enter(struct soap*, const char *id, void *p, int t, size_t n, unsigned int k, const char *type, const char *arrayType, void *(*finstantiate)(struct soap*, int, const char*, const char*, size_t*));
-SOAP_FMAC1 void SOAP_FMAC2 soap_fcopy(struct soap *soap, int st, int tt, void *p, const void *q, size_t n);
+SOAP_FMAC1 void SOAP_FMAC2 soap_fcopy(struct soap *soap, int st, int tt, void *p, size_t, const void *q, size_t n);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_size(const int *, int);
 SOAP_FMAC1 int SOAP_FMAC2 soap_getoffsets(const char *, const int *, int *, int);
@@ -1824,7 +1842,7 @@ SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new1(soap_mode);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new2(soap_mode, soap_mode);
 SOAP_FMAC1 void SOAP_FMAC2 soap_del(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy(struct soap*);
-SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy_context(struct soap*,struct soap*);
+SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy_context(struct soap*, struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_init(struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_init1(struct soap*, soap_mode);
 SOAP_FMAC1 void SOAP_FMAC2 soap_init2(struct soap*, soap_mode, soap_mode);

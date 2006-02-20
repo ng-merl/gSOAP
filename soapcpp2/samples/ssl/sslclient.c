@@ -23,12 +23,15 @@ void sigpipe_handle(int);
 int main()
 { struct soap soap;
   double a, b, result;
+  /* Init OpenSSL */
+  soap_ssl_init();
   if (CRYPTO_thread_setup())
   { fprintf(stderr, "Cannot setup thread mutex\n");
     exit(1);
   }
   a = 10.0;
   b = 20.0;
+  /* Init gSOAP context */
   soap_init(&soap);
   /* The supplied server certificate "server.pem" assumes that the server is
     running on 'localhost', so clients can only connect from the same host when

@@ -6,7 +6,7 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -66,7 +66,8 @@ int aflag = 0,
     vflag = 0,
     wflag = 0,
     xflag = 0,
-    yflag = 0;
+    yflag = 0,
+    zflag = 0;
 
 int infiles = 0;
 char *infile[100],
@@ -79,33 +80,31 @@ int proxy_port = 8080;
 
 FILE *stream = stdout;
 
-char last_host[SOAP_TAGLEN] = "", last_path[SOAP_TAGLEN] = "";
-int last_port = 80;
-
 SetOfString exturis;
 
 const char *service_prefix = NULL;
 const char *schema_prefix = "ns";
 
-char elementformat[]   = "    %-35s  %-30s";
-char pointerformat[]   = "    %-35s *%-30s";
-char attributeformat[] = "   @%-35s  %-30s";
-char vectorformat[]    = "    std::vector<%-23s> %-30s";
-char arrayformat[]     = "    %-35s *__ptr%-25s";
-char sizeformat[]      = "    %-35s  __size%-24s";
-char offsetformat[]    = "//  %-35s  __offset%-22s";
-char choiceformat[]    = "    %-35s  __%-28s";
-char schemaformat[]    = "//gsoap %-5s schema %s:\t%s\n";
-char serviceformat[]   = "//gsoap %-4s service %s:\t%s %s\n";
-char paraformat[]      = "    %-35s%s%s%s";
-char anonformat[]      = "    %-35s%s_%s%s";
+char elementformat[]       = "    %-35s  %-30s";
+char pointerformat[]       = "    %-35s *%-30s";
+char attributeformat[]     = "   @%-35s  %-30s";
+char vectorformat[]        = "    std::vector<%-23s> %-30s";
+char pointervectorformat[] = "    std::vector<%-22s> *%-30s";
+char arrayformat[]         = "    %-35s *__ptr%-25s";
+char sizeformat[]          = "    %-35s  __size%-24s";
+char offsetformat[]        = "//  %-35s  __offset%-22s";
+char choiceformat[]        = "    %-35s  __union%-23s";
+char schemaformat[]        = "//gsoap %-5s schema %s:\t%s\n";
+char serviceformat[]       = "//gsoap %-4s service %s:\t%s %s\n";
+char paraformat[]          = "    %-35s%s%s%s";
+char anonformat[]          = "    %-35s%s_%s%s";
 
-char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2005 Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc. Use option -l for more info.\n\n";
+char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2006 Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc. Use option -l for more info.\n\n";
 
 char licensenotice[]   = "\
 --------------------------------------------------------------------------------\n\
 gSOAP XML Web services tools\n\
-Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.\n\
+Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.\n\
 \n\
 This software is released under one of the following two licenses:\n\
 GPL or Genivia's license for commercial use.\n\
@@ -336,9 +335,12 @@ static void options(int argc, char **argv)
 	  case 'y':
 	    yflag = 1;
 	    break;
+	  case 'z':
+	    zflag = 1;
+	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
+            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-z] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
             fprintf(stderr, "\
 -a      generate indexed struct names for local elements with anonymous types\n\
 -c      generate C source code\n\
@@ -363,6 +365,7 @@ static void options(int argc, char **argv)
 -w      always wrap response parameters in a response struct (<=1.1.4 behavior)\n\
 -x      don't generate _XML any/anyAttribute extensibility elements\n\
 -y      generate typedef synonyms for structs and enums\n\
+-z      generate pointer-based arrays for backward compatibility < gSOAP 2.7.6e\n\
 infile.wsdl infile.xsd http://www... list of input sources (if none use stdin)\n\
 \n");
             exit(0);

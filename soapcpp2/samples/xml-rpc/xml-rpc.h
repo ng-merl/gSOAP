@@ -165,6 +165,7 @@ public:
   double		operator=(double);
   int			operator=(int);
   struct _struct&	operator=(struct _struct&);
+  time_t		operator=(time_t);
   extern bool		is_array() const;	///< true if value is array type
   extern bool		is_base64() const;	///< true if value is base64 type
   extern bool		is_bool() const;	///< true if value is boolean type
@@ -235,9 +236,12 @@ private:
 public:
   			methodCall();
   			methodCall(struct soap*, const char*, const char*);
+  struct value&		operator[](int);///< method parameter accessor index
+  struct params&	operator()();	///< method invocation
   struct params&	operator()(const struct params&);
-  struct params&	response();
-  struct value&		fault();
+  					///< method invocation with param list
+  struct params&	response();	///< get last response
+  struct value&		fault();	///< fault value
   int			error() const;	///< gSOAP error code
   struct soap*		soap;		///< ref to soap struct that manages this type
 };

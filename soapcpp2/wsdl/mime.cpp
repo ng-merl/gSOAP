@@ -6,7 +6,7 @@ WSDL/MIME binding schema
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ extern const char *qname_token(const char*, const char*);
 
 int mime__multipartRelated::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "mime multpartRelated " << endl;
+    cerr << "Analyzing mime multpartRelated " << endl;
   for (vector<mime__part>::iterator pt = part.begin(); pt != part.end(); ++pt)
     (*pt).traverse(definitions);
   return SOAP_OK;
@@ -61,7 +61,7 @@ int mime__multipartRelated::traverse(wsdl__definitions& definitions)
 
 int mime__part::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "mime part " << endl;
+    cerr << "Analyzing mime part " << endl;
   for (vector<soap__header>::iterator hd = soap__header_.begin(); hd != soap__header_.end(); ++hd)
     (*hd).traverse(definitions);
   return SOAP_OK;

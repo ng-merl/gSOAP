@@ -6,7 +6,7 @@ WSDL 1.1 binding schema implementation
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ wsdl__definitions::wsdl__definitions()
   redirs = 0;
 }
 
-wsdl__definitions::wsdl__definitions(struct soap *copy, const char *location)
+wsdl__definitions::wsdl__definitions(struct soap *copy, const char *cwd, const char *loc)
 { soap = soap_copy(copy);
   soap->socket = SOAP_INVALID_SOCKET;
   soap->recvfd = 0;
@@ -109,7 +109,7 @@ wsdl__definitions::wsdl__definitions(struct soap *copy, const char *location)
   soap->encodingStyle = NULL;
   updated = false;
   redirs = 0;
-  read(location);
+  read(cwd, loc);
 }
 
 wsdl__definitions::~wsdl__definitions()
@@ -125,9 +125,9 @@ int wsdl__definitions::get(struct soap *soap)
 
 int wsdl__definitions::read(int num, char **loc)
 { if (num <= 0)
-    return read(NULL);
+    return read((const char*)NULL, (const char*)NULL);
   if (num == 1)
-    return read(loc[0]);
+    return read((const char*)NULL, loc[0]);
   wsdl__import im;
   im.namespace_ = NULL;
   for (int i = 0; i < num; i++)
@@ -137,73 +137,65 @@ int wsdl__definitions::read(int num, char **loc)
   return preprocess();
 }
 
-int wsdl__definitions::read(const char *location)
-{ char *local_path = NULL;
-  char save_host[sizeof(last_host)];
-  char save_path[sizeof(last_path)];
-  int save_port = last_port;
-  strcpy(save_host, last_host);
-  strcpy(save_path, last_path);
-  if (location)
-  { if (!strncmp(location, "http://", 7) || !strncmp(location, "https://", 8))
-    { fprintf(stderr, "Connecting to '%s' to retrieve WSDL/XSD... ", location);
+int wsdl__definitions::read(const char *cwd, const char *loc)
+{ if (vflag)
+    fprintf(stderr, "Opening WSDL/XSD '%s' from '%s'\n", loc?loc:"", cwd?cwd:"");
+  if (loc)
+  { if (!strncmp(loc, "http://", 7) || !strncmp(loc, "https://", 8))
+    { fprintf(stderr, "Connecting to '%s' to retrieve WSDL/XSD... ", loc);
+      location = soap_strdup(soap, loc);
       if (soap_connect_command(soap, SOAP_GET, location, NULL))
       { fprintf(stderr, "connection failed\n");
         soap_print_fault(soap, stderr);
         exit(1);
       }
       fprintf(stderr, "connected, receiving...\n");
-      strcpy(last_host, soap->host);
-      strcpy(last_path, soap->path);
-      last_port = soap->port;
     }
-    else if (*last_host)
-    { local_path = strrchr(last_path, '/');
-      if (local_path)
-        *local_path = '\0';
-      local_path = (char*)soap_malloc(soap, strlen(last_host) + strlen(last_path) + strlen(location) + 32);
-      sprintf(local_path, "http://%s:%d%s/%s", last_host, last_port, last_path, location);
-      fprintf(stderr, "Connecting to '%s' to retrieve relative '%s' WSDL/XSD... ", local_path, location);
-      if (soap_connect_command(soap, SOAP_GET, local_path, NULL))
+    else if (cwd && (!strncmp(cwd, "http://", 7) || !strncmp(cwd, "https://", 8)))
+    { char *s;
+      location = (char*)soap_malloc(soap, strlen(cwd) + strlen(loc) + 2);
+      strcpy(location, cwd);
+      s = strrchr(location, '/');
+      if (s)
+        *s = '\0';
+      strcat(location, "/");
+      strcat(location, loc);
+      fprintf(stderr, "Connecting to '%s' to retrieve relative '%s' WSDL/XSD... ", location, loc);
+      if (soap_connect_command(soap, SOAP_GET, location, NULL))
       { fprintf(stderr, "connection failed\n");
         exit(1);
       }
       fprintf(stderr, "connected, receiving...\n");
-      strcpy(last_host, soap->host);
-      strcpy(last_path, soap->path);
-      last_port = soap->port;
     }
     else
-    { fprintf(stderr, "Reading file '%s'\n", location);
-      soap->recvfd = open(location, O_RDONLY, 0);
+    { soap->recvfd = open(loc, O_RDONLY, 0);
       if (soap->recvfd < 0)
-      { if (*last_path)
-        { local_path = strrchr(last_path, '/');
-          if (local_path)
-            *local_path = '\0';
-          local_path = (char*)soap_malloc(soap, strlen(last_path) + strlen(location) + 2);
-	  strcpy(local_path, last_path);
-	  strcat(local_path, "/");
-	  strcat(local_path, location);
-          fprintf(stderr, "Opening '%s'\n", local_path);
-          soap->recvfd = open(local_path, O_RDONLY, 0);
+      { if (cwd)
+        { char *s;
+          location = (char*)soap_malloc(soap, strlen(cwd) + strlen(loc) + 2);
+          strcpy(location, cwd);
+          s = strrchr(location, '/');
+          if (s)
+            *s = '\0';
+          strcat(location, "/");
+          strcat(location, loc);
+          soap->recvfd = open(location, O_RDONLY, 0);
         }
         if (soap->recvfd < 0 && import_path)
-        { local_path = (char*)soap_malloc(soap, strlen(import_path) + strlen(location) + 2);
-	  strcpy(local_path, import_path);
-	  strcat(local_path, "/");
-	  strcat(local_path, location);
-          fprintf(stderr, "Opening '%s'\n", local_path);
-          soap->recvfd = open(local_path, O_RDONLY, 0);
+        { location = (char*)soap_malloc(soap, strlen(import_path) + strlen(loc) + 2);
+          strcpy(location, import_path);
+          strcat(location, "/");
+          strcat(location, loc);
+          soap->recvfd = open(location, O_RDONLY, 0);
 	}
         if (soap->recvfd < 0)
-	{ fprintf(stderr, "Cannot open '%s'\n", location);
+	{ fprintf(stderr, "Cannot open '%s'\n", loc);
           exit(1);
         }
-        location = local_path;
       }
-      strncpy(last_path, location, sizeof(last_path));
-      last_path[sizeof(last_path) - 1] = '\0';
+      else
+        location = soap_strdup(soap, loc);
+      fprintf(stderr, "Reading file '%s'\n", location);
     }
   }
   if (!soap_begin_recv(soap))
@@ -215,7 +207,7 @@ int wsdl__definitions::read(const char *location)
       xs__schema *schema = new xs__schema(soap);
       schema->soap_in(soap, "xs:schema", NULL);
       if (soap->error)
-      { fprintf(stderr, "An error occurred while parsing WSDL or XSD from '%s'\n", location?location:"");
+      { fprintf(stderr, "An error occurred while parsing WSDL or XSD from '%s'\n", loc?loc:"");
         soap_print_fault(soap, stderr);
         soap_print_fault_location(soap, stderr);
         exit(1);
@@ -232,21 +224,21 @@ int wsdl__definitions::read(const char *location)
     { int r = SOAP_ERR;
       fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
       if (redirs++ < 10)
-        r = read(soap_strdup(soap, soap->endpoint));
+        r = read(cwd, soap->endpoint);
       else
         fprintf(stderr, "Max redirects exceeded\n");
       redirs--;
       return r;
     }
     else
-    { fprintf(stderr, "An error occurred while parsing WSDL from '%s'\n", location?location:"");
+    { fprintf(stderr, "An error occurred while parsing WSDL from '%s'\n", loc?loc:"");
       soap_print_fault(soap, stderr);
       soap_print_fault_location(soap, stderr);
       exit(1);
     }
   }
   if (vflag)
-    fprintf(stderr, "Done reading '%s'\n", location);
+    fprintf(stderr, "Done reading '%s'\n", loc);
   soap_end_recv(soap);
   if (soap->recvfd >= 0)
   { close(soap->recvfd);
@@ -254,9 +246,6 @@ int wsdl__definitions::read(const char *location)
   }
   else
     soap_closesock(soap);
-  strcpy(last_host, save_host);
-  strcpy(last_path, save_path);
-  last_port = save_port;
   return SOAP_OK;
 }
 
@@ -323,7 +312,7 @@ again:
 
 int wsdl__definitions::traverse()
 { if (vflag)
-    cerr << "wsdl definitions '" << (name?name:"") << "' targetNamespace " << (targetNamespace?targetNamespace:"?") << endl;
+    cerr << "Analyzing wsdl definitions '" << (name?name:"") << "' targetNamespace " << (targetNamespace?targetNamespace:"?") << endl;
   if (updated)
     return SOAP_OK;
   updated = true;
@@ -351,8 +340,12 @@ int wsdl__definitions::traverse()
   for (vector<wsdl__service>::iterator sv = service.begin(); sv != service.end(); ++sv)
     (*sv).traverse(*this);
   if (vflag)
-    cerr << "end of wsdl definitions '" << (name?name:"") << "' targetNamespace " << (targetNamespace?targetNamespace:"?") << endl;
+    cerr << "End of wsdl definitions '" << (name?name:"") << "' targetNamespace " << (targetNamespace?targetNamespace:"?") << endl;
   return SOAP_OK;
+}
+
+const char *wsdl__definitions::sourceLocation()
+{ return location;
 }
 
 int wsdl__definitions::error()
@@ -405,7 +398,7 @@ const SetOfString& wsdl__definitions::builtinAttributes() const
 
 int wsdl__service::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl service " << (name?name:"") << endl;
+    cerr << "Analyzing wsdl service " << (name?name:"") << endl;
   // process ports
   for (vector<wsdl__port>::iterator i = port.begin(); i != port.end(); ++i)
     (*i).traverse(definitions);
@@ -418,7 +411,7 @@ wsdl__port::wsdl__port()
 
 int wsdl__port::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl port" << endl;
+    cerr << "Analyzing wsdl port" << endl;
   // search binding name
   const char *token = qname_token(binding, definitions.targetNamespace);
   bindingRef = NULL;
@@ -469,7 +462,7 @@ wsdl__binding::wsdl__binding()
 
 int wsdl__binding::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl binding" << endl;
+    cerr << "Analyzing wsdl bindings" << endl;
   const char *token = qname_token(type, definitions.targetNamespace);
   portTypeRef = NULL;
   if (token)
@@ -521,7 +514,7 @@ wsdl__binding_operation::wsdl__binding_operation()
 
 int wsdl__binding_operation::traverse(wsdl__definitions& definitions, wsdl__portType *portTypeRef)
 { if (vflag)
-    cerr << "wsdl binding operation" << endl;
+    cerr << "Analyzing wsdl binding operation" << endl;
   if (input)
     input->traverse(definitions);
   if (output)
@@ -580,7 +573,7 @@ wsdl__operation *wsdl__binding_operation::operationPtr() const
 
 int wsdl__ext_input::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl ext input" << endl;
+    cerr << "Analyzing wsdl ext input" << endl;
   for (vector<soap__header>::iterator hd = soap__header_.begin(); hd != soap__header_.end(); ++hd)
     (*hd).traverse(definitions);
   if (mime__multipartRelated_)
@@ -590,7 +583,7 @@ int wsdl__ext_input::traverse(wsdl__definitions& definitions)
 
 int wsdl__ext_output::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl ext output" << endl;
+    cerr << "Analyzing wsdl ext output" << endl;
   for (vector<soap__header>::iterator hd = soap__header_.begin(); hd != soap__header_.end(); ++hd)
     (*hd).traverse(definitions);
   if (mime__multipartRelated_)
@@ -604,7 +597,7 @@ wsdl__ext_fault::wsdl__ext_fault()
 
 int wsdl__ext_fault::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl ext fault" << endl;
+    cerr << "Analyzing wsdl ext fault" << endl;
   messageRef = NULL;
   return SOAP_OK;
 }
@@ -619,7 +612,7 @@ wsdl__message *wsdl__ext_fault::messagePtr() const
 
 int wsdl__portType::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl portType" << endl;
+    cerr << "Analyzing wsdl portType" << endl;
   for (vector<wsdl__operation>::iterator i = operation.begin(); i != operation.end(); ++i)
     (*i).traverse(definitions);
   return SOAP_OK;
@@ -627,7 +620,7 @@ int wsdl__portType::traverse(wsdl__definitions& definitions)
 
 int wsdl__operation::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl operation" << endl;
+    cerr << "Analyzing wsdl operation" << endl;
   if (input)
     input->traverse(definitions);
   if (output)
@@ -643,7 +636,7 @@ wsdl__input::wsdl__input()
 
 int wsdl__input::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl input" << endl;
+    cerr << "Analyzing wsdl input" << endl;
   const char *token = qname_token(message, definitions.targetNamespace);
   messageRef = NULL;
   if (token)
@@ -693,7 +686,7 @@ wsdl__output::wsdl__output()
 
 int wsdl__output::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl output" << endl;
+    cerr << "Analyzing wsdl output" << endl;
   const char *token = qname_token(message, definitions.targetNamespace);
   messageRef = NULL;
   if (token)
@@ -743,7 +736,7 @@ wsdl__fault::wsdl__fault()
 
 int wsdl__fault::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl fault" << endl;
+    cerr << "Analyzing wsdl fault" << endl;
   const char *token = qname_token(message, definitions.targetNamespace);
   messageRef = NULL;
   if (token)
@@ -789,7 +782,7 @@ wsdl__message *wsdl__fault::messagePtr() const
 
 int wsdl__message::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl message" << endl;
+    cerr << "Analyzing wsdl message" << endl;
   for (vector<wsdl__part>::iterator i = part.begin(); i != part.end(); ++i)
     (*i).traverse(definitions);
   return SOAP_OK;
@@ -803,7 +796,7 @@ wsdl__part::wsdl__part()
 
 int wsdl__part::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl part" << endl;
+    cerr << "Analyzing wsdl part" << endl;
   elementRef = NULL;
   simpleTypeRef = NULL;
   complexTypeRef = NULL;
@@ -889,9 +882,14 @@ xs__complexType *wsdl__part::complexTypePtr() const
 
 int wsdl__types::preprocess(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl types" << endl;
-  // link imported schemas, need to repeat when <types> is extended with new imported schema (from inside another schema, etc.)
+    cerr << "Preprocessing wsdl types" << endl;
+  // set the location of each schema in <types> to the WSDL's location
+  for (vector<xs__schema*>::iterator schema0 = xs__schema_.begin(); schema0 != xs__schema_.end(); ++schema0)
+  { if (!(*schema0)->sourceLocation())
+      (*schema0)->sourceLocation(definitions.sourceLocation());
+  }
 again:
+  // link imported schemas, need to repeat when <types> is extended with new imported schema (from inside another schema, etc.)
   for (vector<xs__schema*>::iterator schema1 = xs__schema_.begin(); schema1 != xs__schema_.end(); ++schema1)
   { for (vector<xs__import>::iterator import = (*schema1)->import.begin(); import != (*schema1)->import.end(); ++import)
     { if ((*import).namespace_ && !(*import).schemaPtr())
@@ -935,7 +933,7 @@ again:
         { const char *s = (*import).schemaLocation;
 	  if (!s)
 	    s = (*import).namespace_;
-	  importschema = new xs__schema(definitions.soap, s);
+	  importschema = new xs__schema(definitions.soap, (*schema2)->sourceLocation(), s);
 	  if (!importschema->targetNamespace)
 	    importschema->targetNamespace = (*import).namespace_;
 	  else if ((*import).namespace_ && strcmp(importschema->targetNamespace, (*import).namespace_))
@@ -961,7 +959,7 @@ again:
 
 int wsdl__types::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl types" << endl;
+    cerr << "Analyzing wsdl types" << endl;
   for (vector<xs__schema*>::iterator schema3 = xs__schema_.begin(); schema3 != xs__schema_.end(); ++schema3)
   { // artificially extend the <import> of each schema to include others so when we traverse schemas we can resolve references
     for (vector<xs__schema*>::iterator importschema = xs__schema_.begin(); importschema != xs__schema_.end(); ++importschema)
@@ -996,7 +994,7 @@ int wsdl__types::traverse(wsdl__definitions& definitions)
   for (vector<xs__schema*>::iterator schema5 = xs__schema_.begin(); schema5 != xs__schema_.end(); ++schema5)
   { if (vflag)
       for (SetOfString::const_iterator i = (*schema5)->builtinTypes().begin(); i != (*schema5)->builtinTypes().end(); ++i)
-        cerr << "Schema builtin type: " << (*i) << endl;
+        cerr << "Found built-in schema type: " << (*i) << endl;
     definitions.builtinTypes((*schema5)->builtinTypes());
     definitions.builtinElements((*schema5)->builtinElements());
     definitions.builtinAttributes((*schema5)->builtinAttributes());
@@ -1007,7 +1005,7 @@ int wsdl__types::traverse(wsdl__definitions& definitions)
 int wsdl__import::preprocess(wsdl__definitions& definitions)
 { bool found = false;
   if (vflag)
-    cerr << "preprocess wsdl import " << (location?location:"") << endl;
+    cerr << "Preprocess wsdl import " << (location?location:"") << endl;
   definitionsRef = NULL;
   if (namespace_)
   { for (SetOfString::const_iterator i = exturis.begin(); i != exturis.end(); ++i)
@@ -1019,7 +1017,7 @@ int wsdl__import::preprocess(wsdl__definitions& definitions)
   }
   if (!found && location)
   { // parse imported definitions
-    definitionsRef = new wsdl__definitions(definitions.soap, location);
+    definitionsRef = new wsdl__definitions(definitions.soap, definitions.sourceLocation(), location);
     if (!definitionsRef)
       return SOAP_EOF;
     if (!namespace_)
@@ -1036,7 +1034,7 @@ int wsdl__import::preprocess(wsdl__definitions& definitions)
 
 int wsdl__import::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "wsdl import " << (location?location:"") << endl;
+    cerr << "Analyzing wsdl import " << (location?location:"") << endl;
   if (definitionsRef)
   { for (vector<wsdl__message>::iterator mg = definitionsRef->message.begin(); mg != definitionsRef->message.end(); ++mg)
       (*mg).traverse(definitions);

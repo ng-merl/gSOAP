@@ -37,6 +37,8 @@ int main()
   struct soap soap, *tsoap;
   /* Need SIGPIPE handler on Unix/Linux systems to catch broken pipes: */
   signal(SIGPIPE, sigpipe_handle);
+  /* Init OpenSSL */
+  soap_ssl_init();
   if (CRYPTO_thread_setup())
   { fprintf(stderr, "Cannot setup thread mutex\n");
     exit(1);

@@ -6,7 +6,7 @@ XSD binding schema interface
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -67,6 +67,8 @@ class xs__element
 	@xsd__string			default_;
 	@xsd__string			fixed;
 	@xsd__boolean			nillable		= false;
+	@xsd__boolean			abstract		= false;
+	@xsd__QName			substitutionGroup;
 	@xsd__string			minOccurs;		// xsd:nonNegativeInteger
 	@xsd__string			maxOccurs;		// xsd:nonNegativeInteger|unbounded
 	xs__annotation			*annotation;
@@ -77,6 +79,7 @@ class xs__element
   	xs__element			*elementRef;		// traverse() finds ref
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type or = simpleType above
   	xs__complexType			*complexTypeRef;	// traverse() finds type or = complexType above
+	std::vector<xs__element*>	substitutions;		// traverse() finds substitutionGroup elements for this abstract element
   public:
 					xs__element();
   	int				traverse(xs__schema&);
@@ -88,6 +91,7 @@ class xs__element
 	xs__element			*elementPtr() const;
 	xs__simpleType			*simpleTypePtr() const;
 	xs__complexType			*complexTypePtr() const;
+	const std::vector<xs__element*>	*substitutionsPtr() const;
 };
 
 enum xs__attribute_use { optional, prohibited, required, default_, fixed_ };
@@ -169,6 +173,7 @@ class xs__choice
 	//std::vector<xs__choice>		choice;
 	std::vector<xs__sequence*>	sequence;
 	std::vector<xs__any>		any;
+	xs__annotation			*annotation;
   private:
 	xs__schema			*schemaRef;		// schema to which this belongs
   public:
@@ -187,6 +192,7 @@ class xs__sequence
 	std::vector<xs__choice>		choice;
 	std::vector<xs__sequence*>	sequence;
 	std::vector<xs__any>		any;
+	xs__annotation			*annotation;
   public:
   	int				traverse(xs__schema&);
 };
@@ -315,6 +321,7 @@ class xs__restriction
 	xs__length			*maxInclusive;
 	xs__length			*minExclusive;
 	xs__length			*maxExclusive;
+	xs__annotation			*annotation;
   private:
   	xs__simpleType			*simpleTypeRef;		// traverse() finds type
   	xs__complexType			*complexTypeRef;	// traverse() finds type
@@ -447,19 +454,23 @@ class xs__schema
   	struct soap			*soap;
   private:
 	bool				updated;
+	char*				location;
+	int				redirs;
 	SetOfString			builtinTypeSet;
 	SetOfString			builtinElementSet;
 	SetOfString			builtinAttributeSet;
   public:
 					xs__schema();
 					xs__schema(struct soap*);
-					xs__schema(struct soap*, const char*);
+					xs__schema(struct soap*, const char*, const char*);
 	virtual				~xs__schema();
 	int				get(struct soap*);	// gSOAP getter is triggered after parsing
 	int				preprocess();
 	int				insert(xs__schema&);
 	int				traverse();
-	int				read(const char*);
+	int				read(const char*, const char*);
+	void				sourceLocation(const char*);
+	const char*			sourceLocation();
 	int				error();
 	void				print_fault();
 	void				builtinType(const char*);

@@ -6,7 +6,7 @@ WSDL/SOAP binding schema
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ extern const char *qname_token(const char*, const char*);
 
 int soap__header::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "soap header " << endl;
+    cerr << "Analyzing soap header " << endl;
   messageRef = NULL;
   partRef = NULL;
   const char *token = qname_token(message, definitions.targetNamespace);
@@ -121,7 +121,7 @@ wsdl__part *soap__header::partPtr() const
 
 int soap__headerfault::traverse(wsdl__definitions& definitions)
 { if (vflag)
-    cerr << "soap headerfault " << endl;
+    cerr << "Analyzing soap headerfault " << endl;
   messageRef = NULL;
   partRef = NULL;
   const char *token = qname_token(message, definitions.targetNamespace);

@@ -260,6 +260,7 @@ int main(int argc, char **argv)
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
 
   /* SSL init (to enable: compile all sources with -DWITH_OPENSSL) */
+  soap_ssl_init();
 #ifdef WITH_OPENSSL
   if (CRYPTO_thread_setup())
   {

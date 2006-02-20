@@ -6,7 +6,7 @@ WSDL 1.1 binding schema interface
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -268,6 +268,7 @@ class wsdl__definitions
 { public:
 	@xsd__NMTOKEN			name;
 	@xsd__anyURI			targetNamespace		= "";
+	@xsd__NMTOKEN			version;
 	std::vector<wsdl__import>	import;			// <wsdl:import>*
 	xsd__string			documentation;		// <wsdl:documentation>?
 	wsdl__types			*types;			// <wsdl:types>?
@@ -279,19 +280,21 @@ class wsdl__definitions
 	struct soap			*soap;
   private:
 	bool				updated;
+	char*				location;
 	int				redirs;
 	SetOfString			builtinTypeSet;
 	SetOfString			builtinElementSet;
 	SetOfString			builtinAttributeSet;
   public:
 					wsdl__definitions();
-					wsdl__definitions(struct soap*, const char*);
+					wsdl__definitions(struct soap*, const char*, const char*);
 	virtual				~wsdl__definitions();
 	int				get(struct soap*);	// gSOAP getter is triggered after parsing
 	int				preprocess();
 	int				traverse();
 	int				read(int, char**);
-	int				read(const char*);
+	int				read(const char *cwd, const char*);
+	const char*			sourceLocation();
 	int				error();
 	void				print_fault();
 	void				builtinType(const char*);

@@ -55,23 +55,80 @@ void soap_serialize_xsd__dateTime(struct soap *soap, struct tm const *a)
 { }
 
 int soap_out_xsd__dateTime(struct soap *soap, const char *tag, int id, const struct tm *a, const char *type)
-{ time_t t = mktime((struct tm*)a);
-  return soap_outdateTime(soap, tag, id, &t, type, SOAP_TYPE_xsd__dateTime);
+{ if (!soap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, SOAP_TYPE_xsd__dateTime), type))
+  { strftime(soap->tmpbuf, sizeof(soap->tmpbuf), "%Y-%m-%dT%H:%M:%SZ", a);
+    if (soap_string_out(soap, soap->tmpbuf, 0))
+      return soap->error;
+  }
+  else
+    return soap->error;
+  return soap_element_end_out(soap, tag);
 }
 
 struct tm *soap_in_xsd__dateTime(struct soap *soap, const char *tag, struct tm *a, const char *type)
-{ time_t t;
-  if (!soap_indateTime(soap, tag, &t, type, SOAP_TYPE_xsd__dateTime))
+{ if (soap_element_begin_in(soap, tag, 0))
     return NULL;
-  if (!a)
-  { if (!(a = (struct tm*)soap_malloc(soap, sizeof(struct tm))))
-    { soap->error = SOAP_EOM;
-      return NULL;
+  if (*soap->type
+   && soap_match_tag(soap, soap->type, type)
+   && soap_match_tag(soap, soap->type, ":dateTime"))
+  { soap->error = SOAP_TYPE;
+    soap_revert(soap);
+    return NULL;
+  }
+  a = (struct tm*)soap_id_enter(soap, soap->id, a, SOAP_TYPE_xsd__dateTime, sizeof(struct tm), 0, NULL, NULL, NULL);
+  if (*soap->href)
+    a = (struct tm*)soap_id_forward(soap, soap->href, a, SOAP_TYPE_xsd__dateTime, 0, sizeof(struct tm), 0, NULL);
+  else if (a)
+  { const char *s = soap_value(soap);
+    memset((void*)a, 0, sizeof(struct tm));
+    if (s)
+    { char zone[16];
+      const char *t;
+      zone[sizeof(zone)-1] = '\0';
+      if (strchr(s, '-'))
+        t = "%d-%d-%dT%d:%d:%d%15s";
+      else if (strchr(s, ':'))
+        t = "%4d%2d%2dT%d:%d:%d%15s";
+      else /* parse non-XSD-standard alternative ISO 8601 format */
+        t = "%4d%2d%2dT%2d%2d%2d%15s";
+      sscanf(s, t, &a->tm_year, &a->tm_mon, &a->tm_mday, &a->tm_hour, &a->tm_min, &a->tm_sec, zone);
+      if (a->tm_year == 1)
+        a->tm_year = 70;
+      else
+        a->tm_year -= 1900;
+      a->tm_mon--;
+      if (*zone)
+      { if (*zone == '.')
+        { for (s = zone + 1; *s; s++)
+            if (*s < '0' || *s > '9')
+              break;
+        }
+        else
+          s = zone;
+        if (*s == '+' || *s == '-')
+        { int h = 0, m = 0;
+          if (s[3] == ':')
+          { sscanf(s, "%d:%d", &h, &m);
+            if (h < 0)
+              m = -m;
+          }
+          else
+          { m = (int)atol(s);
+            h = m / 100;
+            m = m % 100;
+          }
+          a->tm_hour -= h;
+          a->tm_min -= m;
+        }
+        a->tm_isdst = 0;
+      }
+      else
+        a->tm_isdst = -1;
     }
   }
-#ifdef HAVE_LOCALTIME_R
-  return localtime_r(&t, a);
-#else
-  return localtime_r(&t);
-#endif
+  if (soap->body && soap_element_end_in(soap, tag))
+    return NULL;
+  return a;
 }
+
+

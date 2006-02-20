@@ -581,7 +581,7 @@ populated after all else failed to match the delivered XML content.</li>
 <li>Improved wsdl2h output.</li>
 <li>Fixed wsdl2h handling of duplicate values in single enum list.</li>
 </ul>
-<li>Version 2.7.6 revision a/b/c/d (08/19/2005-12/29/05)</li>
+<li>Version 2.7.6 revision a/b/c/d/e (08/19/2005-02/18/06)</li>
 <ul>
 <li>Added WS-Security authentication, tokens, and signatures with new 'wsse'
 plugin, see documentation in 'doc' directory and 'samples/wsse'.</li>
@@ -595,8 +595,11 @@ data to DOM (as well as a stream).</li>
 <li>Added wsdl2h option -a (for backward compatibility).</li>
 <li>Added wsdl2h option -d.</li>
 <li>Added WITH_TCPFIN comile flag to enable optional shutdown with how=1 (TCPFIN) after final sends to force EOF on other side (used to be the default behavior).</li>
+<li>Added schema substitutionGroup support.</li>
+<li>Added soap_ssl_init().</li>
 <li>Improved DOM implementation and documentation.</li>
 <li>Improved AS400 portability.</li>
+<li>Improved schema choice support.</li>
 <li>Fixed wsdl2h multiple schema include issue.</li>
 <li>Fixed soaps2dateTime and soap_timegm functions when timegm is not available.</li>
 <li>Fixed exc-c14n formatting.</li>
@@ -609,6 +612,7 @@ data to DOM (as well as a stream).</li>
 <li>Fixed relative path schema import.</li>
 <li>Fixed MTOM cid matching with URL encoded IDs.</li>
 <li>Fixed wide-character (wchar_t*) XML attribute handling.</li>
+<li>Fixed std::vector element id-ref ordering in deserializer.</li>
 </ul>
 </ul>
 

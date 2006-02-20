@@ -60,6 +60,8 @@ class Types
     int snum; // struct name index, TODO: consider map of URI to count per URI
     int unum; // union name index, TODO: consider map of URI to count per URI
     int gnum; // enum name index, TODO: consider map of URI to count per URI
+    bool with_union;
+    bool fake_union;
     Types();
     void init();
     int read(const char *file);
@@ -69,8 +71,9 @@ class Types
     const char *aname(const char *prefix, const char *URI, const char *qname);
     const char *cname(const char *prefix, const char *URI, const char *qname);
     const char *tname(const char *prefix, const char *URI, const char *qname);
-    const char *oname(const char *prefix, const char *URI, const char *qname);
+    const char *tnameptr(bool, const char *prefix, const char *URI, const char *qname);
     const char *pname(bool flag, const char *prefix, const char *URI, const char *qname);
+    const char *oname(const char *prefix, const char *URI, const char *qname);
     const char *ename(const char *type, const char *value);
     const char *sname(const char *URI, const char *name);
     const char *gname(const char *URI, const char *name);
@@ -100,6 +103,8 @@ class Types
     void gen(const char *URI, const char *name, const xs__choice&);
     void gen(const char *URI, const xs__any&);
     void gen(const char *URI, const xs__anyAttribute&);
+    void gen_soap_array(const char *name, const char *t, const char *item, char *type);
+    void gen_substitutions(const char *URI, const xs__element &element);
     void document(const xs__annotation*);
     void modify(const char *name);
     const char *format(const char *text);
