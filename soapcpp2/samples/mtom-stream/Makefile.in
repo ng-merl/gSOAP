@@ -36,7 +36,7 @@ oldincludedir = /usr/include
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
-top_builddir = ../..
+top_builddir = ../../..
 
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -98,87 +98,120 @@ platform = @platform@
 ####### This is the input file for automake, which will generate Makefile.in ##########
 AUTOMAKE_OPTIONS = foreign 1.4
 
-SUBDIRS = \
-	quote quote2 quote3 quote4 quotex calc factory factorytest \
-	dime mtom mtom-stream rss xml-rpc udp localtime listing \
-	polytest magic lu ck googleapi varparam router events
+noinst_PROGRAMS = mtom-stream
+SOAPHEADER = mtom-stream-test.h
 
-subdir = soapcpp2/samples
+AM_CFLAGS = -D$(platform)
+AM_CXXFLAGS = -D$(platform)
+INCLUDES = -I$(top_builddir)/soapcpp2
+SOAP = $(top_builddir)/soapcpp2/src/soapcpp2
+
+SOAP_NS_DEF = ns.nsmap ns.wsdl
+
+SOAP_H_FILES = soapH.h soapStub.h 
+
+SOAP_FLAGS = -I$(top_builddir)/soapcpp2/import
+
+SOAP_C_CLIENT = soapClient.c soapC.c
+SOAP_C_SERVER = soapServer.c soapC.c
+SOAP_C_LIB = $(top_builddir)/soapcpp2/libgsoap.a
+SOAP_C_LIB_CK = $(top_builddir)/soapcpp2/libgsoapck.a
+
+SOAP_CPP_CLIENT = soapClient.cpp soapC.cpp
+SOAP_CPP_SERVER = soapServer.cpp soapC.cpp
+SOAP_CPP_LIB = $(top_builddir)/soapcpp2/libgsoap++.a
+SOAP_CPP_LIB_CK = $(top_builddir)/soapcpp2/libgsoapck++.a
+
+SOAP_NS = mtom_stream_test.nsmap mtom_stream_test.wsdl
+
+SOAP_C_SRC = $(SOAP_C_CLIENT) soapServer.c $(SOAP_H_FILES) $(SOAP_NS)
+
+LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
+BUILT_SOURCES = $(SOAP_C_SRC) 
+CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
+
+mtom_stream_SOURCES = mtom-stream-test.c $(SOAPHEADER) $(SOAP_C_SRC)
+mtom_stream_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
+subdir = soapcpp2/samples/mtom-stream
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-DIST_SOURCES =
+noinst_PROGRAMS = mtom-stream$(EXEEXT)
+PROGRAMS = $(noinst_PROGRAMS)
 
-RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
-	uninstall-info-recursive all-recursive install-data-recursive \
-	install-exec-recursive installdirs-recursive install-recursive \
-	uninstall-recursive check-recursive installcheck-recursive
+am__objects_1 =
+am__objects_2 = soapClient.$(OBJEXT) soapC.$(OBJEXT)
+am__objects_3 = $(am__objects_2) soapServer.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_1)
+am_mtom_stream_OBJECTS = mtom-stream-test.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_3)
+mtom_stream_OBJECTS = $(am_mtom_stream_OBJECTS)
+mtom_stream_DEPENDENCIES = $(top_builddir)/soapcpp2/libgsoap.a
+mtom_stream_LDFLAGS =
+
+DEFS = @DEFS@
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/mtom-stream-test.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/soapC.Po ./$(DEPDIR)/soapClient.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/soapServer.Po
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+DIST_SOURCES = $(mtom_stream_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-DIST_SUBDIRS = $(SUBDIRS)
-all: all-recursive
+SOURCES = $(mtom_stream_SOURCES)
+
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
+.SUFFIXES: .c .o .obj
+$(srcdir)/Makefile.in:  Makefile.am $(srcdir)/../Makefile.defines $(srcdir)/../Makefile.c_rules $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  soapcpp2/samples/Makefile
+	  $(AUTOMAKE) --foreign  soapcpp2/samples/mtom-stream/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
+
+clean-noinstPROGRAMS:
+	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+mtom-stream$(EXEEXT): $(mtom_stream_OBJECTS) $(mtom_stream_DEPENDENCIES) 
+	@rm -f mtom-stream$(EXEEXT)
+	$(LINK) $(mtom_stream_LDFLAGS) $(mtom_stream_OBJECTS) $(mtom_stream_LDADD) $(LIBS)
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT) core *.core
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mtom-stream-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapC.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapClient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/soapServer.Po@am__quote@
+
+distclean-depend:
+	-rm -rf ./$(DEPDIR)
+
+.c.o:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `test -f '$<' || echo '$(srcdir)/'`$<
+
+.c.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `cygpath -w $<`
+CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
-
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run `make' without going through this Makefile.
-# To change the values of `make' variables: instead of editing Makefiles,
-# (1) if the variable is set in `config.status', edit `config.status'
-#     (which will cause the Makefiles to be regenerated when you run `make');
-# (2) otherwise, pass the desired values on the `make' command line.
-$(RECURSIVE_TARGETS):
-	@set fnord $$MAKEFLAGS; amf=$$2; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
-mostlyclean-recursive clean-recursive distclean-recursive \
-maintainer-clean-recursive:
-	@set fnord $$MAKEFLAGS; amf=$$2; \
-	dot_seen=no; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	rev=''; for subdir in $$list; do \
-	  if test "$$subdir" = "."; then :; else \
-	    rev="$$subdir $$rev"; \
-	  fi; \
-	done; \
-	rev="$$rev ."; \
-	target=`echo $@ | sed s/-recursive//`; \
-	for subdir in $$rev; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
-	done && test -z "$$fail"
-tags-recursive:
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
-	done
 
 ETAGS = etags
 ETAGSFLAGS =
@@ -194,15 +227,10 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	       END { for (i in files) print i; }'`; \
 	mkid -fID $$unique
 
-TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -222,7 +250,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 
-top_distdir = ../..
+top_distdir = ../../..
 distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
@@ -246,34 +274,21 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test -d $(distdir)/$$subdir \
-	    || mkdir $(distdir)/$$subdir \
-	    || exit 1; \
-	    (cd $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$(top_distdir)" \
-	        distdir=../$(distdir)/$$subdir \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile
-installdirs: installdirs-recursive
-installdirs-am:
+check: check-am
+all-am: Makefile $(PROGRAMS)
 
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+installdirs:
+
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  INSTALL_STRIP_FLAG=-s \
@@ -282,6 +297,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-rm -f Makefile $(CONFIG_CLEAN_FILES)
@@ -289,19 +305,21 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+clean: clean-am
 
-clean-am: clean-generic mostlyclean-am
+clean-am: clean-generic clean-noinstPROGRAMS mostlyclean-am
 
-distclean: distclean-recursive
+distclean: distclean-am
 
-distclean-am: clean-am distclean-generic distclean-tags
+distclean-am: clean-am distclean-compile distclean-depend \
+	distclean-generic distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
@@ -309,39 +327,36 @@ install-data-am:
 
 install-exec-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-man:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
+maintainer-clean: maintainer-clean-am
 
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
 uninstall-am: uninstall-info-am
 
-uninstall-info: uninstall-info-recursive
+.PHONY: GTAGS all all-am check check-am clean clean-generic \
+	clean-noinstPROGRAMS distclean distclean-compile \
+	distclean-depend distclean-generic distclean-tags distdir dvi \
+	dvi-am info info-am install install-am install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic tags uninstall uninstall-am \
+	uninstall-info-am
 
-.PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-am clean \
-	clean-generic clean-recursive distclean distclean-generic \
-	distclean-recursive distclean-tags distdir dvi dvi-am \
-	dvi-recursive info info-am info-recursive install install-am \
-	install-data install-data-am install-data-recursive \
-	install-exec install-exec-am install-exec-recursive \
-	install-info install-info-am install-info-recursive install-man \
-	install-recursive install-strip installcheck installcheck-am \
-	installdirs installdirs-am installdirs-recursive \
-	maintainer-clean maintainer-clean-generic \
-	maintainer-clean-recursive mostlyclean mostlyclean-generic \
-	mostlyclean-recursive tags tags-recursive uninstall \
-	uninstall-am uninstall-info-am uninstall-info-recursive \
-	uninstall-recursive
 
+$(SOAP_C_SRC) : $(SOAPHEADER)
+	$(SOAP) -c $(SOAP_FLAGS) $< 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

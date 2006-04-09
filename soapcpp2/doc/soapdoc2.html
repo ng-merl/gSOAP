@@ -23,7 +23,7 @@
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Feb 19, 2006
+<h3 align="center">Apr  8, 2006
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -172,101 +172,103 @@
 <a href="#tth_sEc10"
 >10&nbsp; <font color="#0000FF">gSOAP Serialization and Deserialization Rules</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.1"
->10.1&nbsp; <font color="#0000FF">Primitive Type Encoding</font></a><br />
+>10.1&nbsp; <font color="#0000FF">SOAP RPC Encoding Versus Document/Literal and xsi:type Info</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2"
->10.2&nbsp; <font color="#0000FF">How to Encode and Decode Primitive Types as XSD Types</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.1"
->10.2.1&nbsp; <font color="#0000FF">How to Use Multiple C/C++ Types for a Single Primitive XSD Type</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.2"
->10.2.2&nbsp; <font color="#0000FF">How to use Wrapper Classes to Specify Polymorphic Primitive Types</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.3"
->10.2.3&nbsp; <font color="#0000FF">XSD Schema Type Decoding Rules</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.4"
->10.2.4&nbsp; <font color="#0000FF">Multi-Reference Strings</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.5"
->10.2.5&nbsp; <font color="#0000FF">"Smart String" Mixed-Content Decoding</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.6"
->10.2.6&nbsp; <font color="#0000FF">STL Strings</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.7"
->10.2.7&nbsp; <font color="#0000FF">Changing the Encoding Precision of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.2.8"
->10.2.8&nbsp; <font color="#0000FF">INF, -INF, and NaN Values of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></a><br />
+>10.2&nbsp; <font color="#0000FF">Primitive Type Encoding</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3"
->10.3&nbsp; <font color="#0000FF">Enumeration Serialization</font></a><br />
+>10.3&nbsp; <font color="#0000FF">How to Encode and Decode Primitive Types as XSD Types</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.1"
->10.3.1&nbsp; <font color="#0000FF">Serialization of Symbolic Enumeration Constants</font></a><br />
+>10.3.1&nbsp; <font color="#0000FF">How to Use Multiple C/C++ Types for a Single Primitive XSD Type</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.2"
->10.3.2&nbsp; <font color="#0000FF">Encoding of Enumeration Constants</font></a><br />
+>10.3.2&nbsp; <font color="#0000FF">How to use Wrapper Classes to Specify Polymorphic Primitive Types</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.3"
->10.3.3&nbsp; <font color="#0000FF">Initialized Enumeration Constants</font></a><br />
+>10.3.3&nbsp; <font color="#0000FF">XSD Schema Type Decoding Rules</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.4"
->10.3.4&nbsp; <font color="#0000FF">How to "Reuse" Symbolic Enumeration Constants</font></a><br />
+>10.3.4&nbsp; <font color="#0000FF">Multi-Reference Strings</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.5"
->10.3.5&nbsp; <font color="#0000FF">Boolean Enumeration Serialization for C</font></a><br />
+>10.3.5&nbsp; <font color="#0000FF">"Smart String" Mixed-Content Decoding</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.6"
->10.3.6&nbsp; <font color="#0000FF">Bitmask Enumeration Serialization</font></a><br />
+>10.3.6&nbsp; <font color="#0000FF">STL Strings</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.7"
+>10.3.7&nbsp; <font color="#0000FF">Changing the Encoding Precision of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.3.8"
+>10.3.8&nbsp; <font color="#0000FF">INF, -INF, and NaN Values of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4"
->10.4&nbsp; <font color="#0000FF">Struct Serialization</font></a><br />
+>10.4&nbsp; <font color="#0000FF">Enumeration Serialization</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4.1"
+>10.4.1&nbsp; <font color="#0000FF">Serialization of Symbolic Enumeration Constants</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4.2"
+>10.4.2&nbsp; <font color="#0000FF">Encoding of Enumeration Constants</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4.3"
+>10.4.3&nbsp; <font color="#0000FF">Initialized Enumeration Constants</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4.4"
+>10.4.4&nbsp; <font color="#0000FF">How to "Reuse" Symbolic Enumeration Constants</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4.5"
+>10.4.5&nbsp; <font color="#0000FF">Boolean Enumeration Serialization for C</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.4.6"
+>10.4.6&nbsp; <font color="#0000FF">Bitmask Enumeration Serialization</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5"
->10.5&nbsp; <font color="#0000FF">Class Instance Serialization</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.1"
->10.5.1&nbsp; <font color="#0000FF">Example</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.2"
->10.5.2&nbsp; <font color="#0000FF">Initialized <b>static</b>&nbsp;<b>const</b>&nbsp;Fields</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.3"
->10.5.3&nbsp; <font color="#0000FF">Class Methods</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.4"
->10.5.4&nbsp; <font color="#0000FF">Getter and Setter Methods</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.5"
->10.5.5&nbsp; <font color="#0000FF">Streaming XML with Getter and Setter Methods</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.6"
->10.5.6&nbsp; <font color="#0000FF">Polymorphism, Derived Classes, and Dynamic Binding</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.7"
->10.5.7&nbsp; <font color="#0000FF">XML Attributes</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.5.8"
->10.5.8&nbsp; <font color="#0000FF">QName Attributes and Elements</font></a><br />
+>10.5&nbsp; <font color="#0000FF">Struct Serialization</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6"
->10.6&nbsp; <font color="#0000FF">Union Serialization</font></a><br />
+>10.6&nbsp; <font color="#0000FF">Class Instance Serialization</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.1"
+>10.6.1&nbsp; <font color="#0000FF">Example</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.2"
+>10.6.2&nbsp; <font color="#0000FF">Initialized <b>static</b>&nbsp;<b>const</b>&nbsp;Fields</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.3"
+>10.6.3&nbsp; <font color="#0000FF">Class Methods</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.4"
+>10.6.4&nbsp; <font color="#0000FF">Getter and Setter Methods</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.5"
+>10.6.5&nbsp; <font color="#0000FF">Streaming XML with Getter and Setter Methods</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.6"
+>10.6.6&nbsp; <font color="#0000FF">Polymorphism, Derived Classes, and Dynamic Binding</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.7"
+>10.6.7&nbsp; <font color="#0000FF">XML Attributes</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.6.8"
+>10.6.8&nbsp; <font color="#0000FF">QName Attributes and Elements</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.7"
->10.7&nbsp; <font color="#0000FF">Serializing Pointer Types</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.7.1"
->10.7.1&nbsp; <font color="#0000FF">Multi-Referenced Data</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.7.2"
->10.7.2&nbsp; <font color="#0000FF">NULL Pointers and Nil Elements</font></a><br />
+>10.7&nbsp; <font color="#0000FF">Union Serialization</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.8"
->10.8&nbsp; <font color="#0000FF">Void Pointers</font></a><br />
+>10.8&nbsp; <font color="#0000FF">Serializing Pointer Types</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.8.1"
+>10.8.1&nbsp; <font color="#0000FF">Multi-Referenced Data</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.8.2"
+>10.8.2&nbsp; <font color="#0000FF">NULL Pointers and Nil Elements</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.9"
->10.9&nbsp; <font color="#0000FF">Fixed-Size Arrays</font></a><br />
+>10.9&nbsp; <font color="#0000FF">Void Pointers</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10"
->10.10&nbsp; <font color="#0000FF">Dynamic Arrays</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.1"
->10.10.1&nbsp; <font color="#0000FF">SOAP Array Bounds Limits</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.2"
->10.10.2&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.3"
->10.10.3&nbsp; <font color="#0000FF">Example</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.4"
->10.10.4&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.5"
->10.10.5&nbsp; <font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.6"
->10.10.6&nbsp; <font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.7"
->10.10.7&nbsp; <font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.8"
->10.10.8&nbsp; <font color="#0000FF">STL Containers</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.9"
->10.10.9&nbsp; <font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.10.10"
->10.10.10&nbsp; <font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></a><br />
+>10.10&nbsp; <font color="#0000FF">Fixed-Size Arrays</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11"
->10.11&nbsp; <font color="#0000FF">Base64Binary XML Schema Type Encoding</font></a><br />
+>10.11&nbsp; <font color="#0000FF">Dynamic Arrays</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.1"
+>10.11.1&nbsp; <font color="#0000FF">SOAP Array Bounds Limits</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.2"
+>10.11.2&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.3"
+>10.11.3&nbsp; <font color="#0000FF">Example</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.4"
+>10.11.4&nbsp; <font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.5"
+>10.11.5&nbsp; <font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.6"
+>10.11.6&nbsp; <font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.7"
+>10.11.7&nbsp; <font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.8"
+>10.11.8&nbsp; <font color="#0000FF">STL Containers</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.9"
+>10.11.9&nbsp; <font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.11.10"
+>10.11.10&nbsp; <font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.12"
->10.12&nbsp; <font color="#0000FF">hexBinary XML Schema Type Encoding</font></a><br />
+>10.12&nbsp; <font color="#0000FF">Base64Binary XML Schema Type Encoding</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.13"
->10.13&nbsp; <font color="#0000FF">Literal XML Encoding Style</font></a><br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.13.1"
->10.13.1&nbsp; <font color="#0000FF">Serializing and Deserializing Mixed Content XML With Strings</font></a><br />
+>10.13&nbsp; <font color="#0000FF">hexBinary XML Schema Type Encoding</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.14"
+>10.14&nbsp; <font color="#0000FF">Literal XML Encoding Style</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc10.14.1"
+>10.14.1&nbsp; <font color="#0000FF">Serializing and Deserializing Mixed Content XML With Strings</font></a><br />
 <a href="#tth_sEc11"
 >11&nbsp; <font color="#0000FF">SOAP Fault Processing</font></a><br />
 <a href="#tth_sEc12"
@@ -274,9 +276,9 @@
 <a href="#tth_sEc13"
 >13&nbsp; <font color="#0000FF">MIME Attachments</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.1"
->13.1&nbsp; <font color="#0000FF">Sending a Collection of MIME Attachments</font></a><br />
+>13.1&nbsp; <font color="#0000FF">Sending a Collection of MIME Attachments (SwA)</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc13.2"
->13.2&nbsp; <font color="#0000FF">Retrieving a Collection of MIME Attachments</font></a><br />
+>13.2&nbsp; <font color="#0000FF">Retrieving a Collection of MIME Attachments (SwA)</font></a><br />
 <a href="#tth_sEc14"
 >14&nbsp; <font color="#0000FF">DIME Attachments</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc14.1"
@@ -297,6 +299,10 @@
 >15.1&nbsp; <font color="#0000FF">Generating MultipartRelated MIME Attachment Bindings in WSDL</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc15.2"
 >15.2&nbsp; <font color="#0000FF">Sending and Receiving MTOM Attachments</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc15.3"
+>15.3&nbsp; <font color="#0000FF">Streaming MTOM/MIME</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc15.4"
+>15.4&nbsp; <font color="#0000FF">Streaming Chunked MTOM/MIME</font></a><br />
 <a href="#tth_sEc16"
 >16&nbsp; <font color="#0000FF">XML Validation</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc16.1"
@@ -1608,7 +1614,7 @@ This simple mechanism informs the gSOAP compiler to generate serializers and des
 primitive C++ types as built-in primitive XSD types when the <i>typedef</i>ed type is used in the parameter signature of a
 remote method (or when used nested within structs, classes, and arrays).  At the same time, the use of <i><b>typedef</b></i> 
 does not force any recoding of a C++ client or Web service application as the internal C++ types used by the application
-are not required to be changed (but still have to be primitive C++ types, see Section&nbsp;<a href="#sec:primclass">10.2.2</a> for alternative class
+are not required to be changed (but still have to be primitive C++ types, see Section&nbsp;<a href="#sec:primclass">10.3.2</a> for alternative class
 implementations of primitive XSD types which allows for the marshalling of polymorphic primitive types).
 
 <div class="p"><!----></div>
@@ -4367,7 +4373,7 @@ There are certain limitations for the following C++ language constructs:
 
 <dl compact="compact">
  <dt><b>STL and STL templates</b></dt>
-	<dd> The gSOAP compiler supports STL strings <i>std::string</i> and <i>std::wstring</i> (see Section&nbsp;<a href="#sec:strings">10.2.6</a>) and the STL containers <i>std::deque</i>, <i>std::list</i>, <i>std::vector</i>, and <i>std::set</i>, (see Section&nbsp;<a href="#sec:templates">10.10.8</a>).</dd>
+	<dd> The gSOAP compiler supports STL strings <i>std::string</i> and <i>std::wstring</i> (see Section&nbsp;<a href="#sec:strings">10.3.6</a>) and the STL containers <i>std::deque</i>, <i>std::list</i>, <i>std::vector</i>, and <i>std::set</i>, (see Section&nbsp;<a href="#sec:templates">10.11.8</a>).</dd>
  <dt><b>Templates</b></dt>
 	<dd> The gSOAP compiler is a preprocessor that cannot determine the template instantations used by the main program, nor can it generate templated code. You can however implement containers similar to the STL containers.</dd>
  <dt><b>Multiple inheritance</b></dt>
@@ -4387,15 +4393,15 @@ The following data types require some attention to ensure they are serialized:
 
 <dl compact="compact">
  <dt><b><i><b>union</b></i> types</b></dt>
-	<dd> A <i><b>union</b></i> data type can not be serialized unless run-time information is associated with a <i><b>union</b></i> in a struct/class as discussed in Section&nbsp;<a href="#sec:union">10.6</a>. An alternative is to use a <i><b>struct</b></i> with a pointer type for each field. Because <i>NULL</i> pointers are not encoded, the resulting encoding will appear as a union type if only one pointer field is valid (i.e.&nbsp;non-<i>NULL</i>) at the time that the data type is encoded.</dd>
+	<dd> A <i><b>union</b></i> data type can not be serialized unless run-time information is associated with a <i><b>union</b></i> in a struct/class as discussed in Section&nbsp;<a href="#sec:union">10.7</a>. An alternative is to use a <i><b>struct</b></i> with a pointer type for each field. Because <i>NULL</i> pointers are not encoded, the resulting encoding will appear as a union type if only one pointer field is valid (i.e.&nbsp;non-<i>NULL</i>) at the time that the data type is encoded.</dd>
  <dt><b><i><b>void</b></i> and <i><b>void</b>*</i> types</b></dt>
-	<dd> The <i><b>void</b></i> data type cannot be serialized unless run-time type information is associated with the pointer using a <i><b>int</b>&nbsp;__type</i> field in the struct/class that contains the <i><b>void</b>*</i>. The <i><b>void</b>*</i> data type is typically used to point to some object or to some array of some type of objects at run-time. The compiler cannot determine the type of data pointed to and the size of the array pointed to. A struct or class with a <i><b>void</b>*</i> field can be augmented to support the (de)serialization of the <i><b>void</b>*</i> using a <i><b>int</b>&nbsp;__type</i> field as described in Section&nbsp;<a href="#sec:void">10.8</a>.</dd>
+	<dd> The <i><b>void</b></i> data type cannot be serialized unless run-time type information is associated with the pointer using a <i><b>int</b>&nbsp;__type</i> field in the struct/class that contains the <i><b>void</b>*</i>. The <i><b>void</b>*</i> data type is typically used to point to some object or to some array of some type of objects at run-time. The compiler cannot determine the type of data pointed to and the size of the array pointed to. A struct or class with a <i><b>void</b>*</i> field can be augmented to support the (de)serialization of the <i><b>void</b>*</i> using a <i><b>int</b>&nbsp;__type</i> field as described in Section&nbsp;<a href="#sec:void">10.9</a>.</dd>
  <dt><b>Pointers to sequences of elements in memory</b></dt>
 	<dd> Any pointer, except for C strings which are pointers to a sequence of
 characters, are treated by the compiler as if the pointer points to <b>only one element in memory</b> at run-time. Consequently,
 the encoding and decoding routines will ignore any subsequent elements that follow the first in memory. For the same reason,
 arrays of undetermined length, e.g.&nbsp;<i><b>float</b>&nbsp;a[]</i> cannot be used. gSOAP supports dynamic arrays using a special type convention,
-see Section&nbsp;<a href="#sec:dynarray">10.10</a>.</dd>
+see Section&nbsp;<a href="#sec:dynarray">10.11</a>.</dd>
  <dt><b>Uninitialized pointers</b></dt>
 	<dd> Obviously, all pointers that are part of a data structure must be valid or <i>NULL</i> to enable
 serialization of the data structure at run time.</dd>
@@ -4404,7 +4410,7 @@ There are a number of programming solutions that can be adopted to circumvent th
 can in some cases be modified to use a pointer to a known type. If the pointer is intended to point to different types of objects, a generic
 base class can be declared and the pointer is declared to point to the base class. All the other types are declared to be derived
 classes of this base class. For pointers that point to a sequence of elements in memory dynamic arrays should be used instead,
-see <a href="#sec:dynarray">10.10</a>.
+see <a href="#sec:dynarray">10.11</a>.
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc8.11">
@@ -5432,7 +5438,45 @@ This section describes the serialization and deserialization of C and C++ data t
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc10.1">
-10.1</a>&nbsp;&nbsp;<font color="#0000FF">Primitive Type Encoding</font></h3>
+10.1</a>&nbsp;&nbsp;<font color="#0000FF">SOAP RPC Encoding Versus Document/Literal and xsi:type Info</font></h3>
+
+<div class="p"><!----></div>
+The wsdl2h tool automatically generates a header file specialized for SOAP RPC
+encoding or document/literal style. The serialization and deserialization rules
+for C/C++ objects is almost identical for these styles, except for the
+following important issues.
+
+<div class="p"><!----></div>
+With SOAP RPC encoding style, care must be taken to ensure typed messages are
+produced for interoperability and compatibility reasons. To ensure that the
+gSOAP engine automatically generates typed (<tt>xsi:type</tt> attributed)
+messages, use <i>soapcpp2</i> option -t, see also Section&nbsp;<a href="#sec:options">8.1</a>.
+While gSOAP can handle untyped messages, some toolkits fail to find
+deserializers when the <tt>xsi:type</tt> information is absent.
+
+<div class="p"><!----></div>
+When starting the development of a gSOAP application from a header file, the
+<i>soapcpp2</i> compiler will generate WSDL and schema files for SOAP 1.1
+document/literal style by default (use the <i>//gsoap</i> directives to control
+this, see Section&nbsp;<a href="#sec:directives">18.2</a>). Use <i>soapcpp2</i> options -2, -e, and
+-t to generate code for SOAP 1.2, RPC encoding, and typed messages.
+
+<div class="p"><!----></div>
+With SOAP RPC encoding, generic <tt>complexTypes</tt> with
+<tt>maxOccurs=&#252;nbounded"</tt> are not allowed and SOAP encoded arrays must be
+used. Also XML attributes and unions (XML schema <tt>choice</tt>) are not allowed
+with SOAP RPC encoding.
+
+<div class="p"><!----></div>
+Also with SOAP RPC encoding, multi-reference accessors are common to encode
+co-referenced objects and object digraphs. Multi-reference encoding is not
+supported in document/literal style, which means that cyclic object digraphs
+cannot be serialized (the engine will crash). Also DAGs are represented as XML
+trees in document/literal style messaging.
+
+<div class="p"><!----></div>
+	     <h3><a name="tth_sEc10.2">
+10.2</a>&nbsp;&nbsp;<font color="#0000FF">Primitive Type Encoding</font></h3>
 
 <div class="p"><!----></div>
 The default encoding rules for the primitive C and C++ data types are given in the table below:
@@ -5443,6 +5487,7 @@ The default encoding rules for the primitive C and C++ data types are given in t
 <tr><td><i><b>bool</b></i> </td><td><tt>boolean</tt> </td></tr>
 <tr><td><i><b>char</b>*</i> (C string) </td><td><tt>string</tt> </td></tr>
 <tr><td><i><b>char</b></i> </td><td><tt>byte</tt> </td></tr>
+<tr><td><i><b>long</b>&nbsp;<b>double</b></i> </td><td><tt>decimal</tt> (with #import "custom/long_double.h") </td></tr>
 <tr><td><i><b>double</b></i> </td><td><tt>double</tt> </td></tr>
 <tr><td><i><b>float</b></i> </td><td><tt>float</tt> </td></tr>
 <tr><td><i><b>int</b></i> </td><td><tt>int</tt> </td></tr>
@@ -5451,6 +5496,7 @@ The default encoding rules for the primitive C and C++ data types are given in t
 <tr><td><i><b>long</b>&nbsp;<b>long</b></i> </td><td><tt>long</tt> </td></tr>
 <tr><td><i><b>short</b></i> </td><td><tt>short</tt> </td></tr>
 <tr><td><i>time_t</i> </td><td><tt>dateTime</tt> </td></tr>
+<tr><td><i><b>struct</b>&nbsp;tm</i> </td><td><tt>dateTime</tt> (with #import "custom/struct_tm.h") </td></tr>
 <tr><td><i><b>unsigned</b>&nbsp;<b>char</b></i> </td><td><tt>unsignedByte</tt> </td></tr>
 <tr><td><i><b>unsigned</b>&nbsp;<b>int</b></i> </td><td><tt>unsignedInt</tt> </td></tr>
 <tr><td><i><b>unsigned</b>&nbsp;<b>long</b></i> </td><td><tt>unsignedLong</tt> </td></tr>
@@ -5461,11 +5507,11 @@ The default encoding rules for the primitive C and C++ data types are given in t
 
 </td></tr></table><br></span>
 Objects of type <i><b>void</b></i> and <i><b>void</b>*</i> cannot be encoded.
-Enumerations and bit masks are supported as well, see&nbsp;<a href="#sec:enum">10.3</a>.
+Enumerations and bit masks are supported as well, see&nbsp;<a href="#sec:enum">10.4</a>.
 
 <div class="p"><!----></div>
-		     <h3><a name="tth_sEc10.2">
-10.2</a>&nbsp;&nbsp;<font color="#0000FF">How to Encode and Decode Primitive Types as XSD Types</font></h3><a name="sec:primitive">
+		     <h3><a name="tth_sEc10.3">
+10.3</a>&nbsp;&nbsp;<font color="#0000FF">How to Encode and Decode Primitive Types as XSD Types</font></h3><a name="sec:primitive">
 </a>
 
 <div class="p"><!----></div>
@@ -5539,7 +5585,7 @@ It is recommended to use strings to store <tt>xsd:anyURI</tt> XML Schema types. 
 	<dd>
 Represents Base64-encoded arbitrary binary data.
 For using the <tt>xsd:base64Binary</tt> XSD Schema type, the use of the base64Binary representation of a dynamic array is <b>strongly</b> recommended,
-see Section&nbsp;<a href="#sec:base64binary">10.11</a>. However, the
+see Section&nbsp;<a href="#sec:base64binary">10.12</a>. However, the
 type can also be declared as a string and the encoding will be string-based:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>typedef</b>&nbsp;<b>char</b>&nbsp;*xsd__base64Binary;
@@ -5548,7 +5594,7 @@ With this approach, it is solely the responsibility of the application to make s
  <dt><b><tt>xsd:boolean</tt></b></dt>
 	<dd>
 For declaring an <tt>xsd:boolean</tt> XSD Schema type, the use of a bool is <b>strongly</b> recommended.
-If a pure C compiler is used that does not support the <i>bool</i> type, see Section&nbsp;<a href="#sec:boolean">10.3.5</a>.
+If a pure C compiler is used that does not support the <i>bool</i> type, see Section&nbsp;<a href="#sec:boolean">10.4.5</a>.
 The corresponding type declaration is:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>typedef</b>&nbsp;<b>bool</b>&nbsp;xsd__boolean;
@@ -5643,7 +5689,7 @@ Represents arbitrary hex-encoded binary data.  It has a lexical representation w
 tuple, consisting of two hexadecimal digits ([0-9a-fA-F]) representing the octet code. For example, "0FB7" is a hex encoding for
 the 16-bit integer 4023 (whose binary representation is 111110110111.
 For using the <tt>xsd:hexBinary</tt> XSD Schema type, the use of the hexBinary representation of a dynamic array is <b>strongly</b> recommended,
-see Section&nbsp;<a href="#sec:hexbinary">10.12</a>. However, the
+see Section&nbsp;<a href="#sec:hexbinary">10.13</a>. However, the
 type can also be declared as a string and the encoding will be string-based:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>typedef</b>&nbsp;<b>char</b>&nbsp;*xsd__hexBinary;
@@ -5868,8 +5914,8 @@ Other XSD Schema types such as <tt>gYearMonth</tt>, <tt>gYear</tt>, <tt>gMonthDa
 <tt>NOTATION</tt>, etc., can be encoded similarly using a <i><b>typedef</b></i> declaration.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.1">
-10.2.1</a>&nbsp;&nbsp;<font color="#0000FF">How to Use Multiple C/C++ Types for a Single Primitive XSD Type</font></h4>
+		      <h4><a name="tth_sEc10.3.1">
+10.3.1</a>&nbsp;&nbsp;<font color="#0000FF">How to Use Multiple C/C++ Types for a Single Primitive XSD Type</font></h4>
 
 <div class="p"><!----></div>
 Trailing underscores (see Section&nbsp;<a href="#sec:idtrans">9.3</a>) can be used in the type
@@ -5886,8 +5932,8 @@ and decoded as XML string types and the use of trailing underscores allows
 multiple declarations for a single XML Schema type.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.2">
-10.2.2</a>&nbsp;&nbsp;<font color="#0000FF">How to use Wrapper Classes to Specify Polymorphic Primitive Types</font></h4><a name="sec:primclass">
+		      <h4><a name="tth_sEc10.3.2">
+10.3.2</a>&nbsp;&nbsp;<font color="#0000FF">How to use Wrapper Classes to Specify Polymorphic Primitive Types</font></h4><a name="sec:primclass">
 </a>
 
 <div class="p"><!----></div>
@@ -5986,19 +6032,19 @@ It is also allowed to include the <i>xsd:base64Binary</i> and <i>xsd:hexBinary</
 <b>class</b>&nbsp;xsd__base64Binary: <b>public</b>&nbsp;xsd__anySimpleType { <b>public</b>: <b>unsigned</b>&nbsp;<b>char</b>&nbsp;*__ptr; <b>int</b>&nbsp;__size; }; <br />
 <b>class</b>&nbsp;xsd__hexBinary: <b>public</b>&nbsp;xsd__anySimpleType { <b>public</b>: <b>unsigned</b>&nbsp;<b>char</b>&nbsp;*__ptr; <b>int</b>&nbsp;__size; };
 </td></tr></table><br></i>
-See Sections&nbsp;<a href="#sec:base64binary">10.11</a> and&nbsp;<a href="#sec:hexbinary">10.12</a>.
+See Sections&nbsp;<a href="#sec:base64binary">10.12</a> and&nbsp;<a href="#sec:hexbinary">10.13</a>.
 
 <div class="p"><!----></div>
-Methods are allowed to be added to the classes above, such as constructors and getter/setter methods, see Section&nbsp;<a href="#sec:gettersetter">10.5.4</a>.
+Methods are allowed to be added to the classes above, such as constructors and getter/setter methods, see Section&nbsp;<a href="#sec:gettersetter">10.6.4</a>.
 
 <div class="p"><!----></div>
 Wrapper structs are supported as well, similar to wrapper classes.  But they cannot be used
 to implement polymorphism.  Rather, the wrapper structs facilitate the use of XML attributes
-with a primitive typed object, see&nbsp;<a href="#sec:attributes">10.5.7</a>.
+with a primitive typed object, see&nbsp;<a href="#sec:attributes">10.6.7</a>.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.3">
-10.2.3</a>&nbsp;&nbsp;<font color="#0000FF">XSD Schema Type Decoding Rules</font></h4>
+		      <h4><a name="tth_sEc10.3.3">
+10.3.3</a>&nbsp;&nbsp;<font color="#0000FF">XSD Schema Type Decoding Rules</font></h4>
 
 <div class="p"><!----></div>
 The decoding rules for the primitive C and C++ data types is given in the table below:
@@ -6007,8 +6053,8 @@ The decoding rules for the primitive C and C++ data types is given in the table 
 <table>
 <tr><td><font color="#FF0000"><b>Type</b></font> </td><td><font color="#FF0000"><b>Allows Decoding of</b></font> </td><td><font color="#FF0000"><b>Precision Lost?</b></font> </td></tr>
 <tr><td><i><b>bool</b></i> </td><td><tt><font size="+1"><span class="roman">[</span></font>xsd:<font size="+1"><span class="roman">]</span></font>boolean</tt> </td><td>no </td></tr>
-<tr><td><i><b>char</b>*</i> (C string) </td><td>any type, see&nbsp;<a href="#sec:smart">10.2.5</a> </td><td>no </td></tr>
-<tr><td><i>wchar_t *</i> (wide string) </td><td>any type, see&nbsp;<a href="#sec:smart">10.2.5</a> </td><td>no </td></tr>
+<tr><td><i><b>char</b>*</i> (C string) </td><td>any type, see&nbsp;<a href="#sec:smart">10.3.5</a> </td><td>no </td></tr>
+<tr><td><i>wchar_t *</i> (wide string) </td><td>any type, see&nbsp;<a href="#sec:smart">10.3.5</a> </td><td>no </td></tr>
 <tr><td></td></tr>
 <tr><td><i><b>double</b></i>	</td><td><tt><font size="+1"><span class="roman">[</span></font>xsd:<font size="+1"><span class="roman">]</span></font>double</tt> </td><td>no </td></tr>
 <tr><td></td><td><tt><font size="+1"><span class="roman">[</span></font>xsd:<font size="+1"><span class="roman">]</span></font>float</tt> </td><td>no </td></tr>
@@ -6123,8 +6169,8 @@ loss of precision).
 The declaration also allows decoding of <tt>xsd:positiveInteger</tt> XSD Schema types, because of the storage as a <i><b>unsigned</b>&nbsp;<b>long</b>&nbsp;<b>long</b></i> data type.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.4">
-10.2.4</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Reference Strings</font></h4>
+		      <h4><a name="tth_sEc10.3.4">
+10.3.4</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Reference Strings</font></h4>
 
 <div class="p"><!----></div>
 If more than one <i><b>char</b></i> pointer points to the same string, the string is encoded as a multi-reference value.
@@ -6154,8 +6200,8 @@ The variables <i>s</i> and <i>t</i> point to the same string, but since they are
 be shared in the SOAP payload through a multi-referenced string.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.5">
-10.2.5</a>&nbsp;&nbsp;<font color="#0000FF">"Smart String" Mixed-Content Decoding</font></h4><a name="sec:smart">
+		      <h4><a name="tth_sEc10.3.5">
+10.3.5</a>&nbsp;&nbsp;<font color="#0000FF">"Smart String" Mixed-Content Decoding</font></h4><a name="sec:smart">
 </a>
 
 <div class="p"><!----></div>
@@ -6190,8 +6236,8 @@ Content-Length: nnn <br />
 As a result of the mixed content decoding, the <i>detail</i> string contains "<tt>&lt;picture&#62;Mona Lisa by &lt;i&#62;Leonardo da Vinci&lt;/i&#62;&lt;/picture&#62;</tt>".
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.6">
-10.2.6</a>&nbsp;&nbsp;<font color="#0000FF">STL Strings</font></h4><a name="sec:strings">
+		      <h4><a name="tth_sEc10.3.6">
+10.3.6</a>&nbsp;&nbsp;<font color="#0000FF">STL Strings</font></h4><a name="sec:strings">
 </a>
 
 <div class="p"><!----></div>
@@ -6211,8 +6257,8 @@ For example:
 <font color="#FF0000"><b>Caution:</b></font> Please avoid mixing <i>std::string</i> and C strings (<i><b>char</b>*</i>) in the header file when using SOAP 1.1 encoding. The problem is that multi-referenced strings in SOAP encoded messages cannot be assigned simultaneously to a <i>std::string</i> and a <i><b>char</b>*</i> string.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.7">
-10.2.7</a>&nbsp;&nbsp;<font color="#0000FF">Changing the Encoding Precision of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></h4>
+		      <h4><a name="tth_sEc10.3.7">
+10.3.7</a>&nbsp;&nbsp;<font color="#0000FF">Changing the Encoding Precision of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></h4>
 
 <div class="p"><!----></div>
 The <i>double</i> encoding format is by default set to "<i>%.18G</i>" (see a manual on <i>printf</i> text formatting in C),
@@ -6241,8 +6287,8 @@ which causes all floats to be encoded with four digits precision.
 <font color="#FF0000"><b>Caution</b></font>: The format strings are not automatically reset before or after SOAP communications. An error in the format string may result in the incorrect encoding of floating point values.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.2.8">
-10.2.8</a>&nbsp;&nbsp;<font color="#0000FF">INF, -INF, and NaN Values of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></h4>
+		      <h4><a name="tth_sEc10.3.8">
+10.3.8</a>&nbsp;&nbsp;<font color="#0000FF">INF, -INF, and NaN Values of <b>float</b>&nbsp;and <b>double</b>&nbsp;Types</font></h4>
 
 <div class="p"><!----></div>
 The gSOAP runtime <i>stdsoap2.cpp</i> and header file <i>stdsoap2.h</i> support the marshalling of IEEE INF, -INF, and NaN
@@ -6260,16 +6306,16 @@ You can control the representations as well, which are defined by the macros:
 </td></tr></table><br></i>
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.3">
-10.3</a>&nbsp;&nbsp;<font color="#0000FF">Enumeration Serialization</font></h3><a name="sec:enum">
+	     <h3><a name="tth_sEc10.4">
+10.4</a>&nbsp;&nbsp;<font color="#0000FF">Enumeration Serialization</font></h3><a name="sec:enum">
 </a>
 
 <div class="p"><!----></div>
 Enumerations are generally useful for the declaration of named integer-valued constants, also called enumeration constants.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.3.1">
-10.3.1</a>&nbsp;&nbsp;<font color="#0000FF">Serialization of Symbolic Enumeration Constants</font></h4>
+		      <h4><a name="tth_sEc10.4.1">
+10.4.1</a>&nbsp;&nbsp;<font color="#0000FF">Serialization of Symbolic Enumeration Constants</font></h4>
 
 <div class="p"><!----></div>
 The gSOAP stub and skeleton compiler encodes the constants of enumeration-typed variables in symbolic form using the names of the constants when possible to comply to SOAP's enumeration encoding style. Consider for example the following enumeration of weekdays:
@@ -6308,8 +6354,8 @@ The corresponding XML Schema for this enumeration data type would be:
 </td></tr></table><br></tt>
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.3.2">
-10.3.2</a>&nbsp;&nbsp;<font color="#0000FF">Encoding of Enumeration Constants</font></h4>
+		      <h4><a name="tth_sEc10.4.2">
+10.4.2</a>&nbsp;&nbsp;<font color="#0000FF">Encoding of Enumeration Constants</font></h4>
 
 <div class="p"><!----></div>
 If the value of an enumeration-typed variable has no corresponding named constant, the value is encoded as a signed integer literal. For example, the following declaration of a <i>workday</i> enumeration type lacks named constants for Saturday and Sunday:
@@ -6336,8 +6382,8 @@ The difference with an enumeration type without a list of values and the enumera
 will appear in the WSDL service description.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.3.3">
-10.3.3</a>&nbsp;&nbsp;<font color="#0000FF">Initialized Enumeration Constants</font></h4>
+		      <h4><a name="tth_sEc10.4.3">
+10.4.3</a>&nbsp;&nbsp;<font color="#0000FF">Initialized Enumeration Constants</font></h4>
 
 <div class="p"><!----></div>
 The gSOAP compiler supports the initialization of enumeration constants, as in:
@@ -6347,8 +6393,8 @@ The gSOAP compiler supports the initialization of enumeration constants, as in:
 The symbolic names <tt>LESS</tt>, <tt>EQUAL</tt>, and <tt>GREATER</tt> will appear in the SOAP payload for the encoding of the <i>ns1__relation</i> enumeration values <i>-1</i>, <i>0</i>, and <i>1</i>, respectively.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.3.4">
-10.3.4</a>&nbsp;&nbsp;<font color="#0000FF">How to "Reuse" Symbolic Enumeration Constants</font></h4>
+		      <h4><a name="tth_sEc10.4.4">
+10.4.4</a>&nbsp;&nbsp;<font color="#0000FF">How to "Reuse" Symbolic Enumeration Constants</font></h4>
 
 <div class="p"><!----></div>
 A well-known deficiency of C and C++ enumeration types is the lack of support for the reuse of symbolic names by multiple enumerations. That is, the names of all the symbolic constants defined by an enumeration cannot be reused by another enumeration. To force encoding of the same symbolic name by different enumerations, the identifier of the symbolic name can end in an underscore (<i>_</i>) or any number of underscores to distinguish it from other symbolic names in C++. This guarantees that the SOAP encoding will use the same name, while the symbolic names can be distinguished in C++. Effectively, the underscores are removed from a symbolic name prior to encoding.
@@ -6370,8 +6416,8 @@ which will result in the encoding of the constants of <i>enum ns1__weekday</i> w
 will not properly encode the <i>weekday</i> enumeration, because it lacks the named constants for <i>workday</i> in its enumeration list.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.3.5">
-10.3.5</a>&nbsp;&nbsp;<font color="#0000FF">Boolean Enumeration Serialization for C</font></h4><a name="sec:boolean">
+		      <h4><a name="tth_sEc10.4.5">
+10.4.5</a>&nbsp;&nbsp;<font color="#0000FF">Boolean Enumeration Serialization for C</font></h4><a name="sec:boolean">
 </a>
 
 <div class="p"><!----></div>
@@ -6395,8 +6441,8 @@ The value <i>0</i>, for example, is encoded with an integer literal:
 </td></tr></table><br></tt>
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.3.6">
-10.3.6</a>&nbsp;&nbsp;<font color="#0000FF">Bitmask Enumeration Serialization</font></h4>
+		      <h4><a name="tth_sEc10.4.6">
+10.4.6</a>&nbsp;&nbsp;<font color="#0000FF">Bitmask Enumeration Serialization</font></h4>
 
 <div class="p"><!----></div>
 A bitmask is an enumeration of flags such as declared with C#'s [Flags] <i><b>enum</b></i> annotation.
@@ -6431,8 +6477,8 @@ A remote method implementation in a Web service can return:
 </td></tr></table><br></i>
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.4">
-10.4</a>&nbsp;&nbsp;<font color="#0000FF">Struct Serialization</font></h3><a name="sec:struct">
+	     <h3><a name="tth_sEc10.5">
+10.5</a>&nbsp;&nbsp;<font color="#0000FF">Struct Serialization</font></h3><a name="sec:struct">
 </a>
 
 <div class="p"><!----></div>
@@ -6440,18 +6486,18 @@ A <i><b>struct</b></i> data type is encoded as an XML Schema complexType (SOAP-e
 <i><b>struct</b></i> name forms the data type's element name and schema type and the
 fields of the <i><b>struct</b></i> are the data type's accessors. This encoding is
 identical to the <i><b>class</b></i> instance encoding without inheritance and method
-declarations, see Section&nbsp;<a href="#sec:class">10.5</a> for further details.  However, the
+declarations, see Section&nbsp;<a href="#sec:class">10.6</a> for further details.  However, the
 encoding and decoding of <i><b>struct</b></i>s is more efficient compared to
 <i><b>class</b></i> instances due to the lack of inheritance and the requirement by
 the serialization routines to check inheritance properties at run time.
 
 <div class="p"><!----></div>
 Certain type of fields of a <i><b>struct</b></i> can be (de)serialized as XML attributes.
-See&nbsp;<a href="#sec:attributes">10.5.7</a> for more details.
+See&nbsp;<a href="#sec:attributes">10.6.7</a> for more details.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.5">
-10.5</a>&nbsp;&nbsp;<font color="#0000FF">Class Instance Serialization</font></h3><a name="sec:class">
+	     <h3><a name="tth_sEc10.6">
+10.6</a>&nbsp;&nbsp;<font color="#0000FF">Class Instance Serialization</font></h3><a name="sec:class">
 </a>
 
 <div class="p"><!----></div>
@@ -6511,22 +6557,22 @@ Classes should be declared "volatile" if you don't want gSOAP to add serializati
 
 <div class="p"><!----></div>
 Class templates are not supported by the gSOAP compiler, but you can use STL containers,
-see Section&nbsp;<a href="#sec:templates">10.10.8</a>. You can also define your own
+see Section&nbsp;<a href="#sec:templates">10.11.8</a>. You can also define your own
 containers similar to STL containers.
 
 <div class="p"><!----></div>
 Certain fields of a <i><b>class</b></i> can be (de)serialized as XML attributes.
-See&nbsp;<a href="#sec:attributes">10.5.7</a> for more details.
+See&nbsp;<a href="#sec:attributes">10.6.7</a> for more details.
 
 <div class="p"><!----></div>
 Arrays may be embedded within a class (and struct) using a pointer field and
-size information, see Section&nbsp;<a href="#sec:list">10.10.7</a>. This defines what is sometimes
+size information, see Section&nbsp;<a href="#sec:list">10.11.7</a>. This defines what is sometimes
 referred to in SOAP as "generics".
 
 <div class="p"><!----></div>
 Void pointers may be used in a class (or struct), but you have to add a type
 field so the gSOAP runtime can determine the type of object pointed to, see
-Section&nbsp;<a href="#sec:void">10.8</a>.
+Section&nbsp;<a href="#sec:void">10.9</a>.
 
 <div class="p"><!----></div>
 A <i><b>class</b></i> instance is encoded as:
@@ -6554,8 +6600,8 @@ gSOAP guarantees this, but interoperability with other SOAP implementations is
 cannot be guaranteed.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.5.1">
-10.5.1</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4>
+		      <h4><a name="tth_sEc10.6.1">
+10.6.1</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4>
 
 <div class="p"><!----></div>
 The following example declares a base class <i>ns__Object</i> and a derived class <i>ns__Shape</i>:
@@ -6590,8 +6636,8 @@ An instance of <i><b>class</b>&nbsp;ns__Shape</i> with name Triangle, 3 sides, a
 The namespace URI of the namespace prefix <tt>ns</tt> must be defined by a namespace mapping table, see Section&nbsp;<a href="#sec:nstable">9.4</a>.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.5.2">
-10.5.2</a>&nbsp;&nbsp;<font color="#0000FF">Initialized <b>static</b>&nbsp;<b>const</b>&nbsp;Fields</font></h4>
+		      <h4><a name="tth_sEc10.6.2">
+10.6.2</a>&nbsp;&nbsp;<font color="#0000FF">Initialized <b>static</b>&nbsp;<b>const</b>&nbsp;Fields</font></h4>
 
 <div class="p"><!----></div>
 A data member field of a class declared as <i><b>static</b>&nbsp;<b>const</b></i> is initialized
@@ -6623,8 +6669,8 @@ Decoding will ignore the <i>sides</i> field's value.
 This feature may be provided the future.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.5.3">
-10.5.3</a>&nbsp;&nbsp;<font color="#0000FF">Class Methods</font></h4>
+		      <h4><a name="tth_sEc10.6.3">
+10.6.3</a>&nbsp;&nbsp;<font color="#0000FF">Class Methods</font></h4>
 
 <div class="p"><!----></div>
 A <i><b>class</b></i> declaration in the header file input to the gSOAP compiler MAY
@@ -6637,8 +6683,8 @@ constructors and destructors of the <i><b>class</b></i>.
 Dynamic binding is supported, so a method MAY be declared <i><b>virtual</b></i>.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.5.4">
-10.5.4</a>&nbsp;&nbsp;<font color="#0000FF">Getter and Setter Methods</font></h4><a name="sec:gettersetter">
+		      <h4><a name="tth_sEc10.6.4">
+10.6.4</a>&nbsp;&nbsp;<font color="#0000FF">Getter and Setter Methods</font></h4><a name="sec:gettersetter">
 </a>
 
 <div class="p"><!----></div>
@@ -6692,7 +6738,7 @@ The <i>get</i> method is invoked after the base64 data has been processed. You
 can use it for post-processing purposes.
 
 <div class="p"><!----></div>
-Here is another example. It defines a primitive <i>update</i> type. The class is a wrapper for the <i>time_t</i> type, see Section&nbsp;<a href="#sec:primclass">10.2.2</a>. Therefore, elements of this type contain <tt>xsd:dateType</tt> data.
+Here is another example. It defines a primitive <i>update</i> type. The class is a wrapper for the <i>time_t</i> type, see Section&nbsp;<a href="#sec:primclass">10.3.2</a>. Therefore, elements of this type contain <tt>xsd:dateType</tt> data.
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>class</b>&nbsp;update <br />
 { <b>public</b>: <br />
@@ -6723,8 +6769,8 @@ instance. Therefore, the gSOAP-generated code recasts the instance and the
 <i><b>const</b></i> is removed when invoking the setter.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.5.5">
-10.5.5</a>&nbsp;&nbsp;<font color="#0000FF">Streaming XML with Getter and Setter Methods</font></h4><a name="sec:streaming">
+		      <h4><a name="tth_sEc10.6.5">
+10.6.5</a>&nbsp;&nbsp;<font color="#0000FF">Streaming XML with Getter and Setter Methods</font></h4><a name="sec:streaming">
 </a>
 
 <div class="p"><!----></div>
@@ -6749,8 +6795,8 @@ decoding, the getter method is invoked, which can be used to check the <i>id</i>
 before the rest of the SOAP message is processed.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.5.6">
-10.5.6</a>&nbsp;&nbsp;<font color="#0000FF">Polymorphism, Derived Classes, and Dynamic Binding</font></h4><a name="sec:polymorph">
+		      <h4><a name="tth_sEc10.6.6">
+10.6.6</a>&nbsp;&nbsp;<font color="#0000FF">Polymorphism, Derived Classes, and Dynamic Binding</font></h4><a name="sec:polymorph">
 </a>
 
 <div class="p"><!----></div>
@@ -6916,8 +6962,8 @@ CLIENT: print(): Base class instance X
 In this example, the object was passed as a Derived class instance to <i>SERVER2</i>. Since <i>SERVER2</i> only implements the Base class, this object is converted to a Base class instance and send back to <i>CLIENT</i>.
 
 <div class="p"><!----></div>
-	      <h4><a name="tth_sEc10.5.7">
-10.5.7</a>&nbsp;&nbsp;<font color="#0000FF">XML Attributes</font></h4><a name="sec:attributes">
+	      <h4><a name="tth_sEc10.6.7">
+10.6.7</a>&nbsp;&nbsp;<font color="#0000FF">XML Attributes</font></h4><a name="sec:attributes">
 </a>
 
 <div class="p"><!----></div>
@@ -6978,7 +7024,7 @@ example
 <b>int</b>&nbsp;ns__myMethod(@<b>char</b>&nbsp;*ns__name, ...);
 </td></tr></table><br></i>
 Attributes can also be attached to the dynamic arrays, binary types, and wrapper classes/structs of primitive
-types. Wrapper classes are described in Section&nbsp;<a href="#sec:primclass">10.2.2</a>.  For
+types. Wrapper classes are described in Section&nbsp;<a href="#sec:primclass">10.3.2</a>.  For
 example
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>struct</b>&nbsp;xsd__string <br />
@@ -7003,8 +7049,8 @@ which define the characteristics of wrapper structs/classes and dynamic arrays.
 <font color="#FF0000"><b>Caution</b></font>: Do not use XML attributes with SOAP RPC encoding. You can only use attributes with RPC literal encoding.
 
 <div class="p"><!----></div>
-	      <h4><a name="tth_sEc10.5.8">
-10.5.8</a>&nbsp;&nbsp;<font color="#0000FF">QName Attributes and Elements</font></h4>
+	      <h4><a name="tth_sEc10.6.8">
+10.6.8</a>&nbsp;&nbsp;<font color="#0000FF">QName Attributes and Elements</font></h4>
 
 <div class="p"><!----></div>
 gSOAP ensures the proper decoding of XSD QNames.
@@ -7040,8 +7086,8 @@ Note: <i>QName</i> is a pre-defined typedef type and used by gSOAP to
 (de)serialize SOAP Fault codes which are QName elements.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.6">
-10.6</a>&nbsp;&nbsp;<font color="#0000FF">Union Serialization</font></h3><a name="sec:union">
+	     <h3><a name="tth_sEc10.7">
+10.7</a>&nbsp;&nbsp;<font color="#0000FF">Union Serialization</font></h3><a name="sec:union">
 </a>
 
 <div class="p"><!----></div>
@@ -7145,8 +7191,8 @@ suffixes as in:
 </td></tr></table><br></i>
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.7">
-10.7</a>&nbsp;&nbsp;<font color="#0000FF">Serializing Pointer Types</font></h3><a name="sec:pointer">
+	     <h3><a name="tth_sEc10.8">
+10.8</a>&nbsp;&nbsp;<font color="#0000FF">Serializing Pointer Types</font></h3><a name="sec:pointer">
 </a>
 
 <div class="p"><!----></div>
@@ -7156,8 +7202,8 @@ data type is indistinguishable from the encoded representation of the data
 type pointed to.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.7.1">
-10.7.1</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Referenced Data</font></h4>
+		      <h4><a name="tth_sEc10.8.1">
+10.8.1</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Referenced Data</font></h4>
 
 <div class="p"><!----></div>
 A data structure pointed to by more than one pointer is serialized as SOAP
@@ -7220,8 +7266,8 @@ multi-reference integer.  Note that the two <i><b>struct</b></i>s resemble the s
 ignored in XML encoding and decoding.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.7.2">
-10.7.2</a>&nbsp;&nbsp;<font color="#0000FF">NULL Pointers and Nil Elements</font></h4>
+		      <h4><a name="tth_sEc10.8.2">
+10.8.2</a>&nbsp;&nbsp;<font color="#0000FF">NULL Pointers and Nil Elements</font></h4>
 
 <div class="p"><!----></div>
 A <i>NULL</i> pointer is <b>not</b> serialized, unless the pointer itself is pointed to by another pointer (but see
@@ -7250,8 +7296,8 @@ the deserializer will terminate with a <i>SOAP_NULL</i> fault when the <i>SOAP_X
 The types section of a WSDL description contains information on the "nilability" of data.
 
 <div class="p"><!----></div>
-		     <h3><a name="tth_sEc10.8">
-10.8</a>&nbsp;&nbsp;<font color="#0000FF">Void Pointers</font></h3><a name="sec:void">
+		     <h3><a name="tth_sEc10.9">
+10.9</a>&nbsp;&nbsp;<font color="#0000FF">Void Pointers</font></h3><a name="sec:void">
 </a>
 
 <div class="p"><!----></div>
@@ -7317,7 +7363,7 @@ multiple void pointers in structs/classes.  For example
 </td></tr></table><br></i>
 Because service method parameters are stored within structs, you can use
 <i>__type</i> and <i><b>void</b>*</i> parameters to pass polymorphic arguments without
-having to define a C++ class hierarchy (Section&nbsp;<a href="#sec:polymorph">10.5.6</a>).  For
+having to define a C++ class hierarchy (Section&nbsp;<a href="#sec:polymorph">10.6.6</a>).  For
 example:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>typedef</b>&nbsp;<b>char</b>&nbsp;*xsd__string; <br />
@@ -7339,8 +7385,8 @@ schema type that limits the choice of types to the types declared in the
 header file.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.9">
-10.9</a>&nbsp;&nbsp;<font color="#0000FF">Fixed-Size Arrays</font></h3>
+	     <h3><a name="tth_sEc10.10">
+10.10</a>&nbsp;&nbsp;<font color="#0000FF">Fixed-Size Arrays</font></h3>
 
 <div class="p"><!----></div>
 Fixed size arrays are encoded as per SOAP 1.1 one-dimensional array types.
@@ -7378,8 +7424,8 @@ This specifies a fixed-size array part of the <i><b>struct</b>&nbsp;Example</i>.
 <font color="#FF0000"><b>Caution</b></font>: Any decoded parts of a (multi-dimensional) array that do not "fit" in the fixed size array are ignored by the deserializer.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.10">
-10.10</a>&nbsp;&nbsp;<font color="#0000FF">Dynamic Arrays</font></h3><a name="sec:dynarray">
+	     <h3><a name="tth_sEc10.11">
+10.11</a>&nbsp;&nbsp;<font color="#0000FF">Dynamic Arrays</font></h3><a name="sec:dynarray">
 </a>
 
 <div class="p"><!----></div>
@@ -7398,15 +7444,15 @@ has to be made explicitly known to the array serializer by packaging the
 pointer and array size information within a <i><b>struct</b></i> or <i><b>class</b></i>.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.1">
-10.10.1</a>&nbsp;&nbsp;<font color="#0000FF">SOAP Array Bounds Limits</font></h4>
+		      <h4><a name="tth_sEc10.11.1">
+10.11.1</a>&nbsp;&nbsp;<font color="#0000FF">SOAP Array Bounds Limits</font></h4>
 
 <div class="p"><!----></div>
 SOAP encoded arrays use the <tt>SOAP-ENC:Array</tt> type and the <tt>SOAP-ENC:arrayType</tt> attribute to define the array dimensionality and size. As a security measure to avoid denial of service attacks based on sending a huge array size value requiring the allocation of large chunks of memory, the total number of array elements set by the <tt>SOAP-ENC:arrayType</tt> attribute cannot exceed <i>SOAP_MAXARRAYSIZE</i>, which is set to 100,000 by default. This constant is defined in <i>stdsoap2.h</i>. This constant <b>only</b> affects multi-dimensional arrays and the dimensionality of the receiving array will be lost when the number of elements exceeds 100,000. One-dimensional arrays will be populated in sequential order as expected.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.2">
-10.10.2</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays</font></h4>
+		      <h4><a name="tth_sEc10.11.2">
+10.11.2</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays</font></h4>
 
 <div class="p"><!----></div>
 A special form of <i><b>struct</b></i> or <i><b>class</b></i> is used for one-dimensional
@@ -7425,7 +7471,7 @@ The general form of the <i><b>struct</b></i> declaration for one-dimensional dyn
 };
 </td></tr></table><br></i>
 where <i><u><span class="roman">Type</span></u></i> MUST be a type associated with an XML Schema or MUST be a primitive type.
-If these conditions are not met, a vector-like XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">10.10.7</a>).
+If these conditions are not met, a vector-like XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">10.11.7</a>).
 A primitive type can be used with or without a <i><b>typedef</b></i>.
 If the array elements are structs or classes, then the <i>struct</i>/<i>class</i> type names should have a namespace prefix for schema
 association, or they should be other (nested) dynamic arrays. 
@@ -7447,7 +7493,7 @@ An alternative to a <i><b>struct</b></i> is to use a <i><b>class</b></i> with op
 </td></tr></table><br></i>
 To encode the data type as an array, the name of the <i><b>struct</b></i> or
 <i><b>class</b></i> SHOULD NOT have a namespace prefix, otherwise the data type will
-be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">10.10.7</a>.
+be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">10.11.7</a>.
 
 <div class="p"><!----></div>
 The deserializer of a dynamic array can decode partially transmitted and/or
@@ -7458,8 +7504,8 @@ into a one-dimensional array with row-major ordering.
 <font color="#FF0000"><b>Caution</b></font>: SOAP 1.2 does not support partially transmitted arrays. So the <i>__offset</i> field of a dynamic array is ignored.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.3">
-10.10.3</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4>
+		      <h4><a name="tth_sEc10.11.3">
+10.11.3</a>&nbsp;&nbsp;<font color="#0000FF">Example</font></h4>
 
 <div class="p"><!----></div>
 The following example header file specifies the XMethods Service Listing service <i>getAllSOAPServices</i> remote method and an array of <i>SOAPService</i> data structures:
@@ -7533,11 +7579,11 @@ ServiceArray::~ServiceArray() <br />
 </td></tr></table><br></i>
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.4">
-10.10.4</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></h4>
+		      <h4><a name="tth_sEc10.11.4">
+10.11.4</a>&nbsp;&nbsp;<font color="#0000FF">One-Dimensional Dynamic Arrays With Non-Zero Offset</font></h4>
 
 <div class="p"><!----></div>
-The declaration of a dynamic array as described in&nbsp;<a href="#sec:dynarray">10.10</a> MAY
+The declaration of a dynamic array as described in&nbsp;<a href="#sec:dynarray">10.11</a> MAY
 include an <i><b>int</b>&nbsp;__offset</i> field. When set to an integer value, the
 serializer of the dynamic array will use this field as the start index of the
 array and the SOAP array offset attribute will be used in the SOAP payload.
@@ -7612,8 +7658,8 @@ Note that the size of the encoded array is necessarily set to 4 and that the enc
 The decoding of a dynamic array with an <i>__offset</i> field is more efficient than decoding a dynamic array without an <i>__offset</i> field, because the <i>__offset</i> field will be assigned the value of the <tt>SOAP-ENC:offset</tt> attribute instead of padding the initial part of the array with default values.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.5">
-10.10.5</a>&nbsp;&nbsp;<font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></h4><a name="sec:nested">
+		      <h4><a name="tth_sEc10.11.5">
+10.11.5</a>&nbsp;&nbsp;<font color="#0000FF">Nested One-Dimensional Dynamic Arrays</font></h4><a name="sec:nested">
 </a>
 
 <div class="p"><!----></div>
@@ -7637,8 +7683,8 @@ The Matrix type is essentially an array of pointers to arrays which make up the 
 The encoding of the two-dimensional dynamic array in SOAP will be in nested form.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.6">
-10.10.6</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></h4>
+		      <h4><a name="tth_sEc10.11.6">
+10.11.6</a>&nbsp;&nbsp;<font color="#0000FF">Multi-Dimensional Dynamic Arrays</font></h4>
 
 <div class="p"><!----></div>
 The general form of the <i><b>struct</b></i> declaration for K-dimensional (K &gt; 1) dynamic arrays is:
@@ -7652,7 +7698,7 @@ The general form of the <i><b>struct</b></i> declaration for K-dimensional (K &g
 };
 </td></tr></table><br></i>
 where <i><u><span class="roman">Type</span></u></i> MUST be a type associated with an XML Schema, which means that it must be a <i><b>typedef</b></i>ed type
-in case of a primitive type, or a <i><b>struct</b></i>/<i><b>class</b></i> name with a namespace prefix for schema association, or another dynamic array. If these conditions are not met, a generic vector XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">10.10.7</a>).
+in case of a primitive type, or a <i><b>struct</b></i>/<i><b>class</b></i> name with a namespace prefix for schema association, or another dynamic array. If these conditions are not met, a generic vector XML (de)serialization is used (see Section&nbsp;<a href="#sec:list">10.11.7</a>).
 
 <div class="p"><!----></div>
 An alternative is to use a <i><b>class</b></i> with optional methods:
@@ -7672,7 +7718,7 @@ In the above, K is a constant denoting the number of dimensions of the multi-dim
 
 <div class="p"><!----></div>
 To encode the data type as an array, the name of the <i><b>struct</b></i> or <i><b>class</b></i> SHOULD NOT have a namespace prefix, otherwise
-the data type will be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">10.10.7</a>.
+the data type will be encoded and decoded as a generic vector, see Section&nbsp;<a href="#sec:list">10.11.7</a>.
 
 <div class="p"><!----></div>
 The deserializer of a dynamic array can decode partially transmitted multi-dimensional arrays.
@@ -7689,14 +7735,14 @@ For example, the following declaration specifies a matrix class:
 &nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;__offset[2]; <br />
 }; 
 </td></tr></table><br></i>
-In contrast to the matrix class of Section&nbsp;<a href="#sec:nested">10.10.5</a> that defined a matrix as an array of pointers to matrix rows, this
+In contrast to the matrix class of Section&nbsp;<a href="#sec:nested">10.11.5</a> that defined a matrix as an array of pointers to matrix rows, this
 class has one pointer to a matrix stored in row-major order.  The size of the matrix is determined by the <i>__size</i> field:
 <i>__size[0]</i> holds the number of rows and <i>__size[1]</i> holds the number of columns of the matrix.  Likewise, <i>__
 offset[0]</i> is the row offset and <i>__offset[1]</i> is the columns offset.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.7">
-10.10.7</a>&nbsp;&nbsp;<font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></h4><a name="sec:list">
+		      <h4><a name="tth_sEc10.11.7">
+10.11.7</a>&nbsp;&nbsp;<font color="#0000FF">Encoding XML Generics Containing Dynamic Arrays</font></h4><a name="sec:list">
 </a>
 
 <div class="p"><!----></div>
@@ -7794,8 +7840,8 @@ The XML serialization of an example <i>ns__Contact</i> is:
 </td></tr></table><br></tt>
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.8">
-10.10.8</a>&nbsp;&nbsp;<font color="#0000FF">STL Containers</font></h4><a name="sec:templates">
+		      <h4><a name="tth_sEc10.11.8">
+10.11.8</a>&nbsp;&nbsp;<font color="#0000FF">STL Containers</font></h4><a name="sec:templates">
 </a>
 
 <div class="p"><!----></div>
@@ -7805,7 +7851,7 @@ gSOAP supports the STL containers <i>std::deque</i>, <i>std::list</i>,
 <div class="p"><!----></div>
 STL containers can only be used within classes to declare members that contain
 multiple values.  This is somewhat similar to the embedding of arrays in
-structs in C as explained in Section&nbsp;<a href="#sec:list">10.10.7</a>, but the STL container
+structs in C as explained in Section&nbsp;<a href="#sec:list">10.11.7</a>, but the STL container
 approach is more flexible.
 
 <div class="p"><!----></div>
@@ -7928,8 +7974,8 @@ Therefore, your application should not rely on the preservation of the order of
 elements in a container.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.9">
-10.10.9</a>&nbsp;&nbsp;<font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></h4>
+		      <h4><a name="tth_sEc10.11.9">
+10.11.9</a>&nbsp;&nbsp;<font color="#0000FF">Polymorphic Dynamic Arrays and Lists</font></h4>
 
 <div class="p"><!----></div>
 Polymorphic arrays (arrays of polymorphic element types) can be encoded when
@@ -7958,8 +8004,8 @@ The pointers in the array can point to the <i>ns__Object</i> base class or
 deserialized accordingly in SOAP.  That is, the array elements are polymorphic.
 
 <div class="p"><!----></div>
-		      <h4><a name="tth_sEc10.10.10">
-10.10.10</a>&nbsp;&nbsp;<font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></h4>
+		      <h4><a name="tth_sEc10.11.10">
+10.11.10</a>&nbsp;&nbsp;<font color="#0000FF">How to Change the Tag Names of the Elements of a SOAP Array or List</font></h4>
 
 <div class="p"><!----></div>
 The <i>__ptr</i> field in a <i><b>struct</b></i> or <i><b>class</b></i> declaration of a dynamic array may have an optional suffix part that
@@ -7992,8 +8038,8 @@ SOAP 1.1 and 1.2 do not require the use of a specific tag name for array element
 ignoring the tag names. Certain XML Schemas used in doc/literal encoding may require the declaration of array element tag names.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.11">
-10.11</a>&nbsp;&nbsp;<font color="#0000FF">Base64Binary XML Schema Type Encoding</font></h3><a name="sec:base64binary">
+	     <h3><a name="tth_sEc10.12">
+10.12</a>&nbsp;&nbsp;<font color="#0000FF">Base64Binary XML Schema Type Encoding</font></h3><a name="sec:base64binary">
 </a>
 
 <div class="p"><!----></div>
@@ -8108,8 +8154,8 @@ The <i><b>struct</b></i> or <i><b>class</b></i> name <i>soap_enc__base64</i> sho
 <i>xsd__base64Binary</i>.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.12">
-10.12</a>&nbsp;&nbsp;<font color="#0000FF">hexBinary XML Schema Type Encoding</font></h3><a name="sec:hexbinary">
+	     <h3><a name="tth_sEc10.13">
+10.13</a>&nbsp;&nbsp;<font color="#0000FF">hexBinary XML Schema Type Encoding</font></h3><a name="sec:hexbinary">
 </a>
 
 <div class="p"><!----></div>
@@ -8136,8 +8182,8 @@ Or using a <i><b>class</b></i>:
 When compiled by the gSOAP stub and skeleton compiler, this header file specification will generate <tt>base64Binary</tt> serializers and deserializers.
 
 <div class="p"><!----></div>
-	     <h3><a name="tth_sEc10.13">
-10.13</a>&nbsp;&nbsp;<font color="#0000FF">Literal XML Encoding Style</font></h3><a name="sec:literal">
+	     <h3><a name="tth_sEc10.14">
+10.14</a>&nbsp;&nbsp;<font color="#0000FF">Literal XML Encoding Style</font></h3><a name="sec:literal">
 </a>
 
 <div class="p"><!----></div>
@@ -8147,7 +8193,7 @@ e.g.&nbsp;in WSDL in order for the
 gSOAP compiler to generate the (de)serialization routines.  Alternatively, the
 optional DOM parser (<i>dom.c</i> and <i>dom++.cpp</i>) can be used to handle generic XML or
 arbitrary XML documents can be (de)serialized into regular C strings or wide
-character strings (<i>wchar_t*</i>) by gSOAP (see Section&nbsp;<a href="#sec:literal2">10.13.1</a>).
+character strings (<i>wchar_t*</i>) by gSOAP (see Section&nbsp;<a href="#sec:literal2">10.14.1</a>).
 
 <div class="p"><!----></div>
 The <i>//gsoap service encoding</i>, <i>//gsoap service method-encoding</i>, and <i>//gsoap service method-response-encoding</i> directives explicitly enable SOAP encoded or literal encoded messages. For example, to enable RPC encoding style for the entire service, use:
@@ -8244,8 +8290,8 @@ SOAPAction: "http://alethea.net/webservices/LocalTimeByZipCode" <br />
 </td></tr></table><br></tt>
 
 <div class="p"><!----></div>
-	      <h4><a name="tth_sEc10.13.1">
-10.13.1</a>&nbsp;&nbsp;<font color="#0000FF">Serializing and Deserializing Mixed Content XML With Strings</font></h4><a name="sec:literal2">
+	      <h4><a name="tth_sEc10.14.1">
+10.14.1</a>&nbsp;&nbsp;<font color="#0000FF">Serializing and Deserializing Mixed Content XML With Strings</font></h4><a name="sec:literal2">
 </a>
 
 <div class="p"><!----></div>
@@ -8369,7 +8415,7 @@ The first four fields in <i>SOAP_ENV__Fault</i> are SOAP 1.1 specific. The last 
 You can redefine these structures in the header file. For example, you can use a <i>class</i> for the <i>SOAP_ENV__Fault</i> and add methods for convenience.
 
 <div class="p"><!----></div>
-The data structure content can be changed to the need of an application, but this is generally not necessary because the application-specific SOAP Fault details can be serialized via the <i>__type</i> and <i>fault</i> fields in the <i>SOAP_ENV__Detail</i> field, see Section&nbsp;<a href="#sec:void">10.8</a> on the serialization of data refered to by <i>__type</i> and <i>fault</i>.
+The data structure content can be changed to the need of an application, but this is generally not necessary because the application-specific SOAP Fault details can be serialized via the <i>__type</i> and <i>fault</i> fields in the <i>SOAP_ENV__Detail</i> field, see Section&nbsp;<a href="#sec:void">10.9</a> on the serialization of data refered to by <i>__type</i> and <i>fault</i>.
 
 <div class="p"><!----></div>
 The <i>__type</i> field allows application data to be serialized as part of the SOAP Fault. The application data SHOULD be defined as XML elements, which requires you to declare the type names with a leading underscore to ensure that the types are compatible with XML elements and not just simpleTypes and complexTypes.
@@ -8564,11 +8610,12 @@ When both fields are set and <i>soap.actor="http://some/actor"</i> then the mess
 
 <div class="p"><!----></div>
 The gSOAP toolkit supports MIME attachments as per SOAP with Attachments (SwA)
-specification (http://www.w3.org/TR/SOAP-attachments). MIME attachment data must be memory resident for sending
-operations and MIME attachments received will be stored in memory. DIME
-attachments on the other hand can be streamed and therefore DIME attachment
-data does not need to be stored in memory, see
-Section&nbsp;<a href="#sec:DIME">14</a>.
+specification (http://www.w3.org/TR/SOAP-attachments). In the following
+discussion, MIME attachment data is assumed to be resident in memory for
+sending operations and MIME attachments received will be stored in memory. MTOM
+and DIME attachments on the other hand can be streamed and therefore MTOM/DIME
+attachment data does not need to be stored in memory, see
+Section&nbsp;<a href="#sec:DIME">14</a> and&nbsp;<a href="#sec:MTOM">15</a>.
 
 <div class="p"><!----></div>
 Transmitting multipart/related MIME attachments with a SOAP/XML message is
@@ -8579,7 +8626,7 @@ for each attachment.
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc13.1">
-13.1</a>&nbsp;&nbsp;<font color="#0000FF">Sending a Collection of MIME Attachments</font></h3>
+13.1</a>&nbsp;&nbsp;<font color="#0000FF">Sending a Collection of MIME Attachments (SwA)</font></h3>
 
 <div class="p"><!----></div>
 The following functions should be used to set up a collection of
@@ -8600,9 +8647,8 @@ The value <i>SOAP_OK</i> is returned when the attachment was added. Otherwise a 
 
 </td></tr></table><br></span>
 When providing a MIME boundary with <i>soap_set_mime</i>, you have to make
-sure the boundary cannot match any SOAP/XML message content. Therefore, it is
-recommended to include an invalid XML sequence such as <tt>&lt;&gt;</tt>. Or you can
-simply pass NULL and let gSOAP select a safe boundary for you.
+sure the boundary cannot match any SOAP/XML message content.
+Or you can simply pass NULL and let gSOAP select a safe boundary for you.
 
 <div class="p"><!----></div>
 The internal list of attachments is destroyed with <i>soap_end</i>, you should
@@ -8633,7 +8679,7 @@ soap_set_mime_attachment(soap, jpegImage, jpegLen, SOAP_MIME_BINARY, <tt>"image/
 <b>else</b><br />
 &nbsp;&nbsp;&nbsp;// process response
 </td></tr></table><br></i>
-Note: the above example assumes that the boundary <tt>MIME_boundary</tt> does not occur in the SOAP/XML message.
+Note: the above example assumes that the boundary <tt>MIME_boundary</tt> does not match any part of the SOAP/XML message.
 
 <div class="p"><!----></div>
 The <i>claim__form</i> struct is declared in the gSOAP header file as:
@@ -8678,7 +8724,7 @@ MIME.
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc13.2">
-13.2</a>&nbsp;&nbsp;<font color="#0000FF">Retrieving a Collection of MIME Attachments</font></h3>
+13.2</a>&nbsp;&nbsp;<font color="#0000FF">Retrieving a Collection of MIME Attachments (SwA)</font></h3>
 
 <div class="p"><!----></div>
 MIME attachments are automatically parsed and stored in memory.
@@ -8734,15 +8780,17 @@ commonly used to prevent deallocation of deserialized data.
 </a>
 
 <div class="p"><!----></div>
-The gSOAP toolkit supports DIME attachments as per DIME
-specification, see for example (http://msdn.microsoft.com/library/en-us/dnglobspec/html/draft-nielsen-dime-02.txt)
+The gSOAP toolkit supports DIME attachments as per DIME specification, see
+http://msdn.microsoft.com/library/en-us/dnglobspec/html/draft-nielsen-dime-02.txt
 
 <div class="p"><!----></div>
-Applications developed with gSOAP can transmit binary DIME
-attachments with or without streaming. Without streaming, all data is stored and retrieved in memory, which can be prohibitive when transmitting large files on small devices. In contrast with DIME 
-streaming, data handlers are used to pass the data to and from a resource, such as a file or device.
-With DIME output streaming, raw binary data is send from a data source in
-chunks on the fly without buffering the entire content to save memory. With DIME input streaming,
+Applications developed with gSOAP can transmit binary DIME attachments with or
+without streaming. Without streaming, all data is stored and retrieved in
+memory, which can be prohibitive when transmitting large files on small
+devices. In contrast, with DIME streaming, data handlers are used to pass the
+data to and from a resource, such as a file or device.  With DIME output
+streaming, raw binary data is send from a data source in chunks on the fly
+without buffering the entire content to save memory. With DIME input streaming,
 raw binary data will be passed to data handlers (callbacks).
 
 <div class="p"><!----></div>
@@ -8750,10 +8798,11 @@ raw binary data will be passed to data handlers (callbacks).
 14.1</a>&nbsp;&nbsp;<font color="#0000FF">Sending a Collection of DIME Attachments</font></h3>
 
 <div class="p"><!----></div>
-The following functions should be used to set up a collection of
-multipart/related MIME attachments for transmission with a SOAP/XML message.
-The attachments can be streamed, as described in Section&nbsp;<a href="#sec:DIMEstreaming">14.4</a>.
-Without streaming, each attachment must refer to a block of data in memory.
+The following functions can be used to explicitly set up a collection of
+DIME attachments for transmission with a SOAP/XML message body.
+The attachments can be streamed, as described in
+Section&nbsp;<a href="#sec:DIMEstreaming">14.4</a>.  Without streaming, each attachment must refer
+to a block of data in memory.
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
 <table>
@@ -8770,16 +8819,22 @@ The value <i>SOAP_OK</i> is returned when the attachment was added. Otherwise a 
 </td></tr></table>
 
 </td></tr></table><br></span>
+These functions allow DIME attachments to be added without requiring message
+body references. This is also referred to as the open DIME attachment style.
+The closed attachment style requires all DIME attachments to be referenced from
+the SOAP message body with <tt>href</tt> (or similar) references. For the closed
+style, gSOAP supports an automatic binary data serialization method, see
+Section&nbsp;<a href="#sec:DIMEbinary">14.3</a>.
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc14.2">
 14.2</a>&nbsp;&nbsp;<font color="#0000FF">Retrieving a Collection of DIME Attachments</font></h3>
 
 <div class="p"><!----></div>
-DIME attachments are automatically parsed and stored in memory (or passed to the streaming handlers).
-After receiving a set of DIME attachments, either at the client-side or
-the server-side, the list of DIME attachments can be traversed to extract
-meta data and the attachment content.
+DIME attachments are automatically parsed and stored in memory (or passed to
+the streaming handlers, when applicable).  After receiving a set of DIME
+attachments, either at the client-side or the server-side, the list of DIME
+attachments can be traversed to extract meta data and the attachment content.
 
 <div class="p"><!----></div>
 To traverse the list of DIME attachments in C, you use a loop similar to:
@@ -8818,7 +8873,8 @@ commonly used to prevent deallocation of deserialized data.
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc14.3">
-14.3</a>&nbsp;&nbsp;<font color="#0000FF">Serializing Binary Data in DIME</font></h3>
+14.3</a>&nbsp;&nbsp;<font color="#0000FF">Serializing Binary Data in DIME</font></h3><a name="sec:DIMEbinary">
+</a>
 
 <div class="p"><!----></div>
 Binary data stored in extended <tt>xsd:base64Binary</tt> and <tt>xsd:hexBinary</tt>
@@ -9318,12 +9374,15 @@ attachments are transmitted in compliance with the WSDL operation declarations.
 15.2</a>&nbsp;&nbsp;<font color="#0000FF">Sending and Receiving MTOM Attachments</font></h3>
 
 <div class="p"><!----></div>
-A receiver must be told to recognize MTOM attachments by setting
-the <i>SOAP_ENC_MTOM</i> flag of the gSOAP context. Otherwise, the regular MIME
-attachment mechanism will be used to store attachments and in this process the references from the SOAP message body to the attachments are lost.
+A receiver must be informed to recognize MTOM attachments by setting the
+<i>SOAP_ENC_MTOM</i> flag of the gSOAP context. Otherwise, the regular MIME
+attachment mechanism (SwA) will be used to store attachments.
 
 <div class="p"><!----></div>
-When using <i>wsdl2h</i> to build clients and/or services, you should use the <i>typemap.dat</i> file included in the distribution package. The <i>typemap.dat</i> file defines the XOP namespace and XML MIME namespaces as imported namespaces:
+When using <i>wsdl2h</i> to build clients and/or services, you should use the
+<i>typemap.dat</i> file included in the distribution package. The
+<i>typemap.dat</i> file defines the XOP namespace and XML MIME namespaces as
+imported namespaces:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 xop     =  &lt; http://www.w3.org/2004/08/xop/include &gt;  <br />
 xmime   =  &lt; http://www.w3.org/2004/06/xmlmime &gt;  <br />
@@ -9332,9 +9391,10 @@ xmlmime =  &lt; http://www.w3.org/2004/11/xmlmime &gt;
 The <i>wsdl2h</i> tool uses the <i>typemap.dat</i> file (see also option -t) to
 convert WSDL into a gSOAP header file. In this case we don't want the
 <i>wsdl2h</i> tool to read the XOP schema and translate it, since we have a
-special <i>_xop__Include</i> element already defined in <i>xop.h</i>.
-Therefore, the above bindings will not translate the XOP and XML MIME schemas,
-but instead generates <i>#import</i> statements:
+pre-defined <i>_xop__Include</i> element to handle XOP for MTOM. This
+<i>_xop__Include</i> element is defined in <i>xop.h</i>. Therefore, the
+bindings shown above will not translate the XOP and XML MIME schemas to code,
+but generates <i>#import</i> statements instead:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 #import "xop.h" <br />
 #import "xmlmime.h"
@@ -9380,7 +9440,7 @@ free(soap);
 Note that the <i>xop__Include.type</i> field must be set to transmit MTOM attachments, otherwise plain base64 XML will be used.
 
 <div class="p"><!----></div>
-At the server side, we can implement an operation handler that just copies the input data to output to implement the echo operation as follows:
+At the server side, we show an example of an operation handler that just copies the input data to output:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>int</b>&nbsp;ns__echoData(<b>struct</b>&nbsp;soap *soap, <b>struct</b>&nbsp;ns__Data *in, <b>struct</b>&nbsp;ns__data *out) <br />
 { <br />
@@ -9389,6 +9449,229 @@ At the server side, we can implement an operation handler that just copies the i
 }
 </td></tr></table><br></i>
 The server must use the <i>SOAP_ENC_MTOM</i> flag to initialize the soap struct to receive and send MTOM attachments.
+
+<div class="p"><!----></div>
+	     <h3><a name="tth_sEc15.3">
+15.3</a>&nbsp;&nbsp;<font color="#0000FF">Streaming MTOM/MIME</font></h3><a name="sec:MTOMstreaming">
+</a>
+
+<div class="p"><!----></div>
+Streaming MTOM/MIME is achieved with callback functions to fetch and store data
+during transmission. Three function callbacks for streaming MTOM/MIME output and
+three callbacks for streaming MTOM/MIME input are available.
+
+<div class="p"><!----></div>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
+
+<table>
+<tr><td width="602"><font color="#FF0000"><b>Callback (function pointer)</b></font> </td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fmimereadopen)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*description)</i> </td></tr>
+<tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment sender to start reading from a
+(binary) data source for outbound transmission. The content will be read from the
+application's data source in chunks using the <i>fmimeread</i> callback and
+streamed into the SOAP/XML/MTOM/MIME output stream. The <i>handle</i> contains the
+value of the <i>__ptr</i> field of an attachment struct/class, which could be a
+pointer to specific information such as a file descriptor or a pointer to a
+string to be passed to this callback.  Both <i>__ptr</i> and <i>__size</i>
+fields should have been set by the application prior to the serialization of
+the content. The <i>id</i>, <i>type</i>, and <i>description</i> arguments are the MTOM/MIME
+id, type, and description, respectively. The callback should return <i>handle</i>,
+or another pointer value which will be passed as a handle to <i>fmimeread</i>
+and <i>fmimereadclose</i>.  The callback should return NULL and set
+<i>soap</i><tt>-&gt;</tt><i>error</i> when an error occurred. The callback should return
+NULL (and not set <i>soap</i><tt>-&gt;</tt><i>error</i>) when this particular MTOM/MIME
+attachment is not to be streamed.
+</td></tr>
+<tr><td width="602"><i>size_t (*soap.fmimeread)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>char</b>&nbsp;*buf, size_t len)</i> </td></tr>
+<tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment sender to read more data from a
+(binary) data source for streaming into the output stream.  The <i>handle</i>
+contains the value returned by the <i>fmimereadopen</i> callback.  The <i>buf</i>
+argument is the buffer of length <i>len</i> into which a chunk of data should be
+stored.  The actual amount of data stored in the buffer may be less than
+<i>len</i> and this amount should be returned by the application.  A return value
+of 0 indicates an error (the callback may set <i>soap</i><tt>-&gt;</tt><i>errnum</i> to errno).
+The <i>__size</i> field of the attachment
+struct/class should have been set by the application prior to the serialization
+of the content.  The value of <i>__size</i> indicates the total size of the
+content to be transmitted.  When the <i>__size</i> is zero then MTOM/MIME chunked
+transfers can be used under certain circumstances to stream content without
+prior determination of attachment size, see Section&nbsp;<a href="#sec:mimechunking">15.4</a> below.
+</td></tr>
+<tr><td width="602"><i><b>void</b>(*soap.fmimereadclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
+<tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment sender at the end of the
+streaming process to close the data source.  The <i>handle</i> contains the
+value returned by the <i>fmimereadopen</i> callback.  The <i>fmimewriteclose</i>
+callback is called after successfully transmitting the data or when an error
+occurred.
+</td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fmimewriteopen)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*description, <b>enum</b>&nbsp;soap_mime_encoding encoding)</i> </td></tr>
+<tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment receiver to start writing an
+inbound MTOM/MIME attachment to an application's data store. The content is streamed
+into an application data store through multiple <i>fmimewrite</i> calls from the
+gSOAP attachment receiver.  The <i>id</i>, <i>type</i>, and <i>description</i>
+arguments are the MTOM/MIME id, type, and description respectively. The <i>encoding</i> enumeration value indicates the MIME content transfer encoding, which is one of
+  <i>SOAP_MIME_NONE</i>,
+  <i>SOAP_MIME_7BIT</i>,
+  <i>SOAP_MIME_8BIT</i>,
+  <i>SOAP_MIME_BINARY</i>,
+  <i>SOAP_MIME_QUOTED_PRINTABLE</i>,
+  <i>SOAP_MIME_BASE64</i>,
+  <i>SOAP_MIME_IETF_TOKEN</i>,
+  <i>SOAP_MIME_X_TOKEN</i>.
+Content decoding may have to be considered by the application based on this value.
+The callback should
+return a handle which is passed to the <i>fmimewrite</i> and
+<i>fmimewriteclose</i> callbacks. The <i>__ptr</i> field of the attachment
+struct/class is set to the value of this handle. The <i>__size</i> field is set
+to the total size of the attachment after receiving the entire content. The size
+is unknown in advance because MTOM/MIME attachments may be chunked.
+</td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fmimewrite)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*buf, size_t len)</i> </td></tr>
+<tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment receiver to write part of
+an inbound MTOM/MIME attachment to an application's data store.
+The <i>handle</i>
+contains the value returned by the <i>fmimewriteopen</i> callback.  The <i>buf</i>
+argument contains the data of length <i>len</i>.
+The callback should return a gSOAP error code (e.g.&nbsp;<i>SOAP_OK</i> when no error occurred).
+</td></tr>
+<tr><td width="602"><i><b>void</b>(*soap.fmimewriteclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
+<tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment receiver at the end of the
+streaming process to close the data store.  The <i>fmimewriteclose</i> callback
+is called after successfully receiving the data or when an error occurred.  The
+<i>handle</i> contains the value returned by the <i>fmimewriteopen</i> callback.
+</td></tr></table>
+
+</td></tr></table><br></span>
+In addition, a <i><b>void</b>*user</i> field in the <i><b>struct</b>&nbsp;soap</i> data structure
+is available to pass user-defined data to the callbacks.  This way, you can set
+<i>soap.user</i> to point to application data that the callbacks need such as a
+file name for example.
+
+<div class="p"><!----></div>
+The following example illustrates the client-side initialization of an image
+attachment struct to stream a file into a MTOM attachment without HTTP chunking (HTTP streaming chunked MTOM transfer is presented in Section&nbsp;<a href="#sec:mimechunking">15.4</a>):
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;main() <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap soap; <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;xsd__base64Binary image; <br />
+&nbsp;&nbsp;&nbsp;FILE *fd; <br />
+&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;stat sb; <br />
+&nbsp;&nbsp;&nbsp;soap_init1(&amp;soap, SOAP_ENC_MTOM); // mandatory to enable MTOM <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!fstat(fileno(fd), &amp;sb) &amp;&amp; sb.st_size  &gt;  0) <br />
+&nbsp;&nbsp;&nbsp;{ // because we can get the length of the file, we can stream it without chunking <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap.fmimereadopen = mime_read_open; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap.fmimereadclose = mime_read_close; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap.fmimeread = mime_read; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__ptr = (<b>unsigned</b>&nbsp;<b>char</b>*)fd; // must set to non-NULL (this is our fd handle which we need in the callbacks) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__size = sb.st_size; // must set size <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>else</b><br />
+&nbsp;&nbsp;&nbsp;{ // don't know the size, so buffer it <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;size_t i; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;c; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__ptr = (<b>unsigned</b>&nbsp;<b>char</b>*)soap_malloc(&amp;soap, MAX_FILE_SIZE); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  MAX_FILE_SIZE; i++) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;((c = fgetc(fd)) == EOF) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>break</b>; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__ptr[i] = c; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fclose(fd); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;image.__size = i; <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;image.type = "image/jpeg"; // MIME type <br />
+&nbsp;&nbsp;&nbsp;image.options = "This is my picture"; // description of object <br />
+&nbsp;&nbsp;&nbsp;soap_call_ns__method(&amp;soap, ...); <br />
+&nbsp;&nbsp;&nbsp;... <br />
+} <br />
+<b>void</b>&nbsp;*mime_read_open(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*description) <br />
+{ <b>return</b>&nbsp;handle; <br />
+} <br />
+<b>void</b>&nbsp;mime_read_close(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle) <br />
+{ fclose((FILE*)handle); <br />
+} <br />
+size_t mime_read(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>char</b>&nbsp;*buf, size_t len) <br />
+{ <b>return</b>&nbsp;fread(buf, 1, len, (FILE*)handle); <br />
+}
+</td></tr></table><br></i>
+The following example illustrates the streaming of a MTOM/MIME attachment into a file by a client:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;main() <br />
+{ <b>struct</b>&nbsp;soap soap; <br />
+&nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;soap.fmimewriteopen = mime_write_open; <br />
+&nbsp;&nbsp;&nbsp;soap.fmimewriteclose = mime_write_close; <br />
+&nbsp;&nbsp;&nbsp;soap.fmimewrite = mime_write; <br />
+&nbsp;&nbsp;&nbsp;soap_call_ns__method(&amp;soap, ...); <br />
+&nbsp;&nbsp;&nbsp;... <br />
+} <br />
+<b>void</b>&nbsp;*mime_write_open(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*description, <b>enum</b>&nbsp;soap_mime_encoding encoding) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;FILE *handle = fopen("somefile", "wb"); <br />
+&nbsp;&nbsp;&nbsp;// We ignore the MIME content transfer encoding here, but should check <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!handle) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>error = SOAP_EOF; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>errnum = errno; // get reason <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;(<b>void</b>*)handle; <br />
+} <br />
+<b>void</b>&nbsp;mime_write_close(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle) <br />
+{ fclose((FILE*)handle); <br />
+} <br />
+<b>int</b>&nbsp;mime_write(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*buf, size_t len) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;size_t nwritten; <br />
+&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(len) <br />
+&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nwritten = fwrite(buf, 1, len, (FILE*)handle); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!nwritten) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap<tt>-&gt;</tt>errnum = errno; // get reason <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_EOF; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;len -= nwritten; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buf += nwritten; <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
+}
+</td></tr></table><br></i>
+Note that compression can be used with MTOM/MIME to compress the entire message.
+However, compression requires buffering to determine the HTTP content length
+header, which cancels the benefits of streaming MTOM/MIME. To avoid this, you should
+use chunked HTTP (with the output-mode <i>SOAP_IO_CHUNK</i> flag) with
+compression and streaming MTOM/MIME. At the server side, when you set
+<i>SOAP_IO_CHUNK</i> before calling <i>soap_serve</i>, gSOAP will
+automatically revert to buffering (<i>SOAP_IO_STORE</i> flag is set).  You can
+check this flag with <i>(soap-&#62;omode &amp; SOAP_IO) == SOAP_IO_CHUNK</i> to see
+if the client accepts chunking. More information about streaming chunked MTOM/MIME
+can be found in Section&nbsp;<a href="#sec:mimechunking">15.4</a>.
+
+<div class="p"><!----></div>
+		     <h3><a name="tth_sEc15.4">
+15.4</a>&nbsp;&nbsp;<font color="#0000FF">Streaming Chunked MTOM/MIME</font></h3><a name="sec:mimechunking">
+</a>
+
+<div class="p"><!----></div>
+gSOAP automatically handles inbound chunked MTOM/MIME attachments (streaming or
+non-streaming).  To transmit outbound MTOM/MIME attachments, the attachment sizes
+MUST be determined in advance to calculate HTTP message length required to
+stream MTOM/MIME over HTTP.  However, gSOAP also supports the transmission of
+outbound chunked MTOM/MIME attachments without prior determination of MTOM/MIME
+attachment sizes when certain conditions are met.  These conditions require
+either non-HTTP transport (use the output-mode <i>SOAP_ENC_XML</i> flag), or
+chunked HTTP transport (use the output-mode <i>SOAP_IO_CHUNK</i> flag).  You
+can also use the <i>SOAP_IO_STORE</i> flag (which is also used automatically
+with compression to determine the HTTP content length header) but that cancels
+the benefits of streaming MTOM/MIME.
+
+<div class="p"><!----></div>
+To stream chunked MTOM/MIME, set the <i>__size</i> field of an attachment to
+zero and enable HTTP chunking.  The MTOM/MIME <i>fmimeread</i> callback then
+fetches data in chunks of any size between 1 and the value of the <i>len</i>
+argument. The <i>fmimeread</i> callback should return 0 upon reaching the end of
+the data stream.
 
 <div class="p"><!----></div>
  <h2><a name="tth_sEc16">
@@ -10016,11 +10299,18 @@ To specify the portType of a Web Service in the header file, use:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap <i>namespace-prefix</i> service portType: <i>portType-name</i>
 </td></tr></table><br></i>
-or
+or just
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 //gsoap <i>namespace-prefix</i> service type: <i>portType-name</i>
 </td></tr></table><br></i>
 where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>portType-name</i> is the portType name of the WSDL service portType.
+
+<div class="p"><!----></div>
+To specify the port name of a Web Service in the header file, use:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+//gsoap <i>namespace-prefix</i> service portName: <i>port-name</i>
+</td></tr></table><br></i>
+where <i>namespace-prefix</i> is a namespace prefix used by identifiers in the header file and <i>port-name</i> is the name of the WSDL service port element. By default, the port name is the same as the service name.
 
 <div class="p"><!----></div>
 To specify the binding name of a Web Service in the header file, use:
@@ -10439,7 +10729,7 @@ soap_done(soap); <br />
 free(soap);
 </td></tr></table><br></i>
 It is also possible to serialize the tm fields as XML attributes using the
-@qualifier, see Section&nbsp;<a href="#sec:attributes">10.5.7</a>.
+@qualifier, see Section&nbsp;<a href="#sec:attributes">10.6.7</a>.
 
 <div class="p"><!----></div>
 If you must produce a schema file, say <i>time.xsd</i>, that defines an XML
@@ -10537,7 +10827,7 @@ declared with namespace prefixes to indicate the schema type of the data
 contained in the elements. SOAP 1.1 and 1.2 requires <tt>xsi:type</tt> attributes
 in the presence of polymorphic data or when the type of the data cannot be
 deduced from the SOAP payload.  The namespace prefixes are associated with the
-type names of <i><b>typedef</b></i>s (Section&nbsp;<a href="#sec:primitive">10.2</a>) for primitive data
+type names of <i><b>typedef</b></i>s (Section&nbsp;<a href="#sec:primitive">10.3</a>) for primitive data
 types, <i><b>struct</b></i>/<i>class</i> names, and <i><b>enum</b></i> names.
 
 <div class="p"><!----></div>
@@ -13077,5 +13367,5 @@ soap_serve(&amp;soap); <br />
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.72.<br />On 19 Feb 2006, 11:36.</small>
+version 3.72.<br />On  8 Apr 2006, 21:30.</small>
 </html>

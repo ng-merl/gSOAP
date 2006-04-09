@@ -51,7 +51,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.6e" /* Current version */
+#define VERSION "2.7.7" /* Current version */
 #endif
 
 #ifdef WIN32
@@ -133,6 +133,7 @@ typedef	enum Type
 	Tllong,
 	Tfloat,
 	Tdouble,
+	Tldouble,
 	Tuchar,
 	Tushort,
 	Tuint,
@@ -161,14 +162,15 @@ typedef	enum Storage
 	Stypedef	= 0x000010,
 	Svirtual	= 0x000020,
 	Sconst		= 0x000040,
-	Sfriend		= 0x000080,
-	Sinline		= 0x000100,
-	Sconstobj	= 0x000200,
-	Sabstract	= 0x000400,
-	SmustUnderstand	= 0x000800,
-	Sreturn		= 0x001000,
-	Sattribute	= 0x002000,
-	Sexplicit	= 0x004000,
+	Sconstobj	= 0x000080,
+	Sconstptr	= 0x000100,
+	Sfriend		= 0x000200,
+	Sinline		= 0x000400,
+	Sabstract	= 0x000800,
+	SmustUnderstand	= 0x001000,
+	Sreturn		= 0x002000,
+	Sattribute	= 0x004000,
+	Sexplicit	= 0x008000,
 	Sprivate	= 0x010000,
 	Sprotected	= 0x020000
 } Storage;
@@ -186,6 +188,7 @@ typedef	enum Level { INTERNAL, GLOBAL, PARAM, LOCAL } Level;
 #define mkllong()	mktype(Tllong,    NULL, 8)
 #define mkfloat()	mktype(Tfloat,    NULL, 4)
 #define mkdouble()	mktype(Tdouble,   NULL, 8)
+#define mkldouble()	mktype(Tldouble,  NULL, 16)	/* long double */
 #define mkuchar()	mktype(Tuchar,    NULL, 1)	/* unsigned char */
 #define mkushort()	mktype(Tushort,   NULL, 2)	/* unsigned short */
 #define mkuint()	mktype(Tuint,     NULL, 4)	/* unsigned int */
@@ -305,7 +308,8 @@ typedef struct Service
 {	struct Service *next;
 	char *ns;
 	char *name;
-	char *port;
+	char *porttype;
+	char *portname;
 	char *binding;
 	char *definitions;
 	char *transport;

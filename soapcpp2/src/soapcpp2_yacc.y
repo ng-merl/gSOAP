@@ -352,7 +352,8 @@ dclr	: ptrs ID arrayck occurs init
 							break;
 						case Tfloat:
 						case Tdouble:
-							if ($5.typ->type == Tfloat || $5.typ->type == Tdouble)
+						case Tldouble:
+							if ($5.typ->type == Tfloat || $5.typ->type == Tdouble || $5.typ->type == Tldouble)
 								p->info.val.r = $5.val.r;
 							else if ($5.typ->type == Tint)
 								p->info.val.r = (double)$5.val.i;
@@ -607,7 +608,8 @@ farg	: tspec ptrs arg arrayck occurs init
 						break;
 					case Tfloat:
 					case Tdouble:
-						if ($6.typ->type == Tfloat || $6.typ->type == Tdouble)
+					case Tldouble:
+						if ($6.typ->type == Tfloat || $6.typ->type == Tdouble || $6.typ->type == Tldouble)
 							p->info.val.r = $6.val.r;
 						else if ($6.typ->type == Tint)
 							p->info.val.r = (double)$6.val.i;
@@ -715,6 +717,7 @@ spec	: /*empty */	{ $$.typ = mkint();
 				  case Tlong:	$$.typ = mkllong(); break;
 				  case Tuint:	$$.typ = mkulong(); break;
 				  case Tulong:	$$.typ = mkullong(); break;
+				  case Tdouble:	$$.typ = mkldouble(); break;
 				  default:	semwarn("illegal use of 'long'");
 						$$.typ = $2.typ;
 				}
@@ -781,6 +784,7 @@ tspec	: store		{ $$.typ = mkint();
 				  case Tlong:	$$.typ = mkllong(); break;
 				  case Tuint:	$$.typ = mkulong(); break;
 				  case Tulong:	$$.typ = mkullong(); break;
+				  case Tdouble:	$$.typ = mkldouble(); break;
 				  default:	semwarn("illegal use of 'long'");
 						$$.typ = $2.typ;
 				}
@@ -1236,7 +1240,10 @@ virtual : /* empty */	{ $$ = Snone; }
 	| VIRTUAL	{ $$ = Svirtual; }
 	;
 ptrs	: /* empty */	{ $$ = tmp = sp->node; }
-	| ptrs '*'	{ tmp.typ = mkpointer(tmp.typ);
+	| ptrs '*'	{ /* handle const pointers, such as const char* */
+			  if (/*tmp.typ->type == Tchar &&*/ (tmp.sto & Sconst))
+			  	tmp.sto = (tmp.sto & ~Sconst) | Sconstptr;
+			  tmp.typ = mkpointer(tmp.typ);
 			  tmp.typ->transient = transient;
 			  $$ = tmp;
 			}
@@ -1614,7 +1621,8 @@ static int
 real(Tnode *typ)
 {	switch (typ->type) {
 	case Tfloat:
-	case Tdouble:	return True;
+	case Tdouble:
+	case Tldouble:	return True;
 	}
 	return False;
 }

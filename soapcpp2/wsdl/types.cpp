@@ -930,13 +930,13 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
         else if (ae)
 	  fprintf(stream, "(%s..", ae);
         else
-	  fprintf(stream, "[-INF..");
+	  fprintf(stream, "[..");
         if (bi)
 	  fprintf(stream, "%s]\n", bi);
         else if (be)
 	  fprintf(stream, "%s)\n", be);
         else
-	  fprintf(stream, "INF]\n");
+	  fprintf(stream, "]\n");
       }
       if (!simpleType.restriction->attribute.empty())
       { fprintf(stderr, "\nWarning: simpleType '%s' should not have attributes\n", name?name:"");
@@ -997,7 +997,9 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
   else if (simpleType.list)
   { if (simpleType.list->restriction && simpleType.list->restriction->base)
     { if (!anonymous)
-        fprintf(stream, "\n/// \"%s\":%s is a simpleType list restriction of %s.\n", URI?URI:"", name, simpleType.list->restriction->base);
+      { fprintf(stream, "\n/// \"%s\":%s is a simpleType list restriction of %s.\n", URI?URI:"", name, simpleType.list->restriction->base);
+        fprintf(stream, "/// Note: this enumeration is a bitmask, so a set of values is supported (using | and & bit-ops on the bit vector).\n");
+      }
       document(simpleType.annotation);
       if (!anonymous)
       { t = deftname(ENUM, NULL, false, prefix, URI, name);
@@ -1042,7 +1044,9 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
     { const xs__simpleType *p = simpleType.list->itemTypePtr();
       if (p && p->restriction && p->restriction->base && !p->restriction->enumeration.empty() && p->restriction->enumeration.size() <= 64)
       { if (!anonymous)
-          fprintf(stream, "\n/// \"%s\":%s is a simpleType list of %s.\n", URI?URI:"", name, simpleType.list->itemType);
+        { fprintf(stream, "\n/// \"%s\":%s is a simpleType list of %s.\n", URI?URI:"", name, simpleType.list->itemType);
+          fprintf(stream, "/// Note: this enumeration is a bitmask, so a set of values is supported (using | and & bit-ops on the bit vector).\n");
+	}
         document(simpleType.annotation);
         if (!anonymous)
         { t = deftname(ENUM, NULL, false, prefix, URI, name);
@@ -1096,7 +1100,9 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
     }
     else
     { if (!anonymous)
-        fprintf(stream, "\n/// \"%s\":%s is a simpleType list.\n", URI?URI:"", name);
+      { fprintf(stream, "\n/// \"%s\":%s is a simpleType list.\n", URI?URI:"", name);
+        fprintf(stream, "/// Note: this enumeration is a bitmask, so a set of values is supported (using | and & bit-ops on the bit vector).\n");
+      }
       document(simpleType.annotation);
       if (!anonymous)
       { t = deftname(ENUM, NULL, false, prefix, URI, name);
@@ -1396,7 +1402,11 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
       }
       xs__complexType *p = complexType.complexContent->extension->complexTypePtr();
       while (p)
-      { const char *pURI = p->schemaPtr()->targetNamespace;
+      { const char *pURI;
+        if (p->schemaPtr())
+	  pURI = p->schemaPtr()->targetNamespace;
+	else
+	  pURI = URI;
         const char *b = cname(NULL, pURI, p->name);
         static int nesting = 0;
 	if (cflag || fflag || anonymous)
@@ -1682,7 +1692,7 @@ void Types::gen(const char *URI, const xs__element& element)
     nameURI = element.schemaPtr()->targetNamespace;
   if (element.elementPtr()) // element ref
   { name = element.elementPtr()->name;
-    if (element.schemaPtr() != element.elementPtr()->schemaPtr())
+    if (element.schemaPtr() != element.elementPtr()->schemaPtr() && element.elementPtr()->schemaPtr())
       nameURI = element.elementPtr()->schemaPtr()->targetNamespace;
     if (element.elementPtr()->type)
     { type = element.elementPtr()->type;
@@ -1726,7 +1736,7 @@ void Types::gen(const char *URI, const xs__element& element)
     else
     { fprintf(stream, "/// Element reference %s.\n", element.ref);
       document(element.elementPtr()->annotation);
-      fprintf(stream, elementformat, pname(fake_union || is_nillable(element), NULL, typeURI, type), aname(NULL, nameURI, name));
+      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(type)) || fake_union || is_nillable(element), NULL, typeURI, type), aname(NULL, nameURI, name));
     }
   }
   else if (name && type)
@@ -1761,7 +1771,7 @@ void Types::gen(const char *URI, const xs__element& element)
     }
     else
     { fprintf(stream, "/// Element %s of type %s.\n", name, type);
-      fprintf(stream, elementformat, pname(fake_union || is_nillable(element), NULL, NULL, type), aname(NULL, nameURI, name));
+      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(type)) || fake_union || is_nillable(element), NULL, NULL, type), aname(NULL, nameURI, name));
     }
   }
   else if (name && element.simpleTypePtr())
@@ -1775,7 +1785,8 @@ void Types::gen(const char *URI, const xs__element& element)
     }
     gen(URI, name, *element.simpleTypePtr(), true);
     if (is_nillable(element)
-     || element.maxOccurs && strcmp(element.maxOccurs, "1")) // maxOccurs != "1"
+     || element.maxOccurs && strcmp(element.maxOccurs, "1") // maxOccurs != "1"
+     || (with_union && !cflag) || fake_union)
       fprintf(stream, pointerformat, "", aname(NULL, nameURI, name));
     else
       fprintf(stream, elementformat, "", aname(NULL, nameURI, name));
@@ -1790,7 +1801,8 @@ void Types::gen(const char *URI, const xs__element& element)
     }
     gen(URI, name, *element.complexTypePtr(), true);
     if (is_nillable(element)
-     || element.maxOccurs && strcmp(element.maxOccurs, "1")) // maxOccurs != "1"
+     || element.maxOccurs && strcmp(element.maxOccurs, "1") // maxOccurs != "1"
+     || (with_union && !cflag) || fake_union)
       fprintf(stream, pointerformat, "}", aname(NULL, nameURI, name));
     else
       fprintf(stream, elementformat, "}", aname(NULL, nameURI, name));

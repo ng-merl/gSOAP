@@ -11,14 +11,11 @@ Usage (server):
 mtom-test <port>
 
 Usage (client):
-mtom-test http://localhost:<port> "<message>" "<MIME-type>"
-
-Usage (client):
-mtom-test http://localhost:<port> "<message>" "<MIME-type>" "<message2>" "<message3>" ...
+mtom-test http://localhost:<port> "<message1>" "<message2>" "<message3>" ...
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2004, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -49,7 +46,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 int cgi_serve();
 int run_serve(int port);
-int run_tests(int,char**);
+int run_tests(int, char**);
 
 int main(int argc, char **argv)
 { if (argc < 2)
@@ -65,7 +62,7 @@ int cgi_serve()
 }
 
 int run_serve(int port)
-{ struct soap *soap = soap_new1(SOAP_ENC_MTOM);
+{ struct soap *soap = soap_new1(SOAP_ENC_MTOM); /* enable MTOM */
   int ret;
   if (!soap_valid_socket(soap_bind(soap, NULL, port, 100)))
     soap_print_fault(soap, stderr);
@@ -97,12 +94,12 @@ int run_serve(int port)
 }
 
 int run_tests(int argc, char **argv)
-{ struct soap *soap = soap_new1(SOAP_ENC_MTOM);
+{ struct soap *soap = soap_new1(SOAP_ENC_MTOM); /* enable MTOM */
   int i, ret;
   struct x__DataType data;
   struct x__WrapperType wrap;
-  struct __m__EchoTestSingleResponse single;
-  struct __m__EchoTestMultipleResponse multiple;
+  struct m__EchoTestSingleResponse single;
+  struct m__EchoTestMultipleResponse multiple;
   soap_default_x__DataType(soap, &data);
   soap_default_x__WrapperType(soap, &wrap);
 
@@ -110,9 +107,7 @@ int run_tests(int argc, char **argv)
   data.__union = SOAP_UNION_x__data_base64;
   data.choice.base64.__ptr = (unsigned char*)argv[2];
   data.choice.base64.__size = (int)strlen(argv[2]) + 1;
-  if (argc > 3)
-    data.xmlmime__contentType = argv[3];
-  if (soap_call___m__EchoTestSingle(soap, argv[1], NULL, &data, &single))
+  if (soap_call_m__EchoTestSingle(soap, argv[1], NULL, &data, &single))
     soap_print_fault(soap, stderr);
   else
   { if (!single.x__Data || single.x__Data->__union != SOAP_UNION_x__data_xop__Include || !single.x__Data->choice.xop__Include.__ptr || single.x__Data->choice.xop__Include.__size != data.choice.base64.__size || strcmp((char*)single.x__Data->choice.xop__Include.__ptr, (char*)data.choice.base64.__ptr))
@@ -124,9 +119,10 @@ int run_tests(int argc, char **argv)
     data.choice.xop__Include.__ptr = (unsigned char*)argv[2];
     data.choice.xop__Include.__size = (int)strlen(argv[2]) + 1;
     data.choice.xop__Include.id = NULL;
-    data.choice.xop__Include.type = "text/xml; charset=utf-8";
+    data.choice.xop__Include.type = "text/xml";
     data.choice.xop__Include.options = NULL;
-    if (soap_call___m__EchoTestSingle(soap, argv[1], NULL, &data, &single))
+    data.xmlmime__contentType = "text/xml";
+    if (soap_call_m__EchoTestSingle(soap, argv[1], NULL, &data, &single))
       soap_print_fault(soap, stderr);
     else
     { if (!single.x__Data
@@ -147,7 +143,7 @@ int run_tests(int argc, char **argv)
           wrap.Data[i].choice.base64.__size = (int)strlen(argv[i + 2]) + 1;
           wrap.Data[i].xmlmime__contentType = "text/xml";
         }
-        if (soap_call___m__EchoTestMultiple(soap, argv[1], NULL, &wrap, &multiple))
+        if (soap_call_m__EchoTestMultiple(soap, argv[1], NULL, &wrap, &multiple))
           soap_print_fault(soap, stderr);
         else
         { int okay = 1;
@@ -177,7 +173,7 @@ int run_tests(int argc, char **argv)
               wrap.Data[i].choice.xop__Include.options = NULL;
               wrap.Data[i].xmlmime__contentType = "text/xml";
             }
-            if (soap_call___m__EchoTestMultiple(soap, argv[1], NULL, &wrap, &multiple))
+            if (soap_call_m__EchoTestMultiple(soap, argv[1], NULL, &wrap, &multiple))
               soap_print_fault(soap, stderr);
             else
             { int okay = 1;
@@ -209,7 +205,7 @@ int run_tests(int argc, char **argv)
   return ret;
 }
 
-int __m__EchoTestSingle(struct soap *soap, struct x__DataType *data, struct __m__EchoTestSingleResponse *response)
+int m__EchoTestSingle(struct soap *soap, struct x__DataType *data, struct m__EchoTestSingleResponse *response)
 { if (!data)
     return soap_sender_fault(soap, "No data", NULL);
   /* allocate response */
@@ -241,7 +237,7 @@ int __m__EchoTestSingle(struct soap *soap, struct x__DataType *data, struct __m_
   return SOAP_OK;
 }
 
-int __m__EchoTestMultiple(struct soap *soap, struct x__WrapperType *x__EchoTest, struct __m__EchoTestMultipleResponse *response)
+int m__EchoTestMultiple(struct soap *soap, struct x__WrapperType *x__EchoTest, struct m__EchoTestMultipleResponse *response)
 { int i;
   if (!x__EchoTest)
     return soap_sender_fault(soap, "No data", NULL);

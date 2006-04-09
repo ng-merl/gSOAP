@@ -54,7 +54,7 @@ int main()
     SOAP_SSL_DEFAULT,	/* use SOAP_SSL_DEFAULT in production code */
     NULL, 		/* keyfile: required only when client must authenticate to server (see SSL docs on how to obtain this file) */
     NULL, 		/* password to read the keyfile */
-    "cacert.pem",	/* optional cacert file to store trusted certificates */
+    "cacert.pem",	/* optional cacert file to store trusted certificates, use cacerts.pem for all public certificates issued by common CAs */
     NULL,		/* optional capath to directory with trusted certificates */
     NULL		/* if randfile!=NULL: use a file with random data to seed randomness */ 
   ))

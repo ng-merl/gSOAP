@@ -37,7 +37,9 @@
 
 void *process_request(void*);
 
-int synchronous = 0; /* =1: SOAP interoperable synchronous one-way messaging over HTTP */
+int synchronous = 1;
+/* synchronous=0: asynchronous one-way messaging over HTTP (no HTTP response) */
+/* synchronous=1: SOAP interoperable synchronous one-way messaging over HTTP */
 
 int main(int argc, char **argv)
 { struct soap soap, *tsoap;

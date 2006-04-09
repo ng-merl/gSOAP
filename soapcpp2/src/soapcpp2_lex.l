@@ -5,7 +5,7 @@ soapcpp2_lex.l
 Flex/Lex tokenizer.
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2006 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -280,7 +280,8 @@ static void directive()
 		sp->next = services;
 		sp->ns = s;
 		sp->name = NULL;
-		sp->port = NULL;
+		sp->porttype = NULL;
+		sp->portname = NULL;
 		sp->binding = NULL;
 		sp->definitions = NULL;
 		sp->transport = NULL;
@@ -336,9 +337,11 @@ static void directive()
 			sp->documentation = s;
 		}
 		else if (!strncmp(yytext+i, "type:", 5))
-			sp->port = s;
+			sp->porttype = s;
 		else if (!strncmp(yytext+i, "portType:", 9))
-			sp->port = s;
+			sp->porttype = s;
+		else if (!strncmp(yytext+i, "portName:", 9))
+			sp->portname = s;
 		else if (!strncmp(yytext+i, "binding:", 8))
 			sp->binding = s;
 		else if (!strncmp(yytext+i, "definitions:", 12))
@@ -693,6 +696,9 @@ static void option()
 				break;
 		 	case 'l':
 				lflag = 1;
+				break;
+		 	case 't':
+				tflag = 1;
 				break;
 		 	case 'w':
 				wflag = 1;

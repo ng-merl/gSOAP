@@ -167,6 +167,10 @@ USING SSL FOR HTTPS TRANSFER OF WSDL FILES
 You must build the WSDL parser with 'make secure' to build an SSL-enabled
 version of wsdl2h that can access HTTPS secure sites.
 
+If you don't have OpenSSL installed, you cannot build an SSL-secure version of
+wsdl2h. In that case we recommend downloading the WSDL and schema files for
+processing with the non-SSL-enabled wsdl2h tool.
+
 LICENSE
 
 The gSOAP WSDL parser 'wsdl2h' and source code are released under the GPL.

@@ -141,7 +141,16 @@ int wsdl__definitions::read(const char *cwd, const char *loc)
 { if (vflag)
     fprintf(stderr, "Opening WSDL/XSD '%s' from '%s'\n", loc?loc:"", cwd?cwd:"");
   if (loc)
-  { if (!strncmp(loc, "http://", 7) || !strncmp(loc, "https://", 8))
+  {
+#ifdef WITH_OPENSSL
+    if (!strncmp(loc, "http://", 7) || !strncmp(loc, "https://", 8))
+#else
+    if (!strncmp(loc, "https://", 8))
+    { fprintf(stderr, "Cannot connect to https site: no SSL support, please rebuild with 'make secure' or download the files and rerun wsdl2h\n");
+      exit(1);
+    }
+    else if (!strncmp(loc, "http://", 7))
+#endif
     { fprintf(stderr, "Connecting to '%s' to retrieve WSDL/XSD... ", loc);
       location = soap_strdup(soap, loc);
       if (soap_connect_command(soap, SOAP_GET, location, NULL))
@@ -204,7 +213,7 @@ int wsdl__definitions::read(const char *cwd, const char *loc)
   { // deal with sloppy WSDLs that import schemas at the top level rather than importing them in <types>
     if (soap->error == SOAP_TAG_MISMATCH && soap->level == 0)
     { soap_retry(soap);
-      xs__schema *schema = new xs__schema(soap);
+      xs__schema *schema = soap_new_xs__schema(soap, -1);
       schema->soap_in(soap, "xs:schema", NULL);
       if (soap->error)
       { fprintf(stderr, "An error occurred while parsing WSDL or XSD from '%s'\n", loc?loc:"");
@@ -216,7 +225,7 @@ int wsdl__definitions::read(const char *cwd, const char *loc)
       targetNamespace = schema->targetNamespace;
       if (vflag)
         cerr << "Found schema " << (targetNamespace?targetNamespace:"") << " when expecting WSDL" << endl;
-      types = new wsdl__types();
+      types = soap_new_wsdl__types(soap, -1);
       types->documentation = NULL;
       types->xs__schema_.push_back(schema);
     }
@@ -286,15 +295,13 @@ again:
       for (vector<xs__schema*>::const_iterator i = (*im3).definitionsPtr()->types->xs__schema_.begin(); i != (*im3).definitionsPtr()->types->xs__schema_.end(); ++i)
       { bool found = false;
 	if (!(*i)->targetNamespace)
+	{ (*i)->targetNamespace = targetNamespace;
           cerr << "Warning: Schema without namespace, assigning " << (targetNamespace?targetNamespace:"") << endl;
-	if (!(*i)->targetNamespace)
-	  (*i)->targetNamespace = targetNamespace;
-	else
-	{ for (vector<xs__schema*>::const_iterator j = types->xs__schema_.begin(); j != types->xs__schema_.end(); ++j)
-	  { if ((*j)->targetNamespace && !strcmp((*i)->targetNamespace, (*j)->targetNamespace))
-	    { found = true;
-	      break;
-	    }
+	}
+	for (vector<xs__schema*>::const_iterator j = types->xs__schema_.begin(); j != types->xs__schema_.end(); ++j)
+	{ if ((*j)->targetNamespace && !strcmp((*i)->targetNamespace, (*j)->targetNamespace))
+	  { found = true;
+	    break;
 	  }
 	}
 	if (!found)
@@ -964,7 +971,7 @@ int wsdl__types::traverse(wsdl__definitions& definitions)
   { // artificially extend the <import> of each schema to include others so when we traverse schemas we can resolve references
     for (vector<xs__schema*>::iterator importschema = xs__schema_.begin(); importschema != xs__schema_.end(); ++importschema)
     { if (schema3 != importschema && (*importschema)->targetNamespace)
-      { xs__import *import = new xs__import();
+      { xs__import *import = soap_new_xs__import(definitions.soap, -1);
         import->namespace_ = (*importschema)->targetNamespace;
         import->schemaPtr(*importschema);
         (*schema3)->import.push_back(*import);

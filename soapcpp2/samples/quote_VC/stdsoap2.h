@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.6e
+stdsoap2.h 2.7.7
 
 gSOAP runtime
 
@@ -389,6 +389,26 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_LOCALTIME_R
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
+# elif defined(__QNX__) || defined(QNX)
+/* QNX does not have a working version of strtof */
+#  undef HAVE_STRTOF
+#  define HAVE_STRRCHR
+#  define HAVE_STRTOD
+#  define HAVE_SSCANF
+#  define HAVE_STRTOL
+#  define HAVE_STRTOUL
+#  define HAVE_SYS_TIMEB_H
+#  define HAVE_FTIME
+#  define HAVE_RAND_R
+#  define HAVE_GETHOSTBYNAME_R
+#  define HAVE_GMTIME_R
+#  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
+#  define LONG64 long
+#  define ULONG64 unsigned LONG64
+#  define SOAP_LONG_FORMAT "%ld"
+#  define SOAP_ULONG_FORMAT "%lu"
 # else
 /* Default asumptions on supported functions */
 #  define HAVE_STRRCHR
@@ -405,11 +425,6 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
 # endif
-#endif
-
-/* QNX does not have a working version of strtof */
-#if defined(__QNX__) || defined(QNX)
-# undef HAVE_STRTOF
 #endif
 
 #ifndef SOAP_LONG_FORMAT
@@ -586,9 +601,10 @@ extern "C" {
 #ifndef SOAP_SOCKET
 # ifdef WIN32
 #  define SOAP_SOCKET SOCKET
+#  define soap_closesocket(n) closesocket(n)
 # else
 #  define SOAP_SOCKET int
-#  define closesocket(n) close(n)
+#  define soap_closesocket(n) close(n)
 # endif
 #endif
 
@@ -1457,6 +1473,12 @@ struct soap
   void (*fdimewriteclose)(struct soap*, void*);
   size_t (*fdimeread)(struct soap*, void*, char*, size_t);
   int (*fdimewrite)(struct soap*, void*, const char*, size_t);
+  void *(*fmimereadopen)(struct soap*, void*, const char*, const char*, const char*);
+  void *(*fmimewriteopen)(struct soap*, const char*, const char*, const char*, enum soap_mime_encoding);
+  void (*fmimereadclose)(struct soap*, void*);
+  void (*fmimewriteclose)(struct soap*, void*);
+  size_t (*fmimeread)(struct soap*, void*, char*, size_t);
+  int (*fmimewrite)(struct soap*, void*, const char*, size_t);
 #endif
   int master;
   int socket;
@@ -1492,7 +1514,7 @@ struct soap
 #endif
   char buf[SOAP_BUFLEN];/* send and receive buffer */
   char tmpbuf[1024];	/* in/output buffer for HTTP headers, simpleType values, attribute names, and DIME >=1024 bytes */
-  char msgbuf[1024];	/* output buffer for (error) messages <=1024 bytes */
+  char msgbuf[1024];	/* in/output buffer for messages >=1024 bytes */
   char tag[SOAP_TAGLEN];
   char id[SOAP_TAGLEN];
   char href[SOAP_TAGLEN];
@@ -1686,7 +1708,7 @@ soap_wchar soap_get1(struct soap*);
 
 #if defined(WITH_OPENSSL)
 # define soap_random soap_rand()
-SOAP_FMAC1 int SOAP_FMAC2 soap_rand();
+SOAP_FMAC1 int SOAP_FMAC2 soap_rand(void);
 #elif defined(HAVE_RANDOM)
 # define soap_random (int)random()
 #else
@@ -1723,7 +1745,7 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_serializefault(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_putfault(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_getfault(struct soap*);
 
-SOAP_FMAC1 void SOAP_FMAC2 soap_ssl_init();
+SOAP_FMAC1 void SOAP_FMAC2 soap_ssl_init(void);
 SOAP_FMAC1 int SOAP_FMAC2 soap_poll(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect_command(struct soap*, int, const char*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect(struct soap*, const char*, const char*);
@@ -1799,8 +1821,10 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_begin_send(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_end_send(struct soap*);
 
 SOAP_FMAC1 const struct soap_code_map* SOAP_FMAC2 soap_code(const struct soap_code_map*, const char *str);
-SOAP_FMAC1 long SOAP_FMAC2 soap_int_code(const struct soap_code_map*, const char *str, long other);
-SOAP_FMAC1 const char* SOAP_FMAC2 soap_str_code(const struct soap_code_map*, long code);
+SOAP_FMAC1 long SOAP_FMAC2 soap_code_int(const struct soap_code_map*, const char *str, long other);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_code_str(const struct soap_code_map*, long code);
+SOAP_FMAC1 long SOAP_FMAC2 soap_code_bits(const struct soap_code_map *map, const char *str);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_code_list(struct soap*, const struct soap_code_map *map, long code);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_getline(struct soap*, char*, int);
 SOAP_FMAC1 int SOAP_FMAC2 soap_begin_recv(struct soap*);
@@ -1860,7 +1884,6 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_close_logfiles(struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_open_logfile(struct soap*, int);
 #endif
 
-SOAP_FMAC1 const char* SOAP_FMAC2 soap_token(struct soap*);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_value(struct soap*);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_match_tag(struct soap*, const char*, const char *);
@@ -2060,6 +2083,7 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_clr_mime(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_set_dime_attachment(struct soap*, char *ptr, size_t size, const char *type, const char *id, unsigned short optype, const char *option);
 SOAP_FMAC1 int SOAP_FMAC2 soap_set_mime_attachment(struct soap*, char *ptr, size_t size, enum soap_mime_encoding encoding, const char *type, const char *id, const char *location, const char *description);
 SOAP_FMAC1 struct soap_multipart* SOAP_FMAC2 soap_next_multipart(struct soap_multipart*);
+SOAP_FMAC1 int SOAP_FMAC2 soap_match_cid(struct soap*, const char*, const char*);
 #endif
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_register_plugin_arg(struct soap*, int (*fcreate)(struct soap*, struct soap_plugin*, void*), void*);

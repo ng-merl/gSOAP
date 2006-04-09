@@ -5,4 +5,5 @@ See the notes in the source files on specific usage.
 
 The following serializers are available:
 
+long_double	Serializes long double (extended double) type
 struct_tm.*	Serializes <time.h> struct tm

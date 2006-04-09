@@ -5462,7 +5462,8 @@ fi
 
 
 
-for ac_func in random gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull sscanf wctomb mbtowc
+
+for ac_func in random gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull strtold sscanf wctomb mbtowc
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -5953,7 +5954,7 @@ fi
 
 
 
-                                                                                                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc gsoapssl.pc gsoapssl++.pc soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile soapcpp2/samples/Makefile soapcpp2/samples/quote/Makefile soapcpp2/samples/quote2/Makefile soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile soapcpp2/samples/quotex/Makefile soapcpp2/samples/calc/Makefile soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile soapcpp2/samples/dime/Makefile soapcpp2/samples/mtom/Makefile soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile soapcpp2/samples/events/Makefile soapcpp2/samples/polytest/Makefile soapcpp2/samples/udp/Makefile"
+                                                                                                                                                                                                                                                                                                                                                                        ac_config_files="$ac_config_files Makefile gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc gsoapssl.pc gsoapssl++.pc soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile soapcpp2/samples/Makefile soapcpp2/samples/quote/Makefile soapcpp2/samples/quote2/Makefile soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile soapcpp2/samples/quotex/Makefile soapcpp2/samples/calc/Makefile soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile soapcpp2/samples/dime/Makefile soapcpp2/samples/mtom/Makefile soapcpp2/samples/mtom-stream/Makefile soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile soapcpp2/samples/events/Makefile soapcpp2/samples/polytest/Makefile soapcpp2/samples/udp/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -6531,6 +6532,7 @@ do
   "soapcpp2/samples/factorytest/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/factorytest/Makefile" ;;
   "soapcpp2/samples/dime/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/dime/Makefile" ;;
   "soapcpp2/samples/mtom/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/mtom/Makefile" ;;
+  "soapcpp2/samples/mtom-stream/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/mtom-stream/Makefile" ;;
   "soapcpp2/samples/localtime/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/localtime/Makefile" ;;
   "soapcpp2/samples/listing/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/listing/Makefile" ;;
   "soapcpp2/samples/magic/Makefile" ) CONFIG_FILES="$CONFIG_FILES soapcpp2/samples/magic/Makefile" ;;

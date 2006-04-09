@@ -1,5 +1,11 @@
 //	Google Web APIs
 
+//	Note: the Google API server needs typed messages.
+//	Use soapcpp2 -t to generated serialization code for typed xsi:type
+//	messages.
+
+//gsoapopt t
+
 //gsoap api service name:	googleapi
 //gsoap api service style:	rpc
 //gsoap api service encoding:	encoded

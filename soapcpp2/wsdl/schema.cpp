@@ -298,7 +298,16 @@ int xs__schema::read(const char *cwd, const char *loc)
 { if (vflag)
     fprintf(stderr, "Opening schema '%s' from '%s'\n", loc?loc:"", cwd?cwd:"");
   if (loc)
-  { if (!strncmp(loc, "http://", 7) || !strncmp(loc, "https://", 8))
+  {
+#ifdef WITH_OPENSSL
+    if (!strncmp(loc, "http://", 7) || !strncmp(loc, "https://", 8))
+#else
+    if (!strncmp(loc, "https://", 8))
+    { fprintf(stderr, "Cannot connect to https site: no SSL support, please rebuild with 'make secure' or download the files and rerun wsdl2h\n");
+      exit(1);
+    }
+    else if (!strncmp(loc, "http://", 7))
+#endif
     { fprintf(stderr, "Connecting to '%s' to retrieve schema... ", loc);
       location = soap_strdup(soap, loc);
       if (soap_connect_command(soap, SOAP_GET, location, NULL))
@@ -543,15 +552,16 @@ int xs__import::traverse(xs__schema &schema)
       if (!s)
         s = namespace_;
       schemaRef = new xs__schema(schema.soap, schema.sourceLocation(), s);
-      if (schemaPtr())
-      { if (!schemaPtr()->targetNamespace || !*schemaPtr()->targetNamespace)
-          schemaPtr()->targetNamespace = namespace_;
-        else if (!namespace_ || strcmp(schemaPtr()->targetNamespace, namespace_))
-          fprintf(stderr, "Warning: schema import '%s' with schema targetNamespace '%s' mismatch\n", namespace_?namespace_:"", schemaPtr()->targetNamespace);
-        schemaPtr()->traverse();
+      if (schemaRef)
+      { if (!schemaRef->targetNamespace || !*schemaRef->targetNamespace)
+          schemaRef->targetNamespace = namespace_;
+        else if (!namespace_ || strcmp(schemaRef->targetNamespace, namespace_))
+          fprintf(stderr, "Warning: schema import '%s' with schema targetNamespace '%s' mismatch\n", namespace_?namespace_:"", schemaRef->targetNamespace);
       }
     }
   }
+  if (schemaRef)
+    schemaRef->traverse();
   return SOAP_OK;
 }
 

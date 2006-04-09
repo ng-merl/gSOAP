@@ -5,9 +5,9 @@
 	Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 
 1. Compile ckdb.h:
-   soapcpp2 -cpckdb ckdb.h
+   soapcpp2 -cnpckdb ckdb.h
 2. Compile ckdb.c:
-   gcc -DWITH_COOKIES -DWITH_NOGLOBAL -c ckdb.c
+   gcc -DWITH_COOKIES -c ckdb.c
 3. Compile and link ckdbtest.c:
    soapcpp2 -c ckdbtest.h
    gcc -DWITH_COOKIES ckdbtest.c ckdb.o stdsoap2.c soapC.c soapClient.c

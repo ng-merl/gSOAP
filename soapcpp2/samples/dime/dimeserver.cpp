@@ -232,7 +232,6 @@ int ns__putData(struct soap *soap, arrayOfData *data, arrayOfName *names)
 int ns__getData(struct soap *soap, arrayOfName *names, arrayOfData *data)
 { // gSOAP switches to SOAP_IO_STORE when SOAP_IO_CHUNK (HTTP chunking) is not supported by the client.
   // Since it is undesirable to use SOAP_IO_STORE, we reset it to SOAP_IO_BUFFER
-  // Important: DIME attachments MAY be transmitted in a permuted order, so we must be careful with streaming data to files at the client side. Therefore, we save the file name in the options field.
   if ((soap->omode & SOAP_IO) == SOAP_IO_STORE)
     soap->omode = (soap->omode & ~SOAP_IO) | SOAP_IO_BUFFER;
   if (!names)

@@ -89,7 +89,7 @@ AC_FUNC_MKTIME
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull sscanf wctomb mbtowc])
+AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull strtold sscanf wctomb mbtowc])
 
 dnl Function test depending on platform
 dnl AIX Has incompatible gethostbyname_r
@@ -182,6 +182,7 @@ AC_CONFIG_FILES([ Makefile \
     soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile \
     soapcpp2/samples/dime/Makefile \
     soapcpp2/samples/mtom/Makefile \
+    soapcpp2/samples/mtom-stream/Makefile \
     soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile \
     soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile \
     soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile \

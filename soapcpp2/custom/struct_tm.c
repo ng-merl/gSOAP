@@ -4,6 +4,8 @@ struct_tm.c
 
 Custom serializer for <time.h> struct tm
 
+Compile this file and link it with your code.
+
 gSOAP XML Web services tools
 Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under one of the following licenses:
@@ -77,7 +79,7 @@ struct tm *soap_in_xsd__dateTime(struct soap *soap, const char *tag, struct tm *
   }
   a = (struct tm*)soap_id_enter(soap, soap->id, a, SOAP_TYPE_xsd__dateTime, sizeof(struct tm), 0, NULL, NULL, NULL);
   if (*soap->href)
-    a = (struct tm*)soap_id_forward(soap, soap->href, a, SOAP_TYPE_xsd__dateTime, 0, sizeof(struct tm), 0, NULL);
+    a = (struct tm*)soap_id_forward(soap, soap->href, a, 0, SOAP_TYPE_xsd__dateTime, 0, sizeof(struct tm), 0, NULL);
   else if (a)
   { const char *s = soap_value(soap);
     memset((void*)a, 0, sizeof(struct tm));

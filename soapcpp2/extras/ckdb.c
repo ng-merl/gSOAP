@@ -25,8 +25,9 @@ Copyright (C) 2000-2002 Robert A. van Engelen. All Rights Reserved.
 
 #include <sys/stat.h>
 #include "stdsoap2.h"
-#undef SOAP_FMAC1
-#define SOAP_FMAC1 static
+#define WITH_NOGLOBAL
+#undef SOAP_FMAC3
+#define SOAP_FMAC3 static
 #include "ckdbC.c"
 
 int soap_save_cookies(struct soap *soap, const char *pathname)

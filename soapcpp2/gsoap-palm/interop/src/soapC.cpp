@@ -1783,7 +1783,7 @@ static const struct soap_code_map soap_codes_bool[] =
 };
 
 SOAP_FMAC3S const char* SOAP_FMAC4S soap_bool2s(struct soap *soap, bool n)
-{	const char *s = soap_str_code(soap_codes_bool, (long)n);
+{	const char *s = soap_code_str(soap_codes_bool, (long)n);
 	if (s)
 		return s;
 	return soap_long2s(soap, (long)n);

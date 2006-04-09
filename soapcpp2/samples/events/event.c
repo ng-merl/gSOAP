@@ -23,7 +23,9 @@
 #include "soapH.h"
 #include "Event.nsmap"
 
-int synchronous = 0; /* =1: SOAP interoperable synchronous one-way messaging over HTTP */
+int synchronous = 1;
+/* synchronous=0: asynchronous one-way messaging over HTTP (no HTTP response) */
+/* synchronous=1: SOAP interoperable synchronous one-way messaging over HTTP */
 
 /* Service details copied from event.h: */
 const char *event_handler_endpoint = "http://localhost:18000";

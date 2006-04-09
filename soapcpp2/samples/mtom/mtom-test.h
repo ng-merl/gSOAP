@@ -2,23 +2,20 @@
 
 mtom-test.h
 
-This application includes a MTOM test client and server. As a client
-application, it fires four different base64 or MTOM attachments to the server.
-As a server, it will respond to the messages by converting base64 into MTOM
+This application includes a MIME test client and server. As a client
+application, it fires four different base64 or MIME attachments to the server.
+As a server, it will respond to the messages by converting base64 into MIME
 attachments and vice versa.
 
 Usage (server):
 mtom-test <port>
 
 Usage (client):
-mtom-test http://localhost:<port> "<message>" "<MIME-type>"
-
-Usage (client):
-mtom-test http://localhost:<port> "<message>" "<MIME-type>" "<message2>" "<message3>" ...
+mtom-test http://localhost:<port> "<message1>" "<message2>" "<message3>" ...
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2000-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2000-2006, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -48,10 +45,10 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #import "xop.h"
 #import "xmlmime.h"
 
-//gsoap m service namespace:	http://www.genivia.com/wsdl/mtom-test.wsdl
-//gsoap m service name:		mtom-test
+//gsoap m service name:		mime_test
+//gsoap m service namespace:	http://www.genivia.com/wsdl/mime_test.wsdl
 
-//gsoap x schema namespace:	http://www.genivia.com/schemas/mtom-test.xsd
+//gsoap x schema namespace:	http://www.genivia.com/schemas/mime_test.xsd
 //gsoap x schema elementForm:	qualified
 
 struct xsd__base64Binary
@@ -59,6 +56,7 @@ struct xsd__base64Binary
   int __size;
 };
 
+//gsoap x schema type-documentation: DataType a union of an MIME attachment or a base64 binary data type
 struct x__DataType
 { int __union;
   union x__data
@@ -68,21 +66,32 @@ struct x__DataType
   @char *xmlmime__contentType;
 };
 
+//gsoap x schema type-documentation: WrapperType wraps a sequence of data elements with MIME attachments or base64 binary data
 struct x__WrapperType
 { int __size;
   struct x__DataType *Data;
 };
 
-int __m__EchoTestSingle(
+/* m:EchoTestSingle has a single in/out attachment of text/xml */
+//gsoap m service method-input-mime-type: EchoTestSingle text/xml
+//gsoap m service method-output-mime-type: EchoTestSingle text/xml
+
+//gsoap m service method-documentation: EchoTestSingle echo a single MIME attachment or base64 binary data element
+int m__EchoTestSingle(
   struct x__DataType *x__Data,
-  struct __m__EchoTestSingleResponse
+  struct m__EchoTestSingleResponse
   { struct x__DataType *x__Data;
   }*
 );
 
-int __m__EchoTestMultiple(
+/* m:EchoTestSingle has at least two in/out attachments of any MIME type */
+//gsoap m service method-mime-type: EchoTestMultiple */*
+//gsoap m service method-mime-type: EchoTestMultiple */*
+
+//gsoap m service method-documentation: EchoTestMultiple echo a sequence of MIME attachments or base64 binary data elements
+int m__EchoTestMultiple(
   struct x__WrapperType *x__EchoTest,
-  struct __m__EchoTestMultipleResponse
+  struct m__EchoTestMultipleResponse
   { struct x__WrapperType *x__EchoTest;
   }*
 );

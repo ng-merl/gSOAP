@@ -333,6 +333,7 @@ int no_of_var(Tnode*);
 char *pointer_stuff(Tnode*);
 void in_defs(Table*);
 void in_defs2(Table*);
+void in_defs3(Table*);
 void out_defs(Table*);
 void mark_defs(Table*);
 void in_attach(Table*);
@@ -760,6 +761,8 @@ compile(Table *table)
         fprintf(fout,"\n\tdefault:\n\t{\tconst char *t = soap->type;\n\t\tif (!*t)\n\t\t\tt = soap->tag;");
 	fflush(fout);
 	in_defs2(table);
+        fprintf(fout,"\n\t\tt = soap->tag;");
+	in_defs3(table);
         fprintf(fout,"\n\t}\n\t}\n\tsoap->error = SOAP_TAG_MISMATCH;\n\treturn NULL;\n}\n#endif");
 
 	fprintf(fout,"\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_ignore_element(struct soap *soap)\n{");
@@ -1395,6 +1398,7 @@ get_namespace_prefixes()
 	  q->name[i] = '\0';
 	  q->next = nslist;
 	  nslist = q;
+	  break;
         }
       }
     }
@@ -1662,6 +1666,7 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
   Method *m;
   int mimein, mimeout;
   char *action, *comment, *method_style = NULL, *method_encoding = NULL, *method_response_encoding = NULL;
+  char *portname;
   char *binding;
   fprintf(fd, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
   for (sp = services; sp; sp = sp->next)
@@ -1679,6 +1684,10 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
     binding = ns_cname(sp->binding, NULL);
   else
     binding = name;
+  if (sp && sp->portname)
+    portname = ns_cname(sp->portname, NULL);
+  else
+    portname = name;
   for (s = nslist; s; s = s->next)
   { for (sp2 = services; sp2; sp2 = sp2->next)
       if (!strcmp(sp2->ns, s->name) && sp2->URI)
@@ -1885,8 +1894,8 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
       }
     }
     fflush(fd);
-    if (sp && sp->port)
-      fprintf(fd, "<portType name=\"%s\">\n", sp->port);
+    if (sp && sp->porttype)
+      fprintf(fd, "<portType name=\"%s\">\n", sp->porttype);
     else
       fprintf(fd, "<portType name=\"%s\">\n", ns_cname(name, "PortType"));
     for (p = t->list; p; p = p->next)
@@ -1922,13 +1931,13 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
     fprintf(fd, "</portType>\n\n");
     fprintf(fd, "<binding name=\"%s\" ", binding);
     if (is_document(style))
-      if (sp && sp->port)
-        fprintf(fd, "type=\"tns:%s\">\n <SOAP:binding style=\"document\"", sp->port);
+      if (sp && sp->porttype)
+        fprintf(fd, "type=\"tns:%s\">\n <SOAP:binding style=\"document\"", sp->porttype);
       else
         fprintf(fd, "type=\"tns:%s\">\n <SOAP:binding style=\"document\"", ns_cname(name, "PortType"));
     else
-      if (sp && sp->port)
-        fprintf(fd, "type=\"tns:%s\">\n <SOAP:binding style=\"rpc\"", sp->port);
+      if (sp && sp->porttype)
+        fprintf(fd, "type=\"tns:%s\">\n <SOAP:binding style=\"rpc\"", sp->porttype);
       else
         fprintf(fd, "type=\"tns:%s\">\n <SOAP:binding style=\"rpc\"", ns_cname(name, "PortType"));
     if (sp && sp->transport)
@@ -2096,9 +2105,9 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
   else
     fprintf(fd, " <documentation>gSOAP "VERSION" generated service definition</documentation>\n");
   if (executable)
-    fprintf(fd, " <port name=\"%s\" binding=\"tns:%s\">\n  <SOAP:address location=\"%s/%s\"/>\n </port>\n</service>\n\n</definitions>\n", name, binding, URL, executable);
+    fprintf(fd, " <port name=\"%s\" binding=\"tns:%s\">\n  <SOAP:address location=\"%s/%s\"/>\n </port>\n</service>\n\n</definitions>\n", portname, binding, URL, executable);
   else
-    fprintf(fd, " <port name=\"%s\" binding=\"tns:%s\">\n  <SOAP:address location=\"%s\"/>\n </port>\n</service>\n\n</definitions>\n", name, binding, URL);
+    fprintf(fd, " <port name=\"%s\" binding=\"tns:%s\">\n  <SOAP:address location=\"%s\"/>\n </port>\n</service>\n\n</definitions>\n", portname, binding, URL);
 }
 
 char *
@@ -2123,6 +2132,7 @@ default_value(Entry *e, const char *a)
 	break;
       case Tfloat:
       case Tdouble:
+      case Tldouble:
         sprintf(buf, " %s=\"%f\"", a, e->info.val.r);
 	break;
       case Ttime:
@@ -3841,6 +3851,7 @@ gen_field(FILE *fd, int n, Entry *p, char *nse, char *nsa, char *encoding)
 	  break;
         case Tfloat:
         case Tdouble:
+        case Tldouble:
           if (p->info.hasval)
 	    fprintf(fd, "%f", p->info.val.r);
 	  else
@@ -3920,6 +3931,7 @@ gen_atts(FILE *fd, Table *p, char *nsa)
           break;
         case Tfloat:
         case Tdouble:
+        case Tldouble:
           if (q->info.hasval)
 	    fprintf(fd, "%f", q->info.val.r);
 	  else
@@ -4003,6 +4015,7 @@ gen_val(FILE *fd, int n, Tnode *p, char *nse, char *nsa, char *encoding)
 	break;
       case Tfloat:
       case Tdouble:
+      case Tldouble:
 	fprintf(fd, "0.0");
         break;
       case Tenum:
@@ -4727,6 +4740,8 @@ t_ident(Tnode *typ)
     return "float";
   case Tdouble:
     return "double";
+  case Tldouble:
+    return "decimal";
   case Tuchar:
     return "unsignedByte";
   case Tushort:
@@ -4749,9 +4764,9 @@ t_ident(Tnode *typ)
   case Treference:
     return c_ident(typ->ref);
   case Tpointer:
-    if(((Tnode*)typ->ref)->type == Tchar) 
+    if (is_string(typ))
 	return "string";
-    if(((Tnode*)typ->ref)->type == Twchar) 
+    if (is_wstring(typ))
 	return "wstring";
     p=(char*) emalloc((10+strlen(q = c_ident(typ->ref)))*sizeof(char));
     strcpy(p,"PointerTo");
@@ -5081,6 +5096,8 @@ xsi_type(Tnode *typ)
     return "xsd:float";
   case Tdouble:
     return "xsd:double";
+  case Tldouble:
+    return "xsd:decimal";
   case Tuchar:
     return "xsd:unsignedByte";
   case Tushort:
@@ -5196,6 +5213,10 @@ base_type(Tnode *typ, char *ns)
     if (ns)
       return "xsd:double";
     return "double";
+  case Tldouble:
+    if (ns)
+      return "xsd:decimal";
+    return "decimal";
   case Tuchar:
     if (ns)
       return "xsd:unsignedByte";
@@ -5285,6 +5306,8 @@ the_type(Tnode *typ)
     return "float";
   case Tdouble:
     return "double";
+  case Tldouble:
+    return "decimal";
   case Tuchar:
     return "unsignedByte";
   case Tushort:
@@ -5340,6 +5363,8 @@ c_type(Tnode *typ)
     return "float";
   case Tdouble:
     return "double";
+  case Tldouble:
+    return "long double";
   case Tuchar:
     return "unsigned char";
   case Tushort:
@@ -5416,6 +5441,11 @@ c_storage(Storage sto)
     strcat(p, "const ");
     return p;
   }
+  if (sto & Sconstptr)
+  { p = c_storage(sto & ~Sconstptr);
+    strcat(p, "const ");
+    return p;
+  }
   if (sto & Sauto)
   { p = c_storage(sto & ~Sauto);
     strcat(p, "auto ");
@@ -5486,6 +5516,7 @@ c_init(Entry *e)
 	break;
       case Tfloat:
       case Tdouble:
+      case Tldouble:
         sprintf(buf, " = %f", e->info.val.r);
 	break;
       case Tenum:
@@ -5561,6 +5592,11 @@ c_type_id(Tnode *typ, char *ident)
   case Tdouble:
     p = (char*)emalloc(8+strlen(ident));
     strcpy(p, "double ");
+    strcat(p, ident);
+    break;
+  case Tldouble:
+    p = (char*)emalloc(13+strlen(ident));
+    strcpy(p, "long double ");
     strcat(p, ident);
     break;
   case Tuchar:
@@ -6452,7 +6488,7 @@ in_defs(Table *table)
   Tnode *p;
   for (i = 0; i < TYPES; i++)
   { for (p = Tptr[i]; p; p = p->next)
-    { if (!is_transient(p) && p->type != Twchar && p->type != Tfun && p->type != Treference && p->type != Tunion && !is_XML(p) && !is_header_or_fault(p) && !is_body(p) && !is_template(p))
+    { if (!is_element(p) && !is_transient(p) && p->type != Twchar && p->type != Tfun && p->type != Treference && p->type != Tunion && !is_XML(p) && !is_header_or_fault(p) && !is_body(p) && !is_template(p))
       { char *s = xsi_type(p);
         if (!*s)
           s = wsdl_type(p, "");
@@ -6476,7 +6512,34 @@ in_defs2(Table *table)
   char *s;
   for (i = 0; i < TYPES; i++)
   { for (p = Tptr[i]; p; p = p->next)
-    { if (!is_transient(p) && !is_template(p) && p->type != Twchar && p->type != Tfun && p->type != Tpointer && p->type != Treference && p->type != Tunion && !is_XML(p) && !is_header_or_fault(p) && !is_body(p) || is_string(p) && !is_XML(p))
+    { if (!is_element(p) && (!is_transient(p) && !is_template(p) && p->type != Twchar && p->type != Tfun && p->type != Tpointer && p->type != Treference && p->type != Tunion && !is_XML(p) && !is_header_or_fault(p) && !is_body(p) || is_string(p) && !is_XML(p)))
+      { s = xsi_type(p);
+	if (!*s)
+	  s = wsdl_type(p, "");
+	if (*s == '-')
+	  continue;
+	if (*s)
+	  if (is_dynamic_array(p) && !is_binary(p) && !has_ns(p) && !is_untyped(p))
+	    fprintf(fout,"\n\t\tif (*soap->arrayType && !soap_match_array(soap, \"%s\"))\n\t\t{\t*type = %s;\n\t\t\treturn soap_in_%s(soap, NULL, NULL, NULL);\n\t\t}", s, soap_type(p), c_ident(p));
+	  else if (is_string(p))
+	    fprintf(fout,"\n\t\tif (!soap_match_tag(soap, t, \"%s\"))\n\t\t{\tchar **s;\n\t\t\t*type = %s;\n\t\t\ts = soap_in_%s(soap, NULL, NULL, NULL);\n\t\t\treturn s ? *s : NULL;\n\t\t}", s, soap_type(p), c_ident(p));
+	  else if (is_wstring(p))
+	    fprintf(fout,"\n\t\tif (!soap_match_tag(soap, t, \"%s\"))\n\t\t{\twchar_t **s;\n\t\t\t*type = %s;\n\t\t\ts = soap_in_%s(soap, NULL, NULL, NULL);\n\t\t\treturn s ? *s : NULL;\n\t\t}", s, soap_type(p), c_ident(p));
+          else
+	    fprintf(fout,"\n\t\tif (!soap_match_tag(soap, t, \"%s\"))\n\t\t{\t*type = %s;\n\t\t\treturn soap_in_%s(soap, NULL, NULL, NULL);\n\t\t}", s, soap_type(p), c_ident(p));
+      }
+    }
+  }
+}
+
+void
+in_defs3(Table *table)
+{ int i;
+  Tnode *p;
+  char *s;
+  for (i = 0; i < TYPES; i++)
+  { for (p = Tptr[i]; p; p = p->next)
+    { if (is_element(p) && (!is_transient(p) && !is_template(p) && p->type != Twchar && p->type != Tfun && p->type != Tpointer && p->type != Treference && p->type != Tunion && !is_XML(p) && !is_header_or_fault(p) && !is_body(p) || is_string(p) && !is_XML(p)))
       { s = xsi_type(p);
 	if (!*s)
 	  s = wsdl_type(p, "");
@@ -7645,12 +7708,12 @@ is_primitive(Tnode *typ)
 
 int
 is_string(Tnode *typ)
-{ return typ->type == Tpointer && ((Tnode*)typ->ref)->type == Tchar;
+{ return typ->type == Tpointer && ((Tnode*)typ->ref)->type == Tchar && !((Tnode*)typ->ref)->sym;
 }
 
 int
 is_wstring(Tnode *typ)
-{ return typ->type == Tpointer && ((Tnode*)typ->ref)->type == Twchar;
+{ return typ->type == Tpointer && ((Tnode*)typ->ref)->type == Twchar && !((Tnode*)typ->ref)->sym;
 }
 
 int
@@ -8275,34 +8338,21 @@ soap_out(Tnode *typ)
         fprintf(fout, "\t{ 0, NULL }\n");
         fprintf(fout, "};");
       }
-      if (!is_mask(typ))
-      { fprintf(fhead, "\n\nSOAP_FMAC3S const char* SOAP_FMAC4S soap_%s2s(struct soap*, %s);", c_ident(typ), c_type(typ));
-        fprintf(fout, "\n\nSOAP_FMAC3S const char* SOAP_FMAC4S soap_%s2s(struct soap *soap, %s)", c_ident(typ), c_type_id(typ, "n"));
-	if (is_typedef(typ))
-          fprintf(fout, "\n{\treturn soap_%s2s(soap, n);\n}", t_ident(typ));
-	else
-        { fprintf(fout, "\n{\tconst char *s = soap_str_code(soap_codes_%s, (long)n);", c_ident(typ));
-          fprintf(fout, "\n\tif (s)\n\t\treturn s;");
-          fprintf(fout, "\n\treturn soap_long2s(soap, (long)n);");
-          fprintf(fout, "\n}");
-        }
-      }
-      if (is_mask(typ))
-      { fprintf(fout, "\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_out_%s(struct soap *soap, const char *tag, int id, const %s, const char *type)", c_ident(typ), c_type_id(typ, "*a"));
-        fprintf(fout, "\n{\tlong i;\n\tsoap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, %s), type);", soap_type(typ));
-        fprintf(fout, "\n\tfor (i = 1; i; i <<= 1)");
-        fprintf(fout, "\n\t\tswitch ((long)*a & i)\n\t\t{");
-        for (t = (Table*)typ->ref; t; t = t->prev)
-        { for (p = t->list; p; p = p->next)
-	    fprintf(fout, "\n\t\t\tcase "SOAP_LONG_FORMAT": soap_send(soap, \"%s \"); break;", p->info.val.i, ns_remove2(p->sym->name));
-        }	
-        fprintf(fout, "\n\t\t}");
+      fprintf(fhead, "\n\nSOAP_FMAC3S const char* SOAP_FMAC4S soap_%s2s(struct soap*, %s);", c_ident(typ), c_type(typ));
+      fprintf(fout, "\n\nSOAP_FMAC3S const char* SOAP_FMAC4S soap_%s2s(struct soap *soap, %s)", c_ident(typ), c_type_id(typ, "n"));
+      if (is_typedef(typ))
+        fprintf(fout, "\n{\treturn soap_%s2s(soap, n);\n}", t_ident(typ));
+      else if (!is_mask(typ))
+      { fprintf(fout, "\n{\tconst char *s = soap_code_str(soap_codes_%s, (long)n);", c_ident(typ));
+        fprintf(fout, "\n\tif (s)\n\t\treturn s;");
+        fprintf(fout, "\n\treturn soap_long2s(soap, (long)n);");
+        fprintf(fout, "\n}");
       }
       else
-      { fprintf(fout, "\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_out_%s(struct soap *soap, const char *tag, int id, const %s, const char *type)", c_ident(typ), c_type_id(typ, "*a"));
-        fprintf(fout, "\n{\tsoap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, %s), type);", soap_type(typ));
-        fprintf(fout, "\n\tsoap_send(soap, soap_%s2s(soap, *a));", c_ident(typ));
-      }
+        fprintf(fout, "\n{\n\treturn soap_code_list(soap, soap_codes_%s, (long)n);\n}", c_ident(typ));
+      fprintf(fout, "\n\nSOAP_FMAC3 int SOAP_FMAC4 soap_out_%s(struct soap *soap, const char *tag, int id, const %s, const char *type)", c_ident(typ), c_type_id(typ, "*a"));
+      fprintf(fout, "\n{\tsoap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, %s), type);", soap_type(typ));
+      fprintf(fout, "\n\tsoap_send(soap, soap_%s2s(soap, *a));", c_ident(typ));
       fprintf(fout, "\n\treturn soap_element_end_out(soap, tag);\n}");
       break;
     case Ttemplate:
@@ -8693,17 +8743,17 @@ soap_in(Tnode *typ)
                 fprintf(fout,"\n\t\t\t\t\tsoap_revert(soap);");
 	      if (is_unmatched(p->next->sym))
 	      { if (is_XML(p->next->info.typ->ref) && is_string(p->next->info.typ->ref))
-                  fprintf(fout,"\n\t\t\t\t\tif (soap_inliteral(soap, NULL, p))");
+                  fprintf(fout,"\n\t\t\t\t\tif (!soap_inliteral(soap, NULL, p))");
                 else if (is_XML(p->next->info.typ->ref) && is_wstring(p->next->info.typ->ref))
-                  fprintf(fout,"\n\t\t\t\t\tif (soap_inwliteral(soap, NULL, p))");
+                  fprintf(fout,"\n\t\t\t\t\tif (!soap_inwliteral(soap, NULL, p))");
                 else
                   fprintf(fout,"\n\t\t\t\t\tif (!soap_in_%s(soap, NULL, p, \"%s\"))", c_ident(p->next->info.typ->ref), xsi_type(p->next->info.typ->ref));
 	      }
 	      else
 	      { if (is_XML(p->next->info.typ->ref) && is_string(p->next->info.typ->ref))
-                  fprintf(fout,"\n\t\t\t\t\tif (soap_inliteral(soap, \"%s\", p))", ns_add(p->next->sym->name, nse));
+                  fprintf(fout,"\n\t\t\t\t\tif (!soap_inliteral(soap, \"%s\", p))", ns_add(p->next->sym->name, nse));
                 else if (is_XML(p->next->info.typ->ref) && is_wstring(p->next->info.typ->ref))
-                  fprintf(fout,"\n\t\t\t\t\tif (soap_inwliteral(soap, \"%s\", p))", ns_add(p->next->sym->name, nse));
+                  fprintf(fout,"\n\t\t\t\t\tif (!soap_inwliteral(soap, \"%s\", p))", ns_add(p->next->sym->name, nse));
                 else
                   fprintf(fout,"\n\t\t\t\t\tif (!soap_in_%s(soap, \"%s\", p, \"%s\"))", c_ident(p->next->info.typ->ref), ns_add(p->next->sym->name, nse), xsi_type(p->next->info.typ->ref));
 	      }
@@ -9087,17 +9137,17 @@ soap_in(Tnode *typ)
               fprintf(fout,"\n\t\t\t\t\tsoap_revert(soap);");
 	    if (is_unmatched(p->next->sym))
             { if (is_XML(p->next->info.typ->ref) && is_string(p->next->info.typ->ref))
-                fprintf(fout,"\n\t\t\t\t\tif (soap_inliteral(soap, NULL, p))");
+                fprintf(fout,"\n\t\t\t\t\tif (!soap_inliteral(soap, NULL, p))");
               else if (is_XML(p->next->info.typ->ref) && is_wstring(p->next->info.typ->ref))
-                fprintf(fout,"\n\t\t\t\t\tif (soap_inwliteral(soap, NULL, p))");
+                fprintf(fout,"\n\t\t\t\t\tif (!soap_inwliteral(soap, NULL, p))");
               else
                 fprintf(fout,"\n\t\t\t\t\tif (!soap_in_%s(soap, NULL, p, \"%s\"))", c_ident(p->next->info.typ->ref), xsi_type(p->next->info.typ->ref));
 	    }
 	    else
             { if (is_XML(p->next->info.typ->ref) && is_string(p->next->info.typ->ref))
-                fprintf(fout,"\n\t\t\t\t\tif (soap_inliteral(soap, \"%s\", p))", ns_add_overridden(t, p->next, nse));
+                fprintf(fout,"\n\t\t\t\t\tif (!soap_inliteral(soap, \"%s\", p))", ns_add_overridden(t, p->next, nse));
               else if (is_XML(p->next->info.typ->ref) && is_wstring(p->next->info.typ->ref))
-                fprintf(fout,"\n\t\t\t\t\tif (soap_inwliteral(soap, \"%s\", p))", ns_add_overridden(t, p->next, nse));
+                fprintf(fout,"\n\t\t\t\t\tif (!soap_inwliteral(soap, \"%s\", p))", ns_add_overridden(t, p->next, nse));
               else
                 fprintf(fout,"\n\t\t\t\t\tif (!soap_in_%s(soap, \"%s\", p, \"%s\"))", c_ident(p->next->info.typ->ref), ns_add_overridden(t, p->next, nse), xsi_type(p->next->info.typ->ref));
 	    }
@@ -9501,23 +9551,23 @@ soap_in(Tnode *typ)
         return;
       }
       fprintf(fhead,"\nSOAP_FMAC3 %s SOAP_FMAC4 soap_in_%s(struct soap*, const char*, %s, const char*);",c_type_id(typ, "*"),c_ident(typ),c_type_id(typ, "*"));  
-      if (!is_mask(typ))
-      { fprintf(fhead,"\n\nSOAP_FMAC3S int SOAP_FMAC4S soap_s2%s(struct soap*, const char*, %s);",c_ident(typ),c_type_id(typ, "*"));  
-        fprintf(fout,"\n\nSOAP_FMAC3S int SOAP_FMAC4S soap_s2%s(struct soap *soap, const char *s, %s)\n{\n\t",c_ident(typ),c_type_id(typ, "*a"));  
-	if (is_typedef(typ))
-	  fprintf(fout, "return soap_s2%s(soap, s, a);\n}", t_ident(typ));
-	else
-	{ fprintf(fout, "const struct soap_code_map *map;");
+      fprintf(fhead,"\n\nSOAP_FMAC3S int SOAP_FMAC4S soap_s2%s(struct soap*, const char*, %s);",c_ident(typ),c_type_id(typ, "*"));  
+      fprintf(fout,"\n\nSOAP_FMAC3S int SOAP_FMAC4S soap_s2%s(struct soap *soap, const char *s, %s)\n{",c_ident(typ),c_type_id(typ, "*a"));  
+      if (is_typedef(typ))
+        fprintf(fout, "\n\treturn soap_s2%s(soap, s, a);\n}", t_ident(typ));
+      else if (!is_mask(typ))
+	{ fprintf(fout, "\n\tconst struct soap_code_map *map;");
           t = (Table*)typ->ref;
           if (t && t->list && strstr(ns_remove1(t->list->sym->name), "__"))
-	    fprintf(fout, "\n\tchar *t;");
-	  fprintf(fout, "\n\tif (!s)\n\t\treturn SOAP_OK;");
-          if (t && t->list && strstr(ns_remove1(t->list->sym->name), "__"))
-	  { fprintf(fout, "\n\tsoap_s2QName(soap, s, &t);");
+	  { fprintf(fout, "\n\tchar *t;");
+	    fprintf(fout, "\n\tif (!s)\n\t\treturn SOAP_OK;");
+	    fprintf(fout, "\n\tsoap_s2QName(soap, s, &t);");
 	    fprintf(fout, "\n\tmap = soap_code(soap_codes_%s, t);", c_ident(typ));
           } 
           else
+	  { fprintf(fout, "\n\tif (!s)\n\t\treturn SOAP_OK;");
 	    fprintf(fout, "\n\tmap = soap_code(soap_codes_%s, s);", c_ident(typ));
+	  }
 	  m = 0;
           for (t = (Table*)typ->ref; t; t = t->prev)
             for (p = t->list; p; p = p->next)
@@ -9528,10 +9578,18 @@ soap_in(Tnode *typ)
 	  else
 	    fprintf(fout, "\n\tif (map)\n\t\t*a = (%s)map->code;\n\telse\n\t{\tlong n;\n\t\tif (soap_s2long(soap, s, &n) || ((soap->mode & SOAP_XML_STRICT) && (n < 0 || n > %lu)))\n\t\t\treturn soap->error = SOAP_TYPE;\n\t\t*a = (%s)n;\n\t}\n\treturn SOAP_OK;\n}", c_type(typ), m, c_type(typ));
         }
-      }
+	else
+	{ t = (Table*)typ->ref;
+          if (t && t->list && strstr(ns_remove1(t->list->sym->name), "__"))
+	  { fprintf(fout, "\n\tchar *t;");
+	    fprintf(fout, "\n\tsoap_s2QName(soap, s, &t);");
+	    fprintf(fout, "\n\t*a = (%s)soap_code_bits(soap_codes_%s, t);", c_type(typ), c_ident(typ));
+          } 
+          else
+	    fprintf(fout, "\n\t*a = (%s)soap_code_bits(soap_codes_%s, s);", c_type(typ), c_ident(typ));
+	  fprintf(fout, "\n\treturn SOAP_OK;\n}");
+	}
       fprintf(fout,"\n\nSOAP_FMAC3 %s SOAP_FMAC4 soap_in_%s(struct soap *soap, const char *tag, %s, const char *type)\n{",c_type_id(typ, "*"),c_ident(typ),c_type_id(typ, "*a"));  
-      if (is_mask(typ))
-        fprintf(fout,"\n\tconst char *s;\n\tLONG64 i;");
       fprintf(fout,"\n\tif (soap_element_begin_in(soap, tag, 0))");
       fprintf(fout,"\n\t\treturn NULL;");
       if (typ->sym)
@@ -9543,18 +9601,7 @@ soap_in(Tnode *typ)
       fprintf(fout,"\n\ta = (%s)soap_id_enter(soap, soap->id, a, %s, sizeof(%s), 0, NULL, NULL, NULL);", c_type_id(typ, "*"), soap_type(typ), c_type(typ));
       fprintf(fout,"\n\tif (!a)\n\t\treturn NULL;");
       fprintf(fout,"\n\tif (soap->body && !*soap->href)\n\t{");
-      if (is_mask(typ))
-      { fprintf(fout,"\ti = 0;\n\t\twhile (*(s = soap_token(soap)))\n\t\t\t");
-        for (t = (Table*)typ->ref; t; t = t->prev)
-        { for (p = t->list; p; p = p->next)
-	    fprintf(fout, "if (!strcmp(s, \"%s\"))\n\t\t\t\ti |= (LONG64)%s;\n\t\t\telse ", ns_remove2(p->sym->name), p->sym->name);
-        }	
-        fprintf(fout, "\n\t\t\t{\tsoap->error = SOAP_TYPE;\n\t\t\t\treturn NULL;\n\t\t\t}");
-        fprintf(fout, "\n\t\t*a = (%s)i;", c_type(typ));
-        fprintf(fout, "\n\t\tif (soap_element_end_in(soap, tag))\n\t\t\treturn NULL;", c_type(typ));
-      }
-      else
-        fprintf(fout,"\tif (!a || soap_s2%s(soap, soap_value(soap), a) || soap_element_end_in(soap, tag))\n\t\t\treturn NULL;", c_ident(typ));
+      fprintf(fout,"\tif (!a || soap_s2%s(soap, soap_value(soap), a) || soap_element_end_in(soap, tag))\n\t\t\treturn NULL;", c_ident(typ));
       fprintf(fout, "\n\t}\n\telse\n\t{\ta = (%s)soap_id_forward(soap, soap->href, (void**)a, 0, %s, 0, sizeof(%s), 0, NULL);", c_type_id(typ, "*"), soap_type(typ), c_type(typ));
       fprintf(fout, "\n\t\tif (soap->body && soap_element_end_in(soap, tag))\n\t\t\treturn NULL;");
       fprintf(fout,"\n\t}\n\treturn a;\n}");
