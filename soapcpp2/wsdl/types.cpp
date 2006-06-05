@@ -397,6 +397,13 @@ const char *Types::nsprefix(const char *prefix, const char *URI)
       if (vflag)
         fprintf(stderr, "namespace prefix %s = \"%s\"\n", s, URI);
     }
+    // if *prefix == '_', then add prefix string to s
+    if (prefix && *prefix == '_')
+    { char *t = (char*)emalloc(strlen(s) + 2);
+      *t = '_';
+      strcpy(t + 1, s);
+      s = t;
+    }
     return s;
   }
   return NULL;
@@ -447,9 +454,14 @@ const char *Types::fname(const char *prefix, const char *URI, const char *qname,
   t = buf;
   if (!prefix || *prefix)
   { s = p;
-    if (prefix && *prefix == '_') // ensures ns prefix starts with _...
-    { strcpy(t, prefix);
-      t += strlen(prefix);
+    // no longer add '_' when URI != NULL, since nsprefix() will do this
+    if (prefix && *prefix == '_')
+    { if (!URI)
+        *t++ = '_';
+      if (prefix[1] == '_') // ensures ns prefix starts with __
+      { strcpy(t, prefix + 1);
+        t += strlen(prefix + 1);
+      }
     }
     if (s && *s)
     { for (; *s; s++)
@@ -458,8 +470,12 @@ const char *Types::fname(const char *prefix, const char *URI, const char *qname,
         else if (*s == '-' && s != p)
           *t++ = '_';
         else if (*s == '_')
-        { strcpy(t, "_USCORE");
-          t += 7;
+        { if (s == p)
+	    *t++ = '_';
+	  else 
+	  { strcpy(t, "_USCORE");
+            t += 7;
+	  }
         }
         else
 	{ s = utf8(t, s);
@@ -503,12 +519,14 @@ const char *Types::fname(const char *prefix, const char *URI, const char *qname,
     strcpy(t + 1, buf);
   }
   if (lookup == LOOKUP)
-    qnames[Pair(p,name)] = t;
-  /*
-  cerr << "[DEFINED " << p << ":" << name << "=" << t << "]" << endl;
-  for (MapOfPairToString::const_iterator i = qnames.begin(); i != qnames.end(); ++i)
-    cerr << "(" << (*i).first.first << "," << (*i).first.second << ") = " << (*i).second << endl;
-  */
+  { qnames[Pair(p,name)] = t;
+    if (vflag)
+      cerr << "Mapping " << p << ":" << name << " to " << t << endl;
+    /*
+    for (MapOfPairToString::const_iterator i = qnames.begin(); i != qnames.end(); ++i)
+      cerr << "(" << (*i).first.first << "," << (*i).first.second << ") = " << (*i).second << endl;
+    */
+  }
   return t;
 }
 
@@ -526,8 +544,15 @@ const char *Types::cname(const char *prefix, const char *URI, const char *qname)
 }
 
 const char *Types::tname(const char *prefix, const char *URI, const char *qname)
-{ const char *s, *t = cname(prefix, URI, qname);
+{ const char *s, *t;
+  t = cname(prefix, URI, qname);
   s = usetypemap[t];
+  /*
+  if (!s)
+  { t = cname(NULL, URI, qname);
+    s = usetypemap[t];
+  }
+  */
   if (!s)
   { s = t;
     fprintf(stream, "// Warning: internal error, undefined qname '%s' for type '%s'\n", qname?qname:"", t);
@@ -551,11 +576,25 @@ const char *Types::tnameptr(bool flag, const char *prefix, const char *URI, cons
 }
 
 const char *Types::pname(bool flag, const char *prefix, const char *URI, const char *qname)
-{ const char *r, *s, *t = cname(prefix, URI, qname);
+{ const char *r, *s, *t;
+  t = cname(prefix, URI, qname);
   if (flag)
   { s = ptrtypemap[t];
+    /*
     if (!s)
-    { s = usetypemap[t];
+    { t = cname(NULL, URI, qname);
+      s = ptrtypemap[t];
+    }
+    */
+    if (!s)
+    { /* t = cname(prefix, URI, qname); */
+      s = usetypemap[t];
+      /*
+      if (!s)
+      { t = cname(NULL, URI, qname);
+        s = usetypemap[t];
+      }
+      */
       if (!s || !*s)
       { s = t;
         fprintf(stream, "// Warning: internal error, undefined: %s %s\n", qname, t);
@@ -576,7 +615,14 @@ const char *Types::pname(bool flag, const char *prefix, const char *URI, const c
     }
   }
   else
-    s = usetypemap[t];
+  { s = usetypemap[t];
+    /*
+    if (!s)
+    { t = cname(NULL, URI, qname);
+      s = usetypemap[t];
+    }
+    */
+  }
   if (!s)
   { s = t;
     fprintf(stream, "// Warning: internal error, undefined: %s %s\n", qname, t);
@@ -586,8 +632,11 @@ const char *Types::pname(bool flag, const char *prefix, const char *URI, const c
 
 const char *Types::deftname(enum Type type, const char *pointer, bool is_pointer, const char *prefix, const char *URI, const char *qname)
 { char buf[1024];
-  const char *q = NULL, *t = fname(prefix, URI, qname, NULL, LOOKUP);
   char *s;
+  const char *q = NULL, *t;
+  if (vflag)
+    cerr << "Defining " << qname << endl;
+  t = fname(prefix, URI, qname, NULL, LOOKUP);
   if (deftypemap[t])
     return NULL;
   switch (type)
@@ -676,7 +725,7 @@ const char *Types::sname(const char *URI, const char *name)
     rnames.insert(s);
   }
   else if (URI)
-  { s = nsprefix(NULL, URI);
+  { s = nsprefix(NULL, URI);	/* TODO: this may be affected? */
     t = (char*)emalloc(strlen(s) + 16);
     sprintf(t, "_%s__struct_%d", s, snum++);
     s = t;
@@ -707,7 +756,7 @@ const char *Types::uname(const char *URI)
     rnames.insert(s);
   }
   else if (URI)
-  { s = nsprefix(NULL, URI);
+  { s = nsprefix(NULL, URI);	/* TODO: this may be affected? */
     t = (char*)emalloc(strlen(s) + 16);
     sprintf(t, "_%s__union_%d", s, unum++);
     s = t;
@@ -739,7 +788,7 @@ const char *Types::gname(const char *URI, const char *name)
     rnames.insert(s);
   }
   else if (URI)
-  { s = nsprefix(NULL, URI);
+  { s = nsprefix(NULL, URI);	/* TODO: this may be affected? */
     t = (char*)emalloc(strlen(s) + 16);
     sprintf(t, "_%s__enum_%d", s, gnum++);
     s = t;
@@ -758,8 +807,9 @@ bool Types::is_nillable(const xs__element& element)
 }
 
 bool Types::is_basetype(const char *type)
-{ if (!strcmp(type, "xs:anyType")
-   || !strcmp(tname(NULL, NULL, type), "std::string"))
+{ const char *t = tname(NULL, NULL, type);
+  if (!strcmp(t, "std::string")
+   || strstr(t, "__"))
     return false;
   return !strncmp(type, "xs:", 3) || !strncmp(type, "SOAP-ENC:", 9);
 }
@@ -1182,13 +1232,16 @@ void Types::gen(const char *URI, const char *name, const xs__simpleType& simpleT
 
 void Types::gen(const char *URI, const char *name, const xs__complexType& complexType, bool anonymous)
 { const char *t = NULL;
+  const char *prefix = NULL;
   bool soapflag = false;
   if (complexType.name)
     name = complexType.name;
+  else
+    prefix = "_";
   if (anonymous && name)
     t = sname(URI, name);
   else if (name)
-  { t = cname(NULL, URI, name);
+  { t = cname(prefix, URI, name);
     if (deftypemap[t])
       return;
   }
@@ -1534,7 +1587,8 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
   if (!URI || strcmp(URI, attribute.schemaPtr()->targetNamespace))
     nameURI = attribute.schemaPtr()->targetNamespace;
   if (attribute.attributePtr()) // attribute ref
-  { name = attribute.attributePtr()->name;
+  { char *prefix = NULL;
+    name = attribute.attributePtr()->name;
     if (attribute.schemaPtr() != attribute.attributePtr()->schemaPtr())
       nameURI = attribute.attributePtr()->schemaPtr()->targetNamespace;
     if (attribute.attributePtr()->type)
@@ -1543,10 +1597,11 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
     else
     { type = name;
       typeURI = attribute.attributePtr()->schemaPtr()->targetNamespace;
+      prefix = "_";
     }
     fprintf(stream, "/// Attribute reference %s.\n", attribute.ref);
     document(attribute.attributePtr()->annotation);
-    fprintf(stream, attributeformat, pname(is_optional, NULL, typeURI, type), aname(NULL, nameURI, name)); // make sure no name - type clash
+    fprintf(stream, attributeformat, pname(is_optional, prefix, typeURI, type), aname(NULL, nameURI, name)); // make sure no name - type clash
   }
   else if (name && type)
   { fprintf(stream, "/// Attribute %s of type %s.\n", name, type);
@@ -1691,7 +1746,8 @@ void Types::gen(const char *URI, const xs__element& element)
   if (!URI || strcmp(URI, element.schemaPtr()->targetNamespace))
     nameURI = element.schemaPtr()->targetNamespace;
   if (element.elementPtr()) // element ref
-  { name = element.elementPtr()->name;
+  { char *prefix = NULL;
+    name = element.elementPtr()->name;
     if (element.schemaPtr() != element.elementPtr()->schemaPtr() && element.elementPtr()->schemaPtr())
       nameURI = element.elementPtr()->schemaPtr()->targetNamespace;
     if (element.elementPtr()->type)
@@ -1700,16 +1756,19 @@ void Types::gen(const char *URI, const xs__element& element)
     else if (element.elementPtr()->schemaPtr())
     { type = name;
       typeURI = element.elementPtr()->schemaPtr()->targetNamespace;
+      prefix = "_";
     }
     else
-      type = name;
+    { type = name;
+      prefix = "_";
+    }
     document(element.elementPtr()->annotation);
     if (element.elementPtr()->abstract)
     { fprintf(stream, "/// Reference %s to abstract element.\n", element.ref);
       gen_substitutions(URI, element);
     }
     else if (element.maxOccurs && strcmp(element.maxOccurs, "1")) // maxOccurs != "1"
-    { const char *s = tnameptr(cflag && !zflag, NULL, typeURI, type);
+    { const char *s = tnameptr(cflag && !zflag, prefix, typeURI, type);
       if (cflag || sflag)
       { fprintf(stream, "/// Size of the dynamic array of %s is %s..%s\n", s, element.minOccurs ? element.minOccurs : "1", element.maxOccurs);
         fprintf(stream, sizeformat, "int", aname(NULL, NULL, name));
@@ -1736,7 +1795,7 @@ void Types::gen(const char *URI, const xs__element& element)
     else
     { fprintf(stream, "/// Element reference %s.\n", element.ref);
       document(element.elementPtr()->annotation);
-      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(type)) || fake_union || is_nillable(element), NULL, typeURI, type), aname(NULL, nameURI, name));
+      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(type)) || fake_union || is_nillable(element), prefix, typeURI, type), aname(NULL, nameURI, name));
     }
   }
   else if (name && type)
@@ -1809,7 +1868,7 @@ void Types::gen(const char *URI, const xs__element& element)
   }
   else if (element.ref)
   { fprintf(stream, "/// Element reference %s.\n", element.ref);
-    fprintf(stream, elementformat, tname(NULL, NULL, element.ref), aname(NULL, NULL, element.ref));
+    fprintf(stream, elementformat, tname("_", NULL, element.ref), aname(NULL, NULL, element.ref));
   }
   else if (name)
   { fprintf(stream, "/// Warning: element '%s' has no type or ref. Assuming XML content.\n", name?name:"");

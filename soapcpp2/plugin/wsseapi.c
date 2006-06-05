@@ -988,10 +988,12 @@ soap_wsse_add_UsernameTokenDigest(struct soap *soap, const char *id, const char 
   /* generate a nonce */
   calc_nonce(soap, nonce);
   nonceBase64 = soap_s2base64(soap, nonce, NULL, SOAP_WSSE_NONCELEN);
-  /* TODO: the specs are not clear: compute digest over binary nonce or base64 nonce?
-  calc_digest(soap, created, nonce, SOAP_WSSE_NONCELEN, password, HA); */
+  /* The specs are not clear: compute digest over binary nonce or base64 nonce? */
   /* compute SHA1(created, nonce, password) */
+  calc_digest(soap, created, nonce, SOAP_WSSE_NONCELEN, password, HA);
+  /*
   calc_digest(soap, created, nonceBase64, strlen(nonceBase64), password, HA);
+  */
   soap_s2base64(soap, HA, HABase64, SOAP_SMD_SHA1_SIZE);
   /* populate the UsernameToken with digest */
   soap_wsse_add_UsernameTokenText(soap, id, username, HABase64);
@@ -1070,12 +1072,14 @@ soap_wsse_verify_Password(struct soap *soap, const char *password)
        && token->wsu__Created
        && strlen(token->Password->__item) == 28)	/* digest pw len = 28 */
       { char HA1[SOAP_SMD_SHA1_SIZE], HA2[SOAP_SMD_SHA1_SIZE];
-	/* TODO: the specs are not clear: compute digest over binary nonce or base64 nonce?
+	/* The specs are not clear: compute digest over binary nonce or base64 nonce? The formet appears to be the case: */
         int noncelen;
 	const char *nonce = soap_base642s(soap, token->Nonce, NULL, 0, &noncelen);
-        calc_digest(soap, token->wsu__Created, nonce, noncelen, password, HA1); */
         /* compute HA1 = SHA1(created, nonce, password) */
+        calc_digest(soap, token->wsu__Created, nonce, noncelen, password, HA1);
+	/*
         calc_digest(soap, token->wsu__Created, token->Nonce, strlen(token->Nonce), password, HA1);
+	*/
 	/* get HA2 = supplied digest from base64 Password */
         soap_base642s(soap, token->Password->__item, HA2, SOAP_SMD_SHA1_SIZE, NULL);
         /* compare HA1 to HA2 */
@@ -2154,8 +2158,8 @@ calc_digest(struct soap *soap, const char *created, const char *nonce, int nonce
 { struct soap_smd_data context;
   /* use smdevp engine */
   soap_smd_init(soap, &context, SOAP_SMD_DGST_SHA1, NULL, 0);
-  soap_smd_update(soap, &context, created, strlen(created));
   soap_smd_update(soap, &context, nonce, noncelen);
+  soap_smd_update(soap, &context, created, strlen(created));
   soap_smd_update(soap, &context, password, strlen(password));
   soap_smd_final(soap, &context, hash, NULL);
 }

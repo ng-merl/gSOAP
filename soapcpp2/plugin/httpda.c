@@ -222,7 +222,7 @@ static int http_da_post_header(struct soap *soap, const char *key, const char *v
     if (data->qop && !soap_tag_cmp(data->qop, "*auth-int*"))
     {
       qop = "auth-int";
-      soap_s2hex(soap, data->digest, entityHAhex, 16);
+      soap_s2hex(soap, (unsigned char*)data->digest, entityHAhex, 16);
     }
     else if (data->qop)
       qop = "auth";
@@ -529,7 +529,7 @@ static int http_da_verify_method(struct soap *soap, char *method, char *passwd)
   http_da_calc_HA1(soap, &data->context, NULL, soap->userid, soap->authrealm, passwd, data->nonce, data->cnonce, HA1);
 
   if (!soap_tag_cmp(data->qop, "auth-int"))
-    soap_s2hex(soap, data->digest, entityHAhex, 16);
+    soap_s2hex(soap, (unsigned char*)data->digest, entityHAhex, 16);
 
   http_da_calc_response(soap, &data->context, HA1, data->nonce, data->ncount, data->cnonce, data->qop, method, soap->path, entityHAhex, response);
 
@@ -701,7 +701,7 @@ static void http_da_calc_HA1(struct soap *soap, void **context, char *alg, char 
     md5_handler(soap, context, MD5_FINAL, HA1, 0);
   };
 
-  soap_s2hex(soap, HA1, HA1hex, 16);
+  soap_s2hex(soap, (unsigned char*)HA1, HA1hex, 16);
 };
 
 static void http_da_calc_response(struct soap *soap, void **context, char HA1hex[33], char *nonce, char *ncount, char *cnonce, char *qop, char *method, char *uri, char entityHAhex[33], char response[33])
@@ -719,7 +719,7 @@ static void http_da_calc_response(struct soap *soap, void **context, char HA1hex
   }
   md5_handler(soap, context, MD5_FINAL, HA2, 0);
 
-  soap_s2hex(soap, HA2, HA2hex, 16);
+  soap_s2hex(soap, (unsigned char*)HA2, HA2hex, 16);
 
   md5_handler(soap, context, MD5_INIT, NULL, 0);
   md5_handler(soap, context, MD5_UPDATE, HA1hex, 32);
@@ -738,6 +738,6 @@ static void http_da_calc_response(struct soap *soap, void **context, char HA1hex
   md5_handler(soap, context, MD5_UPDATE, HA2hex, 32);
   md5_handler(soap, context, MD5_FINAL, responseHA, 0);
 
-  soap_s2hex(soap, responseHA, response, 16);
+  soap_s2hex(soap, (unsigned char*)responseHA, response, 16);
 }
 

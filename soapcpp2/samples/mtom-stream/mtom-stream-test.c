@@ -116,11 +116,11 @@ void *mime_read_open(struct soap*, void*, const char*, const char*, const char*)
 void mime_read_close(struct soap*, void*);
 size_t mime_read(struct soap*, void*, char*, size_t);
 
-void *mime_server_write_open(struct soap *soap, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
+void *mime_server_write_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
 void mime_server_write_close(struct soap *soap, void *handle);
 int mime_server_write(struct soap *soap, void *handle, const char *buf, size_t len);
 
-void *mime_client_write_open(struct soap *soap, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
+void *mime_client_write_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding);
 void mime_client_write_close(struct soap *soap, void *handle);
 int mime_client_write(struct soap *soap, void *handle, const char *buf, size_t len);
 
@@ -482,8 +482,9 @@ void mime_read_close(struct soap *soap, void *handle)
  *
 \******************************************************************************/
 
-void *mime_server_write_open(struct soap *soap, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
-{ /* Return NULL without setting soap->error if we don't want to use the streaming callback for this DIME attachment */
+void *mime_server_write_open(struct soap *soap, void *unused_handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
+{ /* Note: the 'unused_handle' is always NULL */
+  /* Return NULL without setting soap->error if we don't want to use the streaming callback for this DIME attachment */
   const char *file;
   struct mime_server_handle *handle = soap_malloc(soap, sizeof(struct mime_server_handle));
   if (!handle)
@@ -529,8 +530,9 @@ int mime_server_write(struct soap *soap, void *handle, const char *buf, size_t l
  *
 \******************************************************************************/
 
-void *mime_client_write_open(struct soap *soap, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
-{ FILE *fd;
+void *mime_client_write_open(struct soap *soap, void *unused_handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
+{ /* Note: the 'unused_handle' is always NULL */
+  FILE *fd;
   const char *file;
   fprintf(stderr, "Opening streaming inbound MIME channel for id=%s type=%s\n", id, type);
   /* soap->user points to array of keys (strings) that are file names */

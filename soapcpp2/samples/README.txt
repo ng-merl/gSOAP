@@ -16,6 +16,7 @@ localtime:			Get localtime client
 lu:				Linear solver client and server
 magic:				Magic Squares client and server
 mtom:				MTOM attachment client and server
+mtom-stream:			MTOM streaming attachment client and server
 oneliners:			Several one-liner clients and services
 polytest:			Polymorphic object exchange
 quote:				Get delayed stock quote
@@ -28,7 +29,8 @@ rss:				RSS 0.91, 0.92, and 2.0 server
 ssl:				HTTPS/SSL example (requires OpenSSL)
 udp:				SOAP-over-UDP example client and server
 varparam:			Variable polymorphic parameters client/server
-webserver:			Stand-alone Web server with a lot of features
+webserver:			Feature-rich stand-alone HTTP/S Web server
+wsa:				WS-Addressing demo
 wsse:				WS-Security demo
 xml-rpc:			XML-RPC support
 

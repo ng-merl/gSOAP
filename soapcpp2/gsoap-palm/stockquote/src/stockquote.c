@@ -25,8 +25,6 @@ int getQuote (char *symbol, char *Result) {
 	soap = soap_new();
 	soap->namespaces = (struct Namespace *)namespaces;
 	rc = soap_call_ns__getQuote(soap, addr, "", (char*)symbol, &result);
-	soap_end(soap);
-	free(soap);
   
 	if (rc==SOAP_OK) {
 		d.d= result;
@@ -34,8 +32,10 @@ int getQuote (char *symbol, char *Result) {
 		StdEtoA(Result);
 	} else {
 		soap_set_fault(soap);
-		strcpy (Result, soap->msgbuf);
+		strcpy (Result, "Not connected");
 	}
+	soap_end(soap);
+	free(soap);
 	
 	return rc;
 

@@ -140,7 +140,7 @@ static int http_md5_post_header(struct soap *soap, const char *key, const char *
   if (!key) /* last line */
   { if ((err = md5_handler(soap, &data->context, MD5_FINAL, data->digest, 0)))
       return err;
-    data->fposthdr(soap, "Content-MD5", soap_s2base64(soap, data->digest, buf64, 16));
+    data->fposthdr(soap, "Content-MD5", soap_s2base64(soap, (unsigned char*)data->digest, buf64, 16));
   }
   return data->fposthdr(soap, key, val);
 }

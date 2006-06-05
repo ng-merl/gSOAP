@@ -251,26 +251,10 @@ int xs__schema::traverse()
   // process attributes
   for (vector<xs__attribute>::iterator at = attribute.begin(); at != attribute.end(); ++at)
     (*at).traverse(*this);
-  // process elements, check conflicts with complexTypes
-  for (vector<xs__element>::iterator el = element.begin(); el != element.end(); ++el)
-  { (*el).traverse(*this);
-    if ((*el).name)
-    { for (vector<xs__simpleType>::iterator st = simpleType.begin(); st != simpleType.end(); ++st)
-      { if ((*st).name && !strcmp((*el).name, (*st).name))
-        { const char *token = qname_token((*el).type, targetNamespace);
-          if (!token || strcmp((*st).name, token))
-            fprintf(stderr, "Warning: top-level element name and simpleType name '%s' clash in schema '%s'\n", (*el).name, targetNamespace?targetNamespace:"");
-        }
-      }
-      for (vector<xs__complexType>::iterator ct = complexType.begin(); ct != complexType.end(); ++ct)
-      { if ((*ct).name && !strcmp((*el).name, (*ct).name))
-        { const char *token = qname_token((*el).type, targetNamespace);
-          if (!token || strcmp((*ct).name, token))
-            fprintf(stderr, "Warning: top-level element name and complexType name '%s' clash in schema '%s'\n", (*el).name, targetNamespace?targetNamespace:"");
-        }
-      }
-    }
-  }
+  // process elements
+  for (vector<xs__element>::iterator el = element.begin(); el != element.end(); 
+++el)
+    (*el).traverse(*this);
   // process simpleTypes, check conflicts with complexTypes
   for (vector<xs__simpleType>::iterator st = simpleType.begin(); st != simpleType.end(); ++st)
   { (*st).traverse(*this);

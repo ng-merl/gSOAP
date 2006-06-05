@@ -108,6 +108,6 @@ int ns__handle(struct soap *soap, enum ns__event event)
     }
   }
   if (event != EVENT_Z && synchronous)
-    return soap_send_empty_response(soap);
+    return soap_send_empty_response(soap, SOAP_OK);
   return SOAP_OK;
 }

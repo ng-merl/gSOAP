@@ -48,16 +48,17 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "smdevp.h"
 
 /** plugin identification for plugin registry */
-#define SOAP_WSSE_ID "SOAP-WSSE-0.9"
+#define SOAP_WSSE_ID "SOAP-WSSE-1.0"
 
 /** plugin identification for plugin registry */
 extern const char soap_wsse_id[];
 
 /**
 @struct soap_wsse_data
-@brief wssepi plugin data
+@brief wsseapi plugin data
 
-The signature key (private) and verification key (public) are kept separate.
+The signature key (private) and verification key (public) are kept in the
+plugin data, together with other info.
 */
 struct soap_wsse_data
 { int sign_alg;			/**< The digest or signature algorithm used */
@@ -80,7 +81,8 @@ struct soap_wsse_data
 The digest dictionary is populated by the soap_wsse_preparesend callback. The
 callback intercepts XML elements with wsu:Id attributes and computes the digest
 during the preprocessing of a message transmission. The 'level' field is used
-to determine when the end of an element is reached.
+to determine when the end of an element is reached by handling inner wsu:Id
+attributed elements, so that the outer wsu:Id attributed element can be hashed.
 */
 struct soap_wsse_digest
 { struct soap_wsse_digest *next;	/**< Next in list */

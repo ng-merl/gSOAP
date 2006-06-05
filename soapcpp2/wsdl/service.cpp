@@ -623,7 +623,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	fprintf(stream, "\n//  Imported element %s declared as %s\n", *j, t);
       else
         fprintf(stream, "\n//  xsd.h must define element: %s\n", t);
-      types.deftname(TYPEDEF, NULL, true, NULL, NULL, *j);	// already pointer
+      types.deftname(TYPEDEF, NULL, true, "_", NULL, *j);	// already pointer
     }
   }
   // produce built-in primitive attributes, limited to the ones that are used only
@@ -663,7 +663,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
         fprintf(stream, "//  Imported attribute %s declared as %s\n", *k, t);
       else
         fprintf(stream, "//  xsd.h must define attribute: %s\n", t);
-      types.deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, NULL, NULL, *k);
+      types.deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, "_", NULL, *k);
     }
   }
   // produce types
@@ -922,24 +922,22 @@ void Definitions::generate()
         fprintf(stream, schemaformat, types.nsprefix(NULL, (*header).second->URI), "namespace", (*header).second->URI);
       comment("Header", (*header).first, "WSDL", (*header).second->ext_documentation);
       comment("Header", (*header).first, "SOAP", (*header).second->documentation);
+      fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
+      fprintf(stream, "\n");
       if ((*header).second->part && (*header).second->part->elementPtr())
       { fprintf(stream, "/// \"%s\" SOAP Header part element\n", (*header).second->part->name);
         types.gen(NULL, *(*header).second->part->elementPtr());
       }
       else if ((*header).second->part && (*header).second->part->type)
-      { fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
-        fprintf(stream, "\n");
-        fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), (*header).first);
+      { fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), types.aname(NULL, (*header).second->URI, (*header).second->part->name));
         fprintf(stream, ";\n");
       }
       else
-      { fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
-        fprintf(stream, "\n");
-        if ((*header).second->part && (*header).second->part->element)
-	  fprintf(stream, pointerformat, types.pname(true, NULL, NULL, (*header).second->part->element), (*header).first);
+      { if ((*header).second->part && (*header).second->part->element)
+          fprintf(stream, pointerformat, types.pname(true, "_", NULL, (*header).second->part->element), (*header).first);
         else
-	  fprintf(stream, pointerformat, (*header).first, (*header).first);
-        fprintf(stream, ";\t///< TODO: Check element type (imported type)\n");
+          fprintf(stream, pointerformat, (*header).first, (*header).first);
+        fprintf(stream, ";\t///< TODO: Please check element name and type (imported type)\n");
       }
     }
     fprintf(stream, "\n};\n");
@@ -1000,7 +998,7 @@ void Definitions::generate()
   for (MapOfStringToService::const_iterator service2 = services.begin(); service2 != services.end(); ++service2)
     if ((*service2).second)
       (*service2).second->generate(types);
-} 
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -1064,8 +1062,13 @@ void Service::generate(Types& types)
       }
       if ((*op2)->output)
       { if ((*op2)->output->content)
-	{ fprintf(stream, "  - Response has MIME content '%s'\n", ((*op2)->output->content->type?(*op2)->output->content->type:"?"));
-	  fprintf(stream, "    TODO: this form of MIME content response is not automatically handled.\n    Use one-way request and implement code to parse response.\n");
+	{ fprintf(stream, "  - Response has MIME content");
+	  if ((*op2)->output->content->type)
+	  { fprintf(stream, " type=\"");
+	    text((*op2)->output->content->type);
+	    fprintf(stream, "\"");
+	  }
+	  fprintf(stream, "\n    TODO: this form of MIME content response is not automatically handled.\n    Use one-way request and implement code to parse response.\n");
         }
       }
       else
@@ -1126,7 +1129,19 @@ void Service::generate(Types& types)
           else
           { fprintf(stream, "    -# MIME attachment %d:\n", k++);
 	    for (vector<mime__content>::const_iterator content = (*part).content.begin(); content != (*part).content.end(); ++content)
-	      fprintf(stream, "       - part=\"%s\" type=\"%s\"\n", (*content).part?(*content).part:"", (*content).type?(*content).type:"");
+	    { fprintf(stream, "       -");
+	      if ((*content).part)
+	      { fprintf(stream, " part=\"");
+	        text((*content).part);
+	        fprintf(stream, "\"");
+	      }
+	      if ((*content).type)
+	      { fprintf(stream, " type=\"");
+	        text((*content).type);
+	        fprintf(stream, "\"");
+	      }
+	      fprintf(stream, "\n");
+	    }
 	  }
         }
       }
@@ -1162,7 +1177,19 @@ void Service::generate(Types& types)
           else
           { fprintf(stream, "    -# MIME attachment %d:\n", k++);
             for (vector<mime__content>::const_iterator content = (*part).content.begin(); content != (*part).content.end(); ++content)
-	      fprintf(stream, "       - part=\"%s\" type=\"%s\"\n", (*content).part?(*content).part:"", (*content).type?(*content).type:"");
+	    { fprintf(stream, "       -");
+	      if ((*content).part)
+	      { fprintf(stream, " part=\"");
+	        text((*content).part);
+	        fprintf(stream, "\"");
+	      }
+	      if ((*content).type)
+	      { fprintf(stream, " type=\"");
+	        text((*content).type);
+	        fprintf(stream, "\"");
+	      }
+	      fprintf(stream, "\n");
+	    }
 	  }
         }
       }
@@ -1340,26 +1367,27 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
           fprintf(stream, "\n");
 	if ((*part).element)
         { if ((*part).elementPtr())
-          { const char *name, *type, *URI;
+          { const char *name, *type, *URI, *prefix = NULL;
             name = (*part).elementPtr()->name;
             /* comment out to use a type that refers to an element defined with typedef */
             if ((*part).elementPtr()->type)
               type = (*part).elementPtr()->type;
             else
-            /* */
-              type = name;
+            { type = name;
+	      prefix = "_";
+	    }
             if ((*part).elementPtr()->schemaPtr())
               URI = (*part).elementPtr()->schemaPtr()->targetNamespace;
             else
               URI = NULL;
 	    if (response)
-            { const char *t = types.tname(NULL, URI, type);
+            { const char *t = types.tname(prefix, URI, type);
 	      fprintf(stream, anonymous ? anonformat : paraformat, t, strchr(t, '*') != NULL ? " " : cflag ? "*" : "&", types.aname(NULL, URI, name), sep);
 	      if (remark)
 	        fprintf(stream, "\t///< Response parameter");
 	    }
 	    else
-            { fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, NULL, URI, type), " ", types.aname(NULL, URI, name), sep);
+            { fprintf(stream, anonymous ? anonformat : paraformat, types.pname(false, prefix, URI, type), " ", types.aname(NULL, URI, name), sep);
 	      if (remark && *sep == ',')
 	        fprintf(stream, "\t///< Request parameter");
 	    }

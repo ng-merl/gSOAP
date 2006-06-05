@@ -17,13 +17,13 @@
 
 
 
-<title> gSOAP 2.7.6 User Guide</title>
+<title> gSOAP 2.7.8 User Guide</title>
     
-<h1 align="center">gSOAP 2.7.6 User Guide </h1>
+<h1 align="center">gSOAP 2.7.8 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Apr  8, 2006
+<h3 align="center">Jun  4, 2006
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -302,7 +302,9 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc15.3"
 >15.3&nbsp; <font color="#0000FF">Streaming MTOM/MIME</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc15.4"
->15.4&nbsp; <font color="#0000FF">Streaming Chunked MTOM/MIME</font></a><br />
+>15.4&nbsp; <font color="#0000FF">Redirecting Inbound MTOM/MIME Streams Based on SOAP Body Content</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc15.5"
+>15.5&nbsp; <font color="#0000FF">Streaming Chunked MTOM/MIME</font></a><br />
 <a href="#tth_sEc16"
 >16&nbsp; <font color="#0000FF">XML Validation</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc16.1"
@@ -421,6 +423,10 @@
 >18.36.3&nbsp; <font color="#0000FF">The HTTP MD5 Plug-in</font></a><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.36.4"
 >18.36.4&nbsp; <font color="#0000FF">The HTTP Digest Authentication Plug-in</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.36.5"
+>18.36.5&nbsp; <font color="#0000FF">The WS-Addressing Plug-in</font></a><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tth_sEc18.36.6"
+>18.36.6&nbsp; <font color="#0000FF">The WS-Security Plug-in</font></a><br />
 
 </td></tr></table><br></span>
 <i>Copyright (C) 2000-2006 Robert A. van Engelen, Genivia, Inc., All Rights Reserved.</i>
@@ -718,7 +724,7 @@ derived class instances from a client. Derived class instances keep their identi
 </li>
 
 <li>
-gSOAP supports MIME (SwA), DIME, and MTOM attachments.
+gSOAP supports MIME (SwA), DIME, and MTOM attachments and has streaming capabilities to direct the data stream to/from resources.
 <div class="p"><!----></div>
 </li>
 
@@ -3237,7 +3243,7 @@ At the server side, we need to return an empty HTTP OK response. This is accompl
 <b>int</b>&nbsp;ns__event(<b>struct</b>&nbsp;soap *soap, <b>int</b>&nbsp;eventNo) <br />
 { <br />
 &nbsp;&nbsp;&nbsp;... // handle event <br />
-&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_send_empty_response(soap); <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap_send_empty_response(soap, SOAP_OK); // SOAP_OK: return HTTP 202 ACCEPTED <br />
 }
 </td></tr></table><br></i>
 At the client side, the empty response header must be parsed as follows:
@@ -4477,7 +4483,7 @@ messages.  The flags are:
 <tr><td><i>SOAP_IO_BUFFER</i> </td><td>Enable buffering (default for all socket-oriented connections) </td></tr>
 <tr><td><i>SOAP_IO_STORE</i> </td><td>Store entire message to calculate HTTP content length </td></tr>
 <tr><td><i>SOAP_IO_CHUNK</i> </td><td>Use HTTP chunking </td></tr>
-<tr><td><i>SOAP_IO_LENGTH</i> </td><td>Require apriori calculation of content length (this is automatic) </td></tr>
+<tr><td><i>SOAP_IO_LENGTH</i> </td><td>Internal flag: require apriori calculation of content length </td></tr>
 <tr><td><i>SOAP_IO_KEEPALIVE</i> </td><td>Attempt to keep socket connections alive (open) </td></tr>
 <tr><td><i>SOAP_IO_UDP</i> </td><td>Use UDP (datagram) transport, maximum message length is <i>SOAP_BUFLEN</i> </td></tr>
 <tr><td><i>SOAP_ENC_XML</i> </td><td>Use plain XML encoding without HTTP headers (useful with <i>SOAP_ENC_ZLIB</i>) </td></tr>
@@ -4494,7 +4500,8 @@ messages.  The flags are:
 <tr><td><i>SOAP_XML_NIL</i> </td><td>Serialize NULL data as xsi:nil elements (omit by default) </td></tr>
 <tr><td><i>SOAP_C_NOIOB</i> </td><td>Do not fault with <i>SOAP_IOB</i> </td></tr>
 <tr><td><i>SOAP_C_UTFSTRING</i> </td><td>(De)serialize 8-bit strings "as is" (strings MUST have UTF-8 encoded content) </td></tr>
-<tr><td><i>SOAP_C_MBSTRING</i> </td><td>Activate multibyte character support (depends on locale) </td></tr></table>
+<tr><td><i>SOAP_C_MBSTRING</i> </td><td>Activate multibyte character support (depends on locale) </td></tr>
+<tr><td><i>SOAP_C_NILSTRING</i> </td><td>Serialize empty strings as nil (ommited element) </td></tr></table>
 
 </td></tr></table><br></span>
 The flags can be selectively turned on/off at any time, for example when
@@ -9495,7 +9502,7 @@ struct/class should have been set by the application prior to the serialization
 of the content.  The value of <i>__size</i> indicates the total size of the
 content to be transmitted.  When the <i>__size</i> is zero then MTOM/MIME chunked
 transfers can be used under certain circumstances to stream content without
-prior determination of attachment size, see Section&nbsp;<a href="#sec:mimechunking">15.4</a> below.
+prior determination of attachment size, see Section&nbsp;<a href="#sec:mimechunking">15.5</a> below.
 </td></tr>
 <tr><td width="602"><i><b>void</b>(*soap.fmimereadclose)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
 <tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment sender at the end of the
@@ -9504,11 +9511,11 @@ value returned by the <i>fmimereadopen</i> callback.  The <i>fmimewriteclose</i>
 callback is called after successfully transmitting the data or when an error
 occurred.
 </td></tr>
-<tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fmimewriteopen)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*description, <b>enum</b>&nbsp;soap_mime_encoding encoding)</i> </td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;*(*soap.fmimewriteopen)(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle, <b>const</b>&nbsp;<b>char</b>&nbsp;*id, <b>const</b>&nbsp;<b>char</b>&nbsp;*type, <b>const</b>&nbsp;<b>char</b>&nbsp;*description, <b>enum</b>&nbsp;soap_mime_encoding encoding)</i> </td></tr>
 <tr><td width="602">Called by the gSOAP run-time MTOM/MIME attachment receiver to start writing an
 inbound MTOM/MIME attachment to an application's data store. The content is streamed
 into an application data store through multiple <i>fmimewrite</i> calls from the
-gSOAP attachment receiver.  The <i>id</i>, <i>type</i>, and <i>description</i>
+gSOAP attachment receiver.  The <i>handle</i> argument is normally NULL, unless <i>soap_get_mime_attachment</i> is used that passes the handle to the callback, see Section&nbsp;<a href="#sec:MTOMpoststreaming">15.4</a>. The <i>id</i>, <i>type</i>, and <i>description</i>
 arguments are the MTOM/MIME id, type, and description respectively. The <i>encoding</i> enumeration value indicates the MIME content transfer encoding, which is one of
   <i>SOAP_MIME_NONE</i>,
   <i>SOAP_MIME_7BIT</i>,
@@ -9520,7 +9527,7 @@ arguments are the MTOM/MIME id, type, and description respectively. The <i>encod
   <i>SOAP_MIME_X_TOKEN</i>.
 Content decoding may have to be considered by the application based on this value.
 The callback should
-return a handle which is passed to the <i>fmimewrite</i> and
+return a non-NULL handle which is passed to the <i>fmimewrite</i> and
 <i>fmimewriteclose</i> callbacks. The <i>__ptr</i> field of the attachment
 struct/class is set to the value of this handle. The <i>__size</i> field is set
 to the total size of the attachment after receiving the entire content. The size
@@ -9549,7 +9556,7 @@ file name for example.
 
 <div class="p"><!----></div>
 The following example illustrates the client-side initialization of an image
-attachment struct to stream a file into a MTOM attachment without HTTP chunking (HTTP streaming chunked MTOM transfer is presented in Section&nbsp;<a href="#sec:mimechunking">15.4</a>):
+attachment struct to stream a file into a MTOM attachment without HTTP chunking (HTTP streaming chunked MTOM transfer is presented in Section&nbsp;<a href="#sec:mimechunking">15.5</a>):
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>int</b>&nbsp;main() <br />
 { <br />
@@ -9646,11 +9653,116 @@ compression and streaming MTOM/MIME. At the server side, when you set
 automatically revert to buffering (<i>SOAP_IO_STORE</i> flag is set).  You can
 check this flag with <i>(soap-&#62;omode &amp; SOAP_IO) == SOAP_IO_CHUNK</i> to see
 if the client accepts chunking. More information about streaming chunked MTOM/MIME
-can be found in Section&nbsp;<a href="#sec:mimechunking">15.4</a>.
+can be found in Section&nbsp;<a href="#sec:mimechunking">15.5</a>.
 
 <div class="p"><!----></div>
 		     <h3><a name="tth_sEc15.4">
-15.4</a>&nbsp;&nbsp;<font color="#0000FF">Streaming Chunked MTOM/MIME</font></h3><a name="sec:mimechunking">
+15.4</a>&nbsp;&nbsp;<font color="#0000FF">Redirecting Inbound MTOM/MIME Streams Based on SOAP Body Content</font></h3><a name="sec:MTOMpoststreaming">
+</a>
+
+<div class="p"><!----></div>
+When it is preferable or required to redirect inbound MTOM/MIME attachment
+streams based on SOAP message body content, where for example the names of the
+resources are listed in the SOAP message body, an alternative mechanism must be
+used. This mechanism can be used both at the client and server side.
+
+<div class="p"><!----></div>
+Because the routing of the streams is accomplished with explicit function
+calls, this method should only be used when required and should not be
+considered optional. That is, when you enable this method, you MUST check for
+pending MTOM/MIME attachments and handle them appropriately. This is true even
+when you don't expect MTOM/MIME attachments in the payload, because the peer
+may trick you by sending attachments anyway and you should be prepared to
+accept or reject them.
+
+<div class="p"><!----></div>
+The explicit MTOM/MIME streaming mechanism consists of three API functions:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
+
+<table>
+<tr><td width="602"><font color="#FF0000"><b>Function</b></font> </td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;soap_post_check_mime_attachments(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
+<tr><td width="602">Enables post-message body inbound streaming MTOM/MIME attachments. The presence
+of attachments must be explicitly checked using the function below.
+</td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;soap_check_mime_attachments(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
+<tr><td width="602">Should be
+called after a client-side call (e.g.&nbsp;<i>soap_call_ns__method</i>) to check
+the presence of attachments. Returns 1 (true) when attachments are present. If
+present, each attachment MUST be processed with the function below.
+</td></tr>
+<tr><td width="602"><i><b>struct</b>&nbsp;soap_multipart *soap_get_mime_attachment(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*handle)</i> </td></tr>
+<tr><td width="602">Parses an attachment and invokes the MIME callbacks (when set). The <i>handle</i>
+parameter is passed to <i>fmimewriteopen</i>. The handle may contain any data
+that is extracted from the SOAP message body to guide the redirection of the
+stream in the callbacks. The return value is a struct with a <i><b>char</b>&nbsp;*ptr</i>
+field that contains the handle value returned by the <i>fmimewriteopen</i>
+callback, and <i><b>char</b>&nbsp;*id</i>, <i><b>char</b>&nbsp;*type</i>, and <i><b>char</b>&nbsp;*description</i> fields with the optional MIME id, type, and description info.
+</td></tr></table>
+
+</td></tr></table><br></span>
+Example client-side code in C:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap *soap = soap_new1(SOAP_ENC_MTOM); <br />
+soap_post_check_mime_attachments(soap); <br />
+... <br />
+<b>if</b>&nbsp;(soap_call_ns__myMethod(soap, ...)) <br />
+&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); // an error occurred <br />
+<b>else</b><br />
+{ <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_check_mime_attachments(soap))
+&nbsp;&nbsp;&nbsp;{ // attachments are present, channel is still open <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>do</b><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... // get data 'handle' from SOAP response and pass to callbacks <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... // set the fmime callbacks, if needed <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap_multipart *content = soap_get_mime_attachment(soap, (void*)handle); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf(<tt>"Received&nbsp;attachment&nbsp;with&nbsp;id=%s&nbsp;and&nbsp;type=%s\n"</tt>, content<tt>-&gt;</tt>id?content<tt>-&gt;</tt>id:"", content<tt>-&gt;</tt>type?content<tt>-&gt;</tt>type:""); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <b>while</b>&nbsp;(content); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap<tt>-&gt;</tt>error) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;} <br />
+} <br />
+... <br />
+soap_destroy(soap); <br />
+soap_end(soap); <br />
+soap_done(soap); <br />
+free(soap);
+</td></tr></table><br></i>
+The server-side service operations are implemented as usual, but with additional checks for MTOM/MIME attachments:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap *soap = soap_new1(SOAP_ENC_MTOM); <br />
+soap_post_check_mime_attachments(soap); <br />
+... <br />
+soap_serve(soap); <br />
+... <br />
+<b>int</b>&nbsp;ns__myMethod(<b>struct</b>&nbsp;soap *soap, ...) <br />
+{
+&nbsp;&nbsp;&nbsp;... // server-side processing logic <br />
+&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_check_mime_attachments(soap))
+&nbsp;&nbsp;&nbsp;{ // attachments are present, channel is still open <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>do</b><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... // get data 'handle' from SOAP request and pass to callbacks <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... // set the fmime callbacks, if needed <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap_multipart *content = soap_get_mime_attachment(soap, (void*)handle); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf(<tt>"Received&nbsp;attachment&nbsp;with&nbsp;id=%s&nbsp;and&nbsp;type=%s\n"</tt>, content<tt>-&gt;</tt>id?content<tt>-&gt;</tt>id:"", content<tt>-&gt;</tt>type?content<tt>-&gt;</tt>type:""); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <b>while</b>&nbsp;(content); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap<tt>-&gt;</tt>error) <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;soap<tt>-&gt;</tt>error; <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;... // server-side processing logic <br />
+&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_OK; <br />
+}
+</td></tr></table><br></i>
+
+<div class="p"><!----></div>
+		     <h3><a name="tth_sEc15.5">
+15.5</a>&nbsp;&nbsp;<font color="#0000FF">Streaming Chunked MTOM/MIME</font></h3><a name="sec:mimechunking">
 </a>
 
 <div class="p"><!----></div>
@@ -10970,6 +11082,12 @@ Can be used to clean up resources (e.g.&nbsp;using <i>soap_end()</i>) while serv
 Should return <i>SOAP_OK</i>, or set <i>soap</i><tt>-&gt;</tt><i>error</i> to a gSOAP error code and return <i>soap</i><tt>-&gt;</tt><i>error</i>.
 Built-in gSOAP function: none.
 </td></tr>
+<tr><td width="602"><i><b>int</b>&nbsp;(*soap.fheader)(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
+<tr><td width="602">Called immediately after parsing a SOAP Header. The SOAP Header struct referenced by <i>soap</i><tt>-&gt;</tt><i>header</i> can be inspected and verified. The function should return <i>SOAP_OK</i> or a fault.
+
+<div class="p"><!----></div>
+Built-in gSOAP function: none.
+</td></tr>
 <tr><td width="602"><i><b>void</b>&nbsp;(*soap.fseterror)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;**code, <b>const</b>&nbsp;<b>char</b>&nbsp;**string)</i> </td></tr>
 <tr><td width="602">Called to set the SOAP Fault <i>code</i> and <i>string</i> values based on the value of <i>soap</i><tt>-&gt;</tt><i>error</i>. Allows user-defined messages to be associated with gSOAP error codes to override gSOAP's built-in error messages.
 
@@ -11356,7 +11474,7 @@ each thread handles the client connection:
 &nbsp;&nbsp;&nbsp;pthread_t tid; <br />
 &nbsp;&nbsp;&nbsp;int m, s; <br />
 &nbsp;&nbsp;&nbsp;soap_init2(&amp;soap, SOAP_IO_KEEPALIVE, SOAP_IO_KEEPALIVE); <br />
-&nbsp;&nbsp;&nbsp;soap.max_keep_alive = 100; // optional: at most 100 calls per keep-alive session <br />
+&nbsp;&nbsp;&nbsp;soap.max_keep_alive = 100; // at most 100 calls per keep-alive session <br />
 &nbsp;&nbsp;&nbsp;soap.accept_timeout = 600; // optional: let server time out after ten minutes of inactivity <br />
 &nbsp;&nbsp;&nbsp;m = soap_bind(&amp;soap, NULL, 18000, BACKLOG); // use port 18000 on the current machine <br />
 &nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(m  &lt;  0) <br />
@@ -11635,10 +11753,18 @@ For example, to disable sigpipe signals on Unix/Linux platforms use:
 on your platform.
 
 <div class="p"><!----></div>
-Use <i>soap.bind_flags=SO_REUSEADDR</i> to enable server-side port reuse and
-local port
-sharing (but be aware of the security issues when the port is not blocked by a
-firewall and open to the Internet).
+Use <i>soap.bind_flags=SO_REUSEADDR</i> to enable server-side port reuse and local port
+sharing (but be aware of the possible security implications such as port hijacking).
+
+<div class="p"><!----></div>
+Note that multiple socket options can be explicitly set with <i>setsockopt</i> as follows:
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>int</b>&nbsp;sock = soap_bind(soap, host, port, backlog); <br />
+<b>if</b>&nbsp;(soap_valid_socket(sock)) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;setsockopt(sock, ..., ..., ..., ...);
+&nbsp;&nbsp;&nbsp;setsockopt(sock, ..., ..., ..., ...);
+</td></tr></table><br></i>
 
 <div class="p"><!----></div>
 	     <h3><a name="tth_sEc18.19">
@@ -11904,8 +12030,8 @@ soap_ssl_init(); /* init OpenSSL (just once) */<br />
 &nbsp;&nbsp;&nbsp;SOAP_SSL_DEFAULT, <br />
 &nbsp;&nbsp;&nbsp;"client.pem",	/* keyfile: required only when client must authenticate to server (see SSL docs on how to obtain this file) */ <br />
 &nbsp;&nbsp;&nbsp;"password",		/* password to read the key file */ <br />
-&nbsp;&nbsp;&nbsp;"cacert.pem", 	/* optional cacert file to store trusted certificates (needed to verify server) */
-&nbsp;&nbsp;&nbsp;NULL,		/* optional capath to direcoty with trusted certificates */ <br />
+&nbsp;&nbsp;&nbsp;"cacerts.pem", 	/* cacert file to store trusted certificates (needed to verify server) */
+&nbsp;&nbsp;&nbsp;NULL,		/* capath to direcoty with trusted certificates */ <br />
 &nbsp;&nbsp;&nbsp;NULL		/* if randfile!=NULL: use a file with random data to seed randomness */  <br />
 )) <br />
 { <br />
@@ -11916,7 +12042,19 @@ soap_call_ns__mymethod(&amp;soap, "https://domain/path/secure.cgi", "", ...);
 </td></tr></table><br></i>
 
 <div class="p"><!----></div>
-By default, server authentication is enabled. To disable server authentication for testing purposes, use the following:
+By default, server authentication is enabled and the <i>cacerts.pem</i> or
+<i>capath</i> must be set so that the CA certificates of the server(s) are
+accessible at run time. The <i>cacert.pem</i> file included in the package
+contains the certificates of common CAs. This file must be supplied with the
+client, if server authentication is required. Althernatively, you can use the
+<i>plugin/cacerts.h</i> and <i>plugin/cacerts.c</i> code to embed CA certificates
+in your client code.
+
+<div class="p"><!----></div>
+For systems based on Microsoft windows, the WinInet module can be used instead, see <i>mod_gsoap/gsoap_win/wininet</i>.
+
+<div class="p"><!----></div>
+To disable server authentication for testing purposes, use the following:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
 <b>if</b>&nbsp;(soap_ssl_client_context(&amp;soap, <br />
 &nbsp;&nbsp;&nbsp;SOAP_SSL_NO_AUTHENTICATION, <br />
@@ -11932,9 +12070,6 @@ By default, server authentication is enabled. To disable server authentication f
 } <br />
 </td></tr></table><br></i>
 This also assumes that the server does not require clients to authenticate (the keyfile is absent).
-
-<div class="p"><!----></div>
-The <i>cacert</i> file and <i>capath</i> are optional. Either one can be specified when clients must run on non-trusted systems. We want to avoid storing trusted certificates in the default location on the file system when that is not secure. Therefore, a flat <i>cacert.pem</i> file or directory can be specified to store trusted certificates.
 
 <div class="p"><!----></div>
 Make sure you have signal handlers set in your application to catch broken connections (<i>SIGPIPE</i>):
@@ -11981,18 +12116,25 @@ and initialization of the RNG.  Should return a gSOAP error code or
 The gSOAP distribution includes a <i>cacerts.pem</i> file with the certificates
 of all certificate authorities (such as Verisign). You can use this file to
 verify the authentication of servers that provide certificates issued by these
-CAs. Just set the <i>cafile</i> parameter to the location of this file on your file system.
-Therefore, when you obtain a certifice signed by a trusted CA such as Verisign, you
-can simply use the <i>cacerts.pem</i> file to develop client applications
-that can verify the authenticity of your server.
+CAs. Just set the <i>cafile</i> parameter to the location of this file on your
+file system.  Therefore, when you obtain a certifice signed by a trusted CA
+such as Verisign, you can simply use the <i>cacerts.pem</i> file to develop
+client applications that can verify the authenticity of your server.
+
+<div class="p"><!----></div>
+Althernatively, you can use the <i>plugin/cacerts.h</i> and
+<i>plugin/cacerts.c</i> code to embed CA certificates in your client code.
+
+<div class="p"><!----></div>
+For systems based on Microsoft windows, the WinInet module can be used instead, see <i>mod_gsoap/gsoap_win/wininet</i>.
 
 <div class="p"><!----></div>
 The other <i>.pem</i> files in the gSOAP distribution are examples
 of self-signed certificates for testing purposes (<i>cacert.pem</i>, <i>client.pem</i>, <i>server.pem</i>).
 
 <div class="p"><!----></div>
-You can also create your own self-signed certificates.
-There is more than one way to generate the necessary files for clients and servers.
+You can also create your own self-signed certificates.  There is more than one
+way to generate the necessary files for clients and servers.
 See <i>http://www.openssl.org</i> for information on OpenSSL and
 <i>http://sial.org/howto/openssl/ca/</i> on how to setup and manage a local CA
 and <i>http://sial.org/howto/openssl/self-signed/</i> on how to setup self-signed
@@ -13361,11 +13503,29 @@ soap_serve(&amp;soap); <br />
 </td></tr></table><br></i>
 
 <div class="p"><!----></div>
+		      <h4><a name="tth_sEc18.36.5">
+18.36.5</a>&nbsp;&nbsp;<font color="#0000FF">The WS-Addressing Plug-in</font></h4>
+
+<div class="p"><!----></div>
+The WSA WS-Addressing plug-in and the source code are extensively documented in
+the <i>doc</i> directory of the gSOAP package. Please refer to the documentation
+included in the package.
+
+<div class="p"><!----></div>
+		      <h4><a name="tth_sEc18.36.6">
+18.36.6</a>&nbsp;&nbsp;<font color="#0000FF">The WS-Security Plug-in</font></h4>
+
+<div class="p"><!----></div>
+The WSSE WS-Security plug-in and the source code are extensively documented in
+the <i>doc</i> directory of the gSOAP package. Please refer to the documentation
+included in the package.
+
+<div class="p"><!----></div>
 </body>
 
 <br /><br /><hr /><small>File translated from
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.72.<br />On  8 Apr 2006, 21:30.</small>
+version 3.72.<br />On  4 Jun 2006, 13:52.</small>
 </html>

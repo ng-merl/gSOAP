@@ -389,7 +389,8 @@ soap_smd_update(struct soap *soap, struct soap_smd_data *data, const char *buf, 
 */
 int
 soap_smd_final(struct soap *soap, struct soap_smd_data *data, char *buf, int *len)
-{ int n = 0, err = 1;
+{ unsigned int n = 0;
+  int err = 1;
   /* finalize the digest or signature computation */
   switch (data->alg)
   { case SOAP_SMD_DGST_MD5:

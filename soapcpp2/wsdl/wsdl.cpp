@@ -941,13 +941,21 @@ again:
 	  if (!s)
 	    s = (*import).namespace_;
 	  importschema = new xs__schema(definitions.soap, (*schema2)->sourceLocation(), s);
-	  if (!importschema->targetNamespace)
+	  if (!(*import).namespace_)
+	  { if ((*schema2)->targetNamespace)
+	      (*import).namespace_ = (*schema2)->targetNamespace;
+	    else if (importschema->targetNamespace)
+	      (*import).namespace_ = importschema->targetNamespace;
+	    else
+	      (*import).namespace_ = "";
+	  }
+	  if (!importschema->targetNamespace || !*importschema->targetNamespace)
 	    importschema->targetNamespace = (*import).namespace_;
 	  else if ((*import).namespace_ && strcmp(importschema->targetNamespace, (*import).namespace_))
 	    cerr << "Schema import namespace " << ((*import).namespace_?(*import).namespace_:"") << " does not correspond to imported targetNamespace " << importschema->targetNamespace << endl;
 	}
         for (vector<xs__schema*>::const_iterator schema3 = xs__schema_.begin(); schema3 != xs__schema_.end(); ++schema3)
-        { if ((*schema3)->targetNamespace && !strcmp((*import).namespace_, (*schema3)->targetNamespace))
+        { if (schema3 != schema2 && (*schema3)->targetNamespace && !strcmp((*import).namespace_, (*schema3)->targetNamespace))
           { found = true;
 	    (*import).schemaPtr(*schema3);
 	    break;

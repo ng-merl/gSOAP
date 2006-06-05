@@ -60,8 +60,12 @@ engelen@genivia.com / engelen@acm.org
 	gSOAP engine from processing the message body;
 
 	This function should also produce a valid HTTP response, for example:
-	soap_response(soap, SOAP_HTML); // use this to return HTML ...
-	soap_response(soap, SOAP_OK); // ... or use this to return a SOAP message
+	if (we want to return HTML)
+	  soap_response(soap, SOAP_HTML); // use this to return HTML...
+	else
+	{ soap_response(soap, SOAP_FILE); // ...or use this to return typed body
+	  soap->http_content = "image/jpeg"; // ...such as a jpeg image
+	}
 	...
 	soap_send(soap, "<HTML>...</HTML>"); // example HTML
 	...

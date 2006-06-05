@@ -1,12 +1,16 @@
 /*
  * File:    gsoapWinInet.cpp
  *
- *  See the header file for details.
+ * See the header file for details.
  *
  * Redistribution: 
  *          Feel free to use, improve, and share.  I would appreciate 
  *          notification of any bugs found/fixed, or improvements made. This 
  *          code has not been extensively tested, so use at your own risk.  
+ *
+ *          This code is redistributed as part of the gSOAP software, under the
+ *          gsoap public license terms and conditions. These conditions are
+ *          compatible with open source and commercial licensing.
  */
 
 /* system */
@@ -41,6 +45,7 @@ struct wininet_data
     size_t              uiBufferLenMax;     /* total length of the message */
     size_t              uiBufferLen;        /* length of data in buffer */
     BOOL                bIsChunkSize;       /* expecting a chunk size buffer */
+    wininet_rse_callback pRseCallback;      /* wininet_resolve_send_error callback.  Allows clients to resolve ssl errors programatically */
 #ifdef SOAP_DEBUG
     /* this is only used for DBGLOG output */
     char *              pszErrorMessage;    /* wininet/system error message */
@@ -206,6 +211,20 @@ wininet_init(
     return TRUE;
 }
 
+void 
+wininet_set_rse_callback(
+	 struct soap*			soap,
+	 wininet_rse_callback	a_pRsecallback)
+{
+    struct wininet_data * pData = (struct wininet_data *) soap_lookup_plugin( soap, wininet_id );
+
+    DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
+        "wininet %p: resolve_send_error callback = '%p'\n", soap, a_pRsecallback ));
+
+    pData->pRseCallback = a_pRsecallback;
+}
+
+
 /* copy the private data structure */
 static int  
 wininet_copy( 
@@ -367,7 +386,7 @@ wininet_post_header(
     const char *    a_pszValue )  
 {
     HINTERNET hHttpRequest = (HINTERNET) soap->socket;
-    char      szHeader[MAX_PATH];
+    char      szHeader[4096];
     int       nLen;
     BOOL      bResult = FALSE;
     struct wininet_data * pData = 
@@ -406,7 +425,7 @@ wininet_post_header(
         }
 
         nLen = _snprintf( 
-            szHeader, MAX_PATH, "%s: %s\r\n", a_pszKey, a_pszValue );
+            szHeader, 4096, "%s: %s\r\n", a_pszKey, a_pszValue );
         if ( nLen < 0 )
         {
             return SOAP_EOM;
@@ -591,21 +610,27 @@ wininet_fsend(
             case ERROR_INTERNET_POST_IS_NON_SECURE:
             case ERROR_INTERNET_SEC_CERT_CN_INVALID:
             case ERROR_INTERNET_SEC_CERT_DATE_INVALID:
-                if ( wininet_resolve_send_error( hHttpRequest, soap->error ) )
-                {
-                    DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
-                        "wininet %p: fsend, error %d has been resolved\n", 
-                        soap, soap->error ));
-                    bRetryPost = TRUE;
-
+		{
+		wininet_rseReturn errorResolved = rseDisplayDlg;
+		if (pData->pRseCallback)
+			errorResolved = pData->pRseCallback(hHttpRequest, soap->error);
+		if (errorResolved == rseDisplayDlg)
+			errorResolved = (wininet_rseReturn)wininet_resolve_send_error( hHttpRequest, soap->error );
+			if ( errorResolved == rseTrue )
+			{
+				DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
+				"wininet %p: fsend, error %d has been resolved\n", 
+				soap, soap->error ));
+				bRetryPost = TRUE;
                     /* 
                         we would have been disconnected by the error. Since we 
                         are going to try again, we will automatically be 
                         reconnected. Therefore we want to disregard any 
                         previous disconnection messages. 
                      */
-                    pData->bDisconnect = FALSE; 
-                    continue;
+                    		pData->bDisconnect = FALSE; 
+                    		continue;
+			}
                 }
             }
 
@@ -646,8 +671,12 @@ wininet_fsend(
             DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
                 "wininet %p: fsend, user authenication required\n", 
                 soap ));
-            if ( wininet_resolve_send_error( hHttpRequest, 
-                ERROR_INTERNET_INCORRECT_PASSWORD ) )
+	    wininet_rseReturn errorResolved = rseDisplayDlg;
+	    if (pData->pRseCallback)
+			errorResolved = pData->pRseCallback(hHttpRequest, dwStatusCode);
+	    if (errorResolved == rseDisplayDlg)
+			errorResolved = (wininet_rseReturn)wininet_resolve_send_error( hHttpRequest, ERROR_INTERNET_INCORRECT_PASSWORD );
+	    if ( errorResolved == rseTrue )
             {
                 DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
                     "wininet %p: fsend, authentication has been provided\n", 

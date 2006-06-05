@@ -92,6 +92,16 @@
  *              Disables Win32 Internet function checking of SSL/PCT-based 
  *              certificates for proper validity dates.
  *
+ *              SECURITY_FLAG_IGNORE_REVOCATION
+ *              Disables checking of certificate revocations (not recommended).
+ *
+ *              SECURITY_FLAG_IGNORE_UNKNOWN_CA
+ *              Disables checking of unknowns CAs, e.g. to allow self-signed
+ *              certificates.
+ *
+ *              SECURITY_FLAG_IGNORE_WRONG_USAGE
+ *		Disables checking of wrong usage.
+ *
  *          This plugin uses the following callback functions and is not 
  *          compatible with any other plugin that uses these functions.
  *
@@ -119,21 +129,33 @@
  *          Feel free to use, improve, and share.  I would appreciate 
  *          notification of any bugs found/fixed, or improvements made. This 
  *          code has not been extensively tested, so use at your own risk.  
+ *
+ *          This code is redistributed as part of the gSOAP software, under the
+ *          gsoap public license terms and conditions. These conditions are
+ *          compatible with open source and commercial licensing.
  */
+
 #ifndef INCLUDED_gsoapWinInet2_h
 #define INCLUDED_gsoapWinInet2_h
 
 #include <stdsoap2.h>
+#include <wininet.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
 
-extern int 
-wininet_plugin( 
-    struct soap *           a_pSoap, 
-    struct soap_plugin *    a_pPluginData, 
-    void *                  a_pUnused );
+typedef enum {
+	rseFalse = 0,
+	rseTrue,
+	rseDisplayDlg
+} wininet_rseReturn;
+
+typedef wininet_rseReturn(*wininet_rse_callback)(HINTERNET a_hHttpRequest, DWORD a_dwErrorCode);
+
+extern void wininet_set_rse_callback(struct soap *a_pSoap, wininet_rse_callback	a_pRseCallback);
+
+extern int wininet_plugin(struct soap *a_pSoap, struct soap_plugin *a_pPluginData, void *a_pUnused);
 
 #ifdef __cplusplus
 }

@@ -941,7 +941,6 @@ int f__form1(struct soap *soap)
   soap_send(soap, buf);
   soap_end_send(soap);
   return SOAP_OK;
-  return SOAP_OK;
 }
 
 int f__form2(struct soap *soap, struct f__formResponse *response)

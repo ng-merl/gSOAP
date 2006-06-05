@@ -51,7 +51,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.7" /* Current version */
+#define VERSION "2.7.8" /* Current version */
 #endif
 
 #ifdef WIN32

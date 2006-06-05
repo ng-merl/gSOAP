@@ -539,7 +539,7 @@ func	: fname '(' s6 fargso ')' constobj abstract
 				if (!($1->info.sto & Sextern))
 			  	{	unlinklast(sp->table);
 			  		if ((p = entry(classtable, $1->sym)))
-					{	if ((Table*) p->info.typ->ref)
+					{	if (p->info.typ->ref)
 						{	sprintf(errbuf, "remote method name clash: struct/class '%s' already declared at line %d", $1->sym->name, p->lineno);
 							semerror(errbuf);
 						}

@@ -2,7 +2,7 @@
 
 wssedemo.c
 
-WS-Security plugin demo application
+WS-Security plugin demo application. See comments below.
 
 gSOAP XML Web services tools
 Copyright (C) 2000-2005, Robert van Engelen, Genivia Inc., All Rights Reserved.
@@ -29,9 +29,6 @@ engelen@genivia.com / engelen@acm.org
 --------------------------------------------------------------------------------
 A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
-*/
-
-/*
 
 This application demonstrates the use of the wsse plugin.
 
@@ -41,7 +38,7 @@ wsdl2h -c -t typemap.dat wssedemo.wsdl
 soapcpp2 -I import wssedemo.h
 cc -o wssedemo wssedemo.c wsseapi.c smdevp.c dom.c stdsoap2.c soapC.c soapClient.c soapServer.c -lcrypto -lssl
 
-Other files required:
+Other required files:
 
 server.pem
 cacert.pem
