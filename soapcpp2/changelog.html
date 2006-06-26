@@ -625,7 +625,7 @@ DEBUG mode.</li>
 <li>Fixed PalmOS socket connection issues.</li>
 <li>Fixed XML attributes with bitmask enumeration (enum*) values.</li>
 </ul>
-<li>Version 2.7.8 revisions a/b (06/05/2006-06/18/2006))</li>
+<li>Version 2.7.8 revisions a/b/c (06/05/2006-06/24/2006))</li>
 <li>Added X509 extension checks.</li>
 <li>Added advanced MTOM streaming features.</li>
 <li>Added WS-Addressing plugin and demo.</li>
@@ -639,6 +639,11 @@ argument) for HTTP optional response binding.</li>
 <li>Fixed WSSE digest authentication.</li>
 <li>Fixed WSDL response element output.</li>
 <li>Fixed SOAP 1.2 &lt;RPC:result&gt; handling with SOAP_XML_STRICT flag.</li>
+<li>Fixed WSSE signed response messages.</li>
+<li>Fixed Win32 max open connection exceeded checking.</li>
+<li>Fixed xsi:type matching for "__name" fields, which required a signature
+change of soap_element_begin_in() with an additional 'type' parameter (affecting custom deserializers, see custom
+dir).</li>
 <ul>
 </ul>
 </ul>

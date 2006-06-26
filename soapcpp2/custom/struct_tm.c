@@ -68,7 +68,7 @@ int soap_out_xsd__dateTime(struct soap *soap, const char *tag, int id, const str
 }
 
 struct tm *soap_in_xsd__dateTime(struct soap *soap, const char *tag, struct tm *a, const char *type)
-{ if (soap_element_begin_in(soap, tag, 0))
+{ if (soap_element_begin_in(soap, tag, 0, NULL))
     return NULL;
   if (*soap->type
    && soap_match_tag(soap, soap->type, type)

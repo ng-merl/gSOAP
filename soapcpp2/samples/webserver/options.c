@@ -155,7 +155,7 @@ int load_options(const char *file, const char *name, struct option *options)
       return EOF;
     }
   }
-  if (!soap_begin_recv(&soap) && !soap_element_begin_in(&soap, name, 1))
+  if (!soap_begin_recv(&soap) && !soap_element_begin_in(&soap, name, 1, NULL))
   { struct t__Option t;
     while (soap_in_t__Option(&soap, "option", &t, NULL))
       if (set_option(t.key, t.val, options) < 0)

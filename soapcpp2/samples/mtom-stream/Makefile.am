@@ -11,6 +11,6 @@ SOAP_NS=mtom_stream_test.nsmap mtom_stream_test.wsdl
 include ../Makefile.c_rules
 
 mtom_stream_SOURCES=mtom-stream-test.c $(SOAPHEADER) $(SOAP_C_SRC)
-mtom_stream_LDADD=$(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
+mtom_stream_LDADD=$(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread
 
 

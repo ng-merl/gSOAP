@@ -63,6 +63,7 @@ int mflag = 0;		/* when set, generate code that requires array/binary classes to
 int nflag = 0;		/* when set, names the namespaces global struct '%NAME%_namespaces */
 int lflag = 0;		/* when set, create library */
 int Lflag = 0;		/* when set, don't generate soapClientLib/soapServerLib */
+int sflag = 0;		/* when set, generate strict validation checks */
 int Sflag = 0;		/* when set, generate only files for servers */
 int tflag = 0;		/* when set, generates typed messsages (with xsi:type attributes) */
 int xflag = 0;		/* when set, excludes imported types */
@@ -125,7 +126,7 @@ main(int argc, char **argv)
 						break;
 					case '?':
 					case 'h':
-						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-C|-S] [-L] [-a] [-c] [-d path] [-e] [-h] [-i] [-I path"SOAP_PATHSEP"path"SOAP_PATHSEP"...] [-l] [-m] [-n] [-p name] [-t] [-v] [-w] [-x] [infile]\n\n");
+						fprintf(stderr, "Usage: soapcpp2 [-1|-2] [-C|-S] [-L] [-a] [-c] [-d path] [-e] [-h] [-i] [-I path"SOAP_PATHSEP"path"SOAP_PATHSEP"...] [-l] [-m] [-n] [-p name] [-s] [-t] [-v] [-w] [-x] [infile]\n\n");
 						fprintf(stderr, "\
 -1      generate SOAP 1.1 bindings\n\
 -2      generate SOAP 1.2 bindings\n\
@@ -143,6 +144,7 @@ main(int argc, char **argv)
 -m      generate Matlab(tm) code for MEX compiler\n\
 -n      use service name to rename service functions and namespace table\n\
 -pname  save files with new prefix name instead of 'soap'\n\
+-s      generate deserialization code with strict XML validation checks\n\
 -t      generate code for fully xsi:type typed SOAP/XML messaging\n\
 -v	display version info\n\
 -w	don't generate WSDL and schema files\n\
@@ -184,6 +186,9 @@ infile	header file to parse (or stdin)\n\
 						break;
 					case 'L':
 						Lflag = 1;
+						break;
+					case 's':
+						sflag = 1;
 						break;
 					case 'S':
 						Sflag = 1;

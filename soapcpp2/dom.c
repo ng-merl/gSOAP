@@ -268,6 +268,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
     }
     if (!node->type || !node->node)
     { struct soap_dom_attribute *att;
+      struct soap_dom_element *elt;
       for (att = node->atts; att; att = att->next)
       { if (att->name)
         { if (att->nstr)
@@ -306,7 +307,6 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
       }
       if (soap_element_start_end_out(soap, NULL))
         return soap->error;
-      struct soap_dom_element *elt;
       if (node->data)
       { if (soap_string_out(soap, node->data, 0))
           return soap->error;
@@ -400,7 +400,7 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
       tp->visible = 0;
     }
   }
-  soap_element_begin_in(soap, NULL, 1);
+  soap_element_begin_in(soap, NULL, 1, NULL);
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' accepted\n", node->name));
   if (soap->body)
   { if (!soap_peek_element(soap))

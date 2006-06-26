@@ -1256,7 +1256,7 @@ soap_wsse_get_BinarySecurityTokenX509(struct soap *soap, const char *id)
   if (!soap_wsse_get_BinarySecurityToken(soap, id, &valueType, &data, &size)
    && valueType
    && !strcmp(valueType, wsse_X509v3URI))
-    cert = d2i_X509(NULL, &data, size);
+    cert = d2i_X509(NULL, (unsigned char**)&data, size);
   /* verify the certificate */
   if (!cert || soap_wsse_verify_X509(soap, cert))
     return NULL;
@@ -1398,7 +1398,7 @@ soap_wsse_add_SignedInfo_Reference(struct soap *soap, const char *URI, const cha
     soap_default_ds__TransformType(soap, reference->Transforms->Transform);
     reference->Transforms->Transform->Algorithm = (char*)transform;
     /* populate the c14n:InclusiveNamespaces element */
-    if (inclusiveNamespaces)
+    if (inclusiveNamespaces && *inclusiveNamespaces)
     { reference->Transforms->Transform->c14n__InclusiveNamespaces = (_c14n__InclusiveNamespaces*)soap_malloc(soap, sizeof(_c14n__InclusiveNamespaces));
       soap_default__c14n__InclusiveNamespaces(soap, reference->Transforms->Transform->c14n__InclusiveNamespaces);
       reference->Transforms->Transform->c14n__InclusiveNamespaces->PrefixList = soap_strdup(soap, inclusiveNamespaces);
@@ -1436,10 +1436,13 @@ soap_wsse_add_SignedInfo_SignatureMethod(struct soap *soap, const char *method, 
   { signedInfo->CanonicalizationMethod = (ds__CanonicalizationMethodType*)soap_malloc(soap, sizeof(ds__CanonicalizationMethodType));
     soap_default_ds__CanonicalizationMethodType(soap, signedInfo->CanonicalizationMethod);
     signedInfo->CanonicalizationMethod->Algorithm = (char*)c14n_URI;
-    /* TODO: check c14n:InclusiveNamespaces/PrefixList requirements */
+    /* TODO: check c14n:InclusiveNamespaces/PrefixList requirements. It seems
+     * at the WS-Security spec is at odds with the EXC C14N spec on this issue.
+     *
     signedInfo->CanonicalizationMethod->c14n__InclusiveNamespaces = (_c14n__InclusiveNamespaces*)soap_malloc(soap, sizeof(_c14n__InclusiveNamespaces));
     soap_default__c14n__InclusiveNamespaces(soap, signedInfo->CanonicalizationMethod->c14n__InclusiveNamespaces);
     signedInfo->CanonicalizationMethod->c14n__InclusiveNamespaces->PrefixList = "SOAP-ENV wsse";
+    */
   }
   /* populate SignatureMethod element */
   signedInfo->SignatureMethod = (ds__SignatureMethodType*)soap_malloc(soap, sizeof(ds__SignatureMethodType));
@@ -1734,6 +1737,7 @@ soap_wsse_verify_digest(struct soap *soap, int alg, const char *id, unsigned cha
         if (att->data && !strcmp(att->data, id))
         { unsigned char HA[SOAP_SMD_SHA1_SIZE];
           int len;
+          DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Computing digest for Id=%s\n", id));
 	  /* compute digest over DOM node "as is" */
 	  soap->mode &= ~SOAP_XML_CANONICAL;
 	  soap->mode |= SOAP_DOM_ASIS;
@@ -1745,6 +1749,11 @@ soap_wsse_verify_digest(struct soap *soap, int alg, const char *id, unsigned cha
 	   || soap_smd_end(soap, (char*)HA, &len))
             return soap_wsse_fault(soap, wsse__FailedCheck, "Could not compute digest");
 	  /* compare digests, success if identical */
+          DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Comparing digest hashes\n"));
+          DBGHEX(TEST, hash, len);
+          DBGLOG(TEST, SOAP_MESSAGE(fdebug, "\n--\n"));
+          DBGHEX(TEST, HA, len);
+          DBGLOG(TEST, SOAP_MESSAGE(fdebug, "\n"));
 	  if (!memcmp(hash, HA, (size_t)len))
 	    return SOAP_OK;
           return soap_wsse_fault(soap, wsse__FailedCheck, "SignedInfo digest mismatch");
@@ -2172,7 +2181,7 @@ calc_digest(struct soap *soap, const char *created, const char *nonce, int nonce
 
 /**
 @fn static void calc_nonce(struct soap *soap, char nonce[SOAP_WSSE_NONCELEN])
-@brief Calculates randomized nonce
+@brief Calculates "randomized" nonce
 @param soap context
 @param[out] nonce value
 */
@@ -2544,7 +2553,7 @@ soap_wsse_preparefinal(struct soap *soap)
       return soap_set_receiver_error(soap, "wsse error", "Cannot use soap_wsse_sign with populated SignedInfo", SOAP_SSL_ERROR);
     /* add the SignedInfo/Reference elements for each digest */
     for (digest = data->digest; digest; digest = digest->next)
-      soap_wsse_add_SignedInfo_Reference(soap, digest->id, transform, "", (char*)digest->hash);
+      soap_wsse_add_SignedInfo_Reference(soap, digest->id, transform, NULL, (char*)digest->hash);
     /* then compute the signature and add it */
     soap_wsse_add_SignatureValue(soap, data->sign_alg, data->sign_key, data->sign_keylen);
     /* the code below ensures we increase the message length counter */

@@ -23,7 +23,7 @@
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Jun  4, 2006
+<h3 align="center">Jun 26, 2006
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -2991,6 +2991,7 @@ The <i>wsdl2h</i> command-line options are:
 <tr><td><i>-w</i>      </td><td>always wrap response parameters in a response struct </td></tr>
 <tr><td><i>-x</i>	</td><td>don't generate <i>_XML any/anyAttribute</i> extensibility elements </td></tr>
 <tr><td><i>-y</i>	</td><td>generate typedef synonyms for structs and enums </td></tr>
+<tr><td><i>-z</i>	</td><td>generate pointer-based arrays for backward compatibility &lt; gSOAP 2.7.6e </td></tr>
 <tr><td><i>-?</i>      </td><td>print help information </td></tr></table>
 
 </td></tr></table><br></span>
@@ -4067,6 +4068,7 @@ The compiler supports the following options:
 <tr><td></td><td>Saves the namespace mapping table with name <i> &lt; name &gt; _namespaces</i> instead of <i>namespaces</i> </td></tr>
 <tr><td></td><td>Renames <i>soap_serve()</i> into <i> &lt; name &gt; _serve()</i> and <i>soap_destroy()</i> into <i> &lt; name &gt; _destroy()</i> </td></tr>
 <tr><td><i>-p  &lt; name &gt; </i>	</td><td>Save sources with file name prefix <i> &lt; name &gt; </i> instead of "<i>soap</i>" </td></tr>
+<tr><td><i>-s</i>	</td><td>Generates deserialization code with strict XML validation checks </td></tr>
 <tr><td><i>-t</i>	</td><td>Generates code to send typed messages (with the <tt>xsi:type</tt> attribute) </td></tr>
 <tr><td><i>-v</i>	</td><td>Display version info</td></tr>
 <tr><td><i>-w</i>	</td><td>Do not generate WSDL and schema files </td></tr>
@@ -13527,5 +13529,5 @@ included in the package.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.72.<br />On  4 Jun 2006, 13:52.</small>
+version 3.72.<br />On 26 Jun 2006, 15:49.</small>
 </html>

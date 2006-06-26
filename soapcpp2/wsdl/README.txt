@@ -150,6 +150,7 @@ COMMAND LINE OPTIONS
 -w      always wrap response parameters in a response struct (<=1.1.4 behavior)
 -x      don't generate _XML any/anyAttribute extensibility elements
 -y      generate typedef synonyms for structs and enums
+-z      generate pointer-based arrays for backward compatibility < gSOAP 2.7.6e 
 infile.wsdl infile.xsd http://www... list of input sources (if none use stdin)
 
 DOCUMENTATION

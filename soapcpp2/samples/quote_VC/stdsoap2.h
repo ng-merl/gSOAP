@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.8b
+stdsoap2.h 2.7.8c
 
 gSOAP runtime
 
@@ -781,7 +781,9 @@ extern "C" {
 
 #ifdef __APPLE__
 # ifdef __cplusplus
+#  ifndef isnan
 extern "C" int isnan(double);
+#  endif
 # endif
 # define HAVE_ISNAN
 #endif
@@ -1181,6 +1183,7 @@ struct soap_attribute
   char name[1]; /* the actual name string flows into the allocated region below this struct */
 };
 
+#ifndef WITH_LEAN
 struct soap_cookie
 { struct soap_cookie *next;
   char *name;
@@ -1195,6 +1198,7 @@ struct soap_cookie
   short env;		/* server-side: got cookie from client and should not be (re)send */
   short modified;	/* server-side: client cookie was modified and should be send */
 };
+#endif
 
 #ifdef __cplusplus
 SOAP_FMAC1 struct soap_multipart* SOAP_FMAC2 soap_next_multipart(struct soap_multipart*);
@@ -1925,7 +1929,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_element_start_end_out(struct soap*, const char *t
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_attribute(struct soap*, const char*, const char*);
 
-SOAP_FMAC1 int SOAP_FMAC2 soap_element_begin_in(struct soap*, const char *tag, int nillable);
+SOAP_FMAC1 int SOAP_FMAC2 soap_element_begin_in(struct soap*, const char *tag, int nillable, const char *type);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_element_end_in(struct soap*, const char *tag);
 
@@ -2131,7 +2135,7 @@ SOAP_FMAC1 extern int SOAP_FMAC2 soap_set_cookie_session(struct soap*, const cha
 SOAP_FMAC1 extern int SOAP_FMAC2 soap_clr_cookie_session(struct soap*, const char*, const char*, const char*);
 SOAP_FMAC1 extern void SOAP_FMAC2 soap_clr_cookie(struct soap*, const char*, const char*, const char*);
 SOAP_FMAC1 extern int SOAP_FMAC2 soap_getenv_cookies(struct soap*);
-SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_copy_cookies(struct soap*);
+SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_copy_cookies(struct soap*, struct soap*);
 SOAP_FMAC1 extern void SOAP_FMAC2 soap_free_cookies(struct soap*);
 #endif
 

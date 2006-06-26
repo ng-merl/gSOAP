@@ -60,7 +60,7 @@ k don't use keys
 s server
 t use plain-text passwords
 
-For example, to generate a request message and store it in a file:
+For example, to generate a request message and store it in file 'wssedemo.xml':
 
 ./wssedemo in > wssedemo.xml < /dev/null
 
@@ -68,11 +68,28 @@ To parse and verify this request message:
 
 ./wssedemo s < wssedemo.xml
 
+Alternatively, using HMAC (fast but uses shared symmetric keys):
+
+./wssedemo inh > wssedemo.xml < /dev/null
+./wssedemo sh < wssedemo.xml
+
+To run a stand-alone server:
+
+./wssedemo s 8080
+
+And invoking it with a client:
+
+./wssedemo in 8080
+
 */
 
 #include "smdevp.h"
 #include "wsseapi.h"
 #include "wssetest.nsmap"
+
+/* The client and server side use the same certificates and keys for demonstration purposes */
+X509 *cert = NULL;
+EVP_PKEY *rsa_privk = NULL, *rsa_pubk = NULL;
 
 int main(int argc, char **argv)
 { struct soap *soap;
@@ -81,11 +98,11 @@ int main(int argc, char **argv)
   int text = 0;
   int nokey = 0;
   int port = 0;
-  X509 *cert = NULL;
-  EVP_PKEY *rsa_privk = NULL, *rsa_pubk = NULL;
   FILE *fd;
   double result;
-  /* not-so-random HMAC key for testing */
+  char *user;
+  /* The secret HMAC key is shared between client and server */
+  /* Not-so-random HMAC key for testing: */
   static char hmac_key[16] =
   { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
     0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00 };
@@ -112,11 +129,14 @@ int main(int argc, char **argv)
   }
   /* soap->actor = "..."; */ /* set only when required */
   soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
-  /* add text or digest password */
+  /* add user name with text or digest password */
+  user = getenv("USER");
+  if (!user)
+    user = "anyone";
   if (text)
-    soap_wsse_add_UsernameTokenText(soap, "User", "john doe", "secret");
+    soap_wsse_add_UsernameTokenText(soap, "User", user, "userPass");
   else
-    soap_wsse_add_UsernameTokenDigest(soap, "User", "john doe", "secret");
+    soap_wsse_add_UsernameTokenDigest(soap, "User", user, "userPass");
   /* read RSA private key for signing */
   if ((fd = fopen("server.pem", "r")))
   { rsa_privk = PEM_read_PrivateKey(fd, NULL, NULL, "password");
@@ -157,6 +177,7 @@ int main(int argc, char **argv)
       { soap_print_fault(soap, stderr);
         exit(1);
       }
+      printf("Server started at port %d\n", port);
       while (soap_valid_socket(soap_accept(soap)))
       { if (hmac)
           soap_wsse_verify_auto(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
@@ -206,26 +227,44 @@ int main(int argc, char **argv)
       }
       soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
     }
+    /* enable automatic signature verification of server responses */
     soap_wsse_verify_auto(soap, SOAP_SMD_NONE, NULL, 0);
-    if (!soap_call_ns1__add(soap, endpoint, NULL, 1.0, 2.0, &result)
-     && !soap_wsse_verify_Timestamp(soap)
-     && !soap_wsse_verify_Password(soap, "secret"))
-      printf("Result = %g\n", result);
+    /* invoke the server. You can choose add, sub, mul, or div operations
+     * that have different consequences (see server operations below) */
+    if (!soap_call_ns1__add(soap, endpoint, NULL, 1.0, 2.0, &result))
+    { if (!soap_wsse_verify_Timestamp(soap))
+      { const char *servername = soap_wsse_get_Username(soap);
+        if (servername
+	 && !strcmp(servername, "server")
+         && !soap_wsse_verify_Password(soap, "serverPass"))
+          printf("Result = %g\n", result);
+        else
+	{ fprintf(stderr, "Server authentication failed\n");
+          soap_print_fault(soap, stderr);
+        }
+      }
+      else
+      { fprintf(stderr, "Server response expired\n");
+        soap_print_fault(soap, stderr);
+      }
+    }
     else
-    { soap_wsse_delete_Security(soap);
-      soap_print_fault(soap, stderr);
+    { soap_print_fault(soap, stderr);
       soap_print_fault_location(soap, stderr);
     }
+    /* clean up security header */
+    soap_wsse_delete_Security(soap);
+    /* disable soap_wsse_verify_auto */
     soap_wsse_verify_done(soap);
   }
-  /* cleanup keys */
+  /* clean up keys */
   if (rsa_privk)
     EVP_PKEY_free(rsa_privk);
   if (rsa_pubk)
     EVP_PKEY_free(rsa_pubk);
   if (cert)
     X509_free(cert);
-  /* cleanup gSOAP engine */
+  /* clean up gSOAP engine */
   soap_end(soap);
   soap_done(soap);
   free(soap);
@@ -238,33 +277,79 @@ int ns1__add(struct soap *soap, double a, double b, double *result)
   if (username)
     fprintf(stderr, "Hello %s, want to add %g + %g = ?\n", username, a, b);
   if (soap_wsse_verify_Timestamp(soap)
-   || soap_wsse_verify_Password(soap, "secret"))
+   || soap_wsse_verify_Password(soap, "userPass"))
   { soap_wsse_delete_Security(soap);
     return soap->error;
   }
-  *result = a + b;
   soap_wsse_delete_Security(soap);
+  soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
+  soap_wsse_add_UsernameTokenDigest(soap, "User", "server", "serverPass");
+  soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
+  soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
+  soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  *result = a + b;
   return SOAP_OK;
 }
 
 int ns1__sub(struct soap *soap, double a, double b, double *result)
-{ *result = a - b;
+{ const char *username = soap_wsse_get_Username(soap);
+  if (username)
+    fprintf(stderr, "Hello %s, want to subtract %g - %g = ?\n", username, a, b);
+  if (soap_wsse_verify_Timestamp(soap)
+   || soap_wsse_verify_Password(soap, "userPass"))
+  { soap_wsse_delete_Security(soap);
+    return soap->error;
+  }
   soap_wsse_delete_Security(soap);
+  /* In this case we leave out the timestamp, which is the sender's
+   * responsibility to add. The receiver only complains if the timestamp is out
+   * of date, not that it is absent. */
+  soap_wsse_add_UsernameTokenDigest(soap, "User", "server", "serverPass");
+  soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
+  soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
+  soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  *result = a - b;
   return SOAP_OK;
 }
 
 int ns1__mul(struct soap *soap, double a, double b, double *result)
-{ *result = a * b;
+{ const char *username = soap_wsse_get_Username(soap);
+  if (username)
+    fprintf(stderr, "Hello %s, want to multiply %g * %g = ?\n", username, a, b);
+  if (soap_wsse_verify_Timestamp(soap)
+   || soap_wsse_verify_Password(soap, "userPass"))
+  { soap_wsse_delete_Security(soap);
+    return soap->error;
+  }
   soap_wsse_delete_Security(soap);
+  soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
+  /* In this case we leave out the server name and password. Because the
+   * receiver check the presence of authentication information, the client will
+   * reject the response. */
+  soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
+  soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
+  soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  *result = a * b;
   return SOAP_OK;
 }
 
 int ns1__div(struct soap *soap, double a, double b, double *result)
-{ soap_wsse_delete_Security(soap);
-  if (b != 0.0)
-  { *result = a / b;
-    return SOAP_OK;
+{ const char *username = soap_wsse_get_Username(soap);
+  if (username)
+    fprintf(stderr, "Hello %s, want to divide %g / %g = ?\n", username, a, b);
+  if (soap_wsse_verify_Timestamp(soap)
+   || soap_wsse_verify_Password(soap, "userPass"))
+  { soap_wsse_delete_Security(soap);
+    return soap->error;
   }
-  return soap_sender_fault(soap, "Division by zero", NULL);
+  soap_wsse_delete_Security(soap);
+  soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
+  soap_wsse_add_UsernameTokenDigest(soap, "User", "server", "serverPass");
+  /* In this case we leave out the signature and the receiver will reject this
+   * unsigned message. */
+  if (b == 0.0)
+    return soap_sender_fault(soap, "Division by zero", NULL);
+  *result = a / b;
+  return SOAP_OK;
 }
 

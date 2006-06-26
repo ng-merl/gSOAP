@@ -132,7 +132,7 @@ char* form(struct soap *soap)
 { char *s = NULL;
   /* It is unlikely chunked and/or compressed POST forms are send by browsers, but we need to handle them */
   if ((soap->mode & SOAP_IO) == SOAP_IO_CHUNK || soap->zlib_in != SOAP_ZLIB_NONE)
-  { int c;
+  { soap_wchar c = EOF;
     soap->labidx = 0;
     if (soap_append_lab(soap, "?", 1))
       return NULL;
@@ -144,11 +144,11 @@ char* form(struct soap *soap)
       k = soap->lablen - soap->labidx;
       soap->labidx = soap->lablen;
       while (k--)
-      { if ((c = soap_getchar(soap)) == EOF)
+      { if ((c = soap_getchar(soap)) == (int)EOF)
 	  break;
         *s++ = c;
       }
-    } while (c != EOF);
+    } while (c != (int)EOF);
     *s = '\0';
     s = soap->labbuf;
   }
@@ -158,10 +158,10 @@ char* form(struct soap *soap)
       if (s)
       { char *t = s;
         size_t i;
-	int c;
 	*t++ = '?';
         for (i = soap->length; i; i--)
-        { if ((c = soap_getchar(soap)) == EOF)
+        { soap_wchar c;
+	  if ((c = soap_getchar(soap)) == (int)EOF)
 	  { soap->error = SOAP_EOF;
 	    return NULL;
 	  }

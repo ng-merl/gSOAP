@@ -131,7 +131,7 @@ BUILT_SOURCES = $(SOAP_C_SRC)
 CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
 
 mtom_stream_SOURCES = mtom-stream-test.c $(SOAPHEADER) $(SOAP_C_SRC)
-mtom_stream_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
+mtom_stream_LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS) -lpthread
 subdir = soapcpp2/samples/mtom-stream
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h

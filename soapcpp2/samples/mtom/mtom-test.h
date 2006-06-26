@@ -45,10 +45,10 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #import "xop.h"
 #import "xmlmime.h"
 
-//gsoap m service name:		mime_test
-//gsoap m service namespace:	http://www.genivia.com/wsdl/mime_test.wsdl
+//gsoap m service name:		mtom_test
+//gsoap m service namespace:	http://www.genivia.com/wsdl/mtom_test.wsdl
 
-//gsoap x schema namespace:	http://www.genivia.com/schemas/mime_test.xsd
+//gsoap x schema namespace:	http://www.genivia.com/schemas/mtom_test.xsd
 //gsoap x schema elementForm:	qualified
 
 struct xsd__base64Binary

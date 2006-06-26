@@ -6,7 +6,7 @@ A, B, and C test services.
 The interop_all.h was compiled with the gSOAP soapcpp2 compiler to produce the
 serializers and stubs to access the interop services:
 
-soapcpp2 interop_all.h
+soapcpp2 -CLwx interop_all.h
 
 The soapcpp2 compiler is platform-independent, so you can run the command on
 Windows, Linux, or Mac OS X for example.

@@ -103,7 +103,7 @@ soap_outdecimal(struct soap *soap, const char *tag, int id, const long double *p
 
 long double *
 soap_indecimal(struct soap *soap, const char *tag, long double *p, const char *type, int t)
-{ if (soap_element_begin_in(soap, tag, 0))
+{ if (soap_element_begin_in(soap, tag, 0, type))
     return NULL;
   p = (long double*)soap_id_enter(soap, soap->id, p, t, sizeof(long double), 0, NULL, NULL, NULL);
   if (*soap->href)

@@ -1806,7 +1806,9 @@ add_result(Tnode *typ)
   for (p = ((Table*)((Tnode*)typ->ref)->ref)->list; p; p = p->next)
     if (p->info.sto & Sreturn)
       return;
-  p = ((Table*)((Tnode*)typ->ref)->ref)->list;
-  if (p)
-    p->info.sto = (Storage)((int)p->info.sto | (int)Sreturn);
+  for (p = ((Table*)((Tnode*)typ->ref)->ref)->list; p; p = p->next)
+  { if (p->info.typ->type != Tfun && !(p->info.sto & Sattribute) && !is_transient(p->info.typ) && !(p->info.sto & (Sprivate|Sprotected)))
+      p->info.sto = (Storage)((int)p->info.sto | (int)Sreturn);
+      return;
+  }
 }
