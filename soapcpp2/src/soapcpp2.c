@@ -67,6 +67,7 @@ int sflag = 0;		/* when set, generate strict validation checks */
 int Sflag = 0;		/* when set, generate only files for servers */
 int tflag = 0;		/* when set, generates typed messsages (with xsi:type attributes) */
 int xflag = 0;		/* when set, excludes imported types */
+int zflag = 0;		/* not used: reserved */
 
 int stop_flag = 0;
 

@@ -131,7 +131,11 @@ static int http_form_parse_header(struct soap *soap, const char *key, const char
 char* form(struct soap *soap)
 { char *s = NULL;
   /* It is unlikely chunked and/or compressed POST forms are send by browsers, but we need to handle them */
-  if ((soap->mode & SOAP_IO) == SOAP_IO_CHUNK || soap->zlib_in != SOAP_ZLIB_NONE)
+  if ((soap->mode & SOAP_IO) == SOAP_IO_CHUNK
+#ifdef WITH_ZLIB
+   || soap->zlib_in != SOAP_ZLIB_NONE
+#endif
+   )
   { soap_wchar c = EOF;
     soap->labidx = 0;
     if (soap_append_lab(soap, "?", 1))

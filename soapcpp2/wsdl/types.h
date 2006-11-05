@@ -83,6 +83,7 @@ class Types
     bool is_defined(const char *prefix, const char *URI, const char *qname);
     bool is_nillable(const xs__element& element);
     bool is_basetype(const char *type);
+    void dump(FILE*);
     void define(const char *URI, const char *name, const xs__complexType&);
     void gen(const char *URI, const vector<xs__attribute>&);
     void gen(const char *URI, const vector<xs__attributeGroup>&);

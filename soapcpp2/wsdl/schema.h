@@ -65,6 +65,7 @@ class xs__element
 	@xsd__QName			ref;
 	@xsd__QName			type;
 	@xsd__string			default_;
+	@xsd__QName			default__;		// also get QName value if element type is QName
 	@xsd__string			fixed;
 	@xsd__boolean			nillable		= false;
 	@xsd__boolean			abstract		= false;

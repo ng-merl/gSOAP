@@ -51,7 +51,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.8c" /* Current version */
+#define VERSION "2.7.9" /* Current version */
 #endif
 
 #ifdef WIN32
@@ -370,6 +370,7 @@ extern int sflag;
 extern int Sflag;
 extern int tflag;
 extern int xflag;
+extern int zflag;
 extern int is_module;
 extern char dirpath[1024];
 extern char filename[1024];

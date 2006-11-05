@@ -148,7 +148,7 @@ Pragma	**pp;
 /* */
 %token	NONE
 /* identifiers (TYPE = typedef identifier) */
-%token	<sym> ID TYPE
+%token	<sym> ID LAB TYPE
 /* constants */
 %token	<i> LNG
 %token	<r> DBL
@@ -157,7 +157,7 @@ Pragma	**pp;
 /* types and related */
 %type	<typ> type
 %type	<sto> store virtual constobj abstract
-%type	<e> fname struct class super
+%type	<e> fname struct class base
 %type	<sym> id arg name
 %type	<s> patt
 %type	<i> cint
@@ -307,7 +307,6 @@ dclrs	: spec		{ }
 dclr	: ptrs ID arrayck occurs init
 			{ if (($3.sto & Stypedef) && sp->table->level == GLOBAL)
 			  {	if (($3.typ->type != Tstruct && $3.typ->type != Tunion && $3.typ->type != Tenum) || strcmp($2->name, $3.typ->id->name))
-
 				{	p = enter(typetable, $2);
 					p->info.typ = mksymtype($3.typ, $2);
 			  		if ($3.sto & Sextern)
@@ -861,7 +860,7 @@ type	: VOID		{ $$ = mkvoid(); }
 			  $$ = p->info.typ;
 			  exitscope();
 			}
-	| class ':' super '{' s2 decls '}'
+	| class ':' base '{' s2 decls '}'
 			{ p = reenter(classtable, $1->sym);
 			  sp->table->sym = p->sym;
 			  if (!$3)
@@ -872,18 +871,18 @@ type	: VOID		{ $$ = mkvoid(); }
 				{	sprintf(errbuf, "class '%s' has incomplete type", $3->sym->name);
 					semerror(errbuf);
 				}
+			  	p->info.typ->base = $3->info.typ->id;
 			  }
 			  p->info.typ->ref = sp->table;
 			  p->info.typ->width = sp->offset;
 			  p->info.typ->id = p->sym;
-			  p->info.typ->base = $3->info.typ->id;
 			  $$ = p->info.typ;
 			  exitscope();
 			}
 	| class		{ $1->info.typ->id = $1->sym;
 			  $$ = $1->info.typ;
 			}
-	| class ':' super
+	| class ':' base
 			{ if (!$3)
 				semerror("invalid base class");
 			  else
@@ -891,9 +890,9 @@ type	: VOID		{ $$ = mkvoid(); }
 				{	sprintf(errbuf, "class '%s' has incomplete type", $3->sym->name);
 					semerror(errbuf);
 				}
+			  	$1->info.typ->base = $3->info.typ->id;
 			  }
 			  $1->info.typ->id = $1->sym;
-			  $1->info.typ->base = $3->info.typ->id;
 			  $$ = $1->info.typ;
 			}
 	| STRUCT '{' s2 decls '}'
@@ -1175,10 +1174,17 @@ class	: CLASS id	{ if ((p = entry(classtable, $2)))
 tname	: CLASS		{ }
 	| TYPENAME	{ }
 	;
-super	: PROTECTED TYPE{ $$ = entry(classtable, $2); }
-	| PRIVATE TYPE	{ $$ = entry(classtable, $2); }
-	| PUBLIC TYPE	{ $$ = entry(classtable, $2); }
-	| TYPE		{ $$ = entry(classtable, $1); }
+base	: PROTECTED base{ $$ = $2; }
+	| PRIVATE base	{ $$ = $2; }
+	| PUBLIC base	{ $$ = $2; }
+	| TYPE		{ $$ = entry(classtable, $1);
+			  if (!$$)
+			  {	p = entry(typetable, $1);
+			  	if (p && (p->info.typ->type == Tclass || p->info.typ->type == Tstruct))
+					$$ = p;
+			  }
+			}
+	| STRUCT ID	{ $$ = entry(classtable, $2); }
 	;
 s2	: /* empty */	{ if (transient == -2)
 			  	transient = 0;

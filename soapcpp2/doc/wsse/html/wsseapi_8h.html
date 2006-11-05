@@ -24,12 +24,12 @@ This graph shows which files directly or indirectly include this file:<p><center
 <tr><td colspan=2><br><h2>Classes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>struct &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="structsoap__wsse__data.html">soap_wsse_data</a></td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">wssepi plugin data  <a href="structsoap__wsse__data.html#_details">More...</a><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">wsseapi plugin data  <a href="structsoap__wsse__data.html#_details">More...</a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>struct &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="structsoap__wsse__digest.html">soap_wsse_digest</a></td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Digest dictionary: linked list of ID-hash pairs.  <a href="structsoap__wsse__digest.html#_details">More...</a><br></td></tr>
 <tr><td colspan=2><br><h2>Defines</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a0">SOAP_WSSE_ID</a>&nbsp;&nbsp;&nbsp;"SOAP-WSSE-0.9"</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a0">SOAP_WSSE_ID</a>&nbsp;&nbsp;&nbsp;"SOAP-WSSE-1.0"</td></tr>
 
 <tr><td colspan=2><br><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="struct__wsse_____security.html">_wsse__Security</a> *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a14">soap_wsse_add_Security</a> (struct soap *soap)</td></tr>
@@ -146,41 +146,51 @@ This graph shows which files directly or indirectly include this file:<p><center
 <tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a51">soap_wsse_get_KeyInfo_SecurityTokenReferenceURI</a> (struct soap *soap)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a SecurityTokenReference URI if present.  <a href="#a51"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>X509 *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a52">soap_wsse_get_KeyInfo_SecurityTokenReferenceX509</a> (struct soap *soap)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a52">soap_wsse_get_KeyInfo_SecurityTokenReferenceValueType</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a X509 certificate if present as a BinarySecurity token.  <a href="#a52"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a53">soap_wsse_add_KeyInfo_SecurityTokenReferenceKeyIdentifier</a> (struct soap *soap, const char *id, const char *valueType, unsigned char *data, int size)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a SecurityTokenReference ValueType if present.  <a href="#a52"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>X509 *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a53">soap_wsse_get_KeyInfo_SecurityTokenReferenceX509</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds KeyInfo element with SecurityTokenReference/KeyIdentifier binary data.  <a href="#a53"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a54">soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifierValueType</a> (struct soap *soap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a X509 certificate if present as a BinarySecurity token.  <a href="#a53"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a54">soap_wsse_add_KeyInfo_SecurityTokenReferenceKeyIdentifier</a> (struct soap *soap, const char *id, const char *valueType, unsigned char *data, int size)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns KeyInfo/SecurityTokenReference/KeyIdentifier/ValueType if present.  <a href="#a54"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>const unsigned char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a55">soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifier</a> (struct soap *soap, int *size)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds KeyInfo element with SecurityTokenReference/KeyIdentifier binary data.  <a href="#a54"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a55">soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifierValueType</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns KeyInfo/SecurityTokenReference/KeyIdentifier binary data.  <a href="#a55"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a56">soap_wsse_add_KeyInfo_SecurityTokenReferenceEmbedded</a> (struct soap *soap, const char *id, const char *valueType)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns KeyInfo/SecurityTokenReference/KeyIdentifier/ValueType if present.  <a href="#a55"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>const unsigned char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a56">soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifier</a> (struct soap *soap, int *size)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds KeyInfo element with Embedded SecurityTokenReference.  <a href="#a56"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a57">soap_wsse_fault</a> (struct soap *soap, enum <a class="el" href="wsse_8h.html#a0">wsse__FaultcodeEnum</a> fault, const char *detail)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns KeyInfo/SecurityTokenReference/KeyIdentifier binary data.  <a href="#a56"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a57">soap_wsse_add_KeyInfo_SecurityTokenReferenceEmbedded</a> (struct soap *soap, const char *id, const char *valueType)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a58">soap_wsse</a> (struct soap *soap, struct soap_plugin *p, void *arg)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds KeyInfo element with Embedded SecurityTokenReference.  <a href="#a57"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a58">soap_wsse_fault</a> (struct soap *soap, enum <a class="el" href="wsse_8h.html#a0">wsse__FaultcodeEnum</a> fault, const char *detail)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Plugin registry function, used with soap_register_plugin.  <a href="#a58"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a59">soap_wsse_sign</a> (struct soap *soap, int alg, const void *key, int keylen)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a59">soap_wsse</a> (struct soap *soap, struct soap_plugin *p, void *arg)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to sign all wsu:Id attributed elements.  <a href="#a59"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a60">soap_wsse_sign_body</a> (struct soap *soap, int alg, const void *key, int keylen)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Plugin registry function, used with soap_register_plugin.  <a href="#a59"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a60">soap_wsse_sign</a> (struct soap *soap, int alg, const void *key, int keylen)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to sign all wsu:Id attributed elements, including the SOAP Body (by adding a wsu:Id="Body" attribute).  <a href="#a60"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a61">soap_wsse_verify_init</a> (struct soap *soap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to sign all wsu:Id attributed elements.  <a href="#a60"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a61">soap_wsse_sign_body</a> (struct soap *soap, int alg, const void *key, int keylen)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to initiate the verification of the signature and SignedInfo Reference digests.  <a href="#a61"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a62">soap_wsse_verify_auto</a> (struct soap *soap, int alg, const void *key, size_t keylen)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to sign all wsu:Id attributed elements, including the SOAP Body (by adding a wsu:Id="Body" attribute).  <a href="#a61"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a62">soap_wsse_verify_init</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to initiate the automatic verification of the signature and SignedInfo Reference digests.  <a href="#a62"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a63">soap_wsse_verify_done</a> (struct soap *soap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to initiate the verification of the signature and SignedInfo Reference digests.  <a href="#a62"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a63">soap_wsse_verify_auto</a> (struct soap *soap, int alg, const void *key, size_t keylen)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Terminates the automatic verification of signatures.  <a href="#a63"></a><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Uses the wsse plugin to initiate the automatic verification of the signature and SignedInfo Reference digests.  <a href="#a63"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a64">soap_wsse_verify_done</a> (struct soap *soap)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Terminates the automatic verification of signatures.  <a href="#a64"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 void SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a65">soap_default_xsd__anyType</a> (struct soap *, struct soap_dom_element *node)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 int SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a66">soap_out_xsd__anyType</a> (struct soap *soap, const char *tag, int id, const struct soap_dom_element *node, const char *type)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 struct soap_dom_element <br>
+*SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a67">soap_in_xsd__anyType</a> (struct soap *soap, const char *tag, struct soap_dom_element *node, const char *type)</td></tr>
+
 <tr><td colspan=2><br><h2>Variables</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>const char&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a1">soap_wsse_id</a> []</td></tr>
 
@@ -216,7 +226,7 @@ This graph shows which files directly or indirectly include this file:<p><center
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> #define SOAP_WSSE_ID&nbsp;&nbsp;&nbsp;"SOAP-WSSE-0.9"          </td>
+          <td class="md" nowrap valign="top"> #define SOAP_WSSE_ID&nbsp;&nbsp;&nbsp;"SOAP-WSSE-1.0"          </td>
         </tr>
       </table>
     </td>
@@ -234,7 +244,148 @@ plugin identification for plugin registry     </td>
   </tr>
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a58" doxytag="wsseapi.h::soap_wsse" ></a><p>
+<a class="anchor" name="a65" doxytag="wsseapi.h::soap_default_xsd__anyType" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> SOAP_FMAC1 void SOAP_FMAC2 soap_default_xsd__anyType           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>struct soap_dom_element *&nbsp;</td>
+          <td class="mdname" nowrap> <em>node</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a67" doxytag="wsseapi.h::soap_in_xsd__anyType" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> SOAP_FMAC1 struct soap_dom_element* SOAP_FMAC2 soap_in_xsd__anyType           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname" nowrap> <em>soap</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>tag</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>struct soap_dom_element *&nbsp;</td>
+          <td class="mdname" nowrap> <em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>type</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a66" doxytag="wsseapi.h::soap_out_xsd__anyType" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyType           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname" nowrap> <em>soap</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>tag</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>int&nbsp;</td>
+          <td class="mdname" nowrap> <em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const struct soap_dom_element *&nbsp;</td>
+          <td class="mdname" nowrap> <em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>type</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a59" doxytag="wsseapi.h::soap_wsse" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -280,7 +431,7 @@ Plugin registry function, used with soap_register_plugin.
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
     <tr><td><tt>[in,out]</tt>&nbsp;</td><td valign=top><em>p</em>&nbsp;</td><td>plugin created in registry </td></tr>
-    <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>arg</em>&nbsp;</td><td>passed from soap_register_plugin_arg </td></tr>
+    <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>arg</em>&nbsp;</td><td>passed from soap_register_plugin_arg is an optional security token handler callback </td></tr>
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK </dd></dl>
@@ -542,7 +693,7 @@ Adds KeyName element.
 Note: the recommended method to add Key information is to utilize KeyIdentifier instead of KeyName. A KeyName is useful mainly for internal use.     </td>
   </tr>
 </table>
-<a class="anchor" name="a56" doxytag="wsseapi.h::soap_wsse_add_KeyInfo_SecurityTokenReferenceEmbedded" ></a><p>
+<a class="anchor" name="a57" doxytag="wsseapi.h::soap_wsse_add_KeyInfo_SecurityTokenReferenceEmbedded" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -592,10 +743,10 @@ Adds KeyInfo element with Embedded SecurityTokenReference.
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK</dd></dl>
-Note: this function is under construction and the result depends on usage scenarios deployed in practice.     </td>
+Note: this function does not add embedded tokens automatically. See code for comments.     </td>
   </tr>
 </table>
-<a class="anchor" name="a53" doxytag="wsseapi.h::soap_wsse_add_KeyInfo_SecurityTokenReferenceKeyIdentifier" ></a><p>
+<a class="anchor" name="a54" doxytag="wsseapi.h::soap_wsse_add_KeyInfo_SecurityTokenReferenceKeyIdentifier" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1385,7 +1536,7 @@ Deletes Signature header element.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a57" doxytag="wsseapi.h::soap_wsse_fault" ></a><p>
+<a class="anchor" name="a58" doxytag="wsseapi.h::soap_wsse_fault" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1577,7 +1728,7 @@ Returns KeyName element if present.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a55" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifier" ></a><p>
+<a class="anchor" name="a56" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifier" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1623,7 +1774,7 @@ Returns KeyInfo/SecurityTokenReference/KeyIdentifier binary data.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a54" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifierValueType" ></a><p>
+<a class="anchor" name="a55" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifierValueType" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1695,7 +1846,43 @@ Returns a SecurityTokenReference URI if present.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a52" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceX509" ></a><p>
+<a class="anchor" name="a52" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceValueType" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> const char* soap_wsse_get_KeyInfo_SecurityTokenReferenceValueType           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>soap</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns a SecurityTokenReference ValueType if present. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>string or NULL </dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a53" doxytag="wsseapi.h::soap_wsse_get_KeyInfo_SecurityTokenReferenceX509" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1886,7 +2073,7 @@ Returns Security header element if present.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a59" doxytag="wsseapi.h::soap_wsse_sign" ></a><p>
+<a class="anchor" name="a60" doxytag="wsseapi.h::soap_wsse_sign" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1946,7 +2133,7 @@ Uses the wsse plugin to sign all wsu:Id attributed elements.
 This function does not actually sign the message, but initiates the plugin's signature algorithm to sign the message upon message transfer.     </td>
   </tr>
 </table>
-<a class="anchor" name="a60" doxytag="wsseapi.h::soap_wsse_sign_body" ></a><p>
+<a class="anchor" name="a61" doxytag="wsseapi.h::soap_wsse_sign_body" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2160,7 +2347,7 @@ Returns UsernameToken element if present.
 Note: this release supports the use of at most one UsernameToken in the header.     </td>
   </tr>
 </table>
-<a class="anchor" name="a62" doxytag="wsseapi.h::soap_wsse_verify_auto" ></a><p>
+<a class="anchor" name="a63" doxytag="wsseapi.h::soap_wsse_verify_auto" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2212,12 +2399,12 @@ Uses the wsse plugin to initiate the automatic verification of the signature and
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
     <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>alg</em>&nbsp;</td><td>to verify signature if signature has no secret or public key, use SOAP_SMD_NONE to omit </td></tr>
-    <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>key</em>&nbsp;</td><td>is HMAC key or EVP_PKEY </td></tr>
-    <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>keylen</em>&nbsp;</td><td>is HMAC key length </td></tr>
+    <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>key</em>&nbsp;</td><td>is HMAC key or EVP_PKEY or NULL </td></tr>
+    <tr><td><tt>[in]</tt>&nbsp;</td><td valign=top><em>keylen</em>&nbsp;</td><td>is HMAC key length or 0 </td></tr>
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK</dd></dl>
-This function does not actually verify the message, but initiates the plugin's algorithm to store the message in a DOM to automatically verify the signature and digestes. If the message does not contain a key to verify the signature, the alg, key, and keylen parameters are used. It is important that the X509 certificate used to verify the signature is verified, which requires soap-&gt;cafile and/or soap-&gt;capath to be set.     </td>
+This function does not actually verify the message, but initiates the plugin's algorithm to store the message in a DOM to automatically verify the signature and digests. If the message does not contain a key to verify the signature, the alg, key, and keylen parameters are used. It is important that the X509 certificate used to verify the signature, which requires soap-&gt;cafile and/or soap-&gt;capath to be set.     </td>
   </tr>
 </table>
 <a class="anchor" name="a44" doxytag="wsseapi.h::soap_wsse_verify_digest" ></a><p>
@@ -2280,7 +2467,7 @@ Verifies the digest value of an XML element referenced by id against the hash.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a63" doxytag="wsseapi.h::soap_wsse_verify_done" ></a><p>
+<a class="anchor" name="a64" doxytag="wsseapi.h::soap_wsse_verify_done" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2316,7 +2503,7 @@ Terminates the automatic verification of signatures.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a61" doxytag="wsseapi.h::soap_wsse_verify_init" ></a><p>
+<a class="anchor" name="a62" doxytag="wsseapi.h::soap_wsse_verify_init" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2573,7 +2760,7 @@ Verifies X509 certificate against soap-&gt;cafile, soap-&gt;capath, and soap-&gt
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK or fault</dd></dl>
-This is an expensive operation, since we read the cafile and create the objects every time we need to verify a certificate. For future releases, we should store this data permanently in the gSOAP engine or plugin.     </td>
+This is an expensive operation. Whenever a new soap context is created, the cafile and objects are loaded into that context each time we need to verify a certificate.     </td>
   </tr>
 </table>
 <hr><h2>Variable Documentation</h2>
@@ -2876,7 +3063,7 @@ Plugin identification for plugin registry     </td>
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Fri Aug 19 10:41:45 2005 for gSOAP WS-Security by
+<hr size="1"><address style="align: right;"><small>Generated on Fri Jun 30 22:21:01 2006 for gSOAP WS-Security by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.8 </small></address>
 </body>

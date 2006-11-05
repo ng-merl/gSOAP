@@ -533,7 +533,7 @@ static int http_da_verify_method(struct soap *soap, char *method, char *passwd)
 
   http_da_calc_response(soap, &data->context, HA1, data->nonce, data->ncount, data->cnonce, data->qop, method, soap->path, entityHAhex, response);
 
-#ifdef DEBUG
+#ifdef SOAP_DEBUG
   fprintf(stderr, "Verifying client response=%s with calculated digest=%s\n", data->response, response);
 #endif
 
@@ -558,7 +558,7 @@ static void http_da_session_start(const char *realm, const char *nonce, const ch
   if (now % 10 == 0) /* don't do this all the time to improve efficiency */
     http_da_session_cleanup();
 
-#ifdef DEBUG
+#ifdef SOAP_DEBUG
   fprintf(stderr, "Starting session realm=%s nonce=%s\n", realm, nonce);
 #endif
 
@@ -586,7 +586,7 @@ static int http_da_session_update(const char *realm, const char *nonce, const ch
   if (!realm || !nonce || !opaque || !cnonce || !ncount)
     return SOAP_ERR;
 
-#ifdef DEBUG
+#ifdef SOAP_DEBUG
   fprintf(stderr, "Updating session realm=%s nonce=%s\n", realm, nonce);
 #endif
 
@@ -634,7 +634,7 @@ static void http_da_session_cleanup()
     {
       struct http_da_session *p = *session;
 
-#ifdef DEBUG
+#ifdef SOAP_DEBUG
       fprintf(stderr, "Deleting session realm=%s nonce=%s\n", p->realm, p->nonce);
 #endif
 

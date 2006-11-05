@@ -67,6 +67,7 @@ static YY_BUFFER_STATE instk[MAX_IMPORT_DEPTH];
 int imports = 0;
 int is_module = 0;
 static Token install_id();
+static Token install_lab();
 static Token install_int();
 static Token install_hex();
 static Token install_num();
@@ -86,8 +87,7 @@ static int magic(const char *name);
 ws		[ \t\v\n\f\r\x1A\xA0]
 digit		[0-9]
 alpha		[a-zA-Z_]
-scope		::
-id		{alpha}({alpha}|{digit}|{scope})*
+id		{alpha}({alpha}|{digit}|::)*
 int		{digit}+
 hex		0[xX][0-9a-fA-F]+
 num		{int}(\.{int}([Ee][+-]?{int})?|(\.{int})?[Ee][+-]?{int})
@@ -180,6 +180,21 @@ install_id()
 	return p->token;
 }
 
+/*
+	install_lab - lookup identifier in symbol table. If found, return token
+	and symbol table entry. If not found, create entry in symbol table and
+	return LAB token.
+*/ 
+static Token
+install_lab()
+{	Token t;
+	/* remove ':' and check if ID or TYPE */
+	yytext[strlen(yytext)-1] = '\0';
+        t = install_id();
+	if (t == ID || t == TYPE)
+		return LAB;
+	return t;
+}
 /*
 	install_int - convert digits to integer and return LNG token.
 */
@@ -316,8 +331,10 @@ static void directive()
 		for (k = j; yytext[k]; k++)
 			if (yytext[k] <= 32)
 				break;
+		/*
 		if (j == k)
 			return;
+		*/
 		s = (char*)emalloc(k-j+1);
 		strncpy(s, yytext+j, k-j);
 		s[k-j] = '\0';

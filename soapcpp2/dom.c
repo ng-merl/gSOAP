@@ -365,9 +365,17 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     }
   }
   soap_default_xsd__anyType(soap, node);
-  DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node %s\n", soap->tag));
   node->nstr = soap_current_namespace(soap, soap->tag);
-  node->name = soap_strdup(soap, soap->tag);
+  if ((soap->mode & SOAP_DOM_ASIS))
+    node->name = soap_strdup(soap, soap->tag);
+  else
+  { char *s = strchr(soap->tag, ':');
+    if (s)
+      node->name = soap_strdup(soap, s+1);
+    else
+      node->name = soap_strdup(soap, soap->tag);
+  }
+  DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node %s in namespace %s\n", node->name, node->nstr?node->nstr:""));
   if ((soap->mode & SOAP_DOM_NODE) || (!(soap->mode & SOAP_DOM_TREE) && *soap->id))
   { if ((node->node = soap_getelement(soap, &node->type)))
     { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node contains type %d from xsi:type\n", node->type));
@@ -389,7 +397,15 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
       }
       (*att)->next = NULL;
       (*att)->nstr = soap_current_namespace(soap, tp->name);
-      (*att)->name = soap_strdup(soap, tp->name);
+      if ((soap->mode & SOAP_DOM_ASIS))
+        (*att)->name = soap_strdup(soap, tp->name);
+      else
+      { char *s = strchr(tp->name, ':');
+        if (s)
+          (*att)->name = soap_strdup(soap, s+1);
+	else
+          (*att)->name = soap_strdup(soap, tp->name);
+      }
       if (tp->visible == 2)
         (*att)->data = soap_strdup(soap, tp->value);
       else

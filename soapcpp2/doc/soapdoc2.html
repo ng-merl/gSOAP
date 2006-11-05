@@ -17,13 +17,13 @@
 
 
 
-<title> gSOAP 2.7.8 User Guide</title>
+<title> gSOAP 2.7.9 User Guide</title>
     
-<h1 align="center">gSOAP 2.7.8 User Guide </h1>
+<h1 align="center">gSOAP 2.7.9 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Jun 26, 2006
+<h3 align="center">Nov  4, 2006
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -935,14 +935,18 @@ Three new functions are added to gSOAP 2.X:
 
 <table>
 <tr><td><font color="#FF0000"><b>Function</b></font> </td><td width="351"><font color="#FF0000"><b>Description</b></font> </td></tr>
-<tr><td><i>soap_init(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Initializes a runtime environment (required only once) </td></tr>
+<tr><td><i>soap_init(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Initializes a static or stack-allocated environment (required only once) </td></tr>
 <tr><td><i><b>struct</b>&nbsp;soap *soap_new()</i> </td><td width="351">Allocates, initializes, and returns a pointer to a runtime environment </td></tr>
 <tr><td><i><b>struct</b>&nbsp;soap *soap_copy(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Allocates a new runtime environment and copies contents of
-the argument environment such that the new environment does not share any data
+the environment such that the new environment does not share any data
 with the original environment </td></tr></table>
 
 </td></tr></table><br></span>
-An environment can be reused as many times as necessary and does not need to be reinitialized in doing so.
+An environment can be reused as many times as necessary and does not need to be
+reinitialized in doing so. A dynamically allocated environment is deallocated
+with <i>soap_free</i>.
+
+<div class="p"><!----></div>
 A new environment is only required for each new thread to guarantee exclusive access
 to a new runtime environment by each thread.
 For example, the following code stack-allocates the runtime environment which is used for multiple remote method calls:
@@ -978,9 +982,7 @@ The runtime environment can also be heap allocated:
 &nbsp;&nbsp;&nbsp;... <br />
 &nbsp;&nbsp;&nbsp;soap_destroy(soap); // remove deserialized class instances (C++ only) <br />
 &nbsp;&nbsp;&nbsp;soap_end(soap); // clean up and remove deserialized data <br />
-&nbsp;&nbsp;&nbsp;soap_done(soap); // detach runtime environment <br />
-&nbsp;&nbsp;&nbsp;... <br />
-&nbsp;&nbsp;&nbsp;free(soap); // deallocate runtime environment <br />
+&nbsp;&nbsp;&nbsp;soap_free(soap); // detach and free runtime environment <br />
 }
 </td></tr></table><br></i>
 A service need to allocate and initialize an environment before calling <i>soap_serve</i>:
@@ -1325,15 +1327,16 @@ The following functions can be used to explicitly setup a gSOAP runtime environm
 
 <table>
 <tr><td><font color="#FF0000"><b>Function</b></font> </td><td width="351"><font color="#FF0000"><b>Description</b></font> </td></tr>
-<tr><td><i>soap_init(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Initializes a runtime environment (required only once) </td></tr>
+<tr><td><i>soap_init(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Initializes a static/stack-allocated runtime environment </td></tr>
 <tr><td><i>soap_init1(<b>struct</b>&nbsp;soap *soap, soap_mode iomode)</i> </td><td width="351">Initializes a runtime environment and set in/out mode flags </td></tr>
 <tr><td><i>soap_init2(<b>struct</b>&nbsp;soap *soap, soap_mode imode, soap_mode omode)</i> </td><td width="351">Initializes a runtime environment and set separate in/out mode flags </td></tr>
 <tr><td><i><b>struct</b>&nbsp;soap *soap_new()</i> </td><td width="351">Allocates, initializes, and returns a pointer to a runtime environment </td></tr>
 <tr><td><i><b>struct</b>&nbsp;soap *soap_new1(soap_mode iomode)</i> </td><td width="351">Allocates, initializes, and returns a pointer to a runtime environment and set in/out mode flags </td></tr>
 <tr><td><i><b>struct</b>&nbsp;soap *soap_new2(soap_mode imode, soap_mode omode)</i> </td><td width="351">Allocates, initializes, and returns a pointer to a runtime environment and set separate in/out mode flags </td></tr>
 <tr><td><i><b>struct</b>&nbsp;soap *soap_copy(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Allocates a new runtime environment and copies contents of
-the argument environment such that the new environment does not share data with the argument environment </td></tr>
-<tr><td><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Reset, close communications, and remove callbacks </td></tr></table>
+the source environment such that the new environment does not share data with the source environment </td></tr>
+<tr><td><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Reset, close communications, and remove callbacks </td></tr>
+<tr><td><i>soap_free(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="351">Reset and deallocate the environment created with <i>soap_new</i> or <i>soap_copy</i> </td></tr></table>
 
 </td></tr></table><br></span>
 An environment can be reused as many times as necessary for client-side remote calls and does not need to be reinitialized in doing so.
@@ -1564,7 +1567,7 @@ following contents:
 &nbsp;&nbsp;&nbsp;<b>struct</b>&nbsp;soap *soap; <br />
 &nbsp;&nbsp;&nbsp;<b>const</b>&nbsp;<b>char</b>&nbsp;*endpoint; <br />
 &nbsp;&nbsp;&nbsp;Quote() { soap = soap_new(); endpoint = "http://services.xmethods.net/soap"; }; <br />
-&nbsp;&nbsp;&nbsp;~Quote() { <b>if</b>&nbsp;(soap) { soap_destroy(soap); soap_end(soap); soap_done(soap); free((void*)soap); }}; <br />
+&nbsp;&nbsp;&nbsp;~Quote() { <b>if</b>&nbsp;(soap) { soap_destroy(soap); soap_end(soap); soap_free(soap); }}; <br />
 &nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;getQuote(<b>char</b>&nbsp;*symbol, <b>float</b>&nbsp;&amp;Result) { <b>return</b>&nbsp;soap ? soap_call_ns1__getQuote(soap, endpoint, "", symbol, Result) : SOAP_EOM; }; <br />
 };
 </td></tr></table><br></i>
@@ -2280,15 +2283,16 @@ The gSOAP functions that can be used are:
 
 <table>
 <tr><td width="301"><font color="#FF0000"><b>Function</b></font> </td><td width="301"><font color="#FF0000"><b>Description</b></font> </td></tr>
-<tr><td width="301"><i>soap_init(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Initializes gSOAP runtime environment (required once) </td></tr>
+<tr><td width="301"><i>soap_new()</i> </td><td width="301">Allocates and Initializes gSOAP context </td></tr>
+<tr><td width="301"><i>soap_init(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Initializes a stack-allocated gSOAP context (required once) </td></tr>
 <tr><td width="301"><i>soap_bind(<b>struct</b>&nbsp;soap *soap, <b>char</b>&nbsp;*host, <b>int</b>&nbsp;port, <b>int</b>&nbsp;backlog)</i> </td><td width="301">Returns master socket (backlog = max.&nbsp;queue
 size for requests). When <i>host==NULL</i>: host is the machine on which the service runs </td></tr>
 <tr><td width="301"><i>soap_accept(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Returns slave socket </td></tr>
 <tr><td width="301"><i>soap_end(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Clean up deserialized data (except class instances) and temporary data </td></tr>
-<tr><td width="301"><i>soap_free(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Clean up temporary data only </td></tr>
+<tr><td width="301"><i>soap_free_temp(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Clean up temporary data only </td></tr>
 <tr><td width="301"><i>soap_destroy(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Clean up deserialized class instances (note: this function will be renamed with option <i>-n</i> </td></tr>
-<tr><td width="301"><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Reset: close master/slave sockets and remove callbacks </td></tr>
-<tr><td width="301"></td><td width="301">(see Section&nbsp;<a href="#sec:callback">18.7</a> </td></tr></table>
+<tr><td width="301"><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Reset and detach context: close master/slave sockets and remove callbacks </td></tr>
+<tr><td width="301"><i>soap_free(<b>struct</b>&nbsp;soap *soap)</i> </td><td width="301">Detach and deallocate context (<i>soap_new</i>()) </td></tr></table>
 
 </td></tr></table><br></span>
 The <i>host</i> name in <i>soap_bind</i> may be NULL to indicate that the current host should be used.
@@ -2615,7 +2619,8 @@ SOAP_SOCKET dequeue() <br />
 { <br />
 &nbsp;&nbsp;&nbsp;SOAP_SOCKET sock; <br />
 &nbsp;&nbsp;&nbsp;pthread_mutex_lock(&amp;queue_cs); <br />
-&nbsp;&nbsp;&nbsp;pthread_cond_wait(&amp;queue_cv, &amp;queue_cs); <br />
+&nbsp;&nbsp;&nbsp;<b>while</b>&nbsp;(head == tail)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_cond_wait(&amp;queue_cv, &amp;queue_cs); <br />
 &nbsp;&nbsp;&nbsp;sock = queue[head++]; <br />
 &nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(head  &gt; = MAX_QUEUE) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;head = 0; <br />
@@ -2623,6 +2628,10 @@ SOAP_SOCKET dequeue() <br />
 &nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;sock; <br />
 }
 </td></tr></table><br></i>
+Note: the <i>plugin/threads.h</i> and <i>plugin/threads.c</i> code can be used
+for a portable implementation. Instead of POSIX calls, use <i>MUTEX_LOCK</i>,
+<i>MUTEX_UNLOCK</i>, and <i>COND_WAIT</i>. These are wrappers for Win API calls
+or POSIX calls.
 
 <div class="p"><!----></div>
 		      <h4><a name="tth_sEc7.2.5">
@@ -3386,8 +3395,13 @@ This produces:
 The serializer is initialized with the <i>soap_begin_send(soap)</i> function
 and closed with <i>soap_end_send(soap)</i>. All temporary data structures and
 data structures deserialized on the heap are destroyed with the
-<i>soap_end()</i> function.  The <i>soap_free()</i> function can be used to
-remove the temporary data only and keep the deserialized data on the heap.
+<i>soap_destroy</i> and <i>soap_end</i> functions (in this order).
+
+<div class="p"><!----></div>
+The <i>soap_done</i> function should be used to reset the context, i.e.&nbsp;the last use of the context. To detach and deallocate the context, use <i>soap_free</i>.
+
+<div class="p"><!----></div>
+To remove the temporary data only and keep the deserialized data on the heap, use <i>soap_free_temp</i>.
 Temporary data structures are only created if the encoded data uses pointers.
 Each pointer in the encoded data has an internal hash table entry to determine
 all multi-reference parts and cyclic parts of the complete data structure.
@@ -3449,7 +3463,8 @@ soap_put_<u><span class="roman">Type1</span></u>(&amp;soap, &amp;var1, "<font si
 soap_put_<u><span class="roman">Type2</span></u>(&amp;soap, &amp;var2, "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>element-name2", "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name2"); <br />
 ... <br />
 soap_end_send(&amp;soap); // flush <br />
-soap_end(&amp;soap); // remove temporary data structures after phase <br />
+soap_destroy(&amp;soap); // remove deserialized C++ objects <br />
+soap_end(&amp;soap); // remove deserialized data structures <br />
 soap_done(&amp;soap); // finalize last use of this environment <br />
 ...
 </td></tr></table><br></i>
@@ -3478,7 +3493,8 @@ soap_begin_send(&amp;soap); <br />
 obj.put(&amp;soap, "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>element-name1", "<font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1"); <br />
 ... <br />
 soap_end_send(&amp;soap); // flush <br />
-soap_end(&amp;soap); // remove temporary data structures after phase <br />
+soap_destroy(&amp;soap); // remove deserialized C++ objects <br />
+soap_end(&amp;soap); // remove deserialized data <br />
 soap_done(&amp;soap); // finalize last use of this environment
 </td></tr></table><br></i>
 When you declare a soap struct pointer as a data member in a class, you can overload the <tt>&lt;&lt;</tt> operator to serialize the class to streams:
@@ -3586,8 +3602,8 @@ soap_begin_recv(&amp;soap); // if HTTP/MIME/DIME/GZIP headers are present, parse
 &nbsp;&nbsp;&nbsp;... error ... <br />
 ... <br />
 soap_end_recv(&amp;soap); // check consistency of id/hrefs <br />
-soap_destroy(&amp;soap); // remove deserialized class instances <br />
-soap_end(&amp;soap); // remove temporary data, including the decoded data on the heap <br />
+soap_destroy(&amp;soap); // remove deserialized C++ objects <br />
+soap_end(&amp;soap); // remove deserialized data <br />
 soap_done(&amp;soap); // finalize last use of the environment
 </td></tr></table><br></i>
 The strings <i><font size="+1"><span class="roman">[</span></font>namespace-prefix:<font size="+1"><span class="roman">]</span></font>type-name1</i> and
@@ -3604,7 +3620,7 @@ decoded data that was placed on the heap.
 
 <div class="p"><!----></div>
 To remove temporary data while retaining the deserialized data on the heap, the
-function <i>soap_free</i> should be called instead of <i>soap_destroy</i> and
+function <i>soap_free_temp</i> should be called instead of <i>soap_destroy</i> and
 <i>soap_end</i>.
 
 <div class="p"><!----></div>
@@ -3630,8 +3646,8 @@ soap_begin_recv(&amp;soap); // if HTTP header is present, parse it <br />
 &nbsp;&nbsp;&nbsp;... error ... <br />
 soap_end_recv(&amp;soap); // check consistency of id/hrefs <br />
 ... <br />
-soap_destroy(&amp;soap); // remove deserialized class instances <br />
-soap_end(&amp;soap); // remove temporary data, including the decoded data on the heap <br />
+soap_destroy(&amp;soap); // remove deserialized C++ objects <br />
+soap_end(&amp;soap); // remove deserialized data <br />
 soap_done(&amp;soap); // finalize last use of the environment
 </td></tr></table><br></i>
 When you declare a soap struct pointer as a data member in a class, you can overload the <tt>&gt;&gt;</tt> operator to parse and deserialize a class instance from a stream:
@@ -3715,6 +3731,7 @@ standard output stream using gzip compression (requires the Zlib library, compil
 &nbsp;&nbsp;&nbsp;john.soap_serialize(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;john.soap_put(&amp;soap, <tt>"johnnie"</tt>, NULL); <br />
 &nbsp;&nbsp;&nbsp;soap_end_send(&amp;soap); <br />
+&nbsp;&nbsp;&nbsp;soap_destroy(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;soap_end(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;soap_done(&amp;soap); <br />
 } <br />
@@ -3792,7 +3809,7 @@ The following program fragment decodes this content from standard input and reco
 &nbsp;&nbsp;&nbsp;father = john<tt>-&gt;</tt>father; <br />
 &nbsp;&nbsp;&nbsp;... <br />
 &nbsp;&nbsp;&nbsp;soap_end_recv(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;soap_free(&amp;soap); // Clean up temporary data but keep deserialized data <br />
+&nbsp;&nbsp;&nbsp;soap_free_temp(&amp;soap); // Clean up temporary data but keep deserialized data <br />
 } <br />
 <b>struct</b>&nbsp;Namespace namespaces[] = <br />
 { <br />
@@ -3811,7 +3828,7 @@ hold the decoded content. The following example explicitly passes <i>NULL</i>:
 </td></tr></table><br></i>
 Note: the second <i>NULL</i> parameter indicates that the schema type attribute of the receiving message can be ignored.
 The deserializer stores the SOAP contents on the heap, and returns the address. The allocated storage is released with the
-<i>soap_end</i> call, which removes all temporary and deserialized data from the heap, or with the <i>soap_free</i> call, which removes all
+<i>soap_end</i> call, which removes all temporary and deserialized data from the heap, or with the <i>soap_free_temp</i> call, which removes all
 temporary data only.
 
 <div class="p"><!----></div>
@@ -4601,11 +4618,12 @@ The deallocation functions are:
 
 <table>
 <tr><td><font color="#FF0000"><b>Function Call</b></font> </td><td><font color="#FF0000"><b>Description</b></font> </td></tr>
+<tr><td><i>soap_destroy(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Remove all dynamically allocated C++ objects. </td></tr>
+<tr><td></td><td>must be called before <i>soap_end()</i> </td></tr>
 <tr><td><i>soap_end(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Remove temporary data and deserialized data except </td></tr>
 <tr><td></td><td>class instances </td></tr>
-<tr><td><i>soap_free(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Remove temporary data only </td></tr>
-<tr><td><i>soap_destroy(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Remove all dynamically allocated class instances. </td></tr>
-<tr><td></td><td>Need to be called before <i>soap_end()</i> </td></tr>
+<tr><td><i>soap_free_temp(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Instead of <i>soap_destroy</i> and <i>soap_end</i>: </td></tr>
+<tr><td></td><td>remove temporary data only </td></tr>
 <tr><td><i>soap_dealloc(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*p)</i> </td><td>Remove malloced data at <i>p</i>. When <i>p==NULL</i>: remove all </td></tr>
 <tr><td></td><td>dynamically allocated (deserialized) data except class instances </td></tr>
 <tr><td><i>soap_delete(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*p)</i> </td><td>Remove class instance at <i>p</i>. When <i>p==NULL</i>: remove all </td></tr>
@@ -4613,12 +4631,12 @@ The deallocation functions are:
 <tr><td></td><td>(this is identical to calling soap_destroy(<b>struct</b>&nbsp;soap *soap)) </td></tr>
 <tr><td><i>soap_unlink(<b>struct</b>&nbsp;soap *soap, <b>void</b>&nbsp;*p)</i> </td><td>Unlink data/object at <i>p</i> from gSOAP's deallocation chain </td></tr>
 <tr><td></td><td>so gSOAP won't deallocate it </td></tr>
-<tr><td><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Reset: close master/slave sockets and remove callbacks </td></tr>
-<tr><td></td><td>(see Section&nbsp;<a href="#sec:callback">18.7</a> </td></tr></table>
+<tr><td><i>soap_done(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Detach context (reset runtime environment) </td></tr>
+<tr><td><i>soap_free(<b>struct</b>&nbsp;soap *soap)</i> </td><td>Detach and free context (allocated with <i>soap_new</i>) </td></tr></table>
 
 </td></tr></table><br></span>
 Temporary data (i.e.&nbsp;the hash tables) are automatically removed with calls to
-the <i>soap_free</i> function which is made within <i>soap_end</i> and
+the <i>soap_free_temp</i> function which is made within <i>soap_end</i> and
 <i>soap_done</i> or when the next call to a stub or skeleton routine is made to
 send a message or receive a message.  Deallocation of non-class based data is
 straightforward: <i>soap_end</i> removes all dynamically allocated deserialized
@@ -5135,8 +5153,9 @@ The error codes returned by the stub and skeleton routines are listed below.
 <tr><td align="right"><i>SOAP_OBJ_MISMATCH</i> </td><td>Mismatch in the size and/or shape of an object </td></tr>
 <tr><td align="right"><i>SOAP_FATAL_ERROR</i> </td><td>Internal error </td></tr>
 <tr><td align="right"><i>SOAP_FAULT</i> </td><td>An exception raised by the service </td></tr>
-<tr><td align="right"><i>SOAP_NO_METHOD</i> </td><td>Skeleton error: the skeleton cannot serve the method </td></tr>
-<tr><td align="right"><i>SOAP_GET_METHOD</i> </td><td>Unsupported HTTP GET </td></tr>
+<tr><td align="right"><i>SOAP_NO_METHOD</i> </td><td>The dispatcher did not find a matching operation for the request</td></tr>
+<tr><td align="right"><i>SOAP_NO_DATA</i> </td><td>No data in HTTP message </td></tr>
+<tr><td align="right"><i>SOAP_GET_METHOD</i> </td><td>HTTP GET operation not handled, see Section&nbsp;<a href="#sec:get">18.10</a> </td></tr>
 <tr><td align="right"><i>SOAP_EOM</i> </td><td>Out of memory </td></tr>
 <tr><td align="right"><i>SOAP_NULL</i> </td><td>An element was null, while it is not supposed to be null </td></tr>
 <tr><td align="right"><i>SOAP_MULTI_ID</i> </td><td>Multiple occurrences of the same element ID on the input </td></tr>
@@ -9441,10 +9460,9 @@ data.xmlmime__contentType = "text/html"; // MIME type <br />
 &nbsp;&nbsp;&nbsp;soap_print_fault(soap, stderr);
 <b>else</b><br />
 &nbsp;&nbsp;&nbsp;printf("<tt>Got&nbsp;data\n</tt>"); <br />
-soap_destroy(soap); // remove deserialized class instances (C++ only) <br />
+soap_destroy(soap); // remove deserialized class instances <br />
 soap_end(soap); // remove temporary and deserialized data <br />
-soap_done(soap); // detach <br />
-free(soap);
+soap_free(soap); // detach and free context
 </td></tr></table><br></i>
 Note that the <i>xop__Include.type</i> field must be set to transmit MTOM attachments, otherwise plain base64 XML will be used.
 
@@ -9730,8 +9748,7 @@ soap_post_check_mime_attachments(soap); <br />
 ... <br />
 soap_destroy(soap); <br />
 soap_end(soap); <br />
-soap_done(soap); <br />
-free(soap);
+soap_free(soap); // detach and free context <br />
 </td></tr></table><br></i>
 The server-side service operations are implemented as usual, but with additional checks for MTOM/MIME attachments:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
@@ -10138,8 +10155,8 @@ soap.header = &amp;header; // bind the SOAP Header for transport <br />
 // Send the message over UDP to a broadcast address: <br />
 <b>if</b>&nbsp;(soap_send_ns__echoString(&amp;soap, "soap.udp://...", NULL, "hello world!")) <br />
 &nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); // report error <br />
-soap_end(&amp;soap); // cleanup <br />
 soap_destroy(&amp;soap); // cleanup <br />
+soap_end(&amp;soap); // cleanup <br />
 soap_done(&amp;soap); // close connection (should not use soap struct after this)
 </td></tr></table><br></i>
 
@@ -10179,8 +10196,8 @@ soap.header = &amp;header; // bind the SOAP Header for transport <br />
 &nbsp;&nbsp;&nbsp;// UDP server response is stored in 'res' <br />
 // check SOAP header received, if applicable <br />
 check_header(&amp;soap.header); <br />
-soap_end(&amp;soap); // cleanup <br />
 soap_destroy(&amp;soap); // cleanup <br />
+soap_end(&amp;soap); // cleanup <br />
 soap_done(&amp;soap); // close connection (should not use soap struct after this)
 </td></tr></table><br></i>
 
@@ -10241,8 +10258,8 @@ header.wsa__ReplyTo = &amp;replyTo; <br />
 &nbsp;&nbsp;&nbsp;<b>else</b><br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
 } <br />
-soap_end(&amp;soap); // cleanup <br />
 soap_destroy(&amp;soap); // cleanup <br />
+soap_end(&amp;soap); // cleanup <br />
 soap_done(&amp;soap); // close connection (should not use soap struct after this)
 </td></tr></table><br></i>
 Note that a server for the <i>bcastString</i> does not need to use two-one way
@@ -10831,6 +10848,8 @@ Consider for example <i><b>struct</b>&nbsp;tm</i>, declared in <i>time.h</i>. Th
 Note that we qualified the structure <i><b>volatile</b></i> in the gSOAP header file to inform the gSOAP compiler that it should not attempt to redeclare it.
 We can now readily serialize and deserialize the tm structure. The following program fragment serializes the local time stored in a tm structure to stdout:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+<b>struct</b>&nbsp;soap *soap = soap_new(); <br />
+... <br />
 time_t T = time(NULL); <br />
 <b>struct</b>&nbsp;tm *t = localtime(&amp;T); <br />
 <b>struct</b>&nbsp;soap *soap = soap_new(); <br />
@@ -10838,9 +10857,9 @@ soap_set_omode(soap, SOAP_XML_GRAPH); // good habit to use this <br />
 soap_begin_send(soap); <br />
 soap_put_tm(soap, t, "myLocalTime", NULL); <br />
 soap_end_send(soap); <br />
+soap_destroy(soap); <br />
 soap_end(soap); <br />
-soap_done(soap); <br />
-free(soap);
+soap_free(soap); // detach and free context <br />
 </td></tr></table><br></i>
 It is also possible to serialize the tm fields as XML attributes using the
 @qualifier, see Section&nbsp;<a href="#sec:attributes">10.6.7</a>.
@@ -11084,6 +11103,17 @@ Can be used to clean up resources (e.g.&nbsp;using <i>soap_end()</i>) while serv
 Should return <i>SOAP_OK</i>, or set <i>soap</i><tt>-&gt;</tt><i>error</i> to a gSOAP error code and return <i>soap</i><tt>-&gt;</tt><i>error</i>.
 Built-in gSOAP function: none.
 </td></tr>
+<tr><td width="602"><i><b>void</b>&nbsp;(*soap.fmalloc)(<b>struct</b>&nbsp;soap *soap, size_t n)</i> </td></tr>
+<tr><td width="602">Use to override memory allocation for deserialized C data. Memory allocated via
+this callback will <em>not</em> be automatically released by the gSOAP engine. The
+application must release this data by keeping track of the allocations. Note:
+it is not safe to traverse deserialized data structures and free each node,
+since data might be shared (SOAP multiref) and some allocated data such as the
+HTTP SOAPAction might no be part of the structure.
+
+<div class="p"><!----></div>
+Built-in gSOAP function: none.
+</td></tr>
 <tr><td width="602"><i><b>int</b>&nbsp;(*soap.fheader)(<b>struct</b>&nbsp;soap *soap)</i> </td></tr>
 <tr><td width="602">Called immediately after parsing a SOAP Header. The SOAP Header struct referenced by <i>soap</i><tt>-&gt;</tt><i>header</i> can be inspected and verified. The function should return <i>SOAP_OK</i> or a fault.
 
@@ -11152,8 +11182,9 @@ main() <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stdout); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(1); <br />
 &nbsp;&nbsp;&nbsp;} <br />
+&nbsp;&nbsp;&nbsp;soap_destroy(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;soap_end(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;soap_init(&amp;soap); // disable callbacks <br />
+&nbsp;&nbsp;&nbsp;soap_done(&amp;soap); // disable callbacks <br />
 }
 </td></tr></table><br></i>
 The <i>soap_done</i> function can be called to reset the callback to the default internal gSOAP I/O and HTTP handlers.
@@ -11512,8 +11543,7 @@ each thread handles the client connection:
 &nbsp;&nbsp;&nbsp;soap_serve((<b>struct</b>&nbsp;soap*)soap); <br />
 &nbsp;&nbsp;&nbsp;soap_destroy((<b>struct</b>&nbsp;soap*)soap); <br />
 &nbsp;&nbsp;&nbsp;soap_end((<b>struct</b>&nbsp;soap*)soap); <br />
-&nbsp;&nbsp;&nbsp;soap_done((<b>struct</b>&nbsp;soap*)soap); <br />
-&nbsp;&nbsp;&nbsp;free(soap); <br />
+&nbsp;&nbsp;&nbsp;soap_free((<b>struct</b>&nbsp;soap*)soap); <br />
 &nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;NULL; <br />
 }
 </td></tr></table><br></i>
@@ -11839,8 +11869,7 @@ multi-threaded stand-alone SOAP Web Service:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(soap_ssl_accept(tsoap)) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(tsoap, stderr); <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_done(tsoap); <br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;free(tsoap); <br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_free(tsoap); <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>continue</b>; /* when soap_ssl_accept fails, we should just go on */ <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pthread_create(&amp;tid, NULL, &amp;process_request, (<b>void</b>*)tsoap); <br />
@@ -11924,7 +11953,7 @@ We give a Windows and POSIX threads implementation of these here:
 <b>int</b>&nbsp;CRYPTO_thread_setup() <br />
 { <br />
 &nbsp;&nbsp;&nbsp;<b>int</b>&nbsp;i; <br />
-&nbsp;&nbsp;&nbsp;mutex_buf = (MUTEX_TYPE*)malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t)); <br />
+&nbsp;&nbsp;&nbsp;mutex_buf = (MUTEX_TYPE*)malloc(CRYPTO_num_locks() * sizeof(MUTEX_TYPE)); <br />
 &nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(!mutex_buf) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>return</b>&nbsp;SOAP_EOM; <br />
 &nbsp;&nbsp;&nbsp;<b>for</b>&nbsp;(i = 0; i  &lt;  CRYPTO_num_locks(); i++) <br />
@@ -13529,5 +13558,5 @@ included in the package.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.72.<br />On 26 Jun 2006, 15:49.</small>
+version 3.72.<br />On  4 Nov 2006, 21:44.</small>
 </html>

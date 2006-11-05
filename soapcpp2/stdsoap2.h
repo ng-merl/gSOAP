@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.8c
+stdsoap2.h 2.7.9
 
 gSOAP runtime
 
@@ -134,6 +134,12 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #ifdef _WIN32
 # ifndef WIN32
 #  define WIN32
+# endif
+#endif
+
+#ifdef _WIN32_WCE
+# ifndef UNDER_CE
+#  define UNDER_CE _WIN32_WCE
 # endif
 #endif
 
@@ -663,21 +669,21 @@ extern "C" {
 #ifdef WIN32
 # ifdef UNDER_CE
 #  define soap_errno GetLastError()
-#  define soap_socket_errno GetLastError()
+#  define soap_socket_errno(s) GetLastError()
 #  define soap_reset_errno SetLastError(0)
 # else
 #  define soap_errno GetLastError()
-#  define soap_socket_errno WSAGetLastError()
+#  define soap_socket_errno(s) WSAGetLastError()
 #  define soap_reset_errno SetLastError(0)
 # endif
 #else
 # ifndef WITH_NOIO
 #  define soap_errno errno
-#  define soap_socket_errno errno
+#  define soap_socket_errno(s) errno
 #  define soap_reset_errno (errno = 0)
 # else
 #  define soap_errno 0
-#  define soap_socket_errno 0
+#  define soap_socket_errno(s) 0
 #  define soap_reset_errno
 # endif
 #endif
@@ -694,7 +700,7 @@ extern "C" {
 # endif
 #endif
 #ifndef SOAP_LABLEN
-# define SOAP_LABLEN     (64) /* initial look-aside buffer length */
+# define SOAP_LABLEN     (256) /* initial look-aside buffer length */
 #endif
 #ifndef SOAP_PTRBLK
 # define SOAP_PTRBLK     (32) /* block allocation for pointer hash table chains */
@@ -878,39 +884,41 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_FATAL_ERROR		11
 #define SOAP_FAULT			12
 #define SOAP_NO_METHOD			13
-#define SOAP_GET_METHOD			14
-#define SOAP_EOM			15
-#define SOAP_NULL			16
-#define SOAP_DUPLICATE_ID		17
-#define SOAP_MISSING_ID			18
-#define SOAP_HREF			19
-#define SOAP_UDP_ERROR			20
-#define SOAP_TCP_ERROR			21
-#define SOAP_HTTP_ERROR			22
-#define SOAP_SSL_ERROR			23
-#define SOAP_ZLIB_ERROR			24
-#define SOAP_DIME_ERROR			25
-#define SOAP_DIME_HREF			26
-#define SOAP_DIME_MISMATCH		27
-#define SOAP_DIME_END			28
-#define SOAP_MIME_ERROR			29
-#define SOAP_MIME_HREF			30
-#define SOAP_MIME_END			31
-#define SOAP_VERSIONMISMATCH		32
-#define SOAP_PLUGIN_ERROR		33
-#define SOAP_DATAENCODINGUNKNOWN	34
-#define SOAP_REQUIRED			35
-#define SOAP_PROHIBITED			36
-#define SOAP_OCCURS			37
-#define SOAP_LENGTH			38
-#define SOAP_FD_EXCEEDED		39
+#define SOAP_NO_DATA			14
+#define SOAP_GET_METHOD			15
+#define SOAP_EOM			16
+#define SOAP_MOE			17
+#define SOAP_NULL			18
+#define SOAP_DUPLICATE_ID		19
+#define SOAP_MISSING_ID			20
+#define SOAP_HREF			21
+#define SOAP_UDP_ERROR			22
+#define SOAP_TCP_ERROR			23
+#define SOAP_HTTP_ERROR			24
+#define SOAP_SSL_ERROR			25
+#define SOAP_ZLIB_ERROR			26
+#define SOAP_DIME_ERROR			27
+#define SOAP_DIME_HREF			28
+#define SOAP_DIME_MISMATCH		29
+#define SOAP_DIME_END			30
+#define SOAP_MIME_ERROR			31
+#define SOAP_MIME_HREF			32
+#define SOAP_MIME_END			33
+#define SOAP_VERSIONMISMATCH		34
+#define SOAP_PLUGIN_ERROR		35
+#define SOAP_DATAENCODINGUNKNOWN	36
+#define SOAP_REQUIRED			37
+#define SOAP_PROHIBITED			38
+#define SOAP_OCCURS			39
+#define SOAP_LENGTH			40
+#define SOAP_FD_EXCEEDED		41
 
 #define soap_xml_error_check(e) ((e) == SOAP_TAG_MISMATCH || (e) == SOAP_TAG_END || (e) == SOAP_SYNTAX_ERROR || (e) == SOAP_NAMESPACE || (e) == SOAP_DUPLICATE_ID || (e) == SOAP_MISSING_ID || (e) == SOAP_REQUIRED || (e) == SOAP_PROHIBITED || (e) == SOAP_OCCURS || (e) == SOAP_LENGTH || (e) == SOAP_NULL || (e) == SOAP_HREF)
 #define soap_soap_error_check(e) ((e) == SOAP_CLI_FAULT || (e) == SOAP_SVR_FAULT || (e) == SOAP_VERSIONMISMATCH || (e) == SOAP_MUSTUNDERSTAND || (e) == SOAP_FAULT || (e) == SOAP_NO_METHOD)
 #define soap_tcp_error_check(e) ((e) == SOAP_EOF || (e) == SOAP_TCP_ERROR)
 #define soap_ssl_error_check(e) ((e) == SOAP_SSL_ERROR)
 #define soap_zlib_error_check(e) ((e) == SOAP_ZLIB_ERROR)
-#define soap_http_error_check(e) ((e) == SOAP_HTTP_ERROR || (e) == SOAP_GET_METHOD || ((e) >= 100 && (e) < 600))
+#define soap_http_error_check(e) ((e) == SOAP_HTTP_ERROR || (e) == SOAP_GET_METHOD || (e) == SOAP_NO_DATA || ((e) >= 100 && (e) < 600))
 
 /* gSOAP HTTP response status codes 100 to 599 are reserved */
 
@@ -1028,12 +1036,19 @@ typedef soap_int32 soap_mode;
 #  ifndef SOAP_DEBUG
 #   define SOAP_DEBUG
 #  endif
+#  ifndef SOAP_MEM_DEBUG
+#   define SOAP_MEM_DEBUG
+#  endif
 # endif
 #endif
 
-#ifdef SOAP_DEBUG
-# define SOAP_MALLOC(soap, size) soap_track_malloc(soap, __FILE__, __LINE__, size)
-# define SOAP_FREE(soap, ptr) soap_track_free(soap, __FILE__, __LINE__, ptr)
+#ifdef SOAP_MEM_DEBUG
+# ifndef SOAP_MALLOC
+#  define SOAP_MALLOC(soap, size) soap_track_malloc(soap, __FILE__, __LINE__, size)
+# endif
+# ifndef SOAP_FREE
+#  define SOAP_FREE(soap, ptr) soap_track_free(soap, __FILE__, __LINE__, ptr)
+# endif
 #endif
 
 #ifndef SOAP_MALLOC			/* use libc malloc */
@@ -1153,7 +1168,7 @@ struct soap_pblk
   struct soap_plist plist[SOAP_PTRBLK];
 };
 
-#ifdef SOAP_DEBUG
+#ifdef SOAP_MEM_DEBUG
 /* malloc/free tracking for debugging */
 struct soap_mlist
 { struct soap_mlist *next;
@@ -1486,6 +1501,7 @@ struct SOAP_STD_API soap
   int (*fignore)(struct soap*, const char*);
   int (*fserveloop)(struct soap*);
   void *(*fplugin)(struct soap*, const char*);
+  void *(*fmalloc)(struct soap*, size_t);
 #ifndef WITH_LEANER
   int (*fprepareinit)(struct soap*);
   int (*fpreparesend)(struct soap*, const char*, size_t);
@@ -1520,9 +1536,6 @@ struct SOAP_STD_API soap
   FILE *sendfd;
   FILE *recvfd;
 #endif
-#ifdef WIN32
-  char errorstr[256];	/* buf for FormatMessage() */
-#endif
   size_t bufidx;	/* index in soap.buf[] */
   size_t buflen;	/* length of soap.buf[] content */
   soap_wchar ahead;	/* parser lookahead */
@@ -1531,11 +1544,9 @@ struct SOAP_STD_API soap
   unsigned int level;	/* XML nesting level */
   size_t count;		/* message length counter */
   size_t length;	/* message length as set by HTTP header */
-#ifdef WITH_FAST
   char *labbuf;		/* look-aside buffer */
   size_t lablen;	/* look-aside buffer allocated length */
   size_t labidx;	/* look-aside buffer index to available part */
-#endif
   char buf[SOAP_BUFLEN];/* send and receive buffer */
   char tmpbuf[1024];	/* in/output buffer for HTTP headers, simpleType values, attribute names, and DIME >=1024 bytes */
   char msgbuf[1024];	/* in/output buffer for messages >=1024 bytes */
@@ -1570,6 +1581,7 @@ struct SOAP_STD_API soap
   unsigned long ip;		/* IP number */
   int port;			/* port number */
   unsigned int max_keep_alive;
+  const char *proxy_http_version;/* HTTP version of proxy "1.0" or "1.1" */
   const char *proxy_host;	/* Proxy Server host name */
   int proxy_port;		/* Proxy Server port (default = 8080) */
   const char *proxy_userid;	/* Proxy Authorization user name */
@@ -1859,7 +1871,8 @@ SOAP_FMAC1 void* SOAP_FMAC2 soap_malloc(struct soap*, size_t);
 SOAP_FMAC1 void SOAP_FMAC2 soap_dealloc(struct soap*, void*);
 SOAP_FMAC1 struct soap_clist * SOAP_FMAC2 soap_link(struct soap*, void*, int, int, void (*fdelete)(struct soap_clist*));
 SOAP_FMAC1 void SOAP_FMAC2 soap_unlink(struct soap*, const void*);
-SOAP_FMAC1 void SOAP_FMAC2 soap_free(struct soap*);
+SOAP_FMAC1 void SOAP_FMAC2 soap_free_temp(struct soap*);
+SOAP_FMAC1 void SOAP_FMAC2 soap_del(struct soap*);
 
 SOAP_FMAC1 void* SOAP_FMAC2 soap_track_malloc(struct soap*, const char*, int, size_t);
 SOAP_FMAC1 void SOAP_FMAC2 soap_track_free(struct soap*, const char*, int, void*);
@@ -1889,7 +1902,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_closesock(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new(void);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new1(soap_mode);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_new2(soap_mode, soap_mode);
-SOAP_FMAC1 void SOAP_FMAC2 soap_del(struct soap*);
+SOAP_FMAC1 void SOAP_FMAC2 soap_free(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy(struct soap*);
 SOAP_FMAC1 struct soap *SOAP_FMAC2 soap_copy_context(struct soap*, struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_copy_stream(struct soap*, struct soap*);
@@ -2124,6 +2137,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_set_attr(struct soap *soap, const char *name, con
 SOAP_FMAC1 void SOAP_FMAC2 soap_clr_attr(struct soap *soap);
 
 #ifdef WITH_COOKIES
+SOAP_FMAC1 void SOAP_FMAC2 soap_getcookies(struct soap *soap, const char *val);
 SOAP_FMAC1 size_t SOAP_FMAC2 soap_encode_cookie(const char*, char*, size_t);
 SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_set_cookie(struct soap*, const char*, const char*, const char*, const char*);
 SOAP_FMAC1 extern struct soap_cookie* SOAP_FMAC2 soap_cookie(struct soap*, const char*, const char*, const char*);

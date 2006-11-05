@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.2.8c"
+#define VERSION "1.2.9"
 
 #include <utility>
 #include <iterator>
@@ -81,6 +81,7 @@ extern int aflag,
 	   fflag,
 	   gflag,
 	   iflag,
+	   jflag,
 	   lflag,
 	   mflag,
 	   pflag,
@@ -96,8 +97,10 @@ extern FILE *stream;
 
 extern SetOfString exturis;
 
+#define MAXINFILES (1000)
+
 extern int infiles;
-extern char *infile[100], *outfile, *mapfile, *proxy_host, *import_path;
+extern char *infile[MAXINFILES], *outfile, *mapfile, *proxy_host, *import_path;
 
 extern int proxy_port;
 

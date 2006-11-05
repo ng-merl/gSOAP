@@ -39,8 +39,6 @@ TODO:
 	Resolve relative versus absolute import paths for reading imported WSDL/schema (use URL local addresses)
 	Do not generate abstract complexTypes, but include defs in derived types
 	Handle simpleType derivation from base64
-	Option to define base class for all classes, e.g. -b xsd__anyType
-	Look into improving xs:any
 
 */
 
@@ -58,6 +56,7 @@ int aflag = 0,
     fflag = 0,
     gflag = 0,
     iflag = 0,
+    jflag = 0,
     lflag = 0,
     mflag = 0,
     pflag = 0,
@@ -70,7 +69,7 @@ int aflag = 0,
     zflag = 0;
 
 int infiles = 0;
-char *infile[100],
+char *infile[MAXINFILES],
      *outfile = NULL,
      *mapfile = "typemap.dat",
      *proxy_host = NULL,
@@ -132,40 +131,15 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com\n\
 
 int main(int argc, char **argv)
 { init();
-  options(argc, argv);
   fprintf(stderr, copyrightnotice);
+  options(argc, argv);
   if (lflag)
   { fprintf(stderr, licensenotice);
     if (!infiles)
       exit(0);
   }
-  wsdl__definitions definitions;
-  if (infiles)
-  { if (!outfile)
-    { if (strncmp(infile[0], "http://", 7) && strncmp(infile[0], "https://", 8))
-      { const char *s = strrchr(infile[0], '.');
-        if (s && (!strcmp(s, ".wsdl") || !strcmp(s, ".gwsdl") || !strcmp(s, ".xsd")))
-        { outfile = estrdup(infile[0]);
-          outfile[s - infile[0] + 1] = 'h';
-          outfile[s - infile[0] + 2] = '\0';
-        }
-        else
-        { outfile = (char*)emalloc(strlen(infile[0]) + 3);
-          strcpy(outfile, infile[0]);
-          strcat(outfile, ".h");
-        }
-      }
-    }
-  }
-  if (outfile)
-  { stream = fopen(outfile, "w");
-    if (!stream)
-    { fprintf(stderr, "Cannot write to %s\n", outfile);
-      exit(1);
-    }
-    fprintf(stderr, "Saving %s\n\n", outfile);
-  }
   Definitions def;
+  wsdl__definitions definitions;
   definitions.read(infiles, infile);
   if (definitions.error())
   { definitions.print_fault();
@@ -237,6 +211,9 @@ static void options(int argc, char **argv)
 	    break;
 	  case 'i':
 	    iflag = 1;
+	    break;
+	  case 'j':
+	    jflag = 1;
 	    break;
           case 'I':
             a++;
@@ -340,7 +317,7 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-z] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
+            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-j] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-z] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
             fprintf(stderr, "\
 -a      generate indexed struct names for local elements with anonymous types\n\
 -c      generate C source code\n\
@@ -350,6 +327,7 @@ static void options(int argc, char **argv)
 -g      generate global top-level element declarations\n\
 -h      display help info\n\
 -Ipath  use path to find files\n\
+-j	don't generate SOAP_ENV__Header and SOAP_ENV__Detail definitions\n\
 -l      include license information in output\n\
 -m      use xsd.h module to import primitive types\n\
 -nname  use name as the base namespace prefix instead of 'ns'\n\
@@ -366,7 +344,7 @@ static void options(int argc, char **argv)
 -x      don't generate _XML any/anyAttribute extensibility elements\n\
 -y      generate typedef synonyms for structs and enums\n\
 -z      generate pointer-based arrays for backward compatibility < gSOAP 2.7.6e\n\
-infile.wsdl infile.xsd http://www... list of input sources (if none use stdin)\n\
+infile.wsdl infile.xsd http://www... list of input sources (if none: use stdin)\n\
 \n");
             exit(0);
           default:
@@ -377,9 +355,32 @@ infile.wsdl infile.xsd http://www... list of input sources (if none use stdin)\n
     }
     else
     { infile[infiles++] = argv[i];
-      if (infiles >= 100)
+      if (infiles >= MAXINFILES)
       { fprintf(stderr, "wsdl2h: too many files\n");
         exit(1);
+      }
+    }
+  }
+  if (infiles)
+  { if (!outfile)
+    { if (strncmp(infile[0], "http://", 7) && strncmp(infile[0], "https://", 8))
+      { const char *s = strrchr(infile[0], '.');
+        if (s && (!strcmp(s, ".wsdl") || !strcmp(s, ".gwsdl") || !strcmp(s, ".xsd")))
+        { outfile = estrdup(infile[0]);
+          outfile[s - infile[0] + 1] = 'h';
+          outfile[s - infile[0] + 2] = '\0';
+        }
+        else
+        { outfile = (char*)emalloc(strlen(infile[0]) + 3);
+          strcpy(outfile, infile[0]);
+          strcat(outfile, ".h");
+        }
+        stream = fopen(outfile, "w");
+        if (!stream)
+        { fprintf(stderr, "Cannot write to %s\n", outfile);
+          exit(1);
+        }
+        fprintf(stderr, "Saving %s\n\n", outfile);
       }
     }
   }
@@ -396,7 +397,7 @@ struct Namespace namespaces[] =
   {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope"},
   {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding"},
   {"xsi", "http://www.w3.org/2001/XMLSchema-instance"},
-  {"xsd", ""}, // http://www.w3.org/2001/XMLSchema"}, // don't use this, it might conflict with xs
+  {"xsd", "-"}, // http://www.w3.org/2001/XMLSchema"}, // don't use this, it might conflict with xs
   {"xml", "http://www.w3.org/XML/1998/namespace"},
   {"xs", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema" },
   {"http", "http://schemas.xmlsoap.org/wsdl/http/"},

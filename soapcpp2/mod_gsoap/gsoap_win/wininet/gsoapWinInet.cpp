@@ -1,17 +1,14 @@
 /*
- * File:    gsoapWinInet.cpp
- *
- * See the header file for details.
- *
- * Redistribution: 
- *          Feel free to use, improve, and share.  I would appreciate 
- *          notification of any bugs found/fixed, or improvements made. This 
- *          code has not been extensively tested, so use at your own risk.  
- *
- *          This code is redistributed as part of the gSOAP software, under the
- *          gsoap public license terms and conditions. These conditions are
- *          compatible with open source and commercial licensing.
- */
+
+gsoapWinInet.cpp
+
+See the header file for details.
+
+Redistribution: 
+         This code is redistributed as part of the gSOAP software, under the
+         gsoap public license terms and conditions. These conditions are
+         compatible with open source and commercial licensing.
+*/
 
 /* system */
 #include <windows.h>

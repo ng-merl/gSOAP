@@ -128,7 +128,7 @@ SOAP_C_SRC = $(SOAP_C_CLIENT) soapServer.c $(SOAP_H_FILES) $(SOAP_NS)
 
 LDADD = $(SOAP_C_LIB) $(SAMPLE_EXTRA_LIBS)
 BUILT_SOURCES = $(SOAP_C_SRC) 
-CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd *Proxy\.h *~
+CLEANFILES = $(SOAP_C_SRC) *.req.xml *.res.xml *.wsdl *.nsmap *.xsd soapStub.h soapH.h soapC.c soapClient.c soapServer.c *~
 
 quote2_SOURCES = quote2.c $(SOAPHEADER) $(SOAP_C_CLIENT) 
 subdir = soapcpp2/samples/quote2

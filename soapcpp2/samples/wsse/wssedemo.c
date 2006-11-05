@@ -36,7 +36,7 @@ Compile:
 
 wsdl2h -c -t typemap.dat wssedemo.wsdl
 soapcpp2 -I import wssedemo.h
-cc -o wssedemo wssedemo.c wsseapi.c smdevp.c dom.c stdsoap2.c soapC.c soapClient.c soapServer.c -lcrypto -lssl
+cc -DWITH_OPENSSL -DWITH_DOM -o wssedemo wssedemo.c wsseapi.c smdevp.c dom.c stdsoap2.c soapC.c soapClient.c soapServer.c -lcrypto -lssl
 
 Other required files:
 
@@ -59,6 +59,7 @@ h use hmac
 k don't use keys
 s server
 t use plain-text passwords
+b don't sign the SOAP body
 
 For example, to generate a request message and store it in file 'wssedemo.xml':
 
@@ -66,16 +67,16 @@ For example, to generate a request message and store it in file 'wssedemo.xml':
 
 To parse and verify this request message:
 
-./wssedemo s < wssedemo.xml
+./wssedemo is < wssedemo.xml
 
 Alternatively, using HMAC (fast but uses shared symmetric keys):
 
-./wssedemo inh > wssedemo.xml < /dev/null
-./wssedemo sh < wssedemo.xml
+./wssedemo ihn > wssedemo.xml < /dev/null
+./wssedemo ihns < wssedemo.xml
 
 To run a stand-alone server:
 
-./wssedemo s 8080
+./wssedemo ins 8080
 
 And invoking it with a client:
 
@@ -91,21 +92,23 @@ And invoking it with a client:
 X509 *cert = NULL;
 EVP_PKEY *rsa_privk = NULL, *rsa_pubk = NULL;
 
+/* The secret HMAC key is shared between client and server */
+static char hmac_key[16] = /* Not-so-random HMAC key for testing */
+{ 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
+  0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00 };
+
+int hmac = 0;
+int nokey = 0;
+int nobody = 0;
+
 int main(int argc, char **argv)
 { struct soap *soap;
   int server = 0;
-  int hmac = 0;
   int text = 0;
-  int nokey = 0;
   int port = 0;
   FILE *fd;
   double result;
   char *user;
-  /* The secret HMAC key is shared between client and server */
-  /* Not-so-random HMAC key for testing: */
-  static char hmac_key[16] =
-  { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
-    0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00 };
   /* create context */
   soap = soap_new();
   /* register wsse plugin */
@@ -126,17 +129,13 @@ int main(int argc, char **argv)
       server = 1;
     if (strchr(argv[1], 't'))
       text = 1;
+    if (strchr(argv[1], 'b'))
+      nobody = 1;
   }
   /* soap->actor = "..."; */ /* set only when required */
-  soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
-  /* add user name with text or digest password */
   user = getenv("USER");
   if (!user)
     user = "anyone";
-  if (text)
-    soap_wsse_add_UsernameTokenText(soap, "User", user, "userPass");
-  else
-    soap_wsse_add_UsernameTokenDigest(soap, "User", user, "userPass");
   /* read RSA private key for signing */
   if ((fd = fopen("server.pem", "r")))
   { rsa_privk = PEM_read_PrivateKey(fd, NULL, NULL, "password");
@@ -216,8 +215,19 @@ int main(int argc, char **argv)
       sprintf(endpoint, "http://localhost:%d", port);
     else
       strcpy(endpoint, "http://");
+    /* message lifetime of 10 seconds */
+    soap_wsse_add_Timestamp(soap, "Time", 10);
+    /* add user name with text or digest password */
+    if (text)
+      soap_wsse_add_UsernameTokenText(soap, "User", user, "userPass");
+    else
+      soap_wsse_add_UsernameTokenDigest(soap, "User", user, "userPass");
     if (hmac)
-      soap_wsse_sign_body(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+    { if (nobody)
+        soap_wsse_sign(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+      else
+        soap_wsse_sign_body(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+    }
     else
     { if (nokey)
         soap_wsse_add_KeyInfo_KeyName(soap, "MyKey");
@@ -225,10 +235,18 @@ int main(int argc, char **argv)
       { soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
         soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
       }
-      soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+      if (nobody)
+        soap_wsse_sign(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+      else
+        soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
     }
     /* enable automatic signature verification of server responses */
-    soap_wsse_verify_auto(soap, SOAP_SMD_NONE, NULL, 0);
+    if (hmac)
+      soap_wsse_verify_auto(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+    else if (nokey)
+      soap_wsse_verify_auto(soap, SOAP_SMD_VRFY_RSA_SHA1, rsa_pubk, 0);
+    else
+      soap_wsse_verify_auto(soap, SOAP_SMD_NONE, NULL, 0);
     /* invoke the server. You can choose add, sub, mul, or div operations
      * that have different consequences (see server operations below) */
     if (!soap_call_ns1__add(soap, endpoint, NULL, 1.0, 2.0, &result))
@@ -284,9 +302,17 @@ int ns1__add(struct soap *soap, double a, double b, double *result)
   soap_wsse_delete_Security(soap);
   soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
   soap_wsse_add_UsernameTokenDigest(soap, "User", "server", "serverPass");
-  soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
-  soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
-  soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  if (hmac)
+    soap_wsse_sign_body(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+  else
+  { if (nokey)
+      soap_wsse_add_KeyInfo_KeyName(soap, "MyKey");
+    else
+    { soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
+      soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
+    }
+    soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  }
   *result = a + b;
   return SOAP_OK;
 }
@@ -304,10 +330,17 @@ int ns1__sub(struct soap *soap, double a, double b, double *result)
   /* In this case we leave out the timestamp, which is the sender's
    * responsibility to add. The receiver only complains if the timestamp is out
    * of date, not that it is absent. */
-  soap_wsse_add_UsernameTokenDigest(soap, "User", "server", "serverPass");
-  soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
-  soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
-  soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  if (hmac)
+    soap_wsse_sign_body(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+  else
+  { if (nokey)
+      soap_wsse_add_KeyInfo_KeyName(soap, "MyKey");
+    else
+    { soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
+      soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
+    }
+    soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  }
   *result = a - b;
   return SOAP_OK;
 }
@@ -326,9 +359,17 @@ int ns1__mul(struct soap *soap, double a, double b, double *result)
   /* In this case we leave out the server name and password. Because the
    * receiver check the presence of authentication information, the client will
    * reject the response. */
-  soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
-  soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
-  soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  if (hmac)
+    soap_wsse_sign_body(soap, SOAP_SMD_HMAC_SHA1, hmac_key, sizeof(hmac_key));
+  else
+  { if (nokey)
+      soap_wsse_add_KeyInfo_KeyName(soap, "MyKey");
+    else
+    { soap_wsse_add_BinarySecurityTokenX509(soap, "X509Token", cert);
+      soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(soap, "#X509Token");
+    }
+    soap_wsse_sign_body(soap, SOAP_SMD_SIGN_RSA_SHA1, rsa_privk, 0);
+  }
   *result = a * b;
   return SOAP_OK;
 }

@@ -45,7 +45,14 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #ifndef THREADS_H
 #define THREADS_H
 
-#include <unistd.h>	/* defines _POSIX_THREADS if pthreads are available */
+#ifndef WIN32
+# include <unistd.h>	/* defines _POSIX_THREADS if pthreads are available */
+#else
+# define ssize_t int
+# include <io.h>
+# include <sys/types.h>
+#endif
+
 #ifdef _POSIX_THREADS
 # include <pthread.h>
 #endif

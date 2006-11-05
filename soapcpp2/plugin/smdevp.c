@@ -82,7 +82,7 @@ key applied to the SHA1 digest of the serialized object:
     int alg = SOAP_SMD_SIGN_RSA_SHA1;
     FILE *fd = fopen("key.pem", "r");
     EVP_PKEY *key = PEM_read_PrivateKey(fd, NULL, NULL, "password");
-    char *sig = (char*)SOAP_MALLOC(soap, soap_smd_size(alg, key));
+    char *sig = (char*)soap_malloc(soap, soap_smd_size(alg, key));
     int siglen;
     fclose(fd);
     if (soap_smd_begin(soap, alg, key, 0)
@@ -123,7 +123,7 @@ keep secret) to sign and verify a message:
     static char key[16] =
     { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
       0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00 };
-    char *sig = (char*)SOAP_MALLOC(soap, soap_smd_size(alg, NULL));
+    char *sig = (char*)soap_malloc(soap, soap_smd_size(alg, NULL));
     int siglen;
     if (soap_smd_begin(soap, alg, key, sizeof(key))
      || soap_out_ns__Object(soap, "ns:Object", 0, object, NULL)
@@ -142,7 +142,7 @@ algorithms:
 @code
     ns__Object *object = ...;
     int alg = SOAP_SMD_DGST_SHA1;
-    char *digest = (char*)SOAP_MALLOC(soap, soap_smd_size(alg, NULL));
+    char *digest = (char*)soap_malloc(soap, soap_smd_size(alg, NULL));
     int digestlen;
     if (soap_smd_begin(soap, alg, NULL, 0)
      || soap_out_ns__Object(soap, "ns:Object", 0, object, NULL)

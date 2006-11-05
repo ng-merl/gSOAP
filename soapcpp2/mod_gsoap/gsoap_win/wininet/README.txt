@@ -1,15 +1,6 @@
 
 WinInet plugin - supports Windows WinInet transport
 
-Authors: 26 May 2003: Jack Kustanowitz (jackk@atomica.com)
-         Original version
-
-         29 September 2003: Brodie Thiesfield (bt@jellycan.com)
-         Rewritten as C plugin for gsoap. Bugs fixed and features added.
-
-         14 January 2004: Brodie Thiesfield (bt@jellycan.com)
-         Bug fix.
-
 Purpose: Allow gsoap clients (not servers) to direct all communications 
          through the WinInet API. This automatically provides all of the 
          proxy and authentication features supported by the control panel 
@@ -115,7 +106,24 @@ Notes:   For extra control, you may also register this plugin using the
          the message may be buffered twice on every send. Use the default
          flag SOAP_IO_BUFFER, or SOAP_IO_FLUSH.
 
-Redistribution: 
-         Feel free to use, improve, and share.  I would appreciate 
-         notification of any bugs found/fixed, or improvements made. This 
-         code has not been extensively tested, so use at your own risk.  
+License and redistribution: 
+         This code is released under the gSOAP public license.
+
+	 The contents of this file are subject to the gSOAP Public License
+	 Version 1.3 (the "License"); you may not use this file except in
+	 compliance with the License. You may obtain a copy of the License at
+	 http://www.cs.fsu.edu/~engelen/soaplicense.html Software distributed
+	 under the License is distributed on an "AS IS" basis, WITHOUT
+	 WARRANTY OF ANY KIND, either express or implied. See the License for
+	 the specific language governing rights and limitations under the
+	 License.
+
+Developers:
+         26 May 2003: Jack Kustanowitz (jackk@atomica.com)
+         Original version
+
+         29 September 2003: Brodie Thiesfield (bt@jellycan.com)
+         Rewritten as C plugin for gsoap. Bugs fixed and features added.
+
+         14 January 2004: Brodie Thiesfield (bt@jellycan.com)
+         Bug fix.

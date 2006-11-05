@@ -1289,7 +1289,7 @@ soap_markelement(struct soap *soap, const void *a, int b)
 {
     gsoapRequestConfiguration *pRqConf = getRequestConfiguration(soap);
 
-    return pRqConf->pIntf->soap_markelement(soap, a, b);
+    pRqConf->pIntf->soap_markelement(soap, a, b);
 }
 
 SOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap *soap, const void *a,

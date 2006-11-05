@@ -419,7 +419,10 @@ int m__PutData(struct soap *soap, struct x__DataSet *data, struct m__PutDataResp
   for (i = 0; i < data->__size; i++)
   { if (data->item[i].xop__Include.__ptr)
     { const char *key = ((struct mime_server_handle*)(data->item[i].xop__Include.__ptr))->key;
-      const char *s = strrchr(key, '/');
+      const char *s;
+      if (!key)
+        return soap_sender_fault(soap, "Missing name", NULL);
+      s = strrchr(key, '/');
       if (!s)
         s = strrchr(key, '\\');
       if (!s)

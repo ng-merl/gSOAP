@@ -52,9 +52,7 @@ xs__schema::xs__schema()
 #ifdef WITH_OPENSSL
   soap_ssl_client_context(soap, SOAP_SSL_NO_AUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
 #endif
-#ifdef WITH_NONAMESPACES
   soap_set_namespaces(soap, namespaces);
-#endif
   soap_default(soap);
   soap->fignore = warn_ignore;
   soap->encodingStyle = NULL;
@@ -578,7 +576,7 @@ int xs__attribute::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!attributeRef)
   { for (vector<xs__import>::iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -612,7 +610,7 @@ int xs__attribute::traverse(xs__schema &schema)
           break;
         }
     }
-    else
+    if (!simpleTypeRef)
     { for (vector<xs__import>::iterator i = schema.import.begin(); i != schema.import.end(); ++i)
       { xs__schema *s = (*i).schemaPtr();
         if (s)
@@ -694,7 +692,7 @@ int xs__element::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!elementRef)
   { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -729,7 +727,7 @@ int xs__element::traverse(xs__schema &schema)
           break;
         }
     }
-    else
+    if (!simpleTypeRef)
     { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
       { xs__schema *s = (*i).schemaPtr();
         if (s)
@@ -765,7 +763,7 @@ int xs__element::traverse(xs__schema &schema)
           break;
         }
     }
-    else
+    if (!complexTypeRef)
     { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
       { xs__schema *s = (*i).schemaPtr();
         if (s)
@@ -795,22 +793,20 @@ int xs__element::traverse(xs__schema &schema)
         break;
       }
   }
-  else
-  { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
-    { xs__schema *s = (*i).schemaPtr();
-      if (s)
-      { token = qname_token(substitutionGroup, s->targetNamespace);
-        if (token)
-        { for (vector<xs__element>::iterator j = s->element.begin(); j != s->element.end(); ++j)
-          { if (!strcmp((*j).name, token))
-            { (*j).substitutions.push_back(this);
-              if (vflag)
-                cerr << "Found substitutionGroup element " << (name?name:"") << " for abstract element " << (token?token:"") << endl;
-              break;
-            }
-	  }
-          break;
+  for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
+  { xs__schema *s = (*i).schemaPtr();
+    if (s)
+    { token = qname_token(substitutionGroup, s->targetNamespace);
+      if (token)
+      { for (vector<xs__element>::iterator j = s->element.begin(); j != s->element.end(); ++j)
+        { if (!strcmp((*j).name, token))
+          { (*j).substitutions.push_back(this);
+            if (vflag)
+              cerr << "Found substitutionGroup element " << (name?name:"") << " for abstract element " << (token?token:"") << endl;
+            break;
+          }
         }
+        break;
       }
     }
   }
@@ -1054,7 +1050,7 @@ int xs__extension::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!simpleTypeRef)
   { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -1083,7 +1079,7 @@ int xs__extension::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!complexTypeRef)
   { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -1165,7 +1161,7 @@ int xs__restriction::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!simpleTypeRef)
   { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -1194,7 +1190,7 @@ int xs__restriction::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!complexTypeRef)
   { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -1263,7 +1259,7 @@ int xs__list::traverse(xs__schema &schema)
         break;
       }
   }
-  else
+  if (!itemTypeRef)
   { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
     { xs__schema *s = (*i).schemaPtr();
       if (s)
@@ -1382,7 +1378,7 @@ int xs__attributeGroup::traverse(xs__schema& schema)
           break;
         }
     }
-    else
+    if (!attributeGroupRef)
     { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
       { xs__schema *s = (*i).schemaPtr();
         if (s)
@@ -1457,7 +1453,7 @@ int xs__group::traverse(xs__schema &schema)
           break;
         }
     }
-    else
+    if (!groupRef)
     { for (vector<xs__import>::const_iterator i = schema.import.begin(); i != schema.import.end(); ++i)
       { xs__schema *s = (*i).schemaPtr();
         if (s)
@@ -1543,10 +1539,9 @@ ostream &operator<<(ostream &o, const xs__schema &e)
 
 istream &operator>>(istream &i, xs__schema &e)
 { if (!e.soap)
-    e.soap = soap_new();
-#ifdef WITH_NONAMESPACES
-  soap_set_namespaces(e.soap, namespaces);
-#endif
+  { e.soap = soap_new();
+    soap_set_namespaces(e.soap, namespaces);
+  }
   istream *is = e.soap->is;
   e.soap->is = &i;
   if (soap_begin_recv(e.soap)

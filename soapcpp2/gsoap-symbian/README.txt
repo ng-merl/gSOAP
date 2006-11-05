@@ -18,10 +18,10 @@ soapStub.cpp	header file for stubs
 soapClient.cpp	stubs
 
 Because the generated code is platform-independent, it is strongly advised to
-try to build a simple test application on a non-Palm platform first to verify
-interoperability and data exchange. Because logging is disabled on Palm, it
+try to build a simple test application on a non-Symbian platform first to verify
+interoperability and data exchange. Because logging is disabled on Symbian, it
 will be hard to find the source of a interop problem. After testing the
-application, you can use the same sources to build a Palm OS application.  The
+application, you can use the same sources to build a Symbian application.  The
 stdsoap2.h and stdsoap2.cpp contains platform-dependent code and is required
 to complete the build of your application.
 

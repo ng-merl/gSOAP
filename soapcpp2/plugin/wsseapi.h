@@ -72,6 +72,8 @@ struct soap_wsse_data
   int (*fpreparesend)(struct soap*, const char*, size_t);
   int (*fpreparefinal)(struct soap*);
   int (*fdisconnect)(struct soap*);
+  X509_STORE *store;
+  X509 *(*security_token_handler)(struct soap *soap);
 };
 
 /**
@@ -154,6 +156,7 @@ const char *soap_wsse_get_KeyInfo_KeyName(struct soap *soap);
 int soap_wsse_add_KeyInfo_SecurityTokenReferenceURI(struct soap *soap, const char *URI, const char *valueType);
 int soap_wsse_add_KeyInfo_SecurityTokenReferenceX509(struct soap *soap, const char *URI);
 const char *soap_wsse_get_KeyInfo_SecurityTokenReferenceURI(struct soap *soap);
+const char *soap_wsse_get_KeyInfo_SecurityTokenReferenceValueType(struct soap *soap);
 X509 *soap_wsse_get_KeyInfo_SecurityTokenReferenceX509(struct soap *soap);
 
 int soap_wsse_add_KeyInfo_SecurityTokenReferenceKeyIdentifier(struct soap *soap, const char *id, const char *valueType, unsigned char *data, int size);

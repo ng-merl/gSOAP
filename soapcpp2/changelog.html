@@ -626,6 +626,7 @@ DEBUG mode.</li>
 <li>Fixed XML attributes with bitmask enumeration (enum*) values.</li>
 </ul>
 <li>Version 2.7.8 revisions a/b/c (06/05/2006-06/24/2006))</li>
+<ul>
 <li>Added X509 extension checks.</li>
 <li>Added advanced MTOM streaming features.</li>
 <li>Added WS-Addressing plugin and demo.</li>
@@ -644,7 +645,19 @@ argument) for HTTP optional response binding.</li>
 <li>Fixed xsi:type matching for "__name" fields, which required a signature
 change of soap_element_begin_in() with an additional 'type' parameter (affecting custom deserializers, see custom
 dir).</li>
+</ul>
+<li>Version 2.7.9 (10/24/2006)</li>
 <ul>
+<li>Added wsdl2h option -j to omit the generation of SOAP Header and Faults
+for customization of these.</li>
+<li>Added file input and output specifications (with &lt; and &gt;) to wsdl2h's typemap.dat to specify input and output for wsdl2h.</li>
+<li>Improved wsdl2h SOAP Fault coding.</li>
+<li>Improved wsdl2h empty namespace handling ("" namespace).</li>
+<li>Improved wsdl2h and schema conversion to C and C++.</li>
+<li>Added function soap_free() = soap_done() + free() and renamed previous soap_free()
+to soap_temp_free().</li>
+<li>Fixed MIME/MTOM start id handling (SOAP message no longer required to be
+first attachment).</li>
 </ul>
 </ul>
 

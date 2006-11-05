@@ -424,13 +424,15 @@ void Definitions::compile(const wsdl__definitions& definitions)
   }
   banner("Import");
   if (dflag)
-  { if (import_path)
+  { fprintf(stream, "\n// dom.h declares the DOM xsd__anyType object (compiler and link with dom.cpp)\n");
+    if (import_path)
       fprintf(stream, "#import \"%s/dom.h\"\n", import_path);
     else
       fprintf(stream, "#import \"dom.h\"\n");
   }
   if (!cflag && !sflag)
-  { if (import_path)
+  { fprintf(stream, "\n// STL vector containers (use option -s to disable)\n");
+    if (import_path)
       fprintf(stream, "#import \"%s/stlvector.h\"\n", import_path);
     else
       fprintf(stream, "#import \"stlvector.h\"\n");
@@ -466,7 +468,9 @@ void Definitions::compile(const wsdl__definitions& definitions)
         }
       }
     if (found)
-    { if (import_path)
+    { if (vflag)
+        fprintf(stderr, "import %s\n", *u);
+      if (import_path)
         fprintf(stream, "#import \"%s/%s.h\"\t// %s = <%s>\n", import_path, types.nsprefix(NULL, *u), types.nsprefix(NULL, *u), *u);
       else
         fprintf(stream, "#import \"%s.h\"\t// %s = <%s>\n", types.nsprefix(NULL, *u), types.nsprefix(NULL, *u), *u);
@@ -513,6 +517,11 @@ void Definitions::compile(const wsdl__definitions& definitions)
       }
     }
   }
+  if (dflag && pflag)
+  { fprintf(stderr, "\nWarning -d option: -p option disabled and xsd__anyType base class removed.\nUse run-time SOAP_DOM_NODE flag to deserialize class instances into DOM nodes.\n");
+    fprintf(stream, "\n/*\nWarning -d option used: -p option disabled and xsd:anyType base class removed.\nUse run-time SOAP_DOM_NODE flag to deserialize class instances into DOM nodes.\nA DOM node is represented by the xsd__anyType object implemented in dom.cpp.\n*/\n\n");
+    pflag = 0;
+  }
   // define xsd:anyType first, if used
   if (!cflag && pflag)
   { const char *s, *t;
@@ -526,7 +535,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       s = types.usetypemap[t];
       if (s)
       { if (mflag)
-          fprintf(stream, "//  xsd.h must define type: %s\n", s);
+          fprintf(stream, "//  xsd.h should define type: %s\n", s);
         types.knames.insert(s);
       }
     }
@@ -536,9 +545,11 @@ void Definitions::compile(const wsdl__definitions& definitions)
     }
   }
   // produce built-in primitive types, limited to the ones that are used only
+  if (vflag)
+    fprintf(stderr, "\nGenerating built-in types\n");
   for (SetOfString::const_iterator i = definitions.builtinTypes().begin(); i != definitions.builtinTypes().end(); ++i)
   { const char *s, *t;
-    if (!cflag && pflag && !strcmp(*i, "xs:anyType"))
+    if (!cflag && !strcmp(*i, "xs:anyType"))
       continue;
     t = types.cname(NULL, NULL, *i);
     s = types.deftypemap[t];
@@ -555,7 +566,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       s = types.usetypemap[t];
       if (s && *s)
       { if (mflag && **i != '"')
-          fprintf(stream, "\n//  xsd.h must define type: %s\n", s);
+          fprintf(stream, "\n//  xsd.h should define type: %s\n", s);
         if (types.knames.find(s) == types.knames.end())
           types.knames.insert(s);
       }
@@ -573,7 +584,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       else if (**i == '"')
         fprintf(stream, "\n//  Imported type %s defined by %s\n", *i, t);
       else
-        fprintf(stream, "\n//  xsd.h must define type: %s\n", t);
+        fprintf(stream, "\n//  xsd.h should define type: %s\n", t);
       types.deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, NULL, NULL, *i);
     }
     if (pflag && !strncmp(*i, "xs:", 3))		// only xsi types are polymorph
@@ -588,6 +599,8 @@ void Definitions::compile(const wsdl__definitions& definitions)
     }
   }
   // produce built-in primitive elements, limited to the ones that are used only
+  if (vflag)
+    fprintf(stderr, "\nGenerating built-in elements\n");
   for (SetOfString::const_iterator j = definitions.builtinElements().begin(); j != definitions.builtinElements().end(); ++j)
   { const char *s, *t;
     t = types.cname("_", NULL, *j);
@@ -605,7 +618,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       s = types.usetypemap[t];
       if (s && *s)
       { if (mflag && **j != '"')
-          fprintf(stream, "\n//  xsd.h must define element: %s\n", s);
+          fprintf(stream, "\n//  xsd.h should define element: %s\n", s);
         if (types.knames.find(s) == types.knames.end())
           types.knames.insert(s);
       }
@@ -622,11 +635,13 @@ void Definitions::compile(const wsdl__definitions& definitions)
       else if (**j == '"')
 	fprintf(stream, "\n//  Imported element %s declared as %s\n", *j, t);
       else
-        fprintf(stream, "\n//  xsd.h must define element: %s\n", t);
+        fprintf(stream, "\n//  xsd.h should define element: %s\n", t);
       types.deftname(TYPEDEF, NULL, true, "_", NULL, *j);	// already pointer
     }
   }
   // produce built-in primitive attributes, limited to the ones that are used only
+  if (vflag)
+    fprintf(stderr, "\nGenerating built-in attributes\n");
   for (SetOfString::const_iterator k = definitions.builtinAttributes().begin(); k != definitions.builtinAttributes().end(); ++k)
   { const char *s, *t;
     t = types.cname("_", NULL, *k);
@@ -644,7 +659,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       s = types.usetypemap[t];
       if (s && *s)
       { if (mflag && **k != '"')
-          fprintf(stream, "\n//  xsd.h must define attribute: %s\n", s);
+          fprintf(stream, "\n//  xsd.h should define attribute: %s\n", s);
         if (types.knames.find(s) == types.knames.end())
           types.knames.insert(s);
       }
@@ -662,7 +677,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       else if (**k == '"')
         fprintf(stream, "//  Imported attribute %s declared as %s\n", *k, t);
       else
-        fprintf(stream, "//  xsd.h must define attribute: %s\n", t);
+        fprintf(stream, "//  xsd.h should define attribute: %s\n", t);
       types.deftname(TYPEDEF, NULL, strchr(s, '*') != NULL, "_", NULL, *k);
     }
   }
@@ -672,13 +687,17 @@ void Definitions::compile(const wsdl__definitions& definitions)
   { comment("Definitions", defs, "types", definitions.types->documentation);
     fprintf(stream, "\n");
     for (vector<xs__schema*>::const_iterator schema4 = definitions.types->xs__schema_.begin(); schema4 != definitions.types->xs__schema_.end(); ++schema4)
-    { for (vector<xs__complexType>::const_iterator complexType = (*schema4)->complexType.begin(); complexType != (*schema4)->complexType.end(); ++complexType)
+    { if (vflag)
+        fprintf(stderr, "\nDefining types in %s\n", (*schema4)->targetNamespace);
+      for (vector<xs__complexType>::const_iterator complexType = (*schema4)->complexType.begin(); complexType != (*schema4)->complexType.end(); ++complexType)
         types.define((*schema4)->targetNamespace, NULL, *complexType);
+      if (vflag)
+        fprintf(stderr, "\nDefining elements in %s\n", (*schema4)->targetNamespace);
       for (vector<xs__element>::const_iterator element = (*schema4)->element.begin(); element != (*schema4)->element.end(); ++element)
       { if (!(*element).type && !(*element).abstract)
         { if ((*element).complexTypePtr())
             types.define((*schema4)->targetNamespace, (*element).name, *(*element).complexTypePtr());
-	  else
+	  else if (!(*element).simpleTypePtr())
           { fprintf(stream, "\n/// Element \"%s\":%s.\n", (*schema4)->targetNamespace, (*element).name);
             if (gflag)
 	    { const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema4)->targetNamespace, (*element).name);
@@ -688,7 +707,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 	    { const char *s = types.cname("_", (*schema4)->targetNamespace, (*element).name);
               types.ptrtypemap[s] = types.usetypemap[s] = "_XML";
 	      fprintf(stream, "/// Note: use wsdl2h option -g to generate this global element declaration.\n");
-	    }
+            }
 	  }
         }
       }
@@ -756,7 +775,9 @@ void Definitions::compile(const wsdl__definitions& definitions)
     }
     */
     for (vector<xs__schema*>::iterator schema = definitions.types->xs__schema_.begin(); schema != definitions.types->xs__schema_.end(); ++schema)
-    { for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
+    { if (vflag)
+        fprintf(stderr, "\nGenerating elements in %s\n", (*schema)->targetNamespace);
+      for (vector<xs__element>::iterator element = (*schema)->element.begin(); element != (*schema)->element.end(); ++element)
       { if ((*element).name && (*element).type && !(*element).abstract)
         { fprintf(stream, "\n/// Element \"%s\":%s of type %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
           types.document((*element).annotation);
@@ -790,6 +811,8 @@ void Definitions::compile(const wsdl__definitions& definitions)
           }
         }
       }
+      if (vflag)
+        fprintf(stderr, "\nGenerating attributes in %s\n", (*schema)->targetNamespace);
       for (vector<xs__attribute>::iterator attribute = (*schema)->attribute.begin(); attribute != (*schema)->attribute.end(); ++attribute)
       { if ((*attribute).name && (*attribute).type)
         { fprintf(stream, "\n/// Attribute \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*attribute).name, (*attribute).type);
@@ -826,6 +849,8 @@ void Definitions::compile(const wsdl__definitions& definitions)
       }
     }
   }
+  if (vflag)
+    fprintf(stderr, "\nCollecting service bindings");
   collect(definitions);
   if (!services.empty())
   { banner("Services");
@@ -904,6 +929,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
 void Definitions::generate()
 { MapOfStringToMessage headers;
   MapOfStringToMessage faults;
+  const char *t;
   for (MapOfStringToService::const_iterator service1 = services.begin(); service1 != services.end(); ++service1)
   { if ((*service1).second)
     { for (MapOfStringToMessage::const_iterator header = (*service1).second->header.begin(); header != (*service1).second->header.end(); ++header)
@@ -913,9 +939,14 @@ void Definitions::generate()
     }
   }
   // Generate SOAP Header definition
-  if (!headers.empty())
+  t = types.deftypemap["SOAP_ENV__Header"];
+  if (t)
+  { banner("Custom SOAP Header");
+    types.format(t);
+  }
+  else if (!jflag && !headers.empty())
   { banner("SOAP Header");
-    fprintf(stream, "/**\n\nThe SOAP Header is part of the gSOAP context and its content is accessed\nthrough the soap.header variable. You may have to set the soap.actor variable\nto serialize SOAP Headers with SOAP-ENV:actor or SOAP-ENV:role attributes.\n\n*/\n");
+    fprintf(stream, "/**\n\nThe SOAP Header is part of the gSOAP context and its content is accessed\nthrough the soap.header variable. You may have to set the soap.actor variable\nto serialize SOAP Headers with SOAP-ENV:actor or SOAP-ENV:role attributes.\nUse option -j to omit.\n\n*/\n");
     fprintf(stream, "struct SOAP_ENV__Header\n{\n");
     for (MapOfStringToMessage::const_iterator header = headers.begin(); header != headers.end(); ++header)
     { if ((*header).second->URI && !types.uris[(*header).second->URI])
@@ -940,27 +971,83 @@ void Definitions::generate()
         fprintf(stream, ";\t///< TODO: Please check element name and type (imported type)\n");
       }
     }
+    types.modify("SOAP_ENV__Header");
     fprintf(stream, "\n};\n");
   }
   // Generate Fault detail element definitions
   for (MapOfStringToMessage::const_iterator fault = faults.begin(); fault != faults.end(); ++fault)
-  { banner("SOAP Fault Detail");
-    fprintf(stream, "/// The SOAP Fault Detail element contains one of the following types serialized\n/// in the __type and fault fields of the SOAP_ENV__Detail struct (see docs)\n");
-    if ((*fault).second->URI && !types.uris[(*fault).second->URI])
-      fprintf(stream, schemaformat, types.nsprefix(NULL, (*fault).second->URI), "namespace", (*fault).second->URI);
-    comment("Fault", (*fault).first, "WSDL", (*fault).second->ext_documentation);
-    comment("Fault", (*fault).first, "SOAP", (*fault).second->documentation);
-    if (cflag)
-      fprintf(stream, "struct %s\n{", (*fault).first);
-    else
-      fprintf(stream, "class %s\n{ public:", (*fault).first);
-    (*fault).second->generate(types, ";", false, true, false);
-    if (!cflag)
-    { fprintf(stream, "\n");
-      fprintf(stream, pointerformat, "struct soap", "soap");
-      fprintf(stream, ";");
+  { if ((*fault).second->use == encoded)
+    { banner("SOAP Fault Detail Message");
+      fprintf(stream, "/// SOAP Fault detail message \"%s:%s\"\n", (*fault).second->URI, (*fault).second->message->name);
+      comment("Fault", (*fault).first, "WSDL", (*fault).second->ext_documentation);
+      comment("Fault", (*fault).first, "SOAP", (*fault).second->documentation);
+      if (cflag)
+        fprintf(stream, "struct %s\n{", (*fault).first);
+      else
+        fprintf(stream, "class %s\n{ public:", (*fault).first);
+      (*fault).second->generate(types, ";", false, true, false);
+      if (!cflag)
+      { fprintf(stream, "\n");
+        fprintf(stream, pointerformat, "struct soap", "soap");
+        fprintf(stream, ";");
+      }
+      fprintf(stream, "\n};\n");
+      if ((*fault).second->URI && !types.uris[(*fault).second->URI])
+        fprintf(stream, schemaformat, types.nsprefix(NULL, (*fault).second->URI), "namespace", (*fault).second->URI);
     }
-    fprintf(stream, "\n};\n");
+  }
+  t = types.deftypemap["SOAP_ENV__Detail"];
+  if (t)
+  { banner("Custom SOAP Detail");
+    types.format(t);
+  }
+  else if (!jflag && !faults.empty())
+  { SetOfString fault_elements;
+    banner("SOAP Fault Detail");
+    fprintf(stream, "/**\n\nThe SOAP Fault is part of the gSOAP context and its content is accessed\nthrough the soap.fault->detail variable (SOAP 1.1) or the\nsoap.fault->SOAP_ENV__Detail variable (SOAP 1.2).\nUse option -j to omit.\n\n*/\n");
+    fprintf(stream, "struct SOAP_ENV__Detail\n{\n");
+    for (MapOfStringToMessage::const_iterator fault = faults.begin(); fault != faults.end(); ++fault)
+    { if ((*fault).second->URI && !types.uris[(*fault).second->URI])
+        fprintf(stream, schemaformat, types.nsprefix(NULL, (*fault).second->URI), "namespace", (*fault).second->URI);
+      comment("Fault", (*fault).first, "WSDL", (*fault).second->ext_documentation);
+      comment("Fault", (*fault).first, "SOAP", (*fault).second->documentation);
+      if ((*fault).second->use == literal)
+      { for (vector<wsdl__part>::const_iterator part = (*fault).second->message->part.begin(); part != (*fault).second->message->part.end(); ++part)
+        { if ((*part).elementPtr())
+          { if (fault_elements.find((*part).element) == fault_elements.end())
+	    { types.gen(NULL, *(*part).elementPtr());
+	      fault_elements.insert((*part).element);
+	    }
+          }
+          else if ((*part).name && (*part).type)
+          { if (fault_elements.find((*part).name) == fault_elements.end())
+	    { fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*part).type), types.aname(NULL, (*fault).second->URI, (*part).name));
+              fprintf(stream, ";\n");
+	      fault_elements.insert((*part).name);
+	    }
+          }
+          fprintf(stream, "///< SOAP Fault element \"%s\" part \"%s\"\n", (*fault).second->message->name, (*part).name?(*part).name:"");
+        }
+      }
+      else
+      { fprintf(stream, pointerformat, (*fault).first, types.aname(NULL, (*fault).second->URI, (*fault).second->message->name));
+        fprintf(stream, ";\t///< SOAP Fault detail message \"%s\":%s\n", (*fault).second->URI, (*fault).second->message->name);
+      }
+    }
+    types.modify("SOAP_ENV__Detail");
+    fprintf(stream, elementformat, "int", "__type");
+    fprintf(stream, ";\t///< set to SOAP_TYPE_X for a serializable type X\n");
+    fprintf(stream, pointerformat, "void", "fault");
+    fprintf(stream, ";\t///< points to serializable object X or NULL\n");
+    if (dflag)
+    { fprintf(stream, pointerformat, "xsd__anyType", "__any");
+      fprintf(stream, ";\t///< Catch any element content in DOM.\n");
+    }
+    else
+    { fprintf(stream, elementformat, "_XML", "__any");
+      fprintf(stream, ";\t///< Catch any element content in XML string.\n");
+    }
+    fprintf(stream, "};\n");
   }
   /* The SOAP Fault struct below is autogenerated by soapcpp2 (kept here for future mods)
   if (!mflag && !faults.empty())
@@ -1019,7 +1106,7 @@ void Service::generate(Types& types)
     banner(name);
   for (vector<Operation*>::const_iterator op2 = operation.begin(); op2 != operation.end(); ++op2)
   { if (*op2 && (*op2)->input)
-    { bool flag = false, anonymous = (*op2)->parameterOrder != NULL;
+    { bool flag = false, anonymous = ((*op2)->style != document && (*op2)->parameterOrder != NULL);
       banner((*op2)->input_name);
       if ((*op2)->output && (*op2)->output_name)
       { if ((*op2)->style == document)
@@ -1230,7 +1317,7 @@ void Service::generate(Types& types)
 ////////////////////////////////////////////////////////////////////////////////
 
 void Operation::generate(Types &types)
-{ bool flag = false, anonymous = parameterOrder != NULL;
+{ bool flag = false, anonymous = ((style != document) && parameterOrder != NULL);
   const char *method_name = strstr(input_name + 1, "__") + 2;
   if (!method_name)
     method_name = input_name;
@@ -1263,8 +1350,18 @@ void Operation::generate(Types &types)
       fprintf(stream, serviceformat, prefix, "method-action", method_name, "\"\"");
   }
   for (vector<Message*>::const_iterator message = fault.begin(); message != fault.end(); ++message)
-  { if ((*message)->message && (*message)->message->name)
-      fprintf(stream, serviceformat, prefix, "method-fault", method_name, (*message)->name);
+  { if ((*message)->use == literal)
+    { for (vector<wsdl__part>::const_iterator part = (*message)->message->part.begin(); part != (*message)->message->part.end(); ++part)
+      { if ((*part).element)
+          fprintf(stream, serviceformat, prefix, "method-fault", method_name, types.aname(NULL, NULL, (*part).element));
+        else if ((*part).type)
+          fprintf(stream, serviceformat, prefix, "method-fault", method_name, types.aname(NULL, (*message)->URI, (*part).name));
+      }
+    }
+    else
+    { if ((*message)->message && (*message)->message->name)
+        fprintf(stream, serviceformat, prefix, "method-fault", method_name, (*message)->name);
+    }
   }
   if (input->multipartRelated)
   { for (vector<mime__part>::const_iterator inputmime = input->multipartRelated->part.begin(); inputmime != input->multipartRelated->part.end(); ++inputmime)
@@ -1331,7 +1428,7 @@ void Operation::generate(Types &types)
   { if (flag)
     { if (style == document)
       { // Shortcut: do not generate wrapper struct
-        output->generate(types, "", anonymous, true, true);
+        output->generate(types, "", false, true, true);
       }
       else if ((*output->message->part.begin()).name)
       { fprintf(stream, "\n");
@@ -1382,7 +1479,8 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
               URI = NULL;
 	    if (response)
             { const char *t = types.tname(prefix, URI, type);
-	      fprintf(stream, anonymous ? anonformat : paraformat, t, strchr(t, '*') != NULL ? " " : cflag ? "*" : "&", types.aname(NULL, URI, name), sep);
+	      bool flag = (strchr(t, '*') && strcmp(t, "char*") && strcmp(t, "char *"));
+	      fprintf(stream, anonymous ? anonformat : paraformat, t, flag ? " " : cflag ? "*" : "&", types.aname(NULL, URI, name), sep);
 	      if (remark)
 	        fprintf(stream, "\t///< Response parameter");
 	    }
@@ -1400,10 +1498,11 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
 	}
         else if ((*part).type)
         { if (use == literal)
-            fprintf(stderr, "Warning: part '%s' uses literal style and must refer to an element rather than a type\n", (*part).name);
+            fprintf(stderr, "Warning: part '%s' uses literal style and should refer to an element rather than a type\n", (*part).name);
 	  if (response)
           { const char *t = types.tname(NULL, NULL, (*part).type);
-	    fprintf(stream, anonymous ? anonformat : paraformat, t, strchr(t, '*') != NULL ? " " : cflag ? "*" : "&", types.aname(NULL, NULL, (*part).name), sep);
+	    bool flag = (strchr(t, '*') && strcmp(t, "char*") && strcmp(t, "char *"));
+	    fprintf(stream, anonymous ? anonformat : paraformat, t, flag ? " " : cflag ? "*" : "&", types.aname(NULL, NULL, (*part).name), sep);
 	    if (remark)
               fprintf(stream, "\t///< Response parameter");
 	  }
@@ -1460,6 +1559,8 @@ static void banner(const char *text)
   for (i = 0; i < 78; i++)
     fputc('*', stream);
   fprintf(stream, "/\n\n");
+  if (vflag)
+    fprintf(stderr, "\n---- %s ----\n\n", text);
 }
 
 static void ident()

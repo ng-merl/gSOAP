@@ -111,23 +111,42 @@ engelen@genivia.com / engelen@acm.org
 	Note that the endpoint URL may contain a query string with key-value
 	pairs to pass to the server, e.g.: http://domain/path?key=val&key=val
 
-	To use general HTTP GET, for example to retrieve an HTML document, use
-	struct soap soap;
+	To use general HTTP GET, for example to retrieve an HTML document, use:
 
+	struct soap soap;
 	soap_init(&soap);
 	soap_register_plugin(&soap, http_get); // register plugin
 	if (soap_get_connect(&soap, endpoint, action))
 	  ... connect error ...
 	else
-	{ soap_wchar c;
-	  if (soap_begin_recv(&soap) == SOAP_OK)
-	  { ... = soap.http_content; // found out what we have
-	    // get the document from the soap.socket fd until EOF:
-	    while ((c = soap_get1(&soap)) != EOF)
-	      ... = c; // take the character received
-	  }
-	  soap_end_recv(&soap);
-	}
+        { if ((soap.mode & SOAP_IO) == SOAP_IO_CHUNK
+#ifdef WITH_ZLIB
+           || soap.zlib_in != SOAP_ZLIB_NONE
+#endif
+          )
+        { soap_wchar c;
+          // This loop handles with chunked/compressed transfers
+          for (;;)
+          { if ((c = soap_getchar(&soap)) == (int)EOF)
+              break;
+            [... c is a 8-bit char ...]
+          }
+        }
+        else
+        { // This loop handles HTTP transfers (with HTTP content length set)
+          if (soap.length)
+          { size_t i;
+            for (i = soap.length; i; i--)
+            { soap_wchar c;
+              if ((c = soap_getchar(&soap)) == (int)EOF)
+              { soap.error = SOAP_EOF;
+                return NULL;
+              }
+              [... c is a 8-bit char ...]
+            }
+          }
+        }
+        soap_end_recv(&soap);
         soap_end(&soap);
 	soap_done(&soap);
 

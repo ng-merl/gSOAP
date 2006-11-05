@@ -38,13 +38,17 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 using namespace std;
 
 const char *qname_token(const char *QName, const char *URI)
-{ if (QName && URI && *QName == '"') // QNames are stored in the format "URI":name, unless the URI is in the nsmap
+{ if (QName && QName[0] == '"' && QName[1] == '"' && QName[2] == ':')
+    return QName + 3;
+  if (QName && URI && *QName == '"') // QNames are stored in the format "URI":name, unless the URI is in the nsmap
   { int n = strlen(URI);
     if (!strncmp(QName + 1, URI, n) && QName[n + 1] == '"')
       return QName + n + 3;
   }
+  /*
   else if (QName && (!URI || !*URI) && *QName != '"' && !strchr(QName, ':')) // Empty namespace
     return QName;
+  */
   return NULL;
 }
 
@@ -79,9 +83,7 @@ wsdl__definitions::wsdl__definitions()
 #ifdef WITH_OPENSSL
   soap_ssl_client_context(soap, SOAP_SSL_NO_AUTHENTICATION, NULL, NULL, NULL, NULL, NULL);
 #endif
-#ifdef WITH_NONAMESPACES
   soap_set_namespaces(soap, namespaces);
-#endif
   soap_default(soap);
   if (vflag)
     soap->fignore = show_ignore;
@@ -432,7 +434,7 @@ int wsdl__port::traverse(wsdl__definitions& definitions)
       }
     }
   }
-  else
+  if (!bindingRef)
   { for (vector<wsdl__import>::iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
     { wsdl__definitions *importdefinitions = (*import).definitionsPtr();
       if (importdefinitions)
@@ -482,7 +484,7 @@ int wsdl__binding::traverse(wsdl__definitions& definitions)
       }
     }
   }
-  else
+  if (!portTypeRef)
   { for (vector<wsdl__import>::iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
     { wsdl__definitions *importdefinitions = (*import).definitionsPtr();
       if (importdefinitions)
@@ -656,7 +658,7 @@ int wsdl__input::traverse(wsdl__definitions& definitions)
       }
     }
   }
-  else
+  if (!messageRef)
   { for (vector<wsdl__import>::iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
     { wsdl__definitions *importdefinitions = (*import).definitionsPtr();
       if (importdefinitions)
@@ -706,7 +708,7 @@ int wsdl__output::traverse(wsdl__definitions& definitions)
       }
     }
   }
-  else
+  if (!messageRef)
   { for (vector<wsdl__import>::iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
     { wsdl__definitions *importdefinitions = (*import).definitionsPtr();
       if (importdefinitions)
@@ -756,7 +758,7 @@ int wsdl__fault::traverse(wsdl__definitions& definitions)
       }
     }
   }
-  else
+  if (!messageRef)
   { for (vector<wsdl__import>::iterator import = definitions.import.begin(); import != definitions.import.end(); ++import)
     { wsdl__definitions *importdefinitions = (*import).definitionsPtr();
       if (importdefinitions)
@@ -913,7 +915,11 @@ again:
   for (vector<xs__schema*>::iterator schema2 = xs__schema_.begin(); schema2 != xs__schema_.end(); ++schema2)
   { for (vector<xs__import>::iterator import = (*schema2)->import.begin(); import != (*schema2)->import.end(); ++import)
     { bool found = false;
-      if ((*import).namespace_)
+      if ((*import).schemaPtr())
+        found = true;
+      if (vflag)
+        fprintf(stderr, "Preprocessing schema %s import %s\n", (*schema2)->targetNamespace, (*import).namespace_?(*import).namespace_:"");
+      if (!found && (*import).namespace_)
       { if ((*import).schemaPtr())
 	  found = true;
         else
@@ -940,6 +946,8 @@ again:
         { const char *s = (*import).schemaLocation;
 	  if (!s)
 	    s = (*import).namespace_;
+	  if (!s)
+	    continue;
 	  importschema = new xs__schema(definitions.soap, (*schema2)->sourceLocation(), s);
 	  if (!(*import).namespace_)
 	  { if ((*schema2)->targetNamespace)
@@ -964,6 +972,8 @@ again:
 	if (!found)
 	{ (*import).schemaPtr(importschema);
 	  xs__schema_.push_back(importschema);
+          if (vflag)
+            fprintf(stderr, "Adding schema %s\n", importschema->targetNamespace);
 	  goto again;
 	}
       }
@@ -1113,10 +1123,9 @@ ostream &operator<<(ostream &o, const wsdl__definitions &e)
 
 istream &operator>>(istream &i, wsdl__definitions &e)
 { if (!e.soap)
-    e.soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
-#ifdef WITH_NONAMESPACES
-  soap_set_namespaces(e.soap, namespaces);
-#endif
+  { e.soap = soap_new1(SOAP_XML_TREE | SOAP_C_UTFSTRING);
+    soap_set_namespaces(e.soap, namespaces);
+  }
   istream *is = e.soap->is;
   e.soap->is = &i;
   if (soap_begin_recv(e.soap)
@@ -1136,8 +1145,12 @@ istream &operator>>(istream &i, wsdl__definitions &e)
 
 int warn_ignore(struct soap *soap, const char *tag)
 { // We don't warn if the omitted element was an annotation or a documentation in an unexpected place
-  if (soap_match_tag(soap, tag, "xs:annotation") && soap_match_tag(soap, tag, "xs:documentation"))
+  if (soap_match_tag(soap, tag, "xs:annotation")
+   && soap_match_tag(soap, tag, "xs:documentation")
+   && soap_match_tag(soap, tag, "xs:appinfo"))
     fprintf(stderr, "Warning: element '%s' at level %d was not recognized and will be ignored\n", tag, soap->level);
+  if (!soap_string_in(soap, 0, -1, -1))
+    return soap->error;
   return SOAP_OK;
 }
 
