@@ -4741,7 +4741,7 @@ ns_add_overridden(Table *t, Entry *p, char *ns)
     do
     { for (q = t->list; q; q = q->next)
         if (!strcmp(q->sym->name, p->sym->name))
-	  return ns_add(p->sym->name, prefix_of(t->sym->name));
+	  return ns_add(p->sym->name, ns ? prefix_of(t->sym->name) : NULL);
     } while (t = t->prev);
   return ns_add(p->sym->name, ns);
 }

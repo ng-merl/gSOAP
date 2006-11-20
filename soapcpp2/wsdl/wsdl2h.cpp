@@ -375,13 +375,15 @@ infile.wsdl infile.xsd http://www... list of input sources (if none: use stdin)\
           strcpy(outfile, infile[0]);
           strcat(outfile, ".h");
         }
-        stream = fopen(outfile, "w");
-        if (!stream)
-        { fprintf(stderr, "Cannot write to %s\n", outfile);
-          exit(1);
-        }
-        fprintf(stderr, "Saving %s\n\n", outfile);
       }
+    }
+    if (outfile)
+    { stream = fopen(outfile, "w");
+      if (!stream)
+      { fprintf(stderr, "Cannot write to %s\n", outfile);
+        exit(1);
+      }
+      fprintf(stderr, "Saving %s\n\n", outfile);
     }
   }
 }
