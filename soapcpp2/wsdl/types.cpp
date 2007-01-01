@@ -822,8 +822,8 @@ bool Types::is_nillable(const xs__element& element)
 { return !element.default_ && (element.nillable || (element.minOccurs && !strcmp(element.minOccurs, "0")));
 }
 
-bool Types::is_basetype(const char *type)
-{ const char *t = tname(NULL, NULL, type);
+bool Types::is_basetype(const char *URI, const char *type)
+{ const char *t = tname(NULL, URI, type);
   if (!strcmp(t, "std::string")
    || strstr(t, "__"))
     return false;
@@ -1705,8 +1705,8 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
     fprintf(stream, elementformat, "", aname(NULL, nameURI, name));
   }
   else if (attribute.ref)
-  { fprintf(stream, "/// Attribute reference %s.\n", attribute.ref);
-    fprintf(stream, attributeformat, pname(is_optional, NULL, NULL, attribute.ref), aname(NULL, NULL, attribute.ref));
+  { fprintf(stream, "/// Imported attribute reference %s.\n", attribute.ref);
+    fprintf(stream, attributeformat, pname(is_optional, "_", NULL, attribute.ref), aname(NULL, NULL, attribute.ref));
   }
   else
   { fprintf(stream, "/// Warning: attribute '%s' has no type or ref. Assuming string content.\n", name?name:"");
@@ -1815,10 +1815,10 @@ void Types::gen(const char *URI, const xs__sequence& sequence)
   with_union = false;
   fake_union = false;
   document(sequence.annotation);
-  gen(URI, sequence.element);
   gen(URI, sequence.group);
   gen(URI, sequence.choice);
   gen(URI, sequence.sequence);
+  gen(URI, sequence.element);
   gen(URI, sequence.any);
   with_union = tmp_union1;
   fake_union = tmp_union2;
@@ -1885,7 +1885,7 @@ void Types::gen(const char *URI, const xs__element& element)
     }
     else
     { fprintf(stream, "/// Element reference %s.\n", element.ref);
-      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(type)) || fake_union || is_nillable(element), prefix, typeURI, type), aname(NULL, nameURI, name));
+      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(typeURI, type)) || fake_union || is_nillable(element), prefix, typeURI, type), aname(NULL, nameURI, name));
     }
   }
   else if (name && type)
@@ -1894,7 +1894,7 @@ void Types::gen(const char *URI, const xs__element& element)
       gen_substitutions(URI, element);
     }
     else if (element.maxOccurs && strcmp(element.maxOccurs, "1")) // maxOccurs != "1"
-    { const char *s = tnameptr(cflag && !zflag, NULL, NULL, type);
+    { const char *s = tnameptr(cflag && !zflag, NULL, URI, type);
       if (cflag || sflag)
       { fprintf(stream, "/// Size of array of %s is %s..%s\n", s, element.minOccurs ? element.minOccurs : "1", element.maxOccurs);
         fprintf(stream, sizeformat, "int", aname(NULL, NULL, name));
@@ -1920,7 +1920,7 @@ void Types::gen(const char *URI, const xs__element& element)
     }
     else
     { fprintf(stream, "/// Element %s of type %s.\n", name, type);
-      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(type)) || fake_union || is_nillable(element), NULL, URI, type), aname(NULL, nameURI, name));
+      fprintf(stream, elementformat, pname((with_union && !cflag && !is_basetype(URI, type)) || fake_union || is_nillable(element), NULL, URI, type), aname(NULL, nameURI, name));
     }
   }
   else if (name && element.simpleTypePtr())
@@ -1957,8 +1957,8 @@ void Types::gen(const char *URI, const xs__element& element)
       fprintf(stream, elementformat, "}", aname(NULL, nameURI, name));
   }
   else if (element.ref)
-  { fprintf(stream, "/// Element reference %s.\n", element.ref);
-    fprintf(stream, elementformat, tname("_", NULL, element.ref), aname(NULL, NULL, element.ref));
+  { fprintf(stream, "/// Imported element reference %s.\n", element.ref);
+    fprintf(stream, elementformat, pname((with_union && !cflag) || fake_union || is_nillable(element), "_", NULL, element.ref), aname(NULL, nameURI, element.ref));
   }
   else if (name)
   { fprintf(stream, "/// Warning: element '%s' has no type or ref. Assuming XML content.\n", name?name:"");
@@ -2223,7 +2223,7 @@ void Types::gen_soap_array(const char *name, const char *t, const char *item, ch
       fprintf(stream, ";\n");
     }
     else
-    { const char *s = pname(!is_basetype(type), NULL, NULL, type);
+    { const char *s = pname(!is_basetype(NULL, type), NULL, NULL, type);
       fprintf(stream, "/// Pointer to array of %s.\n", s);
       fprintf(stream, arrayformat, s, item ? aname(NULL, NULL, item) : "");
       fprintf(stream, ";\n");

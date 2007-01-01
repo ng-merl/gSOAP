@@ -7,7 +7,7 @@ calc:				Simple calculator client and server
 ck:				HTTP cookie client and server
 components/c, components/cpp:	Multiple clients/services in one executable
 dime:				DIME attachment client and server
-events:				Asynchronous one-way messaging
+events:				One-way messaging
 factory:			Remote object factory and simple ORB
 factorytest:			Test client for remote object factory
 googleapi:			Google Web API client

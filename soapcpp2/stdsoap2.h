@@ -1,11 +1,11 @@
 /*
 
-stdsoap2.h 2.7.9a
+stdsoap2.h 2.7.9b
 
 gSOAP runtime
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -1004,8 +1004,13 @@ typedef soap_int32 soap_mode;
 #define SOAP_SSL_NO_AUTHENTICATION		0x00	/* for testing purposes */
 #define SOAP_SSL_REQUIRE_SERVER_AUTHENTICATION	0x01	/* client requires server to authenticate */
 #define SOAP_SSL_REQUIRE_CLIENT_AUTHENTICATION	0x02	/* server requires client to authenticate */
+#define SOAP_SSL_SKIP_HOST_CHECK		0x04	/* client does not check the common name of the host in certificate */
+#define SOAP_SSL_RSA				0x06	/* use RSA */
+#define SOAP_SSLv3_TLSv1			0x00	/* SSL v3 and TLS v1 support by default */
+#define SOAP_SSLv3				0x10	/* SSL v3 only */
+#define SOAP_TLSv1				0x20	/* TLS v1 only */
 
-#define SOAP_SSL_DEFAULT			SOAP_SSL_REQUIRE_SERVER_AUTHENTICATION
+#define SOAP_SSL_DEFAULT			(SOAP_SSL_REQUIRE_SERVER_AUTHENTICATION | SOAP_SSLv3_TLSv1)
 
 /* state */
 
@@ -1548,7 +1553,7 @@ struct SOAP_STD_API soap
   size_t lablen;	/* look-aside buffer allocated length */
   size_t labidx;	/* look-aside buffer index to available part */
   char buf[SOAP_BUFLEN];/* send and receive buffer */
-  char tmpbuf[1024];	/* in/output buffer for HTTP headers, simpleType values, attribute names, and DIME >=1024 bytes */
+  char tmpbuf[1024];	/* in/output buffer for HTTP/MIME headers, simpleType values, attribute names, and DIME must be >=1024 bytes */
   char msgbuf[1024];	/* in/output buffer for messages >=1024 bytes */
   char tag[SOAP_TAGLEN];
   char id[SOAP_TAGLEN];
@@ -1623,9 +1628,7 @@ struct SOAP_STD_API soap
   BIO *bio;
   SSL *ssl;
   SSL_CTX *ctx;
-  short require_server_auth;
-  short require_client_auth;
-  short rsa;			/* when set, use RSA instead of DH */
+  unsigned short ssl_flags;
   const char *keyfile;
   const char *password;
   const char *dhfile;
@@ -1857,11 +1860,11 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_end_count(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_begin_send(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_end_send(struct soap*);
 
-SOAP_FMAC1 const struct soap_code_map* SOAP_FMAC2 soap_code(const struct soap_code_map*, const char *str);
-SOAP_FMAC1 long SOAP_FMAC2 soap_code_int(const struct soap_code_map*, const char *str, long other);
-SOAP_FMAC1 const char* SOAP_FMAC2 soap_code_str(const struct soap_code_map*, long code);
-SOAP_FMAC1 long SOAP_FMAC2 soap_code_bits(const struct soap_code_map *map, const char *str);
-SOAP_FMAC1 const char* SOAP_FMAC2 soap_code_list(struct soap*, const struct soap_code_map *map, long code);
+SOAP_FMAC1 const struct soap_code_map* SOAP_FMAC2 soap_code(const struct soap_code_map*, const char*);
+SOAP_FMAC1 long SOAP_FMAC2 soap_code_int(const struct soap_code_map*, const char*, long);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_code_str(const struct soap_code_map*, long);
+SOAP_FMAC1 long SOAP_FMAC2 soap_code_bits(const struct soap_code_map*, const char*);
+SOAP_FMAC1 const char* SOAP_FMAC2 soap_code_list(struct soap*, const struct soap_code_map*, long);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_getline(struct soap*, char*, int);
 SOAP_FMAC1 int SOAP_FMAC2 soap_begin_recv(struct soap*);
@@ -1970,6 +1973,8 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_set_local_namespaces(struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_pop_namespace(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_push_namespace(struct soap*, const char *,const char *);
 SOAP_FMAC1 const char* SOAP_FMAC2 soap_current_namespace(struct soap *soap, const char *tag);
+
+SOAP_FMAC1 struct soap_nlist* SOAP_FMAC2 soap_lookup_ns(struct soap *soap, const char *tag, size_t n);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_store_lab(struct soap*, const char*, size_t);
 SOAP_FMAC1 int SOAP_FMAC2 soap_append_lab(struct soap*, const char*, size_t);

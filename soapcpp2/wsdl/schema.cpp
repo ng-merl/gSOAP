@@ -35,6 +35,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "wsdlH.h"		// cannot include "schemaH.h"
 
+extern struct Namespace namespaces[];
+
 using namespace std;
 
 extern int warn_ignore(struct soap*, const char*);
@@ -104,7 +106,7 @@ int xs__schema::get(struct soap *soap)
 }
 
 int xs__schema::preprocess()
-{ // process include, but should check if not already included?
+{ // process xs:include recursively, but should check if not already included?
   // NOTE: includes are context sensitive (take context info), so keep including
   for (vector<xs__include>::iterator in = include.begin(); in != include.end(); ++in)
   { (*in).preprocess(*this); // read schema and recurse over <include>
@@ -122,11 +124,11 @@ int xs__schema::preprocess()
 int xs__schema::insert(xs__schema& schema)
 { bool found;
   if (targetNamespace && schema.targetNamespace && strcmp(targetNamespace, schema.targetNamespace))
-    fprintf(stderr, "Warning: attempt to include schema with unequal targetNamespace '%s' in schema '%s'\n", schema.targetNamespace, targetNamespace);
+    fprintf(stderr, "Warning: attempt to include schema with mismatching targetNamespace '%s' in schema '%s'\n", schema.targetNamespace, targetNamespace);
   if (elementFormDefault != schema.elementFormDefault)
-    fprintf(stderr, "Warning: attempt to include schema with unequal elementFormDefault in schema '%s'\n", targetNamespace?targetNamespace:"");
+    fprintf(stderr, "Warning: attempt to include schema with mismatching elementFormDefault in schema '%s'\n", targetNamespace?targetNamespace:"");
   if (attributeFormDefault != schema.attributeFormDefault)
-    fprintf(stderr, "Warning: attempt to include schema with unequal attributeFormDefault in schema '%s'\n", targetNamespace?targetNamespace:"");
+    fprintf(stderr, "Warning: attempt to include schema with mismatching attributeFormDefault in schema '%s'\n", targetNamespace?targetNamespace:"");
   // insert imports, but only add imports with new namespace
   for (vector<xs__import>::const_iterator im = schema.import.begin(); im != schema.import.end(); ++im)
   { found = false;
@@ -155,7 +157,9 @@ int xs__schema::insert(xs__schema& schema)
       }
     }
     if (!found)
-      attribute.push_back(*at);
+    { attribute.push_back(*at);
+      attribute.back().schemaPtr(this);
+    }
   }
   // insert elements, but only add elements with new name
   for (vector<xs__element>::const_iterator el = schema.element.begin(); el != schema.element.end(); ++el)
@@ -171,7 +175,9 @@ int xs__schema::insert(xs__schema& schema)
       }
     }
     if (!found)
-      element.push_back(*el);
+    { element.push_back(*el);
+      element.back().schemaPtr(this);
+    }
   }
   // insert groups, but only add groups with new name
   for (vector<xs__group>::const_iterator gp = schema.group.begin(); gp != schema.group.end(); ++gp)
@@ -185,7 +191,9 @@ int xs__schema::insert(xs__schema& schema)
       }
     }
     if (!found)
-      group.push_back(*gp);
+    { group.push_back(*gp);
+      group.back().schemaPtr(this);
+    }
   }
   // insert attributeGroups, but only add attributeGroups with new name
   for (vector<xs__attributeGroup>::const_iterator ag = schema.attributeGroup.begin(); ag != schema.attributeGroup.end(); ++ag)
@@ -199,7 +207,9 @@ int xs__schema::insert(xs__schema& schema)
       }
     }
     if (!found)
-      attributeGroup.push_back(*ag);
+    { attributeGroup.push_back(*ag);
+      attributeGroup.back().schemaPtr(this);
+    }
   }
   // insert simpleTypes, but only add simpleTypes with new name
   for (vector<xs__simpleType>::const_iterator st = schema.simpleType.begin(); st != schema.simpleType.end(); ++st)
@@ -213,7 +223,9 @@ int xs__schema::insert(xs__schema& schema)
       }
     }
     if (!found)
-      simpleType.push_back(*st);
+    { simpleType.push_back(*st);
+      simpleType.back().schemaPtr(this);
+    }
   }
   // insert complexTypes, but only add complexTypes with new name
   for (vector<xs__complexType>::const_iterator ct = schema.complexType.begin(); ct != schema.complexType.end(); ++ct)
@@ -227,7 +239,9 @@ int xs__schema::insert(xs__schema& schema)
       }
     }
     if (!found)
-      complexType.push_back(*ct);
+    { complexType.push_back(*ct);
+      complexType.back().schemaPtr(this);
+    }
   }
   return SOAP_OK;
 }
@@ -1515,9 +1529,7 @@ ostream &operator<<(ostream &o, const xs__schema &e)
 { if (!e.soap)
   { struct soap soap;
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_TREE | SOAP_C_UTFSTRING);
-#ifdef WITH_NONAMESPACES
     soap_set_namespaces(&soap, namespaces);
-#endif
     e.soap_serialize(&soap);
     soap_begin_send(&soap);
     e.soap_out(&soap, "xs:schema", 0, NULL);

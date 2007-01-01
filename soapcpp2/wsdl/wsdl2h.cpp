@@ -6,7 +6,7 @@ WSDL parser and converter to gSOAP header file format
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -81,6 +81,8 @@ FILE *stream = stdout;
 
 SetOfString exturis;
 
+extern struct Namespace namespaces[];
+
 const char *service_prefix = NULL;
 const char *schema_prefix = "ns";
 
@@ -98,12 +100,12 @@ char serviceformat[]       = "//gsoap %-4s service %s:\t%s %s\n";
 char paraformat[]          = "    %-35s%s%s%s";
 char anonformat[]          = "    %-35s%s_%s%s";
 
-char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2006 Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc. Use option -l for more info.\n\n";
+char copyrightnotice[] = "\n**  The gSOAP WSDL parser for C and C++ "VERSION"\n**  Copyright (C) 2000-2007 Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP WSDL parser is released under one of the following two licenses:\n**  GPL or the commercial license by Genivia Inc. Use option -l for more info.\n\n";
 
 char licensenotice[]   = "\
 --------------------------------------------------------------------------------\n\
 gSOAP XML Web services tools\n\
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.\n\
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.\n\
 \n\
 This software is released under one of the following two licenses:\n\
 GPL or Genivia's license for commercial use.\n\

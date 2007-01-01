@@ -2,7 +2,6 @@ The soapcpp2 compiler source distribution contains the following files:
 
 README.txt	This file
 Makefile	Unix/linux makefile
-MakefileMacOSX	Mac OS X Makefile
 soapcpp2.h	Main header file
 soapcpp2.c	Main application
 symbol2.c	Symbol table handling and code generation module
@@ -27,6 +26,6 @@ export BISON_HAIRY=$QNX_HOST/usr/share/bison/bison.hairy
 WIN32
 =====
 
-Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small Compile with
-/DYYINITDEPTH=1000
+Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small:
+Compile with /DYYINITDEPTH=5000
 

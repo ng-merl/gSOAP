@@ -5,7 +5,7 @@ soapcpp2.c
 Main compiler.
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -46,7 +46,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "soapcpp2.h"
 
-extern int init();
+extern void init();
 extern int yyparse();
 extern FILE *yyin;
 
@@ -239,7 +239,7 @@ infile	header file to parse (or stdin)\n\
 		else
 			strcpy(filename, argv[i]);
 	}
-	fprintf(fmsg, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
+	fprintf(fmsg, "\n**  The gSOAP Stub and Skeleton Compiler for C and C++ "VERSION"\n**  Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc.\n**  All Rights Reserved. This product is provided \"as is\", without any warranty.\n**  The gSOAP compiler is released under one of the following three licenses:\n**  GPL, the gSOAP public license, or the commercial license by Genivia Inc.\n\n");
 	if (stop_flag)
 	  exit(0);
 	init();

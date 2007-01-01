@@ -35,6 +35,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "wsdlH.h"
 
+extern struct Namespace namespaces[];
+
 using namespace std;
 
 const char *qname_token(const char *QName, const char *URI)
@@ -1098,9 +1100,7 @@ ostream &operator<<(ostream &o, const wsdl__definitions &e)
 { if (!e.soap)
   { struct soap soap;
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_TREE | SOAP_C_UTFSTRING);
-#ifdef WITH_NONAMESPACES
     soap_set_namespaces(&soap, namespaces);
-#endif
     e.soap_serialize(&soap);
     soap_begin_send(&soap);
     e.soap_out(&soap, "wsdl:definitions", 0, NULL);

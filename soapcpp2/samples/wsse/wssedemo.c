@@ -60,6 +60,7 @@ k don't use keys
 s server
 t use plain-text passwords
 b don't sign the SOAP body
+x use plain XML (no HTTP header), client only
 
 For example, to generate a request message and store it in file 'wssedemo.xml':
 
@@ -100,6 +101,7 @@ static char hmac_key[16] = /* Not-so-random HMAC key for testing */
 int hmac = 0;
 int nokey = 0;
 int nobody = 0;
+int nohttp = 0;
 
 int main(int argc, char **argv)
 { struct soap *soap;
@@ -131,6 +133,8 @@ int main(int argc, char **argv)
       text = 1;
     if (strchr(argv[1], 'b'))
       nobody = 1;
+    if (strchr(argv[1], 'x'))
+      nohttp = 1;
   }
   /* soap->actor = "..."; */ /* set only when required */
   user = getenv("USER");
@@ -213,6 +217,8 @@ int main(int argc, char **argv)
     /* client sending messages to stdout or over port */
     if (port)
       sprintf(endpoint, "http://localhost:%d", port);
+    else if (nohttp)
+      strcpy(endpoint, "");
     else
       strcpy(endpoint, "http://");
     /* message lifetime of 10 seconds */

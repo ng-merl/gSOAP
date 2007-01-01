@@ -667,7 +667,7 @@ const char soap_wsse_id[14] = SOAP_WSSE_ID;
 #define SOAP_WSSE_MAX_REF	(100)
 
 /** Clock skew between machines (in sec) to fit message expiration in window */
-#define SOAP_WSSE_CLKSKEW	(600)
+#define SOAP_WSSE_CLKSKEW	(300)
 
 /** Size of the random nonce */
 #define SOAP_WSSE_NONCELEN	(20)
@@ -1514,7 +1514,7 @@ SignedInfo to compute the signature.
 int
 soap_wsse_add_SignatureValue(struct soap *soap, int alg, const void *key, int keylen)
 { ds__SignatureType *signature = soap_wsse_add_Signature(soap);
-  const char *c14nexclude, *method = NULL;
+  const char *method = NULL;
   char *sig;
   int siglen;
   DBGFUN1("soap_wsse_add_SignatureValue", "alg=%d", alg);
@@ -1541,16 +1541,11 @@ soap_wsse_add_SignatureValue(struct soap *soap, int alg, const void *key, int ke
   /* we will serialize SignedInfo as it appears exactly in the SOAP Header */
   /* set indent level for XML SignedInfo as it appears in the SOAP Header */
   soap->level = 4;
-  /* with SOAP_XML_CANONICAL flag, exclude the "ds" prefix */
-  c14nexclude = soap->c14nexclude;
-  soap->c14nexclude = "ds";
   /* use smdevp engine to sign SignedInfo */
   if (soap_smd_begin(soap, alg, key, keylen)
    || soap_out_ds__SignedInfoType(soap, "ds:SignedInfo", 0, signature->SignedInfo, NULL)
    || soap_smd_end(soap, sig, &siglen))
     return soap_wsse_fault(soap, wsse__InvalidSecurity, "Could not sign");
-  /* restore c14nexclude */
-  soap->c14nexclude = c14nexclude;
   /* populate the SignatureValue element */
   signature->SignatureValue = soap_s2base64(soap, (unsigned char*)sig, NULL, siglen);
   return SOAP_OK;
@@ -1608,9 +1603,7 @@ soap_wsse_verify_SignatureValue(struct soap *soap, int alg, const void *key, int
       }
       /* found it? */
       if (elt)
-      { /* output the DOM "as is" */
-        soap->mode &= ~SOAP_XML_CANONICAL;
-        soap->mode |= SOAP_DOM_ASIS;
+      { int err = SOAP_OK;
         /* should not include leading whitespace in signature verification */
         elt->head = NULL;
         /* use smdevp engine to verify SignedInfo */
@@ -1620,7 +1613,43 @@ soap_wsse_verify_SignatureValue(struct soap *soap, int alg, const void *key, int
         { sig = (char*)sigval;
           siglen = sigvallen;
         }
-        if (soap_smd_begin(soap, alg, key, keylen)
+        if (signature->SignedInfo->CanonicalizationMethod
+	 && signature->SignedInfo->CanonicalizationMethod->Algorithm
+	 && !strcmp(signature->SignedInfo->CanonicalizationMethod->Algorithm, c14n_URI))
+        { struct soap_dom_element *prt;
+	  struct soap_dom_attribute *att;
+	  soap->mode |= SOAP_XML_CANONICAL | SOAP_DOM_ASIS;
+          err = soap_smd_begin(soap, alg, key, keylen);
+	  /* emit all xmlns attributes of ancestors */
+          while (soap->nlist)
+          { register struct soap_nlist *np = soap->nlist->next;
+            SOAP_FREE(soap, soap->nlist);
+            soap->nlist = np;
+          }
+	  /* TODO: consider moving this into dom.cpp */
+	  for (prt = elt->prnt; prt; prt = prt->prnt)
+          { for (att = prt->atts; att; att = att->next)
+	      if (!strncmp(att->name, "xmlns:", 6) && !soap_lookup_ns(soap, att->name + 6, strlen(att->name + 6)))
+	        soap_attribute(soap, att->name, att->data);
+	  }
+	  for (prt = elt->prnt; prt; prt = prt->prnt)
+          { for (att = prt->atts; att; att = att->next)
+	      if (!strcmp(att->name, "xmlns"))
+	      { soap_attribute(soap, att->name, att->data);
+	        break;
+	      }
+	  }
+	}
+	else
+        { /* compute digest over DOM "as is" */
+          soap->mode &= ~SOAP_XML_CANONICAL;
+          soap->mode |= SOAP_DOM_ASIS;
+          err = soap_smd_begin(soap, alg, key, keylen);
+	}
+	/* do not dump namespace table xmlns bindings */
+	soap->ns = 2;
+        /* compute digest */
+        if (err
          || soap_out_xsd__anyType(soap, NULL, 0, elt, NULL)
          || soap_smd_end(soap, sig, &siglen))
           return soap_wsse_fault(soap, wsse__FailedCheck, NULL);
@@ -1691,7 +1720,7 @@ soap_wsse_verify_SignedInfo(struct soap *soap)
     /* must have at least one reference element */
     if (signedInfo->__sizeReference == 0)
       return soap_wsse_fault(soap, wsse__InvalidSecurity, "No SignedInfo/Reference");
-    /* TODO: this would be a good place to re-canonicalize the entire DOM to improve interop. Two DOMs can be used: one with non-c14n XML and one with c14n XML so we can handle multiple different transforms. */
+    /* As an alternative to the current implementatin, this might be a good place to re-canonicalize the entire DOM to improve interop. Two DOMs can be used: one with non-c14n XML and one with c14n XML so we can handle multiple different transforms. */
     /* for each reference element, check the digest */
     for (i = 0; i < signedInfo->__sizeReference; i++)
     { ds__ReferenceType *reference = signedInfo->Reference[i];
@@ -1703,7 +1732,7 @@ soap_wsse_verify_SignedInfo(struct soap *soap)
         return soap_wsse_fault(soap, wsse__InvalidSecurity, "Incomplete SignedInfo/Reference");
       /* reference is local? */
       if (*reference->URI == '#')
-      { int alg;
+      { int alg, canonical;
         unsigned char hash[SOAP_SMD_MAX_SIZE];
         DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Verifying digest of locally referenced data %s\n", reference->URI));
         /* digest algorithm should be SHA1 */
@@ -1712,15 +1741,19 @@ soap_wsse_verify_SignedInfo(struct soap *soap)
         else
           return soap_wsse_fault(soap, wsse__UnsupportedAlgorithm, reference->DigestMethod->Algorithm);
         /* if reference has a transform, it should be an exc-c14n transform */
-        if (reference->Transforms
-         && (reference->Transforms->__sizeTransform != 1
-          || !reference->Transforms->Transform[0].Algorithm
-          || strcmp(reference->Transforms->Transform[0].Algorithm, c14n_URI)))
-          return soap_wsse_fault(soap, wsse__UnsupportedAlgorithm, reference->Transforms->Transform[0].Algorithm);
+        if (reference->Transforms)
+	{ if (reference->Transforms->__sizeTransform != 1
+           || !reference->Transforms->Transform[0].Algorithm
+           || strcmp(reference->Transforms->Transform[0].Algorithm, c14n_URI))
+            return soap_wsse_fault(soap, wsse__UnsupportedAlgorithm, reference->Transforms->Transform[0].Algorithm);
+	  canonical = 1;
+	}
+	else
+	  canonical = 0;
         /* convert base64 digest to binary */
         soap_base642s(soap, reference->DigestValue, (char*)hash, SOAP_SMD_MAX_SIZE, NULL);
         /* verify the digest of a locally signed element */
-        if (soap_wsse_verify_digest(soap, alg, reference->URI + 1, hash))
+        if (soap_wsse_verify_digest(soap, alg, canonical, reference->URI + 1, hash))
           return soap->error;
       }
     }
@@ -1730,18 +1763,19 @@ soap_wsse_verify_SignedInfo(struct soap *soap)
 }
 
 /**
-@fn int soap_wsse_verify_digest(struct soap *soap, int alg, const char *id, unsigned char hash[SOAP_SMD_MAX_SIZE])
+@fn int soap_wsse_verify_digest(struct soap *soap, int alg, int canonical, const char *id, unsigned char hash[SOAP_SMD_MAX_SIZE])
 @brief Verifies the digest value of an XML element referenced by id against the hash.
 @param soap context
 @param[in] alg digest algorithm
+@param[in] canonical flag indicating that element is signed in exc-c14n form
 @param[in] id string of the XML element to verify
 @param[in] hash digest value to verify against
 @return SOAP_OK or fault
 */
 int
-soap_wsse_verify_digest(struct soap *soap, int alg, const char *id, unsigned char hash[SOAP_SMD_MAX_SIZE])
+soap_wsse_verify_digest(struct soap *soap, int alg, int canonical, const char *id, unsigned char hash[SOAP_SMD_MAX_SIZE])
 { struct soap_dom_element *elt;
-  DBGFUN1("soap_wsse_verify_digest", "alg=%d", alg);
+  DBGFUN2("soap_wsse_verify_digest", "alg=%d", alg, "canonical=%d", canonical);
   /* traverse the DOM to find the element with matching wsu:Id or ds:Id */
   for (elt = soap->dom; elt; elt = soap_dom_next_element(elt))
   { struct soap_dom_attribute *att;
@@ -1754,15 +1788,49 @@ soap_wsse_verify_digest(struct soap *soap, int alg, const char *id, unsigned cha
       { /* found a match, compare attribute value with id */
         if (att->data && !strcmp(att->data, id))
         { unsigned char HA[SOAP_SMD_SHA1_SIZE];
-          int len;
+          int len, err = SOAP_OK;
           DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Computing digest for Id=%s\n", id));
-          /* compute digest over DOM node "as is" */
-          soap->mode &= ~SOAP_XML_CANONICAL;
-          soap->mode |= SOAP_DOM_ASIS;
           /* do not hash leading whitespace */
           elt->head = NULL;
+	  /* canonical or as-is? */
+	  if (canonical)
+          { struct soap_dom_element *prt;
+	    struct soap_dom_attribute *att;
+	    soap->mode |= SOAP_XML_CANONICAL | SOAP_DOM_ASIS;
+            err = soap_smd_begin(soap, alg, NULL, 0);
+	    /* emit all xmlns attributes of ancestors */
+            while (soap->nlist)
+            { register struct soap_nlist *np = soap->nlist->next;
+              SOAP_FREE(soap, soap->nlist);
+              soap->nlist = np;
+            }
+	    /* TODO: consider moving this into dom.cpp */
+	    for (prt = elt->prnt; prt; prt = prt->prnt)
+            { for (att = prt->atts; att; att = att->next)
+	      { if (!strncmp(att->name, "xmlns:", 6) && !soap_lookup_ns(soap, att->name + 6, strlen(att->name + 6)))
+                { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Attribute=%s\n", att->name));
+                  soap_attribute(soap, att->name, att->data);
+	        }
+	      }
+	    }
+	    for (prt = elt->prnt; prt; prt = prt->prnt)
+            { for (att = prt->atts; att; att = att->next)
+	        if (!strcmp(att->name, "xmlns"))
+		{ soap_attribute(soap, att->name, att->data);
+		  break;
+	        }
+	    }
+	  }
+	  else
+          { /* compute digest over DOM "as is" */
+            soap->mode &= ~SOAP_XML_CANONICAL;
+            soap->mode |= SOAP_DOM_ASIS;
+            err = soap_smd_begin(soap, alg, NULL, 0);
+	  }
+	  /* do not dump namespace table xmlns bindings */
+	  soap->ns = 2;
           /* compute digest */
-          if (soap_smd_begin(soap, alg, NULL, 0)
+          if (err
            || soap_out_xsd__anyType(soap, NULL, 0, elt, NULL)
            || soap_smd_end(soap, (char*)HA, &len))
             return soap_wsse_fault(soap, wsse__FailedCheck, "Could not compute digest");
@@ -2218,17 +2286,19 @@ calc_digest(struct soap *soap, const char *created, const char *nonce, int nonce
 
 /**
 @fn static void calc_nonce(struct soap *soap, char nonce[SOAP_WSSE_NONCELEN])
-@brief Calculates "randomized" nonce
+@brief Calculates randomized nonce (also uses time() in case a poorly seeded PRNG is used)
 @param soap context
 @param[out] nonce value
 */
 static void
 calc_nonce(struct soap *soap, char nonce[SOAP_WSSE_NONCELEN])
-{ static short count = 0xCA53;
-  char buf[SOAP_WSSE_NONCELEN + 1];
-  /* we could have used raw binary instead of hex as below */
-  sprintf(buf, "%8.8x%4.4hx%8.8x", (int)time(NULL), count++, soap_random);
-  memcpy(nonce, buf, SOAP_WSSE_NONCELEN);
+{ int i, r;
+  r = time(NULL);
+  memcpy(nonce, &r, 4);
+  for (i = 4; i < SOAP_WSSE_NONCELEN; i += 4)
+  { r = soap_random;
+    memcpy(nonce + i, &r, 4);
+  }
 }
 
 /******************************************************************************\
@@ -2540,8 +2610,9 @@ soap_wsse_preparesend(struct soap *soap, const char *buf, size_t len)
     return SOAP_PLUGIN_ERROR;
   /* the gSOAP engine signals the start of a wsu:Id element */
   if (soap->part == SOAP_BEGIN_SECURITY)
-  { /* found element with wsu:Id and change engine state */
+  { /* found element with wsu:Id so change engine state to start digest */
     soap->part = SOAP_IN_SECURITY;
+    /* already computing digest? */
     if (data->digest && data->digest->level)
     { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Nested hashing for signature not possible, wsu:Id='%s' ignored\n", soap->id));
     }
@@ -2628,11 +2699,12 @@ soap_wsse_preparefinal(struct soap *soap)
         soap_out_ds__SignatureType(soap, "ds:Signature", 0, signature, NULL);
       }
       else
-      { soap->level = 4; /* indent level for XML SignedInfo */
-        soap->c14nexclude = "ds"; /* don't add xmlns:ds */
+      { const char *c14nexclude = soap->c14nexclude;
+        soap->level = 4; /* indent level for XML SignedInfo */
+        soap->c14nexclude = "ds"; /* don't add xmlns:ds to count msg len */
         soap_out_ds__SignedInfoType(soap, "ds:SignedInfo", 0, signature->SignedInfo, NULL);
         soap_outstring(soap, "ds:SignatureValue", 0, &signature->SignatureValue, NULL, 0);
-        soap->c14nexclude = NULL;
+        soap->c14nexclude = c14nexclude;
       }
     }
   }

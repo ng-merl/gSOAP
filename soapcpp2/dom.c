@@ -74,8 +74,8 @@ SOAP_FMAC3 void *SOAP_FMAC4 soap_getelement(struct soap*, int*);
 #define SOAP_DOMID_FORMAT "dom%d"
 
 /* namespace name (URI) lookup and store routines */
-static struct soap_ilist *soap_lookup_ns(struct soap*, const char*);
-static struct soap_ilist *soap_enter_ns(struct soap*, const char*, const char*);
+static struct soap_ilist *soap_lookup_ns_prefix(struct soap*, const char*);
+static struct soap_ilist *soap_enter_ns_prefix(struct soap*, const char*, const char*);
 
 /******************************************************************************\
  *
@@ -203,7 +203,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
               colon = sizeof(soap->tag);
 	    strncpy(soap->tag, att->name, colon - 1);
             soap->tag[colon - 1] = '\0';
-            if (!(soap_enter_ns(soap, soap->tag, att->nstr)))
+            if (!(soap_enter_ns_prefix(soap, soap->tag, att->nstr)))
               return soap->error = SOAP_EOM;
           }
         }
@@ -226,7 +226,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
     { if (colon)
       { strncpy(soap->tag, tag, colon - 1);
         soap->tag[colon - 1] = '\0';
-        if (!(p = soap_enter_ns(soap, soap->tag, node->nstr)))
+        if (!(p = soap_enter_ns_prefix(soap, soap->tag, node->nstr)))
           return soap->error = SOAP_EOM;
         prefix = p->id;
         if (out_element(soap, node, prefix, tag + colon, node->nstr))
@@ -244,7 +244,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
           }
 	}
         if (!ns || !ns->id)
-        { if ((p = soap_lookup_ns(soap, node->nstr)))
+        { if ((p = soap_lookup_ns_prefix(soap, node->nstr)))
           { prefix = p->id;
             p = NULL;
             if (out_element(soap, node, prefix, tag + colon, NULL))
@@ -252,7 +252,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
           }
 	  else
           { sprintf(soap->tag, SOAP_DOMID_FORMAT, soap->idnum++);
-            if (!(p = soap_enter_ns(soap, soap->tag, node->nstr)))
+            if (!(p = soap_enter_ns_prefix(soap, soap->tag, node->nstr)))
               return soap->error = SOAP_EOM;
             prefix = p->id;
             if (out_element(soap, node, prefix, tag + colon, node->nstr))
@@ -271,13 +271,13 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
       struct soap_dom_element *elt;
       for (att = node->atts; att; att = att->next)
       { if (att->name)
-        { if (att->nstr)
+        { if (att->nstr && !(soap->mode & SOAP_DOM_ASIS))
           { register struct soap_ilist *q;
             if ((att->nstr == node->nstr || (node->nstr && !strcmp(att->nstr, node->nstr))) && prefix)
 	    { if (out_attribute(soap, prefix, att->name, att->data))
 	        return soap->error;
 	    }
-	    else if ((q = soap_lookup_ns(soap, att->nstr)))
+	    else if ((q = soap_lookup_ns_prefix(soap, att->nstr)))
 	    { if (out_attribute(soap, q->id, att->name, att->data))
 	        return soap->error;
 	    }
@@ -285,7 +285,8 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
             { struct Namespace *ns;
 	      for (ns = soap->local_namespaces; ns && ns->id; ns++)
               { if (ns->ns == att->nstr || !strcmp(ns->ns, att->nstr))
-	        { if (out_attribute(soap, ns->id, att->name, att->data))
+	        { /* don't prefix attributes that start with 'xml' */
+		  if (out_attribute(soap, strncmp(att->name, "xml", 3) ? ns->id : NULL, att->name, att->data))
 	            return soap->error;
 	          break;
 	        }
@@ -486,7 +487,7 @@ struct soap_dom_attribute *soap_dom_next_attribute(struct soap_dom_attribute *at
 \******************************************************************************/
 
 static struct soap_ilist *
-soap_lookup_ns(struct soap *soap, const char *nstr)
+soap_lookup_ns_prefix(struct soap *soap, const char *nstr)
 { register struct soap_ilist *ip;
   for (ip = soap->iht[soap_hash(nstr)]; ip; ip = ip->next)
     if (!strcmp((char*)ip->ptr, nstr) && ip->level)
@@ -496,7 +497,7 @@ soap_lookup_ns(struct soap *soap, const char *nstr)
 
 /******************************************************************************/
 static struct soap_ilist *
-soap_enter_ns(struct soap *soap, const char *prefix, const char *nstr)
+soap_enter_ns_prefix(struct soap *soap, const char *prefix, const char *nstr)
 { int h;
   register struct soap_ilist *ip;
   for (ip = soap->iht[soap_hash(nstr)]; ip; ip = ip->next)

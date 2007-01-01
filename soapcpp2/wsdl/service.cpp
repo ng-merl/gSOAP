@@ -442,7 +442,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
       fprintf(stream, "#import \"%s/", import_path);
     else
       fprintf(stream, "#import \"");
-    fprintf(stream, "xsd.h\"\t// import primitive XSD types.\n", import_path);
+    fprintf(stream, "xsd.h\"\t// import primitive XSD types.\n");
   }
   for (SetOfString::const_iterator u = exturis.begin(); u != exturis.end(); ++u)
   { bool found = false;
@@ -701,7 +701,10 @@ void Definitions::compile(const wsdl__definitions& definitions)
           { fprintf(stream, "\n/// Element \"%s\":%s.\n", (*schema4)->targetNamespace, (*element).name);
             if (gflag)
 	    { const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema4)->targetNamespace, (*element).name);
-  	      fprintf(stream, "typedef _XML %s;\n", t);
+  	      if (t)
+	        fprintf(stream, "typedef _XML %s;\n", t);
+              else
+                fprintf(stream, "// Element definition intentionally left blank.\n");
 	    }
 	    else
 	    { const char *s = types.cname("_", (*schema4)->targetNamespace, (*element).name);
@@ -782,7 +785,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
         { fprintf(stream, "\n/// Element \"%s\":%s of type %s.\n", (*schema)->targetNamespace, (*element).name, (*element).type);
           types.document((*element).annotation);
           if (!types.is_defined("_", (*schema)->targetNamespace, (*element).name))
-          { const char *s = types.tname(NULL, NULL, (*element).type);
+          { const char *s = types.tname(NULL, (*schema)->targetNamespace, (*element).type);
             const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*element).name);
   	    if (gflag)
   	    { if (strncmp(s, "char", 4) && strchr(s, '*')) // don't want pointer typedef, unless char*
@@ -818,7 +821,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
         { fprintf(stream, "\n/// Attribute \"%s\":%s of simpleType %s.\n", (*schema)->targetNamespace, (*attribute).name, (*attribute).type);
           types.document((*attribute).annotation);
           if (!types.is_defined("_", (*schema)->targetNamespace, (*attribute).name))
-          { const char *s = types.tname(NULL, NULL, (*attribute).type);
+          { const char *s = types.tname(NULL, (*schema)->targetNamespace, (*attribute).type);
             const char *t = types.deftname(TYPEDEF, NULL, false, "_", (*schema)->targetNamespace, (*attribute).name);
   	    if (gflag)
   	    { if (strncmp(s, "char", 4) && strchr(s, '*')) // don't want pointer typedef, unless char*

@@ -80,8 +80,8 @@ static Token error_str();
 static int convchar(int*);
 static int hexchar(int*);
 static int octchar(int*);
-static void module(const char *name), import(const char *file);
-static void endimport();
+static void module(const char *name, const char *fullname);
+static void import(const char *file);
 static int magic(const char *name);
 %}
 ws		[ \t\v\n\f\r\x1A\xA0]
@@ -93,8 +93,8 @@ hex		0[xX][0-9a-fA-F]+
 num		{int}(\.{int}([Ee][+-]?{int})?|(\.{int})?[Ee][+-]?{int})
 chr		'(\\'|[^'\n])*'
 str		\"(\\\"|\\\n|[^"])*\"
-module		#module{ws}*{str}.*\n
-import		#import{ws}*{str}.*\n
+module		#module{ws}+.*\n
+import		#import{ws}+.*\n
 eof		<<EOF>>
 %x MLCOMMENT
 %%
@@ -134,12 +134,18 @@ eof		<<EOF>>
 {num}			{ return install_num(); }
 {chr}			{ return install_chr(); }
 {str}			{ return install_str(); }
-{module}		{ char *s, buf[1024];
+{module}		{ char *s, *t, buf[1024];
 			  s = strchr(yytext, '"');
 			  strcpy(buf, s+1);
 			  s = strchr(buf, '"');
 			  *s = '\0';
-			  module(buf);
+			  t = strchr(s+1, '"');
+			  if (t)
+			  { t++;
+			    s = strchr(t+1, '"');
+			    *s = '\0';
+			  }
+			  module(buf, t);
 			}
 {import}		{ char *s, buf[1024];
 			  s = strchr(yytext, '"');
@@ -795,27 +801,29 @@ octchar(int *p)
 	return c;
 }
 
-static void module(const char *name)
-{ if (imports)
+static void module(const char *name, const char *fullname)
+{ if (!fullname)
+    fullname = name;
+  if (imports)
   { if (!lflag)
     { Pragma **pp;
       char *s = emalloc(256);
-      sprintf(s, "#include \"%sH.h\"", name);
+      sprintf(s, "#include \"%sH.h\"", fullname);
       for (pp = &pragmas; *pp; pp = &(*pp)->next)
         ;
       *pp = (Pragma*)emalloc(sizeof(Pragma));
       (*pp)->pragma = s;
       (*pp)->next = NULL;
       is_module = 1;
-      fprintf(stderr, "Importing module %s\n\n", name);
+      fprintf(stderr, "Importing module %s\n\n", fullname);
     }
   }
   else
   { lflag = 1;
     typeNO = magic(name);
-    prefix = emalloc(strlen(name)+1);
-    strcpy(prefix, name);
-    fprintf(stderr, "Module %s magic number = %d\n\n", name, typeNO);
+    prefix = emalloc(strlen(fullname)+1);
+    strcpy(prefix, fullname);
+    fprintf(stderr, "Module %s magic number = %d\n\n", fullname, typeNO);
   }
 }
 

@@ -4,7 +4,7 @@ includes.h
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.2.9a"
+#define VERSION "1.2.9b"
 
 #include <utility>
 #include <iterator>

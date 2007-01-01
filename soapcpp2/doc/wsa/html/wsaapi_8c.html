@@ -15,73 +15,81 @@ Include dependency graph for wsaapi.c:<p><center><img src="wsaapi_8c__incl.png" 
 <table border=0 cellpadding=0 cellspacing=0>
 <tr><td></td></tr>
 <tr><td colspan=2><br><h2>Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a3">soap_wsa_fault_subcode</a> (struct soap *soap, int flag, const char *faultsubcode, const char *faultstring, const char *faultdetail)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a4">soap_wsa_fault_subcode</a> (struct soap *soap, int flag, const char *faultsubcode, const char *faultstring, const char *faultdetail)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets sender/receiver SOAP Fault (sub)code for server fault response.  <a href="#a3"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a4">soap_wsa_init</a> (struct soap *soap, struct <a class="el" href="structsoap__wsa__data.html">soap_wsa_data</a> *data)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets sender/receiver SOAP Fault (sub)code for server fault response.  <a href="#a4"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a5">soap_wsa_init</a> (struct soap *soap, struct <a class="el" href="structsoap__wsa__data.html">soap_wsa_data</a> *data)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializes plugin data.  <a href="#a4"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a5">soap_wsa_delete</a> (struct soap *soap, struct soap_plugin *p)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Initializes plugin data.  <a href="#a5"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a6">soap_wsa_delete</a> (struct soap *soap, struct soap_plugin *p)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Deletes plugin data.  <a href="#a5"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a6">soap_wsa_header</a> (struct soap *soap)</td></tr>
-
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copies WS-Addressing action to SOAP action.  <a href="#a6"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a7">soap_wsa_set_error</a> (struct soap *soap, const char **c, const char **s)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Deletes plugin data.  <a href="#a6"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a7">soap_wsa_header</a> (struct soap *soap)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copies WS-Addressing action to SOAP action.  <a href="#a7"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a8">soap_wsa_response</a> (struct soap *soap, int status, size_t count)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>void&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a8">soap_wsa_set_error</a> (struct soap *soap, const char **c, const char **s)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Overrides the HTTP response operations to send an HTTP POST.  <a href="#a8"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a9">soap_wsa_alloc_header</a> (struct soap *soap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Copies WS-Addressing action to SOAP action.  <a href="#a8"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a9">soap_wsa_response</a> (struct soap *soap, int status, size_t count)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds SOAP Header if not present.  <a href="#a9"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a10">soap_wsa_request</a> (struct soap *soap, const char *id, const char *to, const char *action)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Overrides the HTTP response operations to send an HTTP POST.  <a href="#a9"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a10">soap_wsa_alloc_header</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets the WS-Addressing information header for the next request message with optional MessageID, To (required), and Action (required).  <a href="#a10"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a11">soap_wsa_add_From</a> (struct soap *soap, const char *from)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds SOAP Header if not present.  <a href="#a10"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a11">soap_wsa_request</a> (struct soap *soap, const char *id, const char *to, const char *action)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing From header for request message.  <a href="#a11"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a12">soap_wsa_add_ReplyTo</a> (struct soap *soap, const char *replyTo)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets the WS-Addressing information header for the next request message with optional MessageID, To (required), and Action (required).  <a href="#a11"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a12">soap_wsa_add_From</a> (struct soap *soap, const char *from)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing ReplyTo header for request message.  <a href="#a12"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a13">soap_wsa_add_FaultTo</a> (struct soap *soap, const char *faultTo)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing From header for request message.  <a href="#a12"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a13">soap_wsa_add_NoReply</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing FaultTo header for request message.  <a href="#a13"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a14">soap_wsa_check</a> (struct soap *soap)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing ReplyTo header to 'none' (no reply).  <a href="#a13"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a14">soap_wsa_add_ReplyTo</a> (struct soap *soap, const char *replyTo)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Checks the presence and validity of WS-Addressing information headers.  <a href="#a14"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a15">soap_wsa_reply</a> (struct soap *soap, const char *id, const char *action)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing ReplyTo header for request message.  <a href="#a14"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a15">soap_wsa_add_FaultTo</a> (struct soap *soap, const char *faultTo)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing header fields for server response.  <a href="#a15"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a16">soap_wsa_sender_fault_subcode</a> (struct soap *soap, const char *faultsubcode, const char *faultstring, const char *faultdetail)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing FaultTo header for request message.  <a href="#a15"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a16">soap_wsa_check</a> (struct soap *soap)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets sender SOAP Fault (sub)code for server fault response.  <a href="#a16"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a17">soap_wsa_receiver_fault_subcode</a> (struct soap *soap, const char *faultsubcode, const char *faultstring, const char *faultdetail)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Checks the presence and validity of WS-Addressing information headers.  <a href="#a16"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a17">soap_wsa_reply</a> (struct soap *soap, const char *id, const char *action)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets receiver SOAP Fault (sub)code for server fault response.  <a href="#a17"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a18">soap_wsa_sender_fault</a> (struct soap *soap, const char *faultstring, const char *faultdetail)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets WS-Addressing header fields for server response.  <a href="#a17"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a18">soap_wsa_sender_fault_subcode</a> (struct soap *soap, const char *faultsubcode, const char *faultstring, const char *faultdetail)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets sender SOAP Fault for server fault response.  <a href="#a18"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a19">soap_wsa_receiver_fault</a> (struct soap *soap, const char *faultstring, const char *faultdetail)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets sender SOAP Fault (sub)code for server fault response.  <a href="#a18"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a19">soap_wsa_receiver_fault_subcode</a> (struct soap *soap, const char *faultsubcode, const char *faultstring, const char *faultdetail)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets receiver SOAP Fault for server fault response.  <a href="#a19"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a20">soap_wsa_error</a> (struct soap *soap, wsa__FaultSubcodeValues fault)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets receiver SOAP Fault (sub)code for server fault response.  <a href="#a19"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a20">soap_wsa_sender_fault</a> (struct soap *soap, const char *faultstring, const char *faultdetail)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets SOAP Fault (sub)code for server WS-Addressing fault response.  <a href="#a20"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a21">soap_wsa</a> (struct soap *soap, struct soap_plugin *p, void *arg)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets sender SOAP Fault for server fault response.  <a href="#a20"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a21">soap_wsa_receiver_fault</a> (struct soap *soap, const char *faultstring, const char *faultdetail)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Plugin registry function, used with soap_register_plugin.  <a href="#a21"></a><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets receiver SOAP Fault for server fault response.  <a href="#a21"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a22">soap_wsa_check_fault</a> (struct soap *soap, SOAP_WSA(FaultSubcodeValues)*fault)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Checks the presence of a WS-Addressing fault.  <a href="#a22"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a23">soap_wsa_error</a> (struct soap *soap, SOAP_WSA(FaultSubcodeValues) fault)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets SOAP Fault (sub)code for server WS-Addressing fault response.  <a href="#a23"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a24">soap_wsa</a> (struct soap *soap, struct soap_plugin *p, void *arg)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Plugin registry function, used with soap_register_plugin.  <a href="#a24"></a><br></td></tr>
 <tr><td colspan=2><br><h2>Variables</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>const char&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a0">soap_wsa_id</a> [13] = SOAP_WSA_ID</td></tr>
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a1">soap_wsa_anonymousURI</a> = "http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous"</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a2">soap_wsa_faultAction</a> = "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault"</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a2">soap_wsa_noneURI</a> = "addressing/none not supported"</td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>const char *&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsaapi_8c.html#a3">soap_wsa_faultAction</a> = "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault"</td></tr>
 
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a21" doxytag="wsaapi.c::soap_wsa" ></a><p>
+<a class="anchor" name="a24" doxytag="wsaapi.c::soap_wsa" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -134,7 +142,7 @@ Plugin registry function, used with soap_register_plugin.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="wsaapi.c::soap_wsa_add_FaultTo" ></a><p>
+<a class="anchor" name="a15" doxytag="wsaapi.c::soap_wsa_add_FaultTo" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -180,7 +188,7 @@ Sets WS-Addressing FaultTo header for request message.
 Use soap_wsa_request to populate the WS-Addressing header first.     </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="wsaapi.c::soap_wsa_add_From" ></a><p>
+<a class="anchor" name="a12" doxytag="wsaapi.c::soap_wsa_add_From" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -226,7 +234,44 @@ Sets WS-Addressing From header for request message.
 Use soap_wsa_request to populate the WS-Addressing header first.     </td>
   </tr>
 </table>
-<a class="anchor" name="a12" doxytag="wsaapi.c::soap_wsa_add_ReplyTo" ></a><p>
+<a class="anchor" name="a13" doxytag="wsaapi.c::soap_wsa_add_NoReply" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> int soap_wsa_add_NoReply           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>soap</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Sets WS-Addressing ReplyTo header to 'none' (no reply). 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK or SOAP_ERR</dd></dl>
+Note: WS-Addressing 2005/08 standard.<p>
+Use soap_wsa_request to populate the WS-Addressing header.     </td>
+  </tr>
+</table>
+<a class="anchor" name="a14" doxytag="wsaapi.c::soap_wsa_add_ReplyTo" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -272,7 +317,7 @@ Sets WS-Addressing ReplyTo header for request message.
 Use soap_wsa_request to populate the WS-Addressing header.     </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="wsaapi.c::soap_wsa_alloc_header" ></a><p>
+<a class="anchor" name="a10" doxytag="wsaapi.c::soap_wsa_alloc_header" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -308,7 +353,7 @@ Adds SOAP Header if not present.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="wsaapi.c::soap_wsa_check" ></a><p>
+<a class="anchor" name="a16" doxytag="wsaapi.c::soap_wsa_check" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -344,7 +389,53 @@ Checks the presence and validity of WS-Addressing information headers.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="wsaapi.c::soap_wsa_delete" ></a><p>
+<a class="anchor" name="a22" doxytag="wsaapi.c::soap_wsa_check_fault" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> int soap_wsa_check_fault           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname" nowrap> <em>soap</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>SOAP_WSA(FaultSubcodeValues)*&nbsp;</td>
+          <td class="mdname" nowrap> <em>fault</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Checks the presence of a WS-Addressing fault. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
+    <tr><td><tt>[out]</tt>&nbsp;</td><td valign=top><em>fault</em>&nbsp;</td><td>code </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK (no fault) or fault code </dd></dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a6" doxytag="wsaapi.c::soap_wsa_delete" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -390,7 +481,7 @@ Deletes plugin data.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a20" doxytag="wsaapi.c::soap_wsa_error" ></a><p>
+<a class="anchor" name="a23" doxytag="wsaapi.c::soap_wsa_error" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -404,7 +495,7 @@ Deletes plugin data.
         <tr>
           <td class="md" nowrap align="right"></td>
           <td></td>
-          <td class="md" nowrap>wsa__FaultSubcodeValues&nbsp;</td>
+          <td class="md" nowrap>SOAP_WSA(FaultSubcodeValues)&nbsp;</td>
           <td class="mdname" nowrap> <em>fault</em></td>
         </tr>
         <tr>
@@ -436,7 +527,7 @@ Sets SOAP Fault (sub)code for server WS-Addressing fault response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a3" doxytag="wsaapi.c::soap_wsa_fault_subcode" ></a><p>
+<a class="anchor" name="a4" doxytag="wsaapi.c::soap_wsa_fault_subcode" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -503,7 +594,7 @@ Sets sender/receiver SOAP Fault (sub)code for server fault response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="wsaapi.c::soap_wsa_header" ></a><p>
+<a class="anchor" name="a7" doxytag="wsaapi.c::soap_wsa_header" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -539,7 +630,7 @@ Copies WS-Addressing action to SOAP action.
 This callback is invoked to copy the WS-Addressing action to the SOAP action before invoking the service operation.     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="wsaapi.c::soap_wsa_init" ></a><p>
+<a class="anchor" name="a5" doxytag="wsaapi.c::soap_wsa_init" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -585,7 +676,7 @@ Initializes plugin data.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a19" doxytag="wsaapi.c::soap_wsa_receiver_fault" ></a><p>
+<a class="anchor" name="a21" doxytag="wsaapi.c::soap_wsa_receiver_fault" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -638,7 +729,7 @@ Sets receiver SOAP Fault for server fault response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="wsaapi.c::soap_wsa_receiver_fault_subcode" ></a><p>
+<a class="anchor" name="a19" doxytag="wsaapi.c::soap_wsa_receiver_fault_subcode" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -698,7 +789,7 @@ Sets receiver SOAP Fault (sub)code for server fault response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="wsaapi.c::soap_wsa_reply" ></a><p>
+<a class="anchor" name="a17" doxytag="wsaapi.c::soap_wsa_reply" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -751,7 +842,7 @@ Sets WS-Addressing header fields for server response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a10" doxytag="wsaapi.c::soap_wsa_request" ></a><p>
+<a class="anchor" name="a11" doxytag="wsaapi.c::soap_wsa_request" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -811,7 +902,7 @@ Sets the WS-Addressing information header for the next request message with opti
 Note: use soap_wsa_add_From, soap_wsa_add_ReplyTo, soap_wsa_add_FaultTo to add other addressing fields following this function call.     </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="wsaapi.c::soap_wsa_response" ></a><p>
+<a class="anchor" name="a9" doxytag="wsaapi.c::soap_wsa_response" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -863,7 +954,7 @@ Overrides the HTTP response operations to send an HTTP POST.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a18" doxytag="wsaapi.c::soap_wsa_sender_fault" ></a><p>
+<a class="anchor" name="a20" doxytag="wsaapi.c::soap_wsa_sender_fault" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -916,7 +1007,7 @@ Sets sender SOAP Fault for server fault response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="wsaapi.c::soap_wsa_sender_fault_subcode" ></a><p>
+<a class="anchor" name="a18" doxytag="wsaapi.c::soap_wsa_sender_fault_subcode" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -976,7 +1067,7 @@ Sets sender SOAP Fault (sub)code for server fault response.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="wsaapi.c::soap_wsa_set_error" ></a><p>
+<a class="anchor" name="a8" doxytag="wsaapi.c::soap_wsa_set_error" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1049,16 +1140,16 @@ Copies WS-Addressing action to SOAP action.
     <td>
 
 <p>
-    </td>
+Anonymous Reply/To endpoint address     </td>
   </tr>
 </table>
-<a class="anchor" name="a2" doxytag="wsaapi.c::soap_wsa_faultAction" ></a><p>
+<a class="anchor" name="a3" doxytag="wsaapi.c::soap_wsa_faultAction" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> const char* <a class="el" href="wsaapi_8c.html#a2">soap_wsa_faultAction</a> = "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault"          </td>
+          <td class="md" nowrap valign="top"> const char* <a class="el" href="wsaapi_8c.html#a3">soap_wsa_faultAction</a> = "http://schemas.xmlsoap.org/ws/2004/08/addressing/fault"          </td>
         </tr>
       </table>
     </td>
@@ -1081,7 +1172,7 @@ Copies WS-Addressing action to SOAP action.
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> const char <a class="el" href="wsaapi_8h.html#a1">soap_wsa_id</a>[13] = SOAP_WSA_ID          </td>
+          <td class="md" nowrap valign="top"> const char <a class="el" href="wsaapi_8h.html#a4">soap_wsa_id</a>[13] = SOAP_WSA_ID          </td>
         </tr>
       </table>
     </td>
@@ -1098,7 +1189,30 @@ Copies WS-Addressing action to SOAP action.
 Plugin identification for plugin registry     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Jun 1 23:13:01 2006 for gSOAP WS-Addressing by
+<a class="anchor" name="a2" doxytag="wsaapi.c::soap_wsa_noneURI" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> const char* <a class="el" href="wsaapi_8c.html#a2">soap_wsa_noneURI</a> = "addressing/none not supported"          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Specifies no Reply endpoint address (no reply)     </td>
+  </tr>
+</table>
+<hr size="1"><address style="align: right;"><small>Generated on Mon Jan 1 12:37:35 2007 for gSOAP WS-Addressing by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.8 </small></address>
 </body>

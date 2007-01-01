@@ -60,7 +60,10 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "soapcpp2.h"
 #ifdef WIN32
 extern int soapcpp2lex();
+#else
+extern int yylex();
 #endif
+extern int is_XML(Tnode*);
 
 #define MAXNEST 16	/* max. nesting depth of scopes */
 
@@ -95,7 +98,7 @@ static Entry	*undefined(Symbol*);
 static Tnode	*mgtype(Tnode*, Tnode*);
 static Node	op(const char*, Node, Node), iop(const char*, Node, Node), relop(const char*, Node, Node);
 static void	mkscope(Table*, int), enterscope(Table*, int), exitscope();
-static int	integer(Tnode*), real(Tnode*), numeric(Tnode*), pointer(Tnode*);
+static int	integer(Tnode*), real(Tnode*), numeric(Tnode*);
 static void	add_XML(), add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
 extern char	*c_storage(Storage), *c_type(Tnode*), *c_ident(Tnode*);
 extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*), is_binary(Tnode*);
@@ -519,12 +522,13 @@ func	: fname '(' s6 fargso ')' constobj abstract
 						$1->info.typ = mkfun(sp->entry);
 						$1->info.typ->id = $1->sym;
 						if (!is_transient(sp->entry->info.typ))
-							if (!is_response(sp->entry->info.typ))
+						{	if (!is_response(sp->entry->info.typ))
 							{	if (!is_XML(sp->entry->info.typ))
 									add_response($1, sp->entry);
 							}
 							else
 								add_result(sp->entry->info.typ);
+						}
 					}
 					else
 					{	sprintf(errbuf, "return type of remote method function prototype '%s' must be integer", $1->sym->name);
@@ -989,7 +993,6 @@ type	: VOID		{ $$ = mkvoid(); }
 			  {	if (p->info.typ->ref || p->info.typ->type != Tunion)
 			  	{	sprintf(errbuf, "union '%s' already declared at line %d", $2->name, p->lineno);
 					semerror(errbuf);
-			  		p->info.typ;
 				}
 				else
 				{	p = reenter(classtable, $2);
@@ -1619,6 +1622,7 @@ integer(Tnode *typ)
 	case Tshort:
 	case Tint:
 	case Tlong:	return True;
+	default:	break;
 	}
 	return False;
 }
@@ -1629,6 +1633,7 @@ real(Tnode *typ)
 	case Tfloat:
 	case Tdouble:
 	case Tldouble:	return True;
+	default:	break;
 	}
 	return False;
 }
@@ -1636,11 +1641,6 @@ real(Tnode *typ)
 static int
 numeric(Tnode *typ)
 {	return integer(typ) || real(typ);
-}
-
-static int
-pointer(Tnode *typ)
-{	return typ->type == Tpointer;
 }
 
 static void

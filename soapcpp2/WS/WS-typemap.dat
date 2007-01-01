@@ -31,26 +31,41 @@
 
 wsrp	= "http://schemas.xmlsoap.org/rp/"
 wsen	= "http://schemas.xmlsoap.org/ws/2004/09/enumeration"
+wsp	= "http://schemas.xmlsoap.org/ws/2004/09/policy"
+
 wsa	= <http://schemas.xmlsoap.org/ws/2004/08/addressing>
 wsa3	= <http://schemas.xmlsoap.org/ws/2003/03/addressing>
-wsp	= "http://schemas.xmlsoap.org/ws/2004/09/policy"
+wsa4	= <http://schemas.xmlsoap.org/ws/2004/03/addressing>
+wsa5	= <http://www.w3.org/2005/08/addressing>
 
 #	wsa:AttributedQName is a QName element extensible with attributes.
 #	We redeclare it as a QName string, assuming we don't need attributes:
 
-wsa__AttributedQName	= | _QName
-wsa3__AttributedQName	= | _QName
+wsa__AttributedQName		= | _QName
+wsa3__AttributedQName		= | _QName
+wsa4__AttributedQName		= | _QName
+wsa5__AttributedQNameType	= | _QName
 
 #	wsa:AttributedURI is an anyURI element extensible with attributes.
 #	We redeclare it as a regular string, assuming we don't need attributes:
 
-wsa__AttributedURI	= | char*
-wsa3__AttributedURI	= | char*
+wsa__AttributedURI	= | char* /*URI*/
+wsa3__AttributedURI	= | char* /*URI*/
+wsa4__AttributedURI	= | char* /*URI*/
+wsa5__AttributedURIType	= | char* /*URI*/
 
 #	wsa:ReplyAfterType is an nonnegativeInteger extensible with attributes.
 #	We redeclare it here, assuming we don't need attributes:
 
-wsa__ReplyAfterType	= | unsigned int
+wsa__ReplyAfterType			= | unsigned int
+_wsa__ReplyAfter			= | unsigned int
+wsa4__ReplyAfterType			= | unsigned int
+_wsa4__ReplyAfter			= | unsigned int
+wsa5__AttributedUnsignedLongType	= | ULONG64
+
+#	wsa:IsReferenceParameter is a boolean, redefined here to avoid clashes:
+
+_wsa5__IsReferenceParameter	= typedef enum _wsa5__IsReferenceParameter { wsa5__false, wsa5__true } _wsa5__IsReferenceParameter; | _wsa5__IsReferenceParameter;
 
 #	wsse, wsu, ds, and xenc bindings
 

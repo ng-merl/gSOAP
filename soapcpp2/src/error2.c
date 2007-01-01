@@ -61,14 +61,14 @@ char errbuf[1024];	/* to hold error messages */
 /*
 yyerror - called by parser from an error production with nonterminal `error'
 */
-yyerror(char *s)
+void yyerror(char *s)
 {	fprintf(stderr, "%s(%d): %s\n", filename, yylineno, s);
 }
 
 /*
 lexerror - called by lexical analyzer upon failure to recognize a token
 */
-lexerror(const char *s)
+void lexerror(const char *s)
 {	fprintf(stderr, "%s(%d): %s: %s\n", filename, yylineno, s, yytext);
 	if (lexerrno++ >= MAXERR)
 		execerror("too many syntactic errors, bailing out");
@@ -77,7 +77,7 @@ lexerror(const char *s)
 /*
 synerror - called by a semantic action in the yacc grammar
 */
-synerror(const char *s)
+void synerror(const char *s)
 {	fprintf(stderr, "%s(%d): Syntax error: %s\n", filename, yylineno-1, s);
 	if (synerrno++ >= MAXERR)
 		execerror("too many syntactic errors, bailing out");
@@ -86,7 +86,7 @@ synerror(const char *s)
 /*
 semerror - report semantic error from static checking
 */
-semerror(const char *s)
+void semerror(const char *s)
 {	fprintf(stderr, "\n%s(%d): **ERROR**: %s\n\n", filename, yylineno, s);
 	if (semerrno++ >= MAXERR)
 		execerror("too many semantic errors, bailing out");
@@ -95,7 +95,7 @@ semerror(const char *s)
 /*
 semwarn - report semantic warning from static checking
 */
-semwarn(const char *s)
+void semwarn(const char *s)
 {	fprintf(stderr, "\n**WARNING**: %s (detected at line %d in %s)\n\n", s, yylineno, filename);
 	semwarno++;
 }
@@ -103,14 +103,14 @@ semwarn(const char *s)
 /*
 compliancewarn - report compliance warning
 */
-compliancewarn(const char *s)
+void compliancewarn(const char *s)
 {	fprintf(stderr, "Compliance warning: %s\n", s);
 }
 
 /*
 typerror - report type error (a semantic error)
 */
-typerror(const char *s)
+void typerror(const char *s)
 {	fprintf(stderr, "%s(%d): Type error: %s\n", filename, yylineno, s);
 	if (semerrno++ >= MAXERR)
 		execerror("too many semantic errors, bailing out");
@@ -119,7 +119,7 @@ typerror(const char *s)
 /*
 execerror - print error message and terminate execution
 */
-execerror(const char *s)
+void execerror(const char *s)
 {	fprintf(stderr, "Critical error: %s\n", s);
 	exit(1);
 }
@@ -127,7 +127,7 @@ execerror(const char *s)
 /*
 progerror - called when check(expr) failed, i.e. upon programming error
 */
-progerror(const char *s, const char *f, int l)
+void progerror(const char *s, const char *f, int l)
 {	fprintf(stderr, "Program failure: %s in file %s line %d\n", s, f, l);
 	exit(1);
 }

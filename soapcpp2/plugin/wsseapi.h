@@ -145,7 +145,7 @@ int soap_wsse_get_SignedInfo_SignatureMethod(struct soap *soap, int *alg);
 int soap_wsse_add_SignatureValue(struct soap *soap, int alg, const void *key, int keylen);
 int soap_wsse_verify_SignatureValue(struct soap *soap, int alg, const void *key, int keylen);
 int soap_wsse_verify_SignedInfo(struct soap *soap);
-int soap_wsse_verify_digest(struct soap *soap, int alg, const char *id, unsigned char hash[SOAP_SMD_MAX_SIZE]);
+int soap_wsse_verify_digest(struct soap *soap, int alg, int canonical, const char *id, unsigned char hash[SOAP_SMD_MAX_SIZE]);
 
 struct ds__KeyInfoType *soap_wsse_add_KeyInfo(struct soap *soap);
 struct ds__KeyInfoType *soap_wsse_KeyInfo(struct soap *soap);

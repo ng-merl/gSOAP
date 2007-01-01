@@ -25,7 +25,7 @@ No other rights are granted by implication, estoppel or otherwise.
 	blockDefault="#all">
 
 	<xs:import namespace='http://www.w3.org/XML/1998/namespace' />
-	<xs:import namespace="http://schemas.xmlsoap.org/ws/2004/08/addressing" />
+	<xs:import namespace="http://schemas.xmlsoap.org/ws/2004/08/addressing"  schemaLocation="WS-Addressing.xsd"/>
 
 	<!-- Types and global elements -->
 	<xs:complexType name="FilterType" mixed="true">

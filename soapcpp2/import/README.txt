@@ -7,6 +7,14 @@ stlset.h	std::set serializer
 stlvector.h	std::vector serializer
 stl.h		std::deque, std::list, std::set, and std::vector serializer
 soap12.h	SOAP 1.2 namespaces
+wsa.h		WS-Addressing 2004/08 (see plugin/wsaapi.c)
+wsa3.h		WS-Addressing 2003/03 (see plugin/wsaapi.c)
+wsa4.h		WS-Addressing 2004/03 (see plugin/wsaapi.c)
+wsa5.h		WS-Addressing 2005/03 (see plugin/wsaapi.c)
+wsse.h		WS-Security (see plugin/wsseapi.c)
+wsu.h		Utility
+xmlmime.h	XML MIME bindings
+xop.h		XOP MTOM attachments
 
 This directory further contains files to support a growing number of WS-*
 specifications.

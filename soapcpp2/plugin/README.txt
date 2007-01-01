@@ -8,8 +8,8 @@ httppost.*	HTTP POST method support for example non-SOAP requests
 httpmd5.*	HTTP MD5 checksums
 logging.*	Message logging (selective inbound/outbound)
 plugin.*	Example plugin for aspiring plugin developers
-wsaapi.*	WS-Addressing (wsa) plugin
-wsseapi.*	WS-Security (wsse) plugin
+wsaapi.*	WS-Addressing (wsa) plugin, see doc/wsa
+wsseapi.*	WS-Security (wsse) plugin, see doc/wsse
 
 Supporting modules:
 

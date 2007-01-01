@@ -2,10 +2,10 @@
 
 wsademo.c
 
-WS-Addressing demo service. See the header file for details.
+WS-Addressing demo service. See the wsademo.h header file for details.
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -108,14 +108,43 @@ int main(int argc, char **argv)
           soap_wsa_add_From(soap, FromAddress);
         if (strchr(argv[2], 'r'))
           soap_wsa_add_ReplyTo(soap, ReplyToAddress);
+        if (strchr(argv[2], 'n'))
+        {
+#ifdef SOAP_WSA_2005
+          soap_wsa_add_NoReply(soap);
+#else
+          printf("'NoReply' feature not available with WS-Addressing 2003/2004\n");
+#endif
+        }
         if (strchr(argv[2], 'e'))
           soap_wsa_add_FaultTo(soap, FaultToAddress);
       }
       if (soap_call_ns__wsademo(soap, ToAddress, NULL, argv[1], &r))
-      { if (soap->error == 202)	/* HTTP ACCEPTED */
-          printf("Request was accepted and results were forwarded\n");
+      {
+#ifdef SOAP_WSA_2005
+        wsa5__FaultCodesType fault;
+	char *info;
+        if (soap->error == 202)	/* HTTP ACCEPTED */
+          printf("Request was accepted\n");
+        else if (soap_wsa_check_fault(soap, &fault, &info))
+	{ switch (fault)
+	  { case wsa5__EndpointUnavailable:
+	      fprintf(stderr, "Server %s is currently not available.\n", info?info:"");
+	      break;
+            default:
+	      fprintf(stderr, "A wsa fault %d occurred:\n", (int)fault);
+	      soap_print_fault(soap, stderr);
+	      break;
+	  }
+	}
         else
 	  soap_print_fault(soap, stderr);
+#else
+        if (soap->error == 202)	/* HTTP ACCEPTED */
+          printf("Request was accepted\n");
+        else
+	  soap_print_fault(soap, stderr);
+#endif
       }
       else if (r.out)
         printf("Result = %s\n", r.out);
@@ -139,7 +168,15 @@ int ns__wsademo(struct soap *soap, char *in, struct ns__wsademoResult *result)
     return soap->error;
   /* simulate a wsa Fault */
   if (!strcmp(in, "error"))
-    return soap_wsa_error(soap, wsa__EndpointUnavailable);
+  {
+#if defined(SOAP_WSA_2005)
+    return soap_wsa_error(soap, SOAP_WSA(EndpointUnavailable), ToAddress);
+#elif defined(SOAP_WSA_2003)
+    return soap_wsa_error(soap, "Endpoint is not available");
+#else
+    return soap_wsa_error(soap, SOAP_WSA(EndpointUnavailable));
+#endif
+  }
   /* simulate a user-defined SOAP Fault */
   if (!strcmp(in, "fault"))
     return soap_wsa_sender_fault(soap, "The demo service wsademo() operation returned a fault", NULL);

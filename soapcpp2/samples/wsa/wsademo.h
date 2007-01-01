@@ -77,18 +77,21 @@ operation to handle responses.
 	> ./wsademo hello r
 	This example shows the server returning "hello" to the return service.
 
+	> ./wsademo hello n
+	This example shows the server accepting the message without reply.
+
 	> ./wsademo error e
-	This example shows the server returing a wsa fault to the fault service.
+	This example shows the server returning a wsa fault to fault service.
 
 	> ./wsademo fault e
-	This example shows the server returing a SOAP fault to fault service.
+	This example shows the server returning a SOAP fault to fault service.
 
 	Note: when the response service is down, the response cannot be relayed
 	and the client (or fault service) will be informed about the failure.
 */
 
 #import "soap12.h"
-#import "wsa.h"
+#import "wsa5.h"
 
 //gsoap ns service name:	wsademo demonstrates WS-Addressing capabilities
 //gsoap ns service port:	http://localhost:11001
@@ -97,16 +100,16 @@ operation to handle responses.
 
 struct SOAP_ENV__Header
 {
-                 _wsa__MessageID  wsa__MessageID 0;
-                 _wsa__RelatesTo *wsa__RelatesTo 0;
-                 _wsa__From      *wsa__From      0;
-  mustUnderstand _wsa__ReplyTo   *wsa__ReplyTo   0;
-  mustUnderstand _wsa__FaultTo   *wsa__FaultTo   0;
-  mustUnderstand _wsa__To         wsa__To        0;
-  mustUnderstand _wsa__Action     wsa__Action    0;
+                 _wsa5__MessageID  wsa5__MessageID 0;
+                 _wsa5__RelatesTo *wsa5__RelatesTo 0;
+                 _wsa5__From      *wsa5__From      0;
+  mustUnderstand _wsa5__ReplyTo   *wsa5__ReplyTo   0;
+  mustUnderstand _wsa5__FaultTo   *wsa5__FaultTo   0;
+  mustUnderstand _wsa5__To         wsa5__To        0;
+  mustUnderstand _wsa5__Action     wsa5__Action    0;
 };
 
-/* TRICK 1: generate SOAP-ENV:Fault struct via a one-way service operation.
+/* STEP 1: generate SOAP-ENV:Fault struct via a one-way service operation.
  * This allows us to implement a one-way service operation that accepts Faults.
  * Because a service operation input parameters has a corresponding struct, we
  * automatically generate the (original) SOAP_ENV__Fault struct on the fly!
@@ -128,29 +131,31 @@ int SOAP_ENV__Fault
 	void
 );
 
-/* TRICK 2: generate response struct via a one-way service response operation.
- * Because the service operation has a corresponding struct, we can use that
- * struct as a response parameter for the second two-way service operation.
+/* STEP 2: for the server side we need to generate a response struct for each
+ * operation to implement one-way service response operations that can be
+ * relayed. Because the service operation has a corresponding struct, we can
+ * use that struct as a response parameter for the second two-way service
+ * operation. This step is required to implement a wsa-capable server.
  */
 
-//gsoap ns service method-header-part: wsademoResult wsa__MessageID
-//gsoap ns service method-header-part: wsademoResult wsa__RelatesTo
-//gsoap ns service method-header-part: wsademoResult wsa__From
-//gsoap ns service method-header-part: wsademoResult wsa__ReplyTo
-//gsoap ns service method-header-part: wsademoResult wsa__FaultTo
-//gsoap ns service method-header-part: wsademoResult wsa__To
-//gsoap ns service method-header-part: wsademoResult wsa__Action
+//gsoap ns service method-header-part: wsademoResult wsa5__MessageID
+//gsoap ns service method-header-part: wsademoResult wsa5__RelatesTo
+//gsoap ns service method-header-part: wsademoResult wsa5__From
+//gsoap ns service method-header-part: wsademoResult wsa5__ReplyTo
+//gsoap ns service method-header-part: wsademoResult wsa5__FaultTo
+//gsoap ns service method-header-part: wsademoResult wsa5__To
+//gsoap ns service method-header-part: wsademoResult wsa5__Action
 //gsoap ns service method-action: wsademoResult urn:wsademo/wsademoPort/wsademoResult
 //gsoap ns service method-documentation: wsademoResult accepts a string value from a relayed response
 int ns__wsademoResult(char *out, void);
 
-//gsoap ns service method-header-part: wsademo wsa__MessageID
-//gsoap ns service method-header-part: wsademo wsa__RelatesTo
-//gsoap ns service method-header-part: wsademo wsa__From
-//gsoap ns service method-header-part: wsademo wsa__ReplyTo
-//gsoap ns service method-header-part: wsademo wsa__FaultTo
-//gsoap ns service method-header-part: wsademo wsa__To
-//gsoap ns service method-header-part: wsademo wsa__Action
+//gsoap ns service method-header-part: wsademo wsa5__MessageID
+//gsoap ns service method-header-part: wsademo wsa5__RelatesTo
+//gsoap ns service method-header-part: wsademo wsa5__From
+//gsoap ns service method-header-part: wsademo wsa5__ReplyTo
+//gsoap ns service method-header-part: wsademo wsa5__FaultTo
+//gsoap ns service method-header-part: wsademo wsa5__To
+//gsoap ns service method-header-part: wsademo wsa5__Action
 //gsoap ns service method-action: wsademo urn:wsademo/wsademoPort/wsademo
 //gsoap ns service method-documentation: wsademo echos a string value and relays the response to the wsa replyTo address (if present)
 int ns__wsademo(char *in, struct ns__wsademoResult *result);
