@@ -142,7 +142,7 @@ int main(int argc, char **argv)
     user = "anyone";
   /* read RSA private key for signing */
   if ((fd = fopen("server.pem", "r")))
-  { rsa_privk = PEM_read_PrivateKey(fd, NULL, NULL, "password");
+  { rsa_privk = PEM_read_PrivateKey(fd, NULL, NULL, (void*)"password");
     fclose(fd);
     if (!rsa_privk)
     { fprintf(stderr, "Could not read private RSA key from server.pem\n");

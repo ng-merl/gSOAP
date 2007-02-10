@@ -37,7 +37,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "stdsoap2.h"
 
 #undef VERSION
-#define VERSION "1.2.9b"
+#define VERSION "1.2.9c"
 
 #include <utility>
 #include <iterator>
@@ -100,7 +100,7 @@ extern SetOfString exturis;
 #define MAXINFILES (1000)
 
 extern int infiles;
-extern char *infile[MAXINFILES], *outfile, *mapfile, *proxy_host, *import_path;
+extern char *infile[MAXINFILES], *outfile, *mapfile, *proxy_host, *import_path, *cppnamespace;
 
 extern int proxy_port;
 

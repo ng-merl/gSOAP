@@ -91,7 +91,7 @@ int main()
     pthread_create(&tid, NULL, &process_request, (void*)tsoap);
   }
   soap_end(&soap);
-  soap_done(&soap); /* MUST call after CRYPTO_thread_cleanup */
+  soap_done(&soap); /* MUST call before CRYPTO_thread_cleanup */
   CRYPTO_thread_cleanup();
   return 0;
 } 

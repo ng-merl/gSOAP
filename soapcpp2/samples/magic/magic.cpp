@@ -10,6 +10,7 @@
 // To access a stand-alone server on a port: magicserver[] = "IP:PORT";
 // use "http://" to include HTTP header, e.g: magicserver[] = "http://IP:PORT";
 const char magicserver[] = "http://www.cs.fsu.edu/~engelen/magicserver.cgi";
+// const char magicserver[] = "http://localhost:8080";
 // To send request to stdout and read response from stdin, use:
 // const char magicserver[] = "http://";
 

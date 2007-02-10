@@ -51,7 +51,7 @@ int main()
     Windows.
   */
   if (soap_ssl_client_context(&soap,
-    SOAP_SSL_DEFAULT,	/* use SOAP_SSL_DEFAULT in production code */
+    SOAP_SSL_DEFAULT | SOAP_SSL_SKIP_HOST_CHECK,	/* use SOAP_SSL_DEFAULT in production code, we don't want the host name checks since these will change from machine to machine */
     NULL, 		/* keyfile: required only when client must authenticate to server (see SSL docs on how to obtain this file) */
     NULL, 		/* password to read the keyfile */
     "cacert.pem",	/* optional cacert file to store trusted certificates, use cacerts.pem for all public certificates issued by common CAs */

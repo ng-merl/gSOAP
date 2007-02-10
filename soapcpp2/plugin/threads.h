@@ -66,7 +66,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #if defined(WIN32)
 # define THREAD_TYPE		HANDLE
 # define THREAD_ID		GetCurrentThreadId()
-# define THREAD_CREATE(x,y,z)	*(x) = _beginthread((y), NULL, 8*4096, (z))
+# define THREAD_CREATE(x,y,z)	*(x) = _beginthread((y), 8*4096, (z))
 # define THREAD_DETACH(x)	
 # define THREAD_JOIN(x)		WaitForSingleObject((x), INFINITE)
 # define THREAD_EXIT		_endthread()

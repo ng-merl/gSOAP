@@ -51,7 +51,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.9b" /* Current version */
+#define VERSION "2.7.9c" /* Current version */
 #endif
 
 #ifdef WIN32
@@ -139,8 +139,8 @@ typedef	enum Type
 	Tuint,
 	Tulong,
 	Tullong,
-	Tenum,
 	Ttime,
+	Tenum,
 	Tclass,		/* compound types */
 	Tstruct,
 	Tunion,
@@ -179,7 +179,7 @@ typedef	enum Level { INTERNAL, GLOBAL, PARAM, LOCAL } Level;
 
 #define mknone()	mktype(Tnone,     NULL, 0)
 #define mkvoid()	mktype(Tvoid,     NULL, 0)
-#define mkbool()	mktype(Tenum,     booltable, 2)
+#define mkbool()	mktype(Tenum,     booltable, 4)
 #define mkchar()	mktype(Tchar,     NULL, 1)
 #define mkwchart()	mktype(Twchar,    NULL, 4)
 #define mkshort()	mktype(Tshort,    NULL, 2)
@@ -223,7 +223,7 @@ typedef	struct Tnode
 	struct	Entry *response; /* funcs only: points to response struct */
 	int	width;
 	int	transient;
-	int	imports;
+	const char *imported;
 	struct	Tnode *next;
         Bool	generated;
         Bool	wsdl;
@@ -371,7 +371,6 @@ extern int Sflag;
 extern int tflag;
 extern int xflag;
 extern int zflag;
-extern int is_module;
 extern char dirpath[1024];
 extern char filename[1024];
 extern char *prefix;
@@ -383,6 +382,7 @@ extern Service *services;
 extern char *namespaceid;
 extern int transient;
 extern int imports;
+extern char *imported;
 extern int typeNO;
 
 extern char *envURI;

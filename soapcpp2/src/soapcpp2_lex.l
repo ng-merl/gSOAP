@@ -59,15 +59,15 @@ YYSTYPE soapcpp2lval;
 
 #ifndef WITH_LEX
 #define MAX_IMPORT_DEPTH 16
-static struct imported { struct imported *next; char name[1]; } *imported = NULL;
+static struct importlist { struct importlist *next; char name[1]; } *importlist = NULL;
 static char fnstk[MAX_IMPORT_DEPTH][1024];
 static int lnstk[MAX_IMPORT_DEPTH];
+static char *imstk[MAX_IMPORT_DEPTH];
 static YY_BUFFER_STATE instk[MAX_IMPORT_DEPTH];
 #endif
 int imports = 0;
-int is_module = 0;
+char *imported = NULL;
 static Token install_id();
-static Token install_lab();
 static Token install_int();
 static Token install_hex();
 static Token install_num();
@@ -87,7 +87,7 @@ static int magic(const char *name);
 ws		[ \t\v\n\f\r\x1A\xA0]
 digit		[0-9]
 alpha		[a-zA-Z_]
-id		{alpha}({alpha}|{digit}|::)*
+id		{alpha}({alpha}|{digit}|::|:{alpha})*
 int		{digit}+
 hex		0[xX][0-9a-fA-F]+
 num		{int}(\.{int}([Ee][+-]?{int})?|(\.{int})?[Ee][+-]?{int})
@@ -167,6 +167,7 @@ eof		<<EOF>>
 			    yy_switch_to_buffer(instk[imports]);
 			    strcpy(filename, fnstk[imports]);
 			    yylineno = lnstk[imports];
+			    imported = imstk[imports];
 			  }
 #endif
 			}
@@ -186,21 +187,6 @@ install_id()
 	return p->token;
 }
 
-/*
-	install_lab - lookup identifier in symbol table. If found, return token
-	and symbol table entry. If not found, create entry in symbol table and
-	return LAB token.
-*/ 
-static Token
-install_lab()
-{	Token t;
-	/* remove ':' and check if ID or TYPE */
-	yytext[strlen(yytext)-1] = '\0';
-        t = install_id();
-	if (t == ID || t == TYPE)
-		return LAB;
-	return t;
-}
 /*
 	install_int - convert digits to integer and return LNG token.
 */
@@ -805,17 +791,21 @@ static void module(const char *name, const char *fullname)
 { if (!fullname)
     fullname = name;
   if (imports)
-  { if (!lflag)
+  { // FIXME if (!lflag)
     { Pragma **pp;
-      char *s = emalloc(256);
+      char *s = emalloc(strlen(fullname)+15);
       sprintf(s, "#include \"%sH.h\"", fullname);
       for (pp = &pragmas; *pp; pp = &(*pp)->next)
-        ;
-      *pp = (Pragma*)emalloc(sizeof(Pragma));
-      (*pp)->pragma = s;
-      (*pp)->next = NULL;
-      is_module = 1;
-      fprintf(stderr, "Importing module %s\n\n", fullname);
+        if (!strcmp((*pp)->pragma, s))
+	  break;
+      if (!*pp)
+      { *pp = (Pragma*)emalloc(sizeof(Pragma));
+        (*pp)->pragma = s;
+        (*pp)->next = NULL;
+      }
+      imported = (char*)emalloc(sizeof(strlen(fullname))+1);
+      strcpy(imported, fullname);
+      fprintf(stderr, "Importing module '%s'\n\n", fullname);
     }
   }
   else
@@ -823,7 +813,7 @@ static void module(const char *name, const char *fullname)
     typeNO = magic(name);
     prefix = emalloc(strlen(fullname)+1);
     strcpy(prefix, fullname);
-    fprintf(stderr, "Module %s magic number = %d\n\n", fullname, typeNO);
+    fprintf(stderr, "Compiling module '%s' (magic number = %d)\n\n", fullname, typeNO);
   }
 }
 
@@ -838,7 +828,7 @@ static int magic(const char *name)
     else if (name[i] >= 'A' && name[i] <= 'Z')
       n = 26*n + name[i] - 'A';
     else
-      semerror("#module name must be alphabetic and the length must not exceed four characters");
+      semerror("#module name must be alphabetic and the length must not exceed four characters.\nUse '#module name longname' for longer names.");
   return 4699*n + 153424;
 }
 
@@ -849,8 +839,8 @@ static void import(const char *file)
 #else
 static void import(const char *file)
 { char buf[1024];
-  struct imported *p;
-  for (p = imported; p; p = p->next)
+  struct importlist *p;
+  for (p = importlist; p; p = p->next)
     if (!strcmp(p->name, file))
       return;
   if (imports >= MAX_IMPORT_DEPTH)
@@ -858,6 +848,8 @@ static void import(const char *file)
   instk[imports] = YY_CURRENT_BUFFER;
   strcpy(fnstk[imports], filename);
   lnstk[imports] = yylineno;
+  imstk[imports] = imported;
+  /* imported = NULL; this is useful to change the semantics of #import to NOT consider non-module imports to be part of the current module */
   imports++;
   if (!(yyin = fopen(file, "r")))
   { if (importpath)
@@ -885,10 +877,10 @@ static void import(const char *file)
       execerror(errbuf);
     }
   }
-  p = (struct imported*)malloc(sizeof(struct imported) + strlen(file));
+  p = (struct importlist*)malloc(sizeof(struct importlist) + strlen(file));
   strcpy(p->name, file);
-  p->next = imported;
-  imported = p;
+  p->next = importlist;
+  importlist = p;
   strcpy(filename, file);
   yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE));
 }

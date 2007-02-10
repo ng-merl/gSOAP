@@ -104,7 +104,7 @@ class Types
     void gen(const char *URI, const char *name, const xs__choice&);
     void gen(const char *URI, const xs__any&);
     void gen(const char *URI, const xs__anyAttribute&);
-    void gen_soap_array(const char *name, const char *t, const char *item, char *type);
+    void gen_soap_array(const char *name, const char *t, const char *item, const char *type);
     void gen_substitutions(const char *URI, const xs__element &element);
     void document(const xs__annotation*);
     void modify(const char *name);

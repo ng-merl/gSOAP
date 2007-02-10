@@ -160,7 +160,7 @@ Pragma	**pp;
 /* types and related */
 %type	<typ> type
 %type	<sto> store virtual constobj abstract
-%type	<e> fname struct class base
+%type	<e> fname struct class base enum
 %type	<sym> id arg name
 %type	<s> patt
 %type	<i> cint
@@ -226,10 +226,8 @@ exts	: NAMESPACE ID '{' exts1 '}'
 			{ namespaceid = $2->name; }
 	| exts1		{ namespaceid = NULL; }
 	;
-exts1	: /* empty */	{ if (!lflag)
-			  {	add_XML();
-				add_qname();
-			  }
+exts1	: /* empty */	{ add_XML();
+			  add_qname();
 			}
 	| exts1 ext	{ }
 	;
@@ -1060,10 +1058,10 @@ type	: VOID		{ $$ = mkvoid(); }
 			  $$ = p->info.typ;
 			  exitscope();
 			}
-	| ENUM id '{' s2 dclrs s5 '}'
-			{ if ((p = entry(enumtable, $2)))
+	| enum '{' s2 dclrs s5 '}'
+			{ if ((p = entry(enumtable, $1->sym)))
 			  {	if ((Table*) p->info.typ->ref)
-				{	sprintf(errbuf, "enum '%s' already declared at line %d", $2->name, p->lineno);
+				{	sprintf(errbuf, "enum '%s' already declared at line %d", $1->sym->name, p->lineno);
 					semerror(errbuf);
 				}
 				else
@@ -1072,10 +1070,10 @@ type	: VOID		{ $$ = mkvoid(); }
 				}
 			  }
 			  else
-			  {	p = enter(enumtable, $2);
+			  {	p = enter(enumtable, $1->sym);
 				p->info.typ = mkenum(sp->table);
 			  }
-			  p->info.typ->id = $2;
+			  p->info.typ->id = $1->sym;
 			  $$ = p->info.typ;
 			  exitscope();
 			}
@@ -1171,6 +1169,23 @@ class	: CLASS id	{ if ((p = entry(classtable, $2)))
 				p->info.typ->id = p->sym;
 			  }
 			  $2->token = TYPE;
+			  $$ = p;
+			}
+	;
+enum	: ENUM id	{ if ((p = entry(enumtable, $2)))
+			  {	if (p->info.typ->ref)
+				{	sprintf(errbuf, "enum '%s' already declared at line %d", $2->name, p->lineno);
+					semerror(errbuf);
+				}
+				/*
+				else
+					p = reenter(classtable, $2);
+			  	*/
+			  }
+			  else
+			  {	p = enter(enumtable, $2);
+				p->info.typ = mkenum(0);
+			  }
 			  $$ = p;
 			}
 	;
@@ -1648,6 +1663,7 @@ add_fault(Table *gt)
 { Table *t;
   Entry *p1, *p2, *p3, *p4;
   Symbol *s1, *s2, *s3, *s4;
+  imported = NULL;
   s1 = lookup("SOAP_ENV__Code");
   p1 = entry(classtable, s1);
   if (!p1 || !p1->info.typ->ref)
@@ -1743,23 +1759,17 @@ add_fault(Table *gt)
 static void
 add_XML()
 { Symbol *s = lookup("_XML");
-  int tmp = imports;
-  imports = 0;
   p = enter(typetable, s);
   xml = p->info.typ = mksymtype(mkstring(), s);
   p->info.sto = Stypedef;
-  imports = tmp;
 }
 
 static void
 add_qname()
 { Symbol *s = lookup("_QName");
-  int tmp = imports;
   p = enter(typetable, s);
   qname = p->info.typ = mksymtype(mkstring(), s);
-  qname->imports = 0;
   p->info.sto = Stypedef;
-  imports = tmp;
 }
 
 static void
@@ -1767,6 +1777,7 @@ add_header(Table *gt)
 { Table *t;
   Entry *p;
   Symbol *s = lookup("SOAP_ENV__Header");
+  imported = NULL;
   p = entry(classtable, s);
   if (!p)
   { t = mktable((Table*)0);

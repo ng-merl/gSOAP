@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.9b
+stdsoap2.h 2.7.9c
 
 gSOAP runtime
 
@@ -653,10 +653,12 @@ extern "C" {
 # define SOAP_EAGAIN WSAEWOULDBLOCK
 # define SOAP_EWOULDBLOCK WSAEWOULDBLOCK
 # define SOAP_EINPROGRESS WSAEINPROGRESS
+# define SOAP_EADDRINUSE WSAEADDRINUSE
 #else
 # define SOAP_ERANGE ERANGE
 # define SOAP_EINTR EINTR
 # define SOAP_EAGAIN EAGAIN
+# define SOAP_EADDRINUSE EADDRINUSE
 # ifdef SYMBIAN
 #  define SOAP_EWOULDBLOCK 9898
 #  define SOAP_EINPROGRESS 9899
@@ -1190,7 +1192,7 @@ struct soap_clist
   void *ptr;
   int type;
   int size;
-  void (*fdelete)(struct soap_clist*);
+  int (*fdelete)(struct soap_clist*);
 };
 
 /* attributes */
@@ -1872,7 +1874,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_end_recv(struct soap*);
 
 SOAP_FMAC1 void* SOAP_FMAC2 soap_malloc(struct soap*, size_t);
 SOAP_FMAC1 void SOAP_FMAC2 soap_dealloc(struct soap*, void*);
-SOAP_FMAC1 struct soap_clist * SOAP_FMAC2 soap_link(struct soap*, void*, int, int, void (*fdelete)(struct soap_clist*));
+SOAP_FMAC1 struct soap_clist * SOAP_FMAC2 soap_link(struct soap*, void*, int, int, int (*fdelete)(struct soap_clist*));
 SOAP_FMAC1 void SOAP_FMAC2 soap_unlink(struct soap*, const void*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_free_temp(struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_del(struct soap*);
@@ -2163,4 +2165,3 @@ SOAP_FMAC1 extern void SOAP_FMAC2 soap_free_cookies(struct soap*);
 #endif
 
 #endif
-

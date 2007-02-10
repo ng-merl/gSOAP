@@ -163,7 +163,7 @@ static const struct option default_options[] =
   { "i.iterative", NULL, },
   { "v.verbose", NULL, },
   { "o.pool", "threads", 6, "none"},
-  { "t.ioTimeout", "seconds", 6, "120"},
+  { "t.ioTimeout", "seconds", 6, "10"},
   { "s.serverTimeout", "seconds", 6, "3600"},
   { "d.cookieDomain", "host", 20, "localhost:8080"},
   { "p.cookiePath", "path", 20, "/"},
@@ -253,9 +253,14 @@ int main(int argc, char **argv)
   if (!port)
     port = 8080;
   fprintf(stderr, "Starting Web server on port %d\n", port);
-  if (port != 8080)
-    fprintf(stderr, "[Note: use port 8080 to test server from browser with test.html and calc.html]\n");
-  fprintf(stderr, "[Note: you must enable Linux/Unix SIGPIPE handler to avoid broken pipe]\n");
+  /* if the port is an odd number, the Web server uses HTTPS only */
+  if (port % 2)
+    secure = 1;
+  if (secure)
+    fprintf(stderr, "[Note: use https://localhost:%d/test.html to test the server from browser]\n", port);
+  else
+    fprintf(stderr, "[Note: use http://localhost:%d/test.html to test the server from browser]\n", port);
+  fprintf(stderr, "[Note: you should enable Linux/Unix SIGPIPE handlers to avoid broken pipe]\n");
 
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
 
@@ -267,9 +272,6 @@ int main(int argc, char **argv)
     fprintf(stderr, "Cannot setup thread mutex\n");
     exit(1);
   }
-  /* if the port is an odd number, the Web server uses HTTPS only */
-  if (port % 2)
-    secure = 1;
   if (secure && soap_ssl_server_context(&soap,
     SOAP_SSL_DEFAULT,
     "server.pem",	/* keyfile: see SSL docs on how to obtain this file */
@@ -315,12 +317,12 @@ int main(int argc, char **argv)
   server_loop(&soap);
   MUTEX_CLEANUP(queue_cs);
   COND_CLEANUP(queue_cv);
-#ifdef WITH_OPENSSL
-  CRYPTO_thread_cleanup();
-#endif
   free_options(options);
   soap_end(&soap);
   soap_done(&soap);
+#ifdef WITH_OPENSSL
+  CRYPTO_thread_cleanup();
+#endif
   THREAD_EXIT;
   return 0;
 }

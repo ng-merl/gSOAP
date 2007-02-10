@@ -73,7 +73,8 @@ char *infile[MAXINFILES],
      *outfile = NULL,
      *mapfile = "typemap.dat",
      *proxy_host = NULL,
-     *import_path = NULL;
+     *import_path = NULL,
+     *cppnamespace = NULL;
 
 int proxy_port = 8080;
 
@@ -198,6 +199,8 @@ static void options(int argc, char **argv)
        	    break;
           case 'c':
             cflag = 1;
+            if (cppnamespace)
+	      fprintf(stderr, "wsdl2h: Options -c and -q clash\n");
        	    break;
 	  case 'd':
 	    dflag = 1;
@@ -225,7 +228,7 @@ static void options(int argc, char **argv)
             else if (i < argc && argv[++i])
               import_path = argv[i];
             else
-              fprintf(stderr, "wsdl2h: Option -I requires a path argument");
+              fprintf(stderr, "wsdl2h: Option -I requires a path argument\n");
 	    break;
 	  case 'l':
 	    lflag = 1;
@@ -241,7 +244,7 @@ static void options(int argc, char **argv)
             else if (i < argc && argv[++i])
               schema_prefix = argv[i];
             else
-              fprintf(stderr, "wsdl2h: Option -n requires a prefix name argument");
+              fprintf(stderr, "wsdl2h: Option -n requires a prefix name argument\n");
 	    break;
           case 'N':
             a++;
@@ -251,7 +254,7 @@ static void options(int argc, char **argv)
             else if (i < argc && argv[++i])
               service_prefix = argv[i];
             else
-              fprintf(stderr, "wsdl2h: Option -N requires a prefix name argument");
+              fprintf(stderr, "wsdl2h: Option -N requires a prefix name argument\n");
 	    break;
           case 'o':
             a++;
@@ -261,10 +264,22 @@ static void options(int argc, char **argv)
             else if (i < argc && argv[++i])
               outfile = argv[i];
             else
-              fprintf(stderr, "wsdl2h: Option -o requires an output file argument");
+              fprintf(stderr, "wsdl2h: Option -o requires an output file argument\n");
 	    break;
 	  case 'p':
 	    pflag = 1;
+	    break;
+	  case 'q':
+            a++;
+            g = 0;
+            if (*a)
+	      cppnamespace = a;
+            else if (i < argc && argv[++i])
+              cppnamespace = argv[i];
+            else
+              fprintf(stderr, "wsdl2h: Option -q requires a C++ namespace name argument\n");
+            if (cflag)
+	      fprintf(stderr, "wsdl2h: Options -c and -q clash\n");
 	    break;
 	  case 'r':
             a++;
@@ -274,7 +289,7 @@ static void options(int argc, char **argv)
             else if (i < argc && argv[++i])
               proxy_host = argv[i];
             else
-              fprintf(stderr, "wsdl2h: Option -r requires a proxy host:port argument");
+              fprintf(stderr, "wsdl2h: Option -r requires a proxy host:port argument\n");
             if (proxy_host)
 	    { char *s = (char*)emalloc(strlen(proxy_host + 1));
 	      strcpy(s, proxy_host);
@@ -297,7 +312,7 @@ static void options(int argc, char **argv)
             else if (i < argc && argv[++i])
               mapfile = argv[i];
             else
-              fprintf(stderr, "wsdl2h: Option -t requires a type map file argument");
+              fprintf(stderr, "wsdl2h: Option -t requires a type map file argument\n");
 	    break;
 	  case 'u':
 	    uflag = 1;
@@ -319,7 +334,7 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-j] [-l] [-m] [-n name] [-N name] [-p] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-z] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
+            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-j] [-l] [-m] [-n name] [-N name] [-p] [-q name] [-r proxyhost:port] [-s] [-t typemapfile.dat] [-u] [-v] [-w] [-x] [-y] [-z] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
             fprintf(stderr, "\
 -a      generate indexed struct names for local elements with anonymous types\n\
 -c      generate C source code\n\
@@ -336,6 +351,7 @@ static void options(int argc, char **argv)
 -Nname  use name as the base namespace prefix for service namespaces\n\
 -ofile  output to file\n\
 -p      create polymorphic types with C++ inheritance with base xsd__anyType\n\
+-qname	use name for the C++ namespace for all service declarations\n\
 -rhost:port\n\
         connect via proxy host and port\n\
 -s      don't generate STL code (no std::string and no std::vector)\n\
@@ -385,6 +401,8 @@ infile.wsdl infile.xsd http://www... list of input sources (if none: use stdin)\
       { fprintf(stderr, "Cannot write to %s\n", outfile);
         exit(1);
       }
+      if (cppnamespace)
+        fprintf(stream, "namespace %s {\n", cppnamespace);
       fprintf(stderr, "Saving %s\n\n", outfile);
     }
   }

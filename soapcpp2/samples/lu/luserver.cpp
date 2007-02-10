@@ -33,6 +33,7 @@ int main(int argc, char **argv)
       soap_end(soap);		// clean up everything and close socket
     }
   }
+  soap_done(soap);
   return 0;
 }
 

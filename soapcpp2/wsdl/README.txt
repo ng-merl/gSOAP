@@ -149,6 +149,7 @@ COMMAND LINE OPTIONS
 -Nname  use name as the base namespace prefix for service namespaces
 -ofile  output to file
 -p      create polymorphic types with C++ inheritance with base xsd__anyType
+-qname  use name for the C++ namespace for all service declarations
 -rhost:port
         connect via proxy host and port
 -s      don't generate STL code (no std::string and no std::vector)

@@ -811,7 +811,7 @@ soap_wsa_check_fault(struct soap *soap, SOAP_WSA(FaultCodesType) *fault, char **
         { switch (detail->__type)
           { case SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName):
             case SOAP_WSA_(SOAP_TYPE_,ProblemIRI):
-	      *info = detail->fault;
+	      *info = (char*)detail->fault;
 	      break;
             case SOAP_WSA_(SOAP_TYPE_,ProblemAction):
 	      *info = ((SOAP_WSA_(,ProblemAction)*)detail->fault)->Action;

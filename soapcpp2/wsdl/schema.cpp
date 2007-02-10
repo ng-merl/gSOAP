@@ -878,7 +878,8 @@ xs__complexType *xs__element::complexTypePtr() const
 }
 
 xs__simpleType::xs__simpleType()
-{ level = 0;
+{ schemaRef = NULL;
+  level = 0;
 }
 
 int xs__simpleType::traverse(xs__schema &schema)
@@ -928,7 +929,8 @@ int xs__simpleType::baseLevel()
 }
 
 xs__complexType::xs__complexType()
-{ level = 0;
+{ schemaRef = NULL;
+  level = 0;
 }
 
 int xs__complexType::traverse(xs__schema &schema)
