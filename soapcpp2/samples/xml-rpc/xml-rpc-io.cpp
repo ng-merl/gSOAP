@@ -65,7 +65,7 @@ std::ostream& operator<<(std::ostream& o, const struct value& v)
       break;
     case SOAP_TYPE__struct: 
       o << "{struct" << std::endl;
-      for (struct _struct::iterator i = ((struct _struct)v).begin(); i != ((struct _struct)v).end(); ++i)
+      for (_struct::iterator i = ((struct _struct)v).begin(); i != ((struct _struct)v).end(); ++i)
         o << "[" << i.index() << "]=" << *i << std::endl;
       o << "}";
       break;

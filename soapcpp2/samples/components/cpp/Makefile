@@ -3,13 +3,15 @@ CPP=g++
 LIBS=
 COFLAGS=-O2
 CWFLAGS=-Wall
-CIFLAGS=-I.. -I../..
+CIFLAGS=-I.. -I../.. -I../../..
 CMFLAGS=
 CFLAGS= $(CWFLAGS) $(COFLAGS) $(CIFLAGS) $(CMFLAGS)
 main:		main.cpp envC.o stdsoap2.o quoteClientLib.o rateClientLib.o calcServerLib.o
 		$(CPP) $(CFLAGS) -o main main.cpp envC.o stdsoap2.o quoteClientLib.o rateClientLib.o calcServerLib.o
-stdsoap2.o:	stdsoap2.h stdsoap2.cpp
+stdsoap2.o:	stdsoap2.cpp
 		$(CPP) $(CFLAGS) -DWITH_NONAMESPACES -c stdsoap2.cpp
+stdsoap2.cpp:
+		cp -f ../../../stdsoap2.cpp .
 envC.o:		env.h header.h fault.h
 		soapcpp2 -CS -penv env.h
 		$(CPP) $(CFLAGS) -c envC.cpp

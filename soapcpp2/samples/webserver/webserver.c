@@ -163,9 +163,9 @@ static const struct option default_options[] =
   { "i.iterative", NULL, },
   { "v.verbose", NULL, },
   { "o.pool", "threads", 6, "none"},
-  { "t.ioTimeout", "seconds", 6, "10"},
+  { "t.ioTimeout", "seconds", 6, "5"},
   { "s.serverTimeout", "seconds", 6, "3600"},
-  { "d.cookieDomain", "host", 20, "localhost:8080"},
+  { "d.cookieDomain", "host", 20, "localhost"},
   { "p.cookiePath", "path", 20, "/"},
   { "l.logging", "none inbound outbound both", },
   { "", "port", },		/* rest of command line args */
@@ -264,14 +264,13 @@ int main(int argc, char **argv)
 
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
 
-  /* SSL init (to enable: compile all sources with -DWITH_OPENSSL) */
-  soap_ssl_init();
 #ifdef WITH_OPENSSL
   if (CRYPTO_thread_setup())
   {
     fprintf(stderr, "Cannot setup thread mutex\n");
     exit(1);
   }
+  /* SSL (to enable: compile all sources with -DWITH_OPENSSL) */
   if (secure && soap_ssl_server_context(&soap,
     SOAP_SSL_DEFAULT,
     "server.pem",	/* keyfile: see SSL docs on how to obtain this file */
@@ -702,8 +701,11 @@ int http_get_handler(struct soap *soap)
     soap_set_omode(soap, SOAP_IO_STORE); */ /* if not chunking we MUST buffer entire content when returning HTML pages to determine content length */
 #ifdef WITH_ZLIB
   if (options[OPTION_z].selected && soap->zlib_out == SOAP_ZLIB_GZIP) /* client accepts gzip */
-    soap_set_omode(soap, SOAP_ENC_ZLIB); /* so we can compress content (gzip) */
-  soap->z_level = 9; /* best compression */
+  { soap_set_omode(soap, SOAP_ENC_ZLIB); /* so we can compress content (gzip) */
+    soap->z_level = 9; /* best compression */
+  }
+  else
+    soap_clr_omode(soap, SOAP_ENC_ZLIB); /* so we can compress content (gzip) */
 #endif
   /* Use soap->path (from request URL) to determine request: */
   if (options[OPTION_v].selected)

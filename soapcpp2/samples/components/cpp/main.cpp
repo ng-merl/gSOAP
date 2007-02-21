@@ -56,7 +56,17 @@ int ns__mul(struct soap *soap, double a, double b, double *result)
 }
 
 int ns__div(struct soap *soap, double a, double b, double *result)
-{ *result = a / b;
+{ if (b == 0.0)
+  { int err = soap_sender_fault(soap, "Division by zero", NULL);
+    soap->fault->detail = soap_new_SOAP_ENV__Detail(soap, -1);
+    soap_default_SOAP_ENV__Detail(soap, soap->fault->detail);
+    soap->fault->detail->f__error = soap_new__f__error(soap, -1);
+    soap->fault->detail->f__error->problem = "Cannot divide by zero";
+    soap->fault->detail->f__error->a = a;
+    soap->fault->detail->f__error->b = b;
+    return err;
+  }
+  *result = a / b;
   return SOAP_OK;
 }
 

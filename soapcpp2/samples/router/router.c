@@ -25,7 +25,7 @@
 	Forwarding of messages to a service
 	-----------------------------------
 
-	router [-e<endpoint> | -g<endpoint>] [-a<SOAPAction>] [-r<routingfile>] [-t<timeout>] [-c] [<msgfile>]
+	router [-c] [-e<endpoint> | -g<endpoint>] [-a<SOAPAction>] [-r<routingfile>] [-t<timeout>] [<msgfile>]
 
 	Examples:
 
@@ -46,7 +46,7 @@
 	service endpoints in the table failed and if option -c is enabled.
 
 	2.
-	router -ehttp://domain/path request.soap
+	router -c -ehttp://domain/path request.soap
 	Sends request message to http://domain/path and returns the service
 	response to stdout. If http://domain/path matches one or more keys in
 	the routing table, then the alternative service endpoints in the table
@@ -268,7 +268,6 @@ main(int argc, char **argv)
     struct soap server;
     soap_init(&client);
     soap_init(&server);
-    soap_begin(&client);
     if (argc <= 1) /* try CGI env vars */
     { char *s = getenv("REQUEST_METHOD");
       if (s && !strcmp(s, "GET"))
@@ -567,10 +566,10 @@ int
 copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, const char *action)
 { struct header *h, *p;
   char *s, *t;
-  h = (struct header*)malloc(sizeof(struct header));
+  h = (struct header*)SOAP_MALLOC(sender, sizeof(struct header));
   for (;;)
   { if (soap_getline(sender, h->line, SOAP_HDRLEN))
-    { free(h);
+    { SOAP_FREE(sender, h);
       return sender->error = SOAP_EOF;
     }
     t = strchr(h->line, ' ');
@@ -578,19 +577,19 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
       break;
     do
     { if (soap_getline(sender, h->line, SOAP_HDRLEN))
-      { free(h);
+      { SOAP_FREE(sender, h);
         return sender->error = SOAP_EOF;
       }
     } while (*h->line); 
   }
   p = h;
   for (;;)
-  { p = p->next = (struct header*)malloc(sizeof(struct header));
+  { p = p->next = (struct header*)SOAP_MALLOC(sender, sizeof(struct header));
     p->next = NULL;
     if (soap_getline(sender, p->line, SOAP_HDRLEN))
     { while (h)
       { p = h->next;
-        free(h);
+        SOAP_FREE(sender, h);
         h = p;
       }
       return sender->error = SOAP_EOF;
@@ -624,7 +623,7 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
   if (server_connect(receiver, endpoint, action, receiver->userid, receiver->passwd))
   { while (h)
     { p = h->next;
-      free(h);
+      SOAP_FREE(sender, h);
       h = p;
     }
     return receiver->error;
@@ -636,7 +635,7 @@ copy_header(struct soap *sender, struct soap *receiver, const char *endpoint, co
   while (h)
   { receiver->fposthdr(receiver, h->line, NULL);
     p = h->next;
-    free(h);
+    SOAP_FREE(sender, h);
     h = p;
   }
   if ((sender->mode & SOAP_IO) == SOAP_IO_CHUNK)
@@ -653,6 +652,8 @@ create_header(struct soap *server, int method, const char *endpoint, const char 
 { if (server_connect(server, endpoint, action, NULL, NULL))
     return server->error;
   soap_begin_send(server);
+  server->mode &= ~SOAP_IO;
+  server->mode |= SOAP_IO_BUFFER;
   server->status = method;
   return server->error = server->fpost(server, server->endpoint, server->host, server->port, server->path, action, count);
 }

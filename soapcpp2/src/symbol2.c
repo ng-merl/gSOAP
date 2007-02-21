@@ -734,12 +734,12 @@ compile(Table *table)
 	  soap_serve(table);
 
 	fprintf(fhead, "\n#ifndef WITH_NOIDREF");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fhead,"\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif");
 	fprintf(fhead, "\nSOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap*, const void*, int);");
 	fprintf(fhead, "\nSOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap*, const void*, const char*, int, int);");
 	fprintf(fhead, "\nSOAP_FMAC3 void *SOAP_FMAC4 soap_getelement(struct soap*, int*);");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fhead,"\n\n#ifdef __cplusplus\n}\n#endif");
 	fprintf(fhead, "\nSOAP_FMAC3 int SOAP_FMAC4 soap_putindependent(struct soap*);");
 	fprintf(fhead, "\nSOAP_FMAC3 int SOAP_FMAC4 soap_getindependent(struct soap*);");
@@ -804,7 +804,7 @@ compile(Table *table)
         fprintf(fout,"\n}\n#endif");
 
         fprintf(fout,"\n\n#ifndef WITH_NOIDREF");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif");
 	fprintf(fout,"\nSOAP_FMAC3 void * SOAP_FMAC4 soap_getelement(struct soap *soap, int *type)\n{");
         fprintf(fout,"\n\tif (soap_peek_element(soap))\n\t\treturn NULL;");
@@ -820,7 +820,7 @@ compile(Table *table)
         fprintf(fout,"\n\t\tt = soap->tag;");
 	in_defs3(table);
         fprintf(fout,"\n\t}\n\t}\n\tsoap->error = SOAP_TAG_MISMATCH;\n\treturn NULL;\n}");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\n}\n#endif");
         fprintf(fout,"\n#endif");
 
@@ -857,19 +857,19 @@ compile(Table *table)
 	fprintf(fout,"\n\treturn SOAP_OK;\n}\n#endif");
 
 	fprintf(fout,"\n\n#ifndef WITH_NOIDREF");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif");
 	fprintf(fout,"\nSOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap *soap, const void *ptr, const char *tag, int id, int type)\n{");
 	fprintf(fout,"\n\tswitch (type)\n\t{");
 	fflush(fout);
         out_defs(table);
 	fprintf(fout,"\n\t}\n\treturn SOAP_OK;\n}");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\n}\n#endif");
 	fprintf(fout,"\n#endif");
 
 	fprintf(fout,"\n\n#ifndef WITH_NOIDREF");
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\nextern \"C\" {\n#endif");
 	if (is_anytype_flag)
 	{ fprintf(fout,"\nSOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap *soap, const void *ptr, int type)\n{");
@@ -884,7 +884,7 @@ compile(Table *table)
 	  fprintf(fout,"\n\t(void)soap; (void)ptr; (void)type; /* appease -Wall -Werror */");
           fprintf(fout,"\n}");
 	}
-	if (!cflag)
+	if (!cflag && !namespaceid)
 	  fprintf(fout,"\n\n#ifdef __cplusplus\n}\n#endif");
 	fprintf(fout,"\n#endif");
 
@@ -1989,7 +1989,7 @@ gen_wsdl(FILE *fd, Table *t, char *ns, char *name, char *URL, char *executable, 
     }
     if (sp)
     { for (m = sp->list; m; m = m->next)
-      { if (m->mess&FAULT)
+      { if (m->mess&FAULT && m->part)
         { Method *m2;
 	  int flag = 0;
 	  for (m2 = sp->list; m2 && m2 != m; m2 = m2->next)
@@ -2369,7 +2369,7 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
 	  fprintf(fd, "   <restriction base=\"%s\">\n", base_type(p->info.typ, ns1));
 	  if (p->info.typ->pattern)
             fprintf(fd, "    <pattern value=\"%s\"/>\n", p->info.typ->pattern);
-          if (is_primitive(p->info.typ) || (p->info.typ->type == Tpointer && is_primitive(p->info.typ->ref)))
+          if (is_primitive(p->info.typ) || (p->info.typ->type == Tpointer && is_primitive(p->info.typ->ref) && !is_string(p->info.typ) && !is_wstring(p->info.typ)))
 	  { if (p->info.typ->minLength != -1)
               fprintf(fd, "    <minInclusive value=\"%ld\"/>\n", p->info.typ->minLength);
 	    if (p->info.typ->maxLength != -1)
@@ -2464,14 +2464,16 @@ gen_schema(FILE *fd, Table *t, char *ns1, char *ns, int all, int wsdl, char *URL
 	    break;
       if (m)
       { if ((!has_ns(p->info.typ) && all) || has_ns_eq(ns, p->sym->name))
-        { fprintf(fd, "  <!-- fault element -->\n");
+        { fprintf(fd, "  <!-- fault element type -->\n");
+	  /* Obsolete: elements already generated
           fprintf(fd, "  <element name=\"%s\">\n   <complexType>\n    <sequence>\n", ns_remove(p->sym->name));
 	  gen_schema_elements(fd, p->info.typ, ns, ns1);
           fprintf(fd, "    </sequence>\n");
 	  gen_schema_attributes(fd, p->info.typ, ns, ns1);
           fprintf(fd, "   </complexType>\n  </element>\n");
+	  */
 	}
-        continue;
+        /* continue; */
       }
       if (p->info.typ->ref && is_binary(p->info.typ))
       { if ((!has_ns(p->info.typ) && all) || has_ns_eq(ns, p->sym->name))
@@ -3891,7 +3893,8 @@ gen_field(FILE *fd, int n, Entry *p, char *nse, char *nsa, char *encoding)
       fprintf(fd, "%*s<SOAP-RPC:result xmlns:SOAP-RPC=\"%s\">%s</SOAP-RPC:result>\n", n, "", rpcURI, ns_convert(p->sym->name));
     if (is_XML(p->info.typ))
     { gen_element_begin(fd, n, ns_add(p->sym->name, nse), NULL);
-      fprintf(fd, ">");
+      if (!is_invisible(p->sym->name))
+        fprintf(fd, ">");
       gen_element_end(fd, n, ns_add(p->sym->name, nse));
     }
     else
@@ -3916,7 +3919,7 @@ gen_field(FILE *fd, int n, Entry *p, char *nse, char *nsa, char *encoding)
       else if (is_dynamic_array(p->info.typ) && !is_binary(p->info.typ))
       { if (!eflag && (has_ns(p->info.typ) || is_untyped(p->info.typ)))
         { gen_element_begin(fd, n, ns_add(p->sym->name, nse), xsi_type(p->info.typ));
-          fprintf(fd, ">");
+          gen_atts(fd, p->info.typ->ref, nsa);
 	}
         else
 	{ d = get_Darraydims(p->info.typ);
@@ -3941,7 +3944,7 @@ gen_field(FILE *fd, int n, Entry *p, char *nse, char *nsa, char *encoding)
       else if ((p->info.typ->type == Tpointer || p->info.typ->type == Treference) && is_dynamic_array(p->info.typ->ref) && !is_binary(p->info.typ->ref))
       { if (!eflag && (has_ns(p->info.typ->ref) || is_untyped(p->info.typ->ref)))
         { gen_element_begin(fd, n, ns_add(p->sym->name, nse), xsi_type(p->info.typ->ref));
-	  fprintf(fd, ">");
+          gen_atts(fd, ((Tnode*)p->info.typ->ref)->ref, nsa);
 	}
         else
 	{ d = get_Darraydims(p->info.typ->ref);

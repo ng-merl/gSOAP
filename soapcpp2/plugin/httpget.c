@@ -116,8 +116,9 @@ engelen@genivia.com / engelen@acm.org
 	struct soap soap;
 	soap_init(&soap);
 	soap_register_plugin(&soap, http_get); // register plugin
-	if (soap_get_connect(&soap, endpoint, action))
-	  ... connect error ...
+	if (soap_get_connect(&soap, endpoint, action)
+	 || soap_begin_recv(&soap))
+	  ... connect/recv error ...
 	else
         { if ((soap.mode & SOAP_IO) == SOAP_IO_CHUNK
 #ifdef WITH_ZLIB

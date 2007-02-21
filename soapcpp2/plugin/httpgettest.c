@@ -51,8 +51,8 @@ cc -DWITH_NONAMESPACES -DWITH_OPENSSL -DWITH_GZIP -Iplugin -o httpgettest httpge
 
 */
 
-#include "httpget.H"
-#include "soapH.h"
+#include "envH.h"
+#include "httpget.h"
 
 int main(int argc, char **argv)
 { struct soap soap;
@@ -61,21 +61,53 @@ int main(int argc, char **argv)
     exit(0);
   }
   soap_init(&soap);
-  soap_register_plugin(&soap, http_get);
-  if (soap_get_connect(&soap, argv[1], NULL))
-    soap_print_fault(&soap, stderr);
-  else
-  { if (!soap_begin_recv(&soap))
-    { soap_wchar c;
-      if (soap.http_content)
-        printf("Content type = %s\n", soap.http_content);
-      printf("Content length = %d\n", soap.length);
-      while ((c = soap_get1(&soap)) != EOF)
-        putchar((int)c);
-    }
-    soap_end_recv(&soap);
+  soap_register_plugin(&soap, http_get); // register plugin
+  if (soap_get_connect(&soap, argv[1], NULL)
+   || soap_begin_recv(&soap))
+  { soap_print_fault(&soap, stderr);
+    exit(1);
   }
+  if (soap.http_content)
+    printf("Content type = %s\n", soap.http_content);
+  printf("Content length = %ld\n", soap.length);
+  if ((soap.mode & SOAP_IO) == SOAP_IO_CHUNK
+#ifdef WITH_ZLIB
+      || soap.zlib_in != SOAP_ZLIB_NONE
+#endif
+     )
+  { soap_wchar c;
+    // This loop handles chunked/compressed transfers
+    for (;;)
+    { if ((c = soap_getchar(&soap)) == (int)EOF)
+        break;
+      putchar((int)c);
+    }
+  }
+  else
+  { // This loop handles HTTP transfers (with HTTP content length set)
+    if (soap.length)
+    { size_t i;
+      for (i = soap.length; i; i--)
+      { soap_wchar c;
+        if ((c = soap_getchar(&soap)) == (int)EOF)
+        { soap.error = SOAP_EOF;
+          break;
+        }
+        putchar((int)c);
+      }
+    }
+  }
+  soap_end_recv(&soap);
   soap_end(&soap);
   soap_done(&soap);
   return 0;
 }
+
+SOAP_NMAC struct Namespace namespaces[] =
+{
+	{"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/", "http://www.w3.org/*/soap-envelope", NULL},
+	{"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/", "http://www.w3.org/*/soap-encoding", NULL},
+	{"xsi", "http://www.w3.org/2001/XMLSchema-instance", "http://www.w3.org/*/XMLSchema-instance", NULL},
+	{"xsd", "http://www.w3.org/2001/XMLSchema", "http://www.w3.org/*/XMLSchema", NULL},
+	{NULL, NULL, NULL, NULL}
+};

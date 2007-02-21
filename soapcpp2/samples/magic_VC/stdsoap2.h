@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.9c
+stdsoap2.h 2.7.9d
 
 gSOAP runtime
 
@@ -431,14 +431,6 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #endif
 
-#ifndef SOAP_LONG_FORMAT
-# define SOAP_LONG_FORMAT "%lld"	/* printf format for 64 bit ints */
-#endif
-
-#ifndef SOAP_ULONG_FORMAT
-# define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
-#endif
-
 #ifndef WITH_NOSTDLIB
 # include <stdlib.h>
 # ifndef PALM
@@ -626,8 +618,25 @@ extern "C" {
 # define ULONG64 unsigned LONG64
 #elif !defined(WIN32) || defined(CYGWIN) || defined(__GLIBC__) || defined(__GNU__)
 # ifndef LONG64
-#  define LONG64 long long
-#  define ULONG64 unsigned LONG64
+#  if defined(__GLIBC__)
+#   include <bits/wordsize.h>
+#   if (__WORDSIZE == 64)
+#    define LONG64 int64_t
+#    define ULONG64 uint64_t
+#    ifndef SOAP_LONG_FORMAT
+#     define SOAP_LONG_FORMAT "%ld"
+#    endif
+#    ifndef SOAP_ULONG_FORMAT
+#     define SOAP_ULONG_FORMAT "%lu"
+#    endif
+#   else
+#    define LONG64 long long
+#    define ULONG64 unsigned LONG64
+#   endif
+#  else
+#   define LONG64 long long
+#   define ULONG64 unsigned LONG64
+#  endif
 # endif
 #elif defined(UNDER_CE)
 # define LONG64 __int64
@@ -635,6 +644,14 @@ extern "C" {
 #elif defined(__BORLANDC__)
 # define LONG64 __int64
 # define ULONG64 unsigned LONG64
+#endif
+
+#ifndef SOAP_LONG_FORMAT
+# define SOAP_LONG_FORMAT "%lld"	/* printf format for 64 bit ints */
+#endif
+
+#ifndef SOAP_ULONG_FORMAT
+# define SOAP_ULONG_FORMAT "%llu"	/* printf format for unsigned 64 bit ints */
 #endif
 
 #if defined(WIN32) && !defined(CYGWIN)
@@ -1007,7 +1024,7 @@ typedef soap_int32 soap_mode;
 #define SOAP_SSL_REQUIRE_SERVER_AUTHENTICATION	0x01	/* client requires server to authenticate */
 #define SOAP_SSL_REQUIRE_CLIENT_AUTHENTICATION	0x02	/* server requires client to authenticate */
 #define SOAP_SSL_SKIP_HOST_CHECK		0x04	/* client does not check the common name of the host in certificate */
-#define SOAP_SSL_RSA				0x06	/* use RSA */
+#define SOAP_SSL_RSA				0x08	/* use RSA */
 #define SOAP_SSLv3_TLSv1			0x00	/* SSL v3 and TLS v1 support by default */
 #define SOAP_SSLv3				0x10	/* SSL v3 only */
 #define SOAP_TLSv1				0x20	/* TLS v1 only */
@@ -1555,8 +1572,8 @@ struct SOAP_STD_API soap
   size_t lablen;	/* look-aside buffer allocated length */
   size_t labidx;	/* look-aside buffer index to available part */
   char buf[SOAP_BUFLEN];/* send and receive buffer */
-  char tmpbuf[1024];	/* in/output buffer for HTTP/MIME headers, simpleType values, attribute names, and DIME must be >=1024 bytes */
   char msgbuf[1024];	/* in/output buffer for messages >=1024 bytes */
+  char tmpbuf[1024];	/* in/output buffer for HTTP/MIME headers, simpleType values, attribute names, and DIME must be >=1024 bytes */
   char tag[SOAP_TAGLEN];
   char id[SOAP_TAGLEN];
   char href[SOAP_TAGLEN];
