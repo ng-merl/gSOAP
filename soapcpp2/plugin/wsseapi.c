@@ -441,6 +441,41 @@ certificate authority should have signed the public key, thereby creating a
 X509 certificate that contains the public key and the identity of the message
 originator.
 
+An optional callback function can be passed to the plugin that is responsible
+for providing a certificate to the wsse engine to verify a signed message. For
+example, when a security token is absent from an DSA-SHA1 or RSA-SHA1 signed
+message then the only mechanism to automatically verify the signature is to let
+the callback produce a certificate:
+
+@code
+    soap_register_plugin_arg(soap, soap_wsse, security_token_handler);
+
+const void *security_token_handler(struct soap *soap, int alg, int *keylen)
+{ // Get the user name from UsernameToken in message
+  const char *uid = soap_wsse_get_Username(soap);
+  switch (alg)
+  { case SOAP_SMD_VRFY_DSA_SHA1:
+    case SOAP_SMD_VRFY_RSA_SHA1:
+      if (uid)
+      { // Lookup uid to retrieve the X509 certificate to verify the signature
+        const X509 *cert = ...; 
+        return (const void*)cert;
+      }
+      return NULL; // no certificate: fail
+    case SOAP_SMD_HMAC_SHA1:
+      if (uid)
+      { // Lookup uid to retrieve the HMAC key to verify the signature
+        const void *key = ...; 
+	*keylen = ...;
+        return key;
+      }
+      return NULL; // no certificate: fail
+    default:
+      return NULL; // fail
+  }
+}
+@endcode
+
 @subsection wsse_8_2a Signing Messages
 
 After the plugin is registered and a signature algorithm selected, the
@@ -653,7 +688,6 @@ we simply pass a unique identification string as the second argument:
     soap_wsse_add_Timestamp(soap, "Time", 10); // timestamp will be signed
 @endcode
 
-
 */
 
 #include "wsseapi.h"
@@ -727,7 +761,7 @@ static void soap_wsse_session_cleanup(struct soap *soap);
 static void calc_digest(struct soap *soap, const char *created, const char *nonce, int noncelen, const char *password, char hash[SOAP_SMD_SHA1_SIZE]);
 static void calc_nonce(struct soap *soap, char nonce[SOAP_WSSE_NONCELEN]);
 
-static int soap_wsse_init(struct soap *soap, struct soap_wsse_data *data, X509 *(*arg)(struct soap*));
+static int soap_wsse_init(struct soap *soap, struct soap_wsse_data *data, const void *(*arg)(struct soap*, int, int*));
 static int soap_wsse_copy(struct soap *soap, struct soap_plugin *dst, struct soap_plugin *src);
 static void soap_wsse_delete(struct soap *soap, struct soap_plugin *p);
 
@@ -1696,7 +1730,7 @@ soap_wsse_verify_SignatureValue(struct soap *soap, int alg, const void *key, int
       return SOAP_OK;
     }
   }
-  return soap_wsse_fault(soap, wsse__FailedCheck, "Signature required");
+  return soap_wsse_fault(soap, wsse__FailedCheck, "Signature with SignedInfo required");
 }
 
 /**
@@ -2147,6 +2181,7 @@ soap_wsse_fault(struct soap *soap, wsse__FaultcodeEnum fault, const char *detail
   /* remove incorrect or incomplete Security header */
   soap_wsse_delete_Security(soap);
   /* populate the SOAP Fault as per WS-Security spec */
+  detail = NULL; /* detail text not recommended */
   switch (fault)
   { case wsse__UnsupportedSecurityToken:
       return soap_sender_fault_subcode(soap, code, "An unsupported token was provided", detail);
@@ -2324,7 +2359,7 @@ soap_wsse(struct soap *soap, struct soap_plugin *p, void *arg)
   p->fcopy = soap_wsse_copy;
   p->fdelete = soap_wsse_delete;
   if (p->data)
-  { if (soap_wsse_init(soap, (struct soap_wsse_data*)p->data, (X509*(*)(struct soap*))arg))
+  { if (soap_wsse_init(soap, (struct soap_wsse_data*)p->data, (const void *(*)(struct soap*, int, int*))arg))
     { SOAP_FREE(soap, p->data);
       return SOAP_EOM;
     }
@@ -2365,7 +2400,7 @@ soap_wsse(struct soap *soap, struct soap_plugin *p, void *arg)
 @return SOAP_OK
 */
 static int
-soap_wsse_init(struct soap *soap, struct soap_wsse_data *data, X509 *(*arg)(struct soap*))
+soap_wsse_init(struct soap *soap, struct soap_wsse_data *data, const void *(*arg)(struct soap*, int alg, int *keylen))
 { DBGFUN("soap_wsse_init");
   data->sign_alg = SOAP_SMD_NONE;
   data->sign_key = NULL;
@@ -2757,13 +2792,10 @@ static int
 soap_wsse_disconnect(struct soap *soap)
 { struct soap_wsse_data *data = (struct soap_wsse_data*)soap_lookup_plugin(soap, soap_wsse_id);
   ds__SignedInfoType *signedInfo = soap_wsse_SignedInfo(soap);
-  soap->imode &= ~SOAP_XML_DOM;
   soap->omode &= ~SOAP_XML_SEC;
   DBGFUN("soap_wsse_disconnect");
   if (!data)
     return SOAP_PLUGIN_ERROR;
-  if (soap->fdisconnect == soap_wsse_disconnect)
-    soap->fdisconnect = data->fdisconnect;
   if (signedInfo)
   { int alg, keylen = 0;
     const void *key = NULL;
@@ -2778,7 +2810,15 @@ soap_wsse_disconnect(struct soap *soap)
       { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Using HMAC key from KeyIdentifier to verify signature\n"));
         key = soap_wsse_get_KeyInfo_SecurityTokenReferenceKeyIdentifier(soap, &keylen);
       }
-      else if (alg == data->vrfy_alg)
+      /* next, try the plugin's security token handler */
+      if (!key)
+      { if (data->security_token_handler)
+        { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Getting HMAC key through security_token_handler callback\n"));
+          key = data->security_token_handler(soap, alg, &keylen);
+        }
+      }
+      /* still no key: try to get it from the plugin */
+      if (!key && alg == data->vrfy_alg)
       { /* get the HMAC secret key from the plugin */
         DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Using HMAC key from plugin to verify signature\n"));
         key = data->vrfy_key;
@@ -2786,19 +2826,19 @@ soap_wsse_disconnect(struct soap *soap)
       }
     }
     else
-    { X509 *cert;
+    { const X509 *cert;
       /* get the certificate from the KeyInfo reference */
       cert = soap_wsse_get_KeyInfo_SecurityTokenReferenceX509(soap);
       /* next, try the plugin's security token handler */
       if (!cert)
       { if (data->security_token_handler)
         { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Getting certificate through security_token_handler callback\n"));
-          cert = data->security_token_handler(soap);
+          cert = (const X509*)data->security_token_handler(soap, alg, &keylen);
         }
       }
       /* obtain the public key from the cert */
       if (cert)
-        key = X509_get_pubkey(cert);
+        key = X509_get_pubkey((X509*)cert);
       else if (alg == data->vrfy_alg)
       { /* get the public key from the plugin */
         DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Using public key from plugin to verify signature\n"));
@@ -2813,10 +2853,10 @@ soap_wsse_disconnect(struct soap *soap)
     if (soap_wsse_verify_SignatureValue(soap, alg, key, keylen)
      || soap_wsse_verify_SignedInfo(soap))
       return soap->error;
-    data->vrfy_alg = SOAP_SMD_NONE;
-    if (soap->fdisconnect)
-      return soap->fdisconnect(soap);
-    return SOAP_OK;
+    if (data->fdisconnect && data->fdisconnect != soap_wsse_disconnect)
+      return data->fdisconnect(soap);
   }
-  return soap_wsse_fault(soap, wsse__FailedCheck, NULL);
+  else if (!soap->fault)
+    return soap_wsse_fault(soap, wsse__FailedCheck, "Signature required");
+  return SOAP_OK;
 }

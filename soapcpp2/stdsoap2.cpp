@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.c[pp] 2.7.9d
+stdsoap2.c[pp] 2.7.9e
 
 gSOAP runtime
 
@@ -72,10 +72,10 @@ when locally allocated data exceeds 64K.
 #endif
 
 #ifdef __cplusplus
-SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.9d 2007-02-19 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.9e 2007-03-31 12:00:00 GMT")
 extern "C" {
 #else
-SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9d 2007-02-19 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9e 2007-03-31 12:00:00 GMT")
 #endif
 
 /* 8bit character representing unknown/nonrepresentable character data (e.g. not supported by current locale with multibyte support enabled) */
@@ -93,7 +93,7 @@ SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9d 2007-02-19 12:00:00 GMT")
 #define soap_blank(c)		((c) >= 0 && (c) <= 32)
 #define soap_notblank(c)	((c) > 32)
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(UNDER_CE)
 #define soap_hash_ptr(p)	((PtrToUlong(p) >> 3) & (SOAP_PTRHASH - 1))
 #else
 #define soap_hash_ptr(p)	((size_t)(((unsigned long)(p) >> 3) & (SOAP_PTRHASH-1)))
@@ -556,7 +556,7 @@ fsend(struct soap *soap, const char *s, size_t n)
         nwritten = send((SOAP_SOCKET)soap->socket, (void*)s, n, soap->socket_flags);
 #endif
       if (nwritten <= 0)
-      { register int r;
+      { register int r = 0;
 #ifdef WITH_OPENSSL
         if (soap->ssl && (r = SSL_get_error(soap->ssl, nwritten)) != SSL_ERROR_NONE && r != SSL_ERROR_WANT_READ && r != SSL_ERROR_WANT_WRITE)
           return SOAP_EOF;
@@ -2095,10 +2095,10 @@ soap_pop_block(struct soap *soap)
 static void
 soap_update_ptrs(struct soap *soap, char *start, char *end, char *p1, char *p2)
 { int i;
-  register struct soap_ilist *ip;
-  register struct soap_flist *fp;
+  register struct soap_ilist *ip = NULL;
+  register struct soap_flist *fp = NULL;
 #ifndef WITH_LEANER
-  register struct soap_xlist *xp;
+  register struct soap_xlist *xp = NULL;
 #endif
   register void *p, **q;
   for (i = 0; i < SOAP_IDHASH; i++)
@@ -2150,8 +2150,8 @@ soap_update_ptrs(struct soap *soap, char *start, char *end, char *p1, char *p2)
 static int
 soap_has_copies(struct soap *soap, register const char *start, register const char *end)
 { register int i;
-  register struct soap_ilist *ip;
-  register struct soap_flist *fp;
+  register struct soap_ilist *ip = NULL;
+  register struct soap_flist *fp = NULL;
   register const char *p;
   for (i = 0; i < SOAP_IDHASH; i++)
   { for (ip = soap->iht[i]; ip; ip = ip->next)
@@ -2176,8 +2176,8 @@ int
 SOAP_FMAC2
 soap_resolve(struct soap *soap)
 { register int i;
-  register struct soap_ilist *ip;
-  register struct soap_flist *fp;
+  register struct soap_ilist *ip = NULL;
+  register struct soap_flist *fp = NULL;
   short flag;
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Resolving forwarded data\n"));
   for (i = 0; i < SOAP_IDHASH; i++)
@@ -3497,7 +3497,9 @@ again:
   fd = (int)socket(res->ai_family, res->ai_socktype, res->ai_protocol);
   soap->errmode = 0;
 #else
+#ifndef WITH_LEAN
 again:
+#endif
 #ifdef WITH_UDP
   if ((soap->omode & SOAP_IO_UDP))
     fd = (int)socket(AF_INET, SOCK_DGRAM, 0);
@@ -3946,7 +3948,11 @@ again:
             if (ext_str && !strcmp(ext_str, "subjectAltName"))
             { X509V3_EXT_METHOD *meth = X509V3_EXT_get(ext);
 	      void *ext_data;
-	      unsigned char *data;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090805fL)
+              const unsigned char *data;
+#else
+              unsigned char *data;
+#endif
               STACK_OF(CONF_VALUE) *val;
               int j;
               if (!meth)
@@ -5262,8 +5268,8 @@ soap_init_iht(struct soap *soap)
 static void
 soap_free_iht(struct soap *soap)
 { register int i;
-  register struct soap_ilist *ip, *p;
-  register struct soap_flist *fp, *fq;
+  register struct soap_ilist *ip = NULL, *p = NULL;
+  register struct soap_flist *fp = NULL, *fq = NULL;
   DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Free ID hashtable\n"));
   for (i = 0; i < SOAP_IDHASH; i++)
   { for (ip = soap->iht[i]; ip; ip = p)
@@ -5287,7 +5293,7 @@ SOAP_FMAC1
 struct soap_ilist *
 SOAP_FMAC2
 soap_lookup(struct soap *soap, const char *id)
-{ register struct soap_ilist *ip;
+{ register struct soap_ilist *ip = NULL;
   for (ip = soap->iht[soap_hash(id)]; ip; ip = ip->next)
     if (!strcmp(ip->id, id))
       return ip;
@@ -6213,7 +6219,7 @@ soap_copy_context(struct soap *copy, struct soap *soap)
 { if (soap_check_state(soap))
     return NULL;
   if (copy)
-  { register struct soap_plugin *p;
+  { register struct soap_plugin *p = NULL;
     memcpy(copy, soap, sizeof(struct soap));
     copy->state = SOAP_COPY;
     copy->error = SOAP_OK;
@@ -10274,21 +10280,17 @@ soap_timegm(struct tm *T)
   return timegm(T);
 #else
   time_t t, g, z;
-#ifdef HAVE_GMTIME_R
-  struct tm tm, *tmp = &tm;
-#else
-  struct tm *tmp;
-#endif
+  struct tm tm;
   t = mktime(T);
   if (t == -1)
     return -1;
 #ifdef HAVE_GMTIME_R
-  gmtime_r(&t, tmp);
+  gmtime_r(&t, &tm);
 #else
-  tmp = gmtime(&t);
+  tm = *gmtime(&t);
 #endif
-  tmp->tm_isdst = 0;
-  g = mktime(tmp);
+  tm.tm_isdst = 0;
+  g = mktime(&tm);
   if (g == -1)
     return -1;
   z = g - t;
@@ -13935,7 +13937,7 @@ soap_set_fault(struct soap *soap)
       *s = soap_set_validation_fault(soap, "prohibited attribute present", NULL);
       break;
     case SOAP_OCCURS:
-      *s = soap_set_validation_fault(soap, "min/maxOccurs violation", NULL);
+      *s = soap_set_validation_fault(soap, "occurrence violation", NULL);
       break;
     case SOAP_LENGTH:
       *s = soap_set_validation_fault(soap, "content length violation", NULL);

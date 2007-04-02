@@ -51,7 +51,7 @@ cc -DWITH_NONAMESPACES -DWITH_OPENSSL -DWITH_GZIP -Iplugin -o httpgettest httpge
 
 */
 
-#include "envH.h"
+#include "soapH.h"
 #include "httpget.h"
 
 int main(int argc, char **argv)

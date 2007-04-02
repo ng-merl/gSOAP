@@ -48,7 +48,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "smdevp.h"
 
 /** plugin identification for plugin registry */
-#define SOAP_WSSE_ID "SOAP-WSSE-1.0"
+#define SOAP_WSSE_ID "SOAP-WSSE-1.1"
 
 /** plugin identification for plugin registry */
 extern const char soap_wsse_id[];
@@ -73,7 +73,7 @@ struct soap_wsse_data
   int (*fpreparefinal)(struct soap*);
   int (*fdisconnect)(struct soap*);
   X509_STORE *store;
-  X509 *(*security_token_handler)(struct soap *soap);
+  const void *(*security_token_handler)(struct soap *soap, int alg, int *keylen);
 };
 
 /**

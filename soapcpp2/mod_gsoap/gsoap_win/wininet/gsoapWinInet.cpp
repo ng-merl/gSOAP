@@ -479,7 +479,11 @@ wininet_fsend(
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
         "wininet %p: fsend, data len = %lu bytes\n", soap, a_uiBufferLen ));
 
-    _ASSERTE( a_uiBufferLen > 0 );
+    /* allow the request to be sent with a NULL buffer */
+    if (a_uiBufferLen == 0)
+    {
+        pData->uiBufferLenMax = 0;
+    }
 
     /* ensure that our connection hasn't been disconnected */
     if ( !wininet_have_connection( soap, pData ) )
@@ -697,6 +701,7 @@ wininet_fsend(
     {
         free( pData->pBuffer );
     }
+
     pData->pBuffer     = 0;
     pData->uiBufferLen = 0;
     pData->uiBufferLenMax = INVALID_BUFFER_LENGTH;
@@ -1023,8 +1028,9 @@ wininet_resolve_send_error(
         FLAGS_ERROR_UI_FLAGS_GENERATE_DATA |
         FLAGS_ERROR_UI_FLAGS_CHANGE_OPTIONS,
         NULL );
-    return (dwResult == ERROR_INTERNET_FORCE_RETRY 
-        || dwResult == ERROR_SUCCESS);
+    return (a_dwErrorCode == ERROR_INTERNET_INCORRECT_PASSWORD) ?
+        (dwResult == ERROR_INTERNET_FORCE_RETRY) :
+        (dwResult == ERROR_SUCCESS);
 }
 
 #ifdef SOAP_DEBUG

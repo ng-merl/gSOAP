@@ -1,8 +1,5 @@
 This directory contains common #import-ed items.
 
-The .h files are intended to be imported using the gSOAP #import directive in
-gSOAP header files and should not be used with #include.
-
 dom.h		DOM support (requires dom.c/pp)
 stldeque.h	std::deque serializer
 stllist.h	std::list serializer

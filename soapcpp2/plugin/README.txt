@@ -13,6 +13,6 @@ wsseapi.*	WS-Security (wsse) plugin, see doc/wsse
 
 Supporting modules:
 
-smdevp.*	EVP-based (signed) message digest engine for wsse plugin
+smdevp.*	EVP-based (signed) message digest engine
 md5evp.*	MD5 EVP interface for httpda and httpmd5
-threads.*	Portable threads, mutex, and condition variables
+threads.*	Threads, mutex, and condition variables

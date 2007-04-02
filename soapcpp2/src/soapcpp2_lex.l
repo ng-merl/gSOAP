@@ -277,8 +277,12 @@ static void directive()
 	if (i == j)
 		return;
 	s = (char*)emalloc(j-i+1);
-	strncpy(s, yytext+i, j-i);
-	s[j-i] = '\0';
+	for (k = 0; k < j-i; k++)
+	{ s[k] = yytext[k+i];
+	  if (s[k] == '_')
+	    s[k] = '-';
+	}
+	s[k] = '\0';
 	for (sp = services; sp; sp = sp->next)
 		if (!strcmp(sp->ns, s))
 			break;
@@ -791,22 +795,20 @@ static void module(const char *name, const char *fullname)
 { if (!fullname)
     fullname = name;
   if (imports)
-  { // FIXME if (!lflag)
-    { Pragma **pp;
-      char *s = emalloc(strlen(fullname)+15);
-      sprintf(s, "#include \"%sH.h\"", fullname);
-      for (pp = &pragmas; *pp; pp = &(*pp)->next)
-        if (!strcmp((*pp)->pragma, s))
-	  break;
-      if (!*pp)
-      { *pp = (Pragma*)emalloc(sizeof(Pragma));
-        (*pp)->pragma = s;
-        (*pp)->next = NULL;
-      }
-      imported = (char*)emalloc(sizeof(strlen(fullname))+1);
-      strcpy(imported, fullname);
-      fprintf(stderr, "Importing module '%s'\n\n", fullname);
+  { Pragma **pp;
+    char *s = emalloc(strlen(fullname)+15);
+    sprintf(s, "#include \"%sH.h\"", fullname);
+    for (pp = &pragmas; *pp; pp = &(*pp)->next)
+      if (!strcmp((*pp)->pragma, s))
+        break;
+    if (!*pp)
+    { *pp = (Pragma*)emalloc(sizeof(Pragma));
+      (*pp)->pragma = s;
+      (*pp)->next = NULL;
     }
+    imported = (char*)emalloc(sizeof(strlen(fullname))+1);
+    strcpy(imported, fullname);
+    fprintf(stderr, "Importing module '%s'\n\n", fullname);
   }
   else
   { lflag = 1;

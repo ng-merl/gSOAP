@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.9d
+stdsoap2.h 2.7.9e
 
 gSOAP runtime
 
@@ -180,7 +180,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #endif
 
-#if defined(__alpha) && !defined(__VMS)
+#if defined(__digital__) && defined(__unix__)
 # ifndef TRU64
 #  define TRU64 
 # endif

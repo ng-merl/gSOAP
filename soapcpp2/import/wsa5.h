@@ -89,7 +89,7 @@ typedef char* wsa5__FaultCodesOpenEnumType;
 /// "http://www.w3.org/2005/08/addressing":RelationshipType is a simpleType restriction of xs:anyURI.
 enum wsa5__RelationshipType
 {
-	http___x002f_x002fwww_x002ew3_x002eorg_x002f2005_x002f08_x002faddressing_x002freply,	///< xs:anyURI value="http://www.w3.org/2005/08/addressing/reply"
+	http_x003a_x002f_x002fwww_x002ew3_x002eorg_x002f2005_x002f08_x002faddressing_x002freply,	///< xs:anyURI value="http://www.w3.org/2005/08/addressing/reply"
 };
 /// Typedef synonym for enum wsa5__RelationshipType.
 typedef enum wsa5__RelationshipType wsa5__RelationshipType;

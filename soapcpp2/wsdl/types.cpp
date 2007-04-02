@@ -397,6 +397,8 @@ void Types::init()
   deftypemap["SOAP_ENC__unsignedShort"] = "";
   usetypemap["SOAP_ENC__unsignedShort"] = "unsigned short";
   deftypemap["SOAP_ENC__Array"] = "";
+  usetypemap["SOAP_ENC__Array"] = "struct { _XML *__ptr; int __size; }";
+  deftypemap["_SOAP_ENC__arrayType"] = "";
   if (read(mapfile))
     fprintf(stderr, "Problem reading type map file %s.\nUsing internal type definitions for %s instead.\n\n", mapfile, cflag?"C":"C++");
 }
@@ -440,9 +442,9 @@ const char *Types::fname(const char *prefix, const char *URI, const char *qname,
 { char buf[1024], *t;
   const char *p, *s, *name;
   if (!qname)
-  { fprintf(stream, "// Warning: internal error, undefined qname in fname()\n");
+  { fprintf(stream, "// Warning: internal error, no QName in fname()\n");
     if (vflag)
-      fprintf(stderr, "Internal error, undefined qname in fname()\n");
+      fprintf(stderr, "Internal error, no QName in fname()\n");
     qname = "?";
   }
   s = strrchr(qname, ':');
@@ -580,9 +582,9 @@ const char *Types::tname(const char *prefix, const char *URI, const char *qname)
     s = usetypemap[t];
   else
   { s = t;
-    fprintf(stream, "// Warning: internal error, undefined qname '%s' for type '%s'\n", qname?qname:"", t);
+    fprintf(stream, "// Warning: undefined QName '%s' for type '%s' (FIXME: check WSDL and schema definitions)\n", qname?qname:"", t);
     if (vflag)
-      fprintf(stderr, "Internal error, undefined qname '%s' for type '%s'\n", qname?qname:"", t);
+      fprintf(stderr, "Warning: undefined QName '%s' for type '%s'\n", qname?qname:"", t);
   }
   return s;
 }
@@ -603,7 +605,7 @@ const char *Types::tnameptr(bool flag, const char *prefix, const char *URI, cons
 }
 
 const char *Types::pname(bool flag, const char *prefix, const char *URI, const char *qname)
-{ const char *r, *s, *t;
+{ const char *r, *s = NULL, *t;
   t = cname(prefix, URI, qname);
   if (flag)
   { if (ptrtypemap.find(t) != ptrtypemap.end())
@@ -611,18 +613,18 @@ const char *Types::pname(bool flag, const char *prefix, const char *URI, const c
     else
     { if (usetypemap.find(t) != usetypemap.end())
         s = usetypemap[t];
-      else
+      if (!s)
       { s = t;
-        fprintf(stream, "// Warning: internal error, undefined: %s %s\n", qname, t);
+        fprintf(stream, "// Warning: undefined QName '%s' for type '%s' (FIXME: check WSDL and schema definitions)\n", qname, t);
         if (vflag)
-          fprintf(stderr, "Internal error, undefined: %s %s\n", qname, t);
+          fprintf(stderr, "Warning: undefined QName '%s' for type '%s'\n", qname, t);
       }
       r = s;
-      do
+      while (r && *r)
       { r = strchr(r + 1, '*');
         if (r && *(r-1) != '/' && *(r+1) != '/')
 	  break;
-      } while (r);
+      }
       if (!r)	// already pointer?
       { char *p = (char*)emalloc(strlen(s) + 2);
         strcpy(p, s);
@@ -638,9 +640,9 @@ const char *Types::pname(bool flag, const char *prefix, const char *URI, const c
     s = usetypemap[t];
   else
   { s = t;
-    fprintf(stream, "// Warning: internal error, undefined: %s %s\n", qname, t);
+    fprintf(stream, "// Warning: undefined QName '%s' for type '%s' (FIXME: check WSDL and schema definitions)\n", qname, t);
     if (vflag)
-      fprintf(stderr, "Internal error, undefined: %s %s\n", qname, t);
+      fprintf(stderr, "Warning: undefined QName '%s' for type '%s'\n", qname, t);
   }
   return s;
 }
@@ -1281,7 +1283,11 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
     document(complexType.annotation);
     if (complexType.simpleContent->restriction)
     { if (anonymous)
-        fprintf(stream, "    struct %s\n    {\n", t);
+      { if (cflag)
+          fprintf(stream, "    struct %s\n    {\n", t);
+	else
+          fprintf(stream, "    class %s\n    {\n", t);
+      }
       else if (cflag)
         fprintf(stream, "struct %s\n{\n", t);
       else if (pflag && complexType.name)
@@ -1350,7 +1356,11 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
     else if (complexType.simpleContent->extension)
     { if (cflag || fflag || anonymous)
       { if (anonymous)
-          fprintf(stream, "    struct %s\n    {\n", t);
+        { if (cflag)
+	    fprintf(stream, "    struct %s\n    {\n", t);
+	  else
+	    fprintf(stream, "    class %s\n    {\n", t);
+	}
         else if (cflag)
           fprintf(stream, "struct %s\n{\n", t);
         else if (pflag && complexType.name)
@@ -1415,7 +1425,7 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
       }
       else
       { if (
-        /* TODO: should add check for base type == class
+        /* TODO: in future, may want to add check here for base type == class
 	  complexType.simpleContent->extension->simpleTypePtr()
 	  ||
 	*/
@@ -1477,7 +1487,11 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
       }
       else
       { if (anonymous)
-          fprintf(stream, "    struct %s\n    {\n", t);
+        { if (cflag)
+	    fprintf(stream, "    struct %s\n    {\n", t);
+	  else
+	    fprintf(stream, "    class %s\n    {\n", t);
+	}
         else if (cflag)
           fprintf(stream, "struct %s\n{\n", t);
         else if (pflag && complexType.name)
@@ -1492,8 +1506,6 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
           gen(URI, *complexType.complexContent->restriction->sequence);
         if (complexType.complexContent->restriction->choice)
            gen(URI, name, *complexType.complexContent->restriction->choice);
-	// TODO
-        // gen(URI, complexType.complexContent->restriction->attribute);
         const xs__complexType *p = &complexType; 
         bool flag = true;
         do
@@ -1534,7 +1546,11 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
         fprintf(stream, "\n/// \"%s\":%s is a%s complexType with complexContent extension of %s.\n", URI?URI:"", name, complexType.abstract?"n abstract":"", complexType.complexContent->extension->base);
       document(complexType.annotation);
       if (anonymous)
-        fprintf(stream, "    struct %s\n    {\n", t);
+      { if (cflag)
+          fprintf(stream, "    struct %s\n    {\n", t);
+	else
+          fprintf(stream, "    class %s\n    {\n", t);
+      }
       else if (cflag)
         fprintf(stream, "struct %s\n{\n", t);
       else if (fflag)
@@ -1629,7 +1645,11 @@ void Types::gen(const char *URI, const char *name, const xs__complexType& comple
       fprintf(stream, "\n/// \"%s\":%s is a%s complexType.\n", URI?URI:"", name, complexType.abstract?"n abstract":"");
     document(complexType.annotation);
     if (anonymous)
-      fprintf(stream, "    struct %s\n    {\n", t);
+    { if (cflag)
+        fprintf(stream, "    struct %s\n    {\n", t);
+      else
+        fprintf(stream, "    class %s\n    {\n", t);
+    }
     else if (cflag)
       fprintf(stream, "struct %s\n{\n", t);
     else if (pflag && complexType.name)
@@ -1684,7 +1704,7 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
 { const char *name, *type, *nameURI = NULL, *typeURI = NULL;
   name = attribute.name;
   type = attribute.type;
-  bool is_optional = attribute.use != required && attribute.use != default_ && attribute.use != fixed_ && !attribute.value;
+  bool is_optional = attribute.use != required && attribute.use != default_ && attribute.use != fixed_ && !attribute.default_;
   document(attribute.annotation);
   if (!URI || strcmp(URI, attribute.schemaPtr()->targetNamespace))
     nameURI = attribute.schemaPtr()->targetNamespace;
@@ -1733,7 +1753,7 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
       fprintf(stream, " 0");
       break;
   }
-  if (attribute.value)
+  if (attribute.default_)
   { if (type)
     { const char *t = tname(NULL, NULL, type);
       if (!strncmp(t, "unsigned ", 9))
@@ -1747,19 +1767,19 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
        || !strcmp(t, "LONG64")
        || !strcmp(t, "short")
        || !strcmp(t, "ULONG64"))
-        fprintf(stream, " = %s", attribute.value);
+        fprintf(stream, " = %s", attribute.default_);
       else if (!strncmp(t, "enum ", 5))
-        fprintf(stream, " = %s", ename(t + 5, attribute.value));
+        fprintf(stream, " = %s", ename(t + 5, attribute.default_));
       else if (!strcmp(t, "char*")
             || !strcmp(t, "char *")	// not elegant
             || !strcmp(t, "std::string")
             || !strcmp(t, "std::string*")
 	    || !strcmp(t, "std::string *"))	// not elegant
-        fprintf(stream, " = \"%s\"", cstring(attribute.value));
-      else if (!strcmp(t, "xsd__QName") && attribute.value_)	// QName is in value_
-        fprintf(stream, " = \"%s\"", cstring(attribute.value_));
+        fprintf(stream, " = \"%s\"", cstring(attribute.default_));
+      else if (!strcmp(t, "xsd__QName") && attribute.default__)	// QName is in default__
+        fprintf(stream, " = \"%s\"", cstring(attribute.default__));
     }
-    fprintf(stream, ";\t///< Default value=\"%s\".\n", attribute.value);
+    fprintf(stream, ";\t///< Default value=\"%s\".\n", attribute.default_);
   }
   else if (attribute.use == required)
     fprintf(stream, ";\t///< Required attribute.\n");
@@ -1841,7 +1861,10 @@ void Types::gen(const char *URI, const xs__sequence& sequence)
       fprintf(stream, " %s", sequence.minOccurs);
     if (sequence.maxOccurs && strcmp(sequence.maxOccurs, "1") && is_integer(sequence.maxOccurs))
       fprintf(stream, ":%s", sequence.maxOccurs);
-    fprintf(stream, ";\n    struct %s\n    {\n", t);
+    if (cflag)
+      fprintf(stream, ";\n    struct %s\n    {\n", t + 1);
+    else
+      fprintf(stream, ";\n    class %s\n    {\n", t + 1);
   }
   else
     document(sequence.annotation);
@@ -2148,7 +2171,10 @@ void Types::gen(const char *URI, const char *name, const xs__choice& choice)
         fprintf(stream, " %s", choice.minOccurs);
       if (choice.maxOccurs && strcmp(choice.maxOccurs, "1") && is_integer(choice.maxOccurs))
         fprintf(stream, ":%s", choice.maxOccurs);
-      fprintf(stream, ";\n    struct _%s\n    {\n", t);
+      if (cflag)
+        fprintf(stream, ";\n    struct _%s\n    {\n", t);
+      else
+        fprintf(stream, ";\n    class _%s\n    {\n", t);
     }
     if (!with_union || wrap_union)
     { fprintf(stream, choiceformat, "int", r);
@@ -2156,7 +2182,7 @@ void Types::gen(const char *URI, const char *name, const xs__choice& choice)
         fprintf(stream, " %s", choice.minOccurs);
       fprintf(stream, ";\t///< Union %s selector: set to SOAP_UNION_%s_<fieldname>%s\n", t, t, choice.minOccurs && !strcmp(choice.minOccurs, "0") ? " or 0" : "");
       if (name)
-        fprintf(stream, "/// Union for choice in %s\n", tname(NULL, URI, name));
+        fprintf(stream, "/// Union for choice in type %s\n", cname(NULL, URI, name));
       fprintf(stream, "    union %s\n    {\n", t);
     }
     tmp_union = with_union;
@@ -2166,9 +2192,10 @@ void Types::gen(const char *URI, const char *name, const xs__choice& choice)
   { tmp_union = fake_union;
     fake_union = true;
   }
-  gen(URI, choice.element);
   gen(URI, choice.group);
+  gen(URI, choice.choice);	// TODO: check potential name conflicts
   gen(URI, choice.sequence);	// TODO: check potential name conflicts
+  gen(URI, choice.element);
   gen(URI, choice.any);
   if (use_union)
   { with_union = tmp_union;
@@ -2291,8 +2318,8 @@ void Types::gen_soap_array(const char *name, const char *t, const char *item, co
     fprintf(stream, ";\n");
   }
   else
-  { // TODO: handle generic SOAP array? E.g. as an array of anyType
-    fprintf(stream, "// TODO: handle generic SOAP-ENC:Array (array of anyType)\n");
+  { // TODO: how to handle generic SOAP array? E.g. as an array of anyType
+    fprintf(stream, "// TODO: add declarations to handle generic SOAP-ENC:Array (array of anyType)\n");
   }
   if (tmp)
     free(tmp);
@@ -2341,7 +2368,10 @@ void Types::gen_substitutions(const char *URI, const xs__element &element)
         fprintf(stream, " %s", element.minOccurs);
       if (element.maxOccurs && strcmp(element.maxOccurs, "1") && is_integer(element.maxOccurs))
         fprintf(stream, ":%s", element.maxOccurs);
-      fprintf(stream, ";\n    struct _%s\n    {\n", t);
+      if (cflag)
+        fprintf(stream, ";\n    struct _%s\n    {\n", t);
+      else
+        fprintf(stream, ";\n    class _%s\n    {\n", t);
     }
     if (!with_union || wrap_union)
     { fprintf(stream, choiceformat, "int", r);

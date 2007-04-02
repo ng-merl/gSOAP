@@ -1334,12 +1334,14 @@ int xs__choice::traverse(xs__schema &schema)
 { if (vflag)
     cerr << "Analyzing schema choice" << endl;
   schemaRef = &schema;
-  for (vector<xs__element>::iterator el = element.begin(); el != element.end(); ++el)
-    (*el).traverse(schema);
   for (vector<xs__group>::iterator gp = group.begin(); gp != group.end(); ++gp)
     (*gp).traverse(schema);
+  for (vector<xs__choice>::iterator ch = choice.begin(); ch != choice.end(); ++ch)
+    (*ch).traverse(schema);
   for (vector<xs__sequence*>::iterator sq = sequence.begin(); sq != sequence.end(); ++sq)
     (*sq)->traverse(schema);
+  for (vector<xs__element>::iterator el = element.begin(); el != element.end(); ++el)
+    (*el).traverse(schema);
   for (vector<xs__any>::iterator an = any.begin(); an != any.end(); ++an)
     (*an).traverse(schema);
   return SOAP_OK;

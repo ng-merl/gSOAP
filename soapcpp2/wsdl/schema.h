@@ -103,8 +103,8 @@ class xs__attribute
 	@xsd__QName			ref;
 	@xsd__QName			type;
 	@enum xs__attribute_use		use			= optional;
-	@xsd__string			value;
-	@xsd__QName			value_;			// also get QName value if attribute type is QName
+	@xsd__string			default_;
+	@xsd__QName			default__;		// also get QName value if attribute type is QName
 	@xsd__QName			wsdl__arrayType;	// extensibility attribute added to simplify WSDL parsing
 	xs__annotation			*annotation;
 	xs__simpleType			*simpleType;
@@ -169,10 +169,10 @@ class xs__choice
 { public:
 	@xsd__string			minOccurs;		// xsd:nonNegativeInteger
 	@xsd__string			maxOccurs;		// xsd:nonNegativeInteger|unbounded
-	std::vector<xs__element>	element;
 	std::vector<xs__group>		group;
-	//std::vector<xs__choice>		choice;
+	std::vector<xs__choice>		choice;
 	std::vector<xs__sequence*>	sequence;
+	std::vector<xs__element>	element;
 	std::vector<xs__any>		any;
 	xs__annotation			*annotation;
   private:
@@ -188,10 +188,10 @@ class xs__sequence
 { public:
 	@xsd__string			minOccurs;		// xsd:nonNegativeInteger
 	@xsd__string			maxOccurs;		// xsd:nonNegativeInteger|unbounded
-	std::vector<xs__element>	element;
 	std::vector<xs__group>		group;
 	std::vector<xs__choice>		choice;
 	std::vector<xs__sequence*>	sequence;
+	std::vector<xs__element>	element;
 	std::vector<xs__any>		any;
 	xs__annotation			*annotation;
   public:

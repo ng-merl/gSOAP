@@ -882,8 +882,14 @@ soap_wsa_error(struct soap *soap, SOAP_WSA(FaultCodesType) fault, const char *in
   { case SOAP_WSA(InvalidAddressingHeader):
       soap_wsa_sender_fault_subcode(soap, code, "A header representing a Message Addressing Property is not valid and the message cannot be processed.", NULL);
       soap_faultdetail(soap);
-      soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName);
-      soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      if (soap->version == 1)
+      { soap->fault->detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName);
+        soap->fault->detail->fault = (void*)info;
+      }
+      else
+      { soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName);
+        soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      }
       break;
     case SOAP_WSA(InvalidAddress):
       soap_wsa_sender_fault_subcode(soap, code, "Invalid address.", NULL);
@@ -906,28 +912,55 @@ soap_wsa_error(struct soap *soap, SOAP_WSA(FaultCodesType) fault, const char *in
     case SOAP_WSA(MessageAddressingHeaderRequired):
       soap_wsa_sender_fault_subcode(soap, code, "A required header representing a Message Addressing Property is not present.", NULL);
       soap_faultdetail(soap);
-      soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName);
-      soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      if (soap->version == 1)
+      { soap->fault->detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName);
+        soap->fault->detail->fault = (void*)info;
+      }
+      else
+      { soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemHeaderQName);
+        soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      }
       break;
     case SOAP_WSA(DestinationUnreachable):
       soap_wsa_sender_fault_subcode(soap, code, "No route can be determined to reach [destination]", NULL);
       soap_faultdetail(soap);
-      soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemIRI);
-      soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      if (soap->version == 1)
+      { soap->fault->detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemIRI);
+        soap->fault->detail->fault = (void*)info;
+      }
+      else
+      { soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemIRI);
+        soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      }
       break;
     case SOAP_WSA(ActionNotSupported):
       soap_wsa_sender_fault_subcode(soap, code, "The [action] cannot be processed at the receiver.", NULL);
       soap_faultdetail(soap);
-      soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemAction);
-      soap->fault->SOAP_ENV__Detail->fault = (void*)soap_malloc(soap, sizeof(SOAP_WSA_(,ProblemAction)));
-      SOAP_WSA_(soap_default_,ProblemAction)(soap, (SOAP_WSA_(,ProblemAction)*)soap->fault->SOAP_ENV__Detail->fault);
-      ((SOAP_WSA_(,ProblemAction)*)soap->fault->SOAP_ENV__Detail->fault)->Action = (char*)info;
+      if (soap->version == 1)
+      { soap->fault->detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemAction);
+        soap->fault->detail->fault = (void*)soap_malloc(soap, sizeof(SOAP_WSA_(,ProblemAction)));
+        SOAP_WSA_(soap_default_,ProblemAction)(soap, (SOAP_WSA_(,ProblemAction)*)soap->fault->detail->fault);
+        ((SOAP_WSA_(,ProblemAction)*)soap->fault->detail->fault)->Action = (char*)info;
+      }
+      else
+      { soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemAction);
+        soap->fault->SOAP_ENV__Detail->fault = (void*)soap_malloc(soap, sizeof(SOAP_WSA_(,ProblemAction)));
+        SOAP_WSA_(soap_default_,ProblemAction)(soap, (SOAP_WSA_(,ProblemAction)*)soap->fault->SOAP_ENV__Detail->fault);
+        ((SOAP_WSA_(,ProblemAction)*)soap->fault->SOAP_ENV__Detail->fault)->Action = (char*)info;
+      }
       break;
     case SOAP_WSA(EndpointUnavailable):
       soap_wsa_receiver_fault_subcode(soap, code, "The endpoint is unable to process the message at this time.", NULL);
       soap_faultdetail(soap);
-      soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemIRI);
-      soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      if (soap->version == 1)
+      { soap->fault->detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemIRI);
+        soap->fault->detail->fault = (void*)info;
+      }
+      else
+      { soap->fault->SOAP_ENV__Detail->__type = SOAP_WSA_(SOAP_TYPE_,ProblemIRI);
+        soap->fault->SOAP_ENV__Detail->fault = (void*)info;
+      }
+      break;
     default:
       break;
   }

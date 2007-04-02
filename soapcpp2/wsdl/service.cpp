@@ -65,6 +65,17 @@ void Definitions::collect(const wsdl__definitions &definitions)
 
 void Definitions::analyze(const wsdl__definitions &definitions)
 { // Analyze WSDL and build Service information
+  int binding_count = 0;
+  // Determine number of relevant SOAP service bindings
+  for (vector<wsdl__binding>::const_iterator i = definitions.binding.begin(); i != definitions.binding.end(); ++i)
+  { for (vector<wsdl__binding_operation>::const_iterator j = (*i).operation.begin(); j != (*i).operation.end(); ++j)
+    { if ((*j).operationPtr() && (*j).input && (*j).input->soap__body_)
+      { binding_count++;
+        break;
+      }
+    }
+  }
+  // Analyze and collect service data
   for (vector<wsdl__binding>::const_iterator binding = definitions.binding.begin(); binding != definitions.binding.end(); ++binding)
   { // /definitions/binding/documentation
     const char *binding_documentation = (*binding).documentation;
@@ -121,13 +132,21 @@ void Definitions::analyze(const wsdl__definitions &definitions)
 	  }
           // MUST have an input, otherwise can't generate a service operation
           if (input_body)
-          { const char *URI;
+          { char *URI;
             if (soap__operation_style == rpc)
               URI = input_body->namespace_;
-            else
+            else if (binding_count == 1)
               URI = definitions.targetNamespace;
+            else
+            { // multiple service bidings are used, each needs a unique new URI
+	      URI = (char*)soap_malloc(definitions.soap, strlen(definitions.targetNamespace) + strlen((*binding).name) + 2);
+	      strcpy(URI, definitions.targetNamespace);
+	      if (*URI && URI[strlen(URI)-1] != '/')
+	        strcat(URI, "/");
+	      strcat(URI, (*binding).name);
+	    }
             if (URI)
-            { const char *prefix = types.nsprefix(NULL, URI);
+            { const char *prefix = types.nsprefix(service_prefix, URI);
               const char *name = types.aname(NULL, NULL, (*binding).name); // name of service is binding name
               Service *s = services[prefix];
               if (!s)
@@ -921,7 +940,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
         section((*sv).name, "_ports Endpoints of Binding ", sv->name);
         for (SetOfString::const_iterator port = sv->location.begin(); port != sv->location.end(); ++port)
           fprintf(stream, "  - %s\n", *port);
-        fprintf(stream, "\n*/\n");
+        fprintf(stream, "\nNote: use wsdl2h option -N to change the service binding prefix name\n\n*/\n");
       }
     }
   }
@@ -1022,10 +1041,14 @@ void Definitions::generate()
       { for (vector<wsdl__part>::const_iterator part = (*fault).second->message->part.begin(); part != (*fault).second->message->part.end(); ++part)
         { if ((*part).elementPtr())
           { if (fault_elements.find((*part).element) == fault_elements.end())
-	    { types.gen(NULL, *(*part).elementPtr());
+	    { if ((*part).elementPtr()->type)
+	        fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*part).elementPtr()->type), types.aname(NULL, (*fault).second->URI, (*part).element));
+	      else
+	        fprintf(stream, elementformat, types.pname(true, "_", NULL, (*part).element), types.aname(NULL, (*fault).second->URI, (*part).element));
+              fprintf(stream, ";\n");
 	      fault_elements.insert((*part).element);
 	    }
-            fprintf(stream, "///< SOAP Fault element \"%s\" part \"%s\"\n", (*fault).second->message->name, (*part).name?(*part).name:"");
+            fprintf(stream, "///< SOAP Fault element \"%s\" part \"%s\"\n", (*part).element?(*part).element:"", (*part).name?(*part).name:"");
           }
           else if ((*part).name && (*part).type)
           { if (fault_elements.find((*part).name) == fault_elements.end())
@@ -1195,7 +1218,15 @@ void Service::generate(Types& types)
           fprintf(stream, "  - SOAP action=\"%s\"\n", (*op2)->soapAction);
       }
       for (vector<Message*>::const_iterator message = (*op2)->fault.begin(); message != (*op2)->fault.end(); ++message)
-      { if ((*message)->message && (*message)->message->name)
+      { if ((*message)->use == literal)
+        { for (vector<wsdl__part>::const_iterator part = (*message)->message->part.begin(); part != (*message)->message->part.end(); ++part)
+          { if ((*part).element)
+	      fprintf(stream, "  - SOAP Fault: %s (literal)\n", (*part).element);
+            else if ((*part).name && (*part).type)
+	      fprintf(stream, "  - SOAP Fault: %s (literal)\n", (*part).name);
+          }
+        }
+        else if ((*message)->message && (*message)->message->name)
           fprintf(stream, "  - SOAP Fault: %s\n", (*message)->name);
       }
       if (!(*op2)->input->header.empty())
