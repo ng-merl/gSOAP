@@ -265,12 +265,16 @@ int ns__getImage(struct soap *soap, char *name, ns__Data& image)
 static int getdata(struct soap *soap, const char *name, ns__Data& data)
 { struct stat sb;
   FILE *fd = NULL;
-  if (!strchr(name, '/') && !strchr(name, '\\') && !strchr(name, ':'))
+  if (name && !strchr(name, '/') && !strchr(name, '\\') && !strchr(name, ':'))
   { char *s = (char*)soap_malloc(soap, strlen(TMPDIR) + strlen(name) + 2);
     strcpy(s, TMPDIR);
     strcat(s, "/");
-    strcpy(s, name);
+    strcat(s, name);
     fd = fopen(s, "rb");
+    if (!fd)
+    { strcpy(s, name);
+      fd = fopen(s, "rb");
+    }
   }
   if (!fd)
     return SOAP_EOF;

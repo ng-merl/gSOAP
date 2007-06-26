@@ -4,14 +4,15 @@ DISTRIBUTION NOTES
 To install gSOAP, unpack the archive. You will get the following files:
 
 README.txt	read this first
+LICENSE.txt	license information
 NOTES.txt	this file
 bin/soapcpp2	executable gSOAP 2 compiler
 bin/wsdl2h	executable gSOAP WSDL parser
 doc/index.html	documentation
 changelog.html	changes
-license.html	gSOAP public license (HTML)
-license.pdf	gSOAP public license (PDF)
-gpl.txt		GPL license
+license.html	gSOAP public license (HTML), see LICENSE.txt
+license.pdf	gSOAP public license (PDF), see LICENSE.txt
+gpl.txt		GPL license, see LICENSE.txt
 soapdoc2.html	documentation (HTML)
 soapdoc2.pdf	documentation (PDF)
 stdsoap2.h	header file for stdsoap2.c[pp]
@@ -19,7 +20,6 @@ stdsoap2.c	library and gSOAP runtime
 stdsoap2.cpp	library (identical to stdsoap2.c)
 dom.html	gSOAP DOM parser (HTML)
 dom.pdf		gSOAP DOM parser (PDF)
-dom.h		header file for dom.c
 dom.c		C DOM parser
 dom.cpp		C++ DOM parser
 typemap.dat	XML schema to C/C++ type mapper for wsdl2h WSDL parser

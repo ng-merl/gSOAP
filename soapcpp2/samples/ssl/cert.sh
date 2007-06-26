@@ -1,6 +1,7 @@
-#!/bin/csh
+#!/bin/sh
 
-if ($#) then
+if [ "$#" = 1 ]
+then
 
   echo "* Create certificate ${1}.pem signed by the root CA"
   echo "* Store the ${1}.pem key file locally with your client/server application"
@@ -25,6 +26,6 @@ if ($#) then
 else
 
   echo "Usage: cert.sh <certname>"
-  exit (1)
+  exit 1
 
-endif
+fi

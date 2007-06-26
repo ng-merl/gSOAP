@@ -12,7 +12,6 @@ factory:			Remote object factory and simple ORB
 factorytest:			Test client for remote object factory
 googleapi:			Google Web API client
 listing:			XMethod service listing client
-localtime:			Get localtime client
 lu:				Linear solver client and server
 magic:				Magic Squares client and server
 mtom:				MTOM attachment client and server

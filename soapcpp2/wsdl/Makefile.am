@@ -9,9 +9,9 @@ INCLUDES=-I$(top_builddir)/soapcpp2
 LDFLAGS=$(INCLUDES)
 SOAP=$(top_builddir)/soapcpp2/src/soapcpp2
 SOAP_CPP_LIB=$(top_builddir)/soapcpp2/libgsoap++.a
-SOAP_CPP_SRC=wsdlC.cpp
-SOAPHEADER=wsdl.h
-SOAP_FLAGS=-SC -pwsdl
+SOAP_CPP_SRC=$(srcdir)/wsdlC.cpp
+SOAPHEADER=$(srcdir)/wsdl.h
+SOAP_FLAGS=-SC -pwsdl -I$(srcdir)
 BUILT_SOURCES=$(SOAP_CPP_SRC)
 
 $(SOAP_CPP_SRC) : $(SOAPHEADER)

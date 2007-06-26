@@ -646,7 +646,7 @@ argument) for HTTP optional response binding.</li>
 change of soap_element_begin_in() with an additional 'type' parameter (affecting custom deserializers, see custom
 dir).</li>
 </ul>
-<li>Version 2.7.9 revisions a/b/c/d/e (10/24/2006-03/31/2007)</li>
+<li>Version 2.7.9 revisions a/b/c/d/e/f/g/h (10/24/2006-06/25/2007)</li>
 <ul>
 <li>Added wsdl2h option -j to omit the generation of SOAP Header and Faults for customization of these.</li>
 <li>Added wsdl2h option -q to generate C++ namespace qualified header files.</li>
@@ -654,13 +654,20 @@ dir).</li>
 <li>Added file input and output specifications (with &lt; and &gt;) to wsdl2h's typemap.dat to specify input and output for wsdl2h.</li>
 <li>Added WS-Addressing 2005/03 support.</li>
 <li>Added function soap_free() = soap_done() + free() and renamed previous soap_free() to soap_temp_free().</li>
+<li>Added wsdl2h option -_ to translate _USCORE.</li>
+<li>Added xsd:anyAttribute (using DOM parser) with wsdl2h option -d.</li>
+<li>Changed soapcpp2 default rule for generating attribute form qualified to unqualified.</li>
 <li>Improved wsdl2h SOAP Fault coding.</li>
 <li>Improved performance and stability.</li>
+<li>Improved portability.</li>
 <li>Improved wsdl2h empty namespace handling ("" namespace).</li>
 <li>Improved wsdl2h and schema conversion to C and C++.</li>
 <li>Improved SSL timeouts and error handling.</li>
+<li>Improved soapcpp2 option -i (generate proxy and service classes).</li>
+<li>Improved class instance initialization.</li>
 <li>Fixed MIME/MTOM start id handling (SOAP message no longer required to be first attachment).</li>
 <li>Fixed WS-Security wsse plugin canonicalization format issue.</li>
+<li>Fixed ZIP content remainder parsing (CRC check).</li>
 </ul>
 </ul>
 

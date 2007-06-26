@@ -5,7 +5,7 @@ dom.c[pp]
 gSOAP DOM implementation
 
 gSOAP XML Web services tools
-Copyright (C) 2001-2005, Robert van Engelen, Genivia, Inc. All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia, Inc. All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2004 Robert A. van Engelen, Genivia inc. All Rights Reserved.
+Copyright (C) 2000-2007 Robert A. van Engelen, Genivia inc. All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -66,6 +66,13 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyType(struct soap*, const char*, int, 
 SOAP_FMAC3 struct soap_dom_element * SOAP_FMAC4 soap_get_xsd__anyType(struct soap*, struct soap_dom_element *, const char*, const char*);
 SOAP_FMAC1 struct soap_dom_element * SOAP_FMAC2 soap_in_xsd__anyType(struct soap*, const char*, struct soap_dom_element *, const char*);
 
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_xsd__anyAttribute(struct soap*, struct soap_dom_attribute const*);
+SOAP_FMAC1 void SOAP_FMAC2 soap_default_xsd__anyAttribute(struct soap*, struct soap_dom_attribute *);
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_xsd__anyAttribute(struct soap*, const struct soap_dom_attribute *, const char*, const char*);
+SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyAttribute(struct soap*, const char*, int, const struct soap_dom_attribute *, const char*);
+SOAP_FMAC3 struct soap_dom_attribute * SOAP_FMAC4 soap_get_xsd__anyAttribute(struct soap*, struct soap_dom_attribute *, const char*, const char*);
+SOAP_FMAC1 struct soap_dom_attribute * SOAP_FMAC2 soap_in_xsd__anyAttribute(struct soap*, const char*, struct soap_dom_attribute *, const char*);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -105,6 +112,16 @@ soap_serialize_xsd__anyType(struct soap *soap, const struct soap_dom_element *no
 }
 
 /******************************************************************************/
+
+SOAP_FMAC1
+void
+SOAP_FMAC2
+soap_serialize_xsd__anyAttribute(struct soap *soap, const struct soap_dom_attribute *node)
+{
+}
+
+/******************************************************************************/
+
 SOAP_FMAC1
 void
 SOAP_FMAC2
@@ -125,6 +142,21 @@ soap_default_xsd__anyType(struct soap *soap, struct soap_dom_element *node)
 }
 
 /******************************************************************************/
+
+SOAP_FMAC1
+void
+SOAP_FMAC2
+soap_default_xsd__anyAttribute(struct soap *soap, struct soap_dom_attribute *node)
+{ node->next = NULL;
+  node->nstr = NULL;
+  node->name = NULL;
+  node->data = NULL;
+  node->wide = NULL;
+  node->soap = soap;
+}
+
+/******************************************************************************/
+
 static int 
 out_element(struct soap *soap, const struct soap_dom_element *node, const char *prefix, const char *name, const char *nstr)
 { if (node->head && soap_send(soap, node->head))
@@ -165,6 +197,7 @@ out_element(struct soap *soap, const struct soap_dom_element *node, const char *
 }
 
 /******************************************************************************/
+
 static int
 out_attribute(struct soap *soap, const char *prefix, const char *name, const char *data)
 { char *s;
@@ -191,6 +224,7 @@ out_attribute(struct soap *soap, const char *prefix, const char *name, const cha
 }
 
 /******************************************************************************/
+
 SOAP_FMAC1
 int
 SOAP_FMAC2
@@ -357,6 +391,26 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
 }
 
 /******************************************************************************/
+
+SOAP_FMAC1
+int
+SOAP_FMAC2
+soap_out_xsd__anyAttribute(struct soap *soap, const char *tag, int id, const struct soap_dom_attribute *node, const char *type)
+{   // TODO
+  while (node)
+  { if (node->name)
+    { if (node->wide)
+        soap_set_attr(soap, node->name, soap_wchar2s(soap, node->wide));
+      else
+        soap_set_attr(soap, node->name, node->data);
+    }
+    node = node->next;
+  }
+  return SOAP_OK;
+}
+
+/******************************************************************************/
+
 SOAP_FMAC1
 struct soap_dom_element *
 SOAP_FMAC2
@@ -460,6 +514,53 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
   return node;
 }
 
+/******************************************************************************/
+
+SOAP_FMAC1
+struct soap_dom_attribute *
+SOAP_FMAC2
+soap_in_xsd__anyAttribute(struct soap *soap, const char *tag, struct soap_dom_attribute *node, const char *type)
+{ register struct soap_attribute *tp;
+  struct soap_dom_attribute *tmp = node;
+  struct soap_dom_attribute *att = node;
+  for (tp = soap->attributes; tp; tp = tp->next)
+  { if (tp->visible)
+    { if (!att)
+      { att = (struct soap_dom_attribute*)soap_malloc(soap, sizeof(struct soap_dom_attribute));
+        if (tmp)
+	  tmp->next = att;
+	else
+	  node = att;
+        tmp = att;
+      }
+      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node attribute='%s'\n", tp->name));
+      if (!att)
+      { soap->error = SOAP_EOM;
+        return NULL;
+      }
+      att->next = NULL;
+      att->nstr = soap_current_namespace(soap, tp->name);
+      if ((soap->mode & SOAP_DOM_ASIS))
+        att->name = soap_strdup(soap, tp->name);
+      else
+      { char *s = strchr(tp->name, ':');
+        if (s)
+          att->name = soap_strdup(soap, s+1);
+	else
+          att->name = soap_strdup(soap, tp->name);
+      }
+      if (tp->visible == 2)
+        att->data = soap_strdup(soap, tp->value);
+      else
+        att->data = NULL;
+      att->wide = NULL;
+      att->soap = soap;
+      att = NULL;
+    }
+  }
+  return node;
+}
+
 /******************************************************************************\
  *
  *	DOM traversing
@@ -482,7 +583,9 @@ soap_dom_next_element(struct soap_dom_element *elt)
 }
 
 /******************************************************************************/
-struct soap_dom_attribute *soap_dom_next_attribute(struct soap_dom_attribute *att)
+
+struct soap_dom_attribute *
+soap_dom_next_attribute(struct soap_dom_attribute *att)
 { return att->next;
 }
 
@@ -502,6 +605,7 @@ soap_lookup_ns_prefix(struct soap *soap, const char *nstr)
 }
 
 /******************************************************************************/
+
 static struct soap_ilist *
 soap_enter_ns_prefix(struct soap *soap, const char *prefix, const char *nstr)
 { int h;
@@ -542,11 +646,13 @@ soap_dom_element::soap_dom_element()
 }
 
 /******************************************************************************/
+
 soap_dom_element::soap_dom_element(struct soap *soap)
 { soap_default_xsd__anyType(soap, this);
 }
 
 /******************************************************************************/
+
 soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const char *name)
 { soap_default_xsd__anyType(soap, this);
   this->nstr = soap_strdup(soap, nstr);
@@ -554,6 +660,7 @@ soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const ch
 }
 
 /******************************************************************************/
+
 soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const char *name, const char *data)
 { soap_default_xsd__anyType(soap, this);
   this->nstr = soap_strdup(soap, nstr);
@@ -562,6 +669,7 @@ soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const ch
 }
 
 /******************************************************************************/
+
 soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const char *name, void *node, int type)
 { soap_default_xsd__anyType(soap, this);
   this->nstr = soap_strdup(soap, nstr);
@@ -571,10 +679,12 @@ soap_dom_element::soap_dom_element(struct soap *soap, const char *nstr, const ch
 }
 
 /******************************************************************************/
+
 soap_dom_element::~soap_dom_element()
 { }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::set(const char *nstr, const char *name)
 { this->nstr = soap_strdup(soap, nstr);
   this->name = soap_strdup(soap, name);
@@ -582,12 +692,14 @@ soap_dom_element &soap_dom_element::set(const char *nstr, const char *name)
 }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::set(const char *data)
 { this->data = soap_strdup(soap, data);
   return *this;
 }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::set(void *node, int type)
 { this->node = node;
   this->type = type;
@@ -595,6 +707,7 @@ soap_dom_element &soap_dom_element::set(void *node, int type)
 }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::add(struct soap_dom_element *elt)
 { elt->prnt = this;
   for (struct soap_dom_element *e = elts; e; e = e->next)
@@ -608,11 +721,13 @@ soap_dom_element &soap_dom_element::add(struct soap_dom_element *elt)
 }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::add(struct soap_dom_element &elt)
 { return add(&elt);
 }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::add(struct soap_dom_attribute *att)
 { for (struct soap_dom_attribute *a = atts; a; a = a->next)
   { if (!a->next)
@@ -625,23 +740,27 @@ soap_dom_element &soap_dom_element::add(struct soap_dom_attribute *att)
 }
 
 /******************************************************************************/
+
 soap_dom_element &soap_dom_element::add(struct soap_dom_attribute &att)
 { return add(&att);
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator soap_dom_element::begin()
 { soap_dom_element_iterator iter(this);
   return iter;
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator soap_dom_element::end()
 { soap_dom_element_iterator iter(NULL);
   return iter;
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator soap_dom_element::find(const char *nstr, const char *name)
 { soap_dom_element_iterator iter(this);
   iter.nstr = nstr;
@@ -654,6 +773,7 @@ soap_dom_element_iterator soap_dom_element::find(const char *nstr, const char *n
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator soap_dom_element::find(int type)
 { soap_dom_element_iterator iter(this);
   iter.type = type;
@@ -663,6 +783,7 @@ soap_dom_element_iterator soap_dom_element::find(int type)
 }
 
 /******************************************************************************/
+
 void soap_dom_element::unlink()
 { soap_unlink(soap, this);
   soap_unlink(soap, nstr);
@@ -695,6 +816,7 @@ soap_dom_attribute::soap_dom_attribute()
 }
 
 /******************************************************************************/
+
 soap_dom_attribute::soap_dom_attribute(struct soap *soap)
 { this->soap = soap;
   this->next = NULL;
@@ -705,6 +827,7 @@ soap_dom_attribute::soap_dom_attribute(struct soap *soap)
 }
 
 /******************************************************************************/
+
 soap_dom_attribute::soap_dom_attribute(struct soap *soap, const char *nstr, const char *name, const char *data)
 { this->soap = soap;
   this->next = NULL;
@@ -715,22 +838,26 @@ soap_dom_attribute::soap_dom_attribute(struct soap *soap, const char *nstr, cons
 }
 
 /******************************************************************************/
+
 soap_dom_attribute::~soap_dom_attribute()
 { }
 
 /******************************************************************************/
+
 soap_dom_attribute_iterator soap_dom_attribute::begin()
 { soap_dom_attribute_iterator iter(this);
   return iter;
 }
 
 /******************************************************************************/
+
 soap_dom_attribute_iterator soap_dom_attribute::end()
 { soap_dom_attribute_iterator iter(NULL);
   return iter;
 }
 
 /******************************************************************************/
+
 soap_dom_attribute_iterator soap_dom_attribute::find(const char *nstr, const char *name)
 { soap_dom_attribute_iterator iter(this);
   iter.nstr = nstr;
@@ -743,6 +870,7 @@ soap_dom_attribute_iterator soap_dom_attribute::find(const char *nstr, const cha
 }
 
 /******************************************************************************/
+
 void soap_dom_attribute::unlink()
 { soap_unlink(soap, this);
   soap_unlink(soap, nstr);
@@ -767,6 +895,7 @@ soap_dom_element_iterator::soap_dom_element_iterator()
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator::soap_dom_element_iterator(struct soap_dom_element *elt)
 { this->elt = elt;
   nstr = NULL;
@@ -775,25 +904,30 @@ soap_dom_element_iterator::soap_dom_element_iterator(struct soap_dom_element *el
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator::~soap_dom_element_iterator()
 { }
 
 /******************************************************************************/
+
 bool soap_dom_element_iterator::operator==(const soap_dom_element_iterator &iter) const
 { return this->elt == iter.elt;
 }
 
 /******************************************************************************/
+
 bool soap_dom_element_iterator::operator!=(const soap_dom_element_iterator &iter) const
 { return this->elt != iter.elt;
 }
 
 /******************************************************************************/
+
 struct soap_dom_element &soap_dom_element_iterator::operator*() const
 { return *this->elt;
 }
 
 /******************************************************************************/
+
 soap_dom_element_iterator &soap_dom_element_iterator::operator++()
 { while (elt)
   { elt = soap_dom_next_element(elt);
@@ -832,6 +966,7 @@ soap_dom_attribute_iterator::soap_dom_attribute_iterator()
 }
 
 /******************************************************************************/
+
 soap_dom_attribute_iterator::soap_dom_attribute_iterator(struct soap_dom_attribute *att)
 { this->att = att;
   nstr = NULL;
@@ -839,25 +974,30 @@ soap_dom_attribute_iterator::soap_dom_attribute_iterator(struct soap_dom_attribu
 }
 
 /******************************************************************************/
+
 soap_dom_attribute_iterator::~soap_dom_attribute_iterator()
 { }
 
 /******************************************************************************/
+
 bool soap_dom_attribute_iterator::operator==(const soap_dom_attribute_iterator &iter) const
 { return this->att == iter.att;
 }
 
 /******************************************************************************/
+
 bool soap_dom_attribute_iterator::operator!=(const soap_dom_attribute_iterator &iter) const
 { return this->att != iter.att;
 }
 
 /******************************************************************************/
+
 struct soap_dom_attribute &soap_dom_attribute_iterator::operator*() const
 { return *this->att;
 }
 
 /******************************************************************************/
+
 soap_dom_attribute_iterator &soap_dom_attribute_iterator::operator++()
 { while (att)
   { att = soap_dom_next_attribute(att);
@@ -914,6 +1054,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
 }
 
 /******************************************************************************/
+
 std::istream &operator>>(std::istream &i, struct soap_dom_element &e)
 { if (!e.soap)
     e.soap = soap_new();

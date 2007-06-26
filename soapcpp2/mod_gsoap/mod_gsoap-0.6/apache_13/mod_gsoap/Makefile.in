@@ -93,7 +93,7 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 
 AM_CPPFLAGS = $(CXXDEBUGDEFINES)
-INCLUDES = -I$(top_builddir)
+INCLUDES = -I$(top_builddir) -I$(includedir)
 
 noinst_SCRIPTS = mod_gsoap.so
 

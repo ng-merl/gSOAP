@@ -669,10 +669,11 @@ wininet_fsend(
         {
         case HTTP_STATUS_DENIED:
         case HTTP_STATUS_PROXY_AUTH_REQ:
+	    {
+	    wininet_rseReturn errorResolved = rseDisplayDlg;
             DBGLOG(TEST, SOAP_MESSAGE(fdebug, 
                 "wininet %p: fsend, user authenication required\n", 
                 soap ));
-	    wininet_rseReturn errorResolved = rseDisplayDlg;
 	    if (pData->pRseCallback)
 			errorResolved = pData->pRseCallback(hHttpRequest, dwStatusCode);
 	    if (errorResolved == rseDisplayDlg)
@@ -693,6 +694,7 @@ wininet_fsend(
                 bRetryPost = TRUE;
                 continue;
             }
+	    }
         }
     }
 

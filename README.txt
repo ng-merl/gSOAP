@@ -5,9 +5,11 @@ INSTALLATION NOTES
 This file explains how gSOAP is build on your platform.
 
 Win32 users can start right away. A soapcpp2.exe binary compiler and
-wsdl2h.exe WSDL parser are included in this distribution. Please note that
-specific Windows, Linux, Sun, and Mac OS X releases with binaries are
-available from the SourceForge gsoap2 project.
+wsdl2h.exe WSDL parser are included in this distribution. Visual Studio 2005
+build solutions are available in soappcp2/VisualStudio2005.
+
+Please note that specific Windows, Linux, and Mac OS X releases with binaries
+are available from the SourceForge gsoap2 project.
 
 To build gSOAP on your platform, please enter the following command:
 ./configure
@@ -23,7 +25,7 @@ If you want to install the executables in your local directory, enter:
 make
 make install exec_prefix=$HOME
 
-To build your projects, you need the executables:
+To build your projects, you need the executables that were built here:
 
 soapcpp2/src/soapcpp2		gSOAP stub/skeleton compiler
 soapcpp2/wsdl/wsdl2h		gSOAP WSDL parser

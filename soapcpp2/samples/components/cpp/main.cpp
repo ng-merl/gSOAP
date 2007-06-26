@@ -17,7 +17,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 { if (argc <= 1)
-  { calc::Service calc;
+  { calc::ServiceService calc;
     return calc.serve();
   }
   quote::Service quote;

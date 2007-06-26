@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.9e
+stdsoap2.h 2.7.9h
 
 gSOAP runtime
 
@@ -201,9 +201,11 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #else
 # if defined(UNDER_CE)
+#  define WITH_NOEMPTYSTRUCT
 #  define WITH_LEAN
 #  define HAVE_SSCANF
 # elif defined(WIN32)
+#  define WITH_NOEMPTYSTRUCT
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
 #  define HAVE_SSCANF
@@ -240,7 +242,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_TIMEGM
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
-# elif defined(_AIXVERSION_431)
+# elif defined(_AIX43)
 #  define HAVE_STRRCHR
 #  define HAVE_STRTOD
 #  define HAVE_SSCANF
@@ -251,6 +253,15 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #  define HAVE_RAND_R
 #  define HAVE_GMTIME_R
 #  define HAVE_LOCALTIME_R
+#  define HAVE_WCTOMB
+#  define HAVE_MBTOWC
+# elif defined(_AIX41)
+#  define HAVE_STRRCHR
+#  define HAVE_STRTOD
+#  define HAVE_SSCANF
+#  define HAVE_STRTOL
+#  define HAVE_STRTOUL
+#  define HAVE_SYS_TIMEB_H
 #  define HAVE_WCTOMB
 #  define HAVE_MBTOWC
 # elif defined(HP_UX)
@@ -453,6 +464,11 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #endif
 
+/* Suggestion when SOAP_FD_EXCEEDED error occurs:
+   Some systems allow increasing FD_SETSIZE before including sys/types.h:
+#define FD_SETSIZE (2048)
+*/
+
 #ifndef UNDER_CE
 # ifndef PALM
 #  ifndef WITH_NOIO
@@ -561,7 +577,7 @@ extern "C" {
 #  include <io.h>
 #  include <fcntl.h>
 # endif
-# include <winsock.h>
+# include <winsock.h> /* Visual Studio 2005 users: you must install the Platform SDK (R2) */
 /* # include <winsock2.h> */ /* Alternative: use winsock2 (not available with eVC) */
 # ifdef WITH_IPV6
 #  include <ws2tcpip.h>
@@ -579,13 +595,20 @@ extern "C" {
 #   include <netinet/in.h>
 #   include <unistd.h>
 #   include <fcntl.h>
+#   ifdef _AIX41
+#    include <sys/select.h>
+#   endif
 #  endif
 # endif
 #endif
 
 /* Portability: define SOAP_SOCKLEN_T */
 #if defined(_AIX)
-# define SOAP_SOCKLEN_T socklen_t
+# if defined(_AIX43)
+#  define SOAP_SOCKLEN_T socklen_t
+# else
+#  define SOAP_SOCKLEN_T int
+# endif
 #elif defined(SOCKLEN_T)
 # define SOAP_SOCKLEN_T SOCKLEN_T
 #elif defined(__socklen_t_defined) || defined(_SOCKLEN_T) || defined(CYGWIN) || defined(FREEBSD) || defined(__FreeBSD__) || defined(__QNX__) || defined(QNX)
@@ -597,11 +620,10 @@ extern "C" {
 #endif
 
 #ifndef SOAP_SOCKET
+# define SOAP_SOCKET int
 # ifdef WIN32
-#  define SOAP_SOCKET SOCKET
 #  define soap_closesocket(n) closesocket(n)
 # else
-#  define SOAP_SOCKET int
 #  define soap_closesocket(n) close(n)
 # endif
 #endif
@@ -660,6 +682,12 @@ extern "C" {
 # define soap_int32 long
 #elif defined(PALM)
 # define soap_int32 Int32
+#elif defined(_AIX)
+# if defined(_AIX43)
+#  define soap_int32 int32_t
+# else
+#  define soap_int32 signed int
+# endif
 #else
 # define soap_int32 int32_t
 #endif
@@ -907,32 +935,33 @@ extern const struct soap_double_nan { unsigned int n1, n2; } soap_double_nan;
 #define SOAP_GET_METHOD			15
 #define SOAP_EOM			16
 #define SOAP_MOE			17
-#define SOAP_NULL			18
-#define SOAP_DUPLICATE_ID		19
-#define SOAP_MISSING_ID			20
-#define SOAP_HREF			21
-#define SOAP_UDP_ERROR			22
-#define SOAP_TCP_ERROR			23
-#define SOAP_HTTP_ERROR			24
-#define SOAP_SSL_ERROR			25
-#define SOAP_ZLIB_ERROR			26
-#define SOAP_DIME_ERROR			27
-#define SOAP_DIME_HREF			28
-#define SOAP_DIME_MISMATCH		29
-#define SOAP_DIME_END			30
-#define SOAP_MIME_ERROR			31
-#define SOAP_MIME_HREF			32
-#define SOAP_MIME_END			33
-#define SOAP_VERSIONMISMATCH		34
-#define SOAP_PLUGIN_ERROR		35
-#define SOAP_DATAENCODINGUNKNOWN	36
-#define SOAP_REQUIRED			37
-#define SOAP_PROHIBITED			38
-#define SOAP_OCCURS			39
-#define SOAP_LENGTH			40
-#define SOAP_FD_EXCEEDED		41
+#define SOAP_HDR			18
+#define SOAP_NULL			19
+#define SOAP_DUPLICATE_ID		20
+#define SOAP_MISSING_ID			21
+#define SOAP_HREF			22
+#define SOAP_UDP_ERROR			23
+#define SOAP_TCP_ERROR			24
+#define SOAP_HTTP_ERROR			25
+#define SOAP_SSL_ERROR			26
+#define SOAP_ZLIB_ERROR			27
+#define SOAP_DIME_ERROR			28
+#define SOAP_DIME_HREF			29
+#define SOAP_DIME_MISMATCH		30
+#define SOAP_DIME_END			31
+#define SOAP_MIME_ERROR			32
+#define SOAP_MIME_HREF			33
+#define SOAP_MIME_END			34
+#define SOAP_VERSIONMISMATCH		35
+#define SOAP_PLUGIN_ERROR		36
+#define SOAP_DATAENCODINGUNKNOWN	37
+#define SOAP_REQUIRED			38
+#define SOAP_PROHIBITED			39
+#define SOAP_OCCURS			40
+#define SOAP_LENGTH			41
+#define SOAP_FD_EXCEEDED		42
 
-#define soap_xml_error_check(e) ((e) == SOAP_TAG_MISMATCH || (e) == SOAP_TAG_END || (e) == SOAP_SYNTAX_ERROR || (e) == SOAP_NAMESPACE || (e) == SOAP_DUPLICATE_ID || (e) == SOAP_MISSING_ID || (e) == SOAP_REQUIRED || (e) == SOAP_PROHIBITED || (e) == SOAP_OCCURS || (e) == SOAP_LENGTH || (e) == SOAP_NULL || (e) == SOAP_HREF)
+#define soap_xml_error_check(e) ((e) == SOAP_TAG_MISMATCH || (e) == SOAP_NO_TAG || (e) == SOAP_SYNTAX_ERROR || (e) == SOAP_NAMESPACE || (e) == SOAP_DUPLICATE_ID || (e) == SOAP_MISSING_ID || (e) == SOAP_REQUIRED || (e) == SOAP_PROHIBITED || (e) == SOAP_OCCURS || (e) == SOAP_LENGTH || (e) == SOAP_NULL || (e) == SOAP_HREF)
 #define soap_soap_error_check(e) ((e) == SOAP_CLI_FAULT || (e) == SOAP_SVR_FAULT || (e) == SOAP_VERSIONMISMATCH || (e) == SOAP_MUSTUNDERSTAND || (e) == SOAP_FAULT || (e) == SOAP_NO_METHOD)
 #define soap_tcp_error_check(e) ((e) == SOAP_EOF || (e) == SOAP_TCP_ERROR)
 #define soap_ssl_error_check(e) ((e) == SOAP_SSL_ERROR)
@@ -1984,7 +2013,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_wstring_out(struct soap*, const wchar_t *s, int f
 SOAP_FMAC1 wchar_t* SOAP_FMAC2 soap_wstring_in(struct soap*, int, long, long);
 #endif
 
-SOAP_FMAC1 int SOAP_FMAC2 soap_match_namespace(struct soap*, const char *, const char*, int n1, int n2);
+SOAP_FMAC1 int SOAP_FMAC2 soap_match_namespace(struct soap*, const char *, const char*, size_t n1, size_t n2);
 
 SOAP_FMAC1 int SOAP_FMAC2 soap_set_namespaces(struct soap*, const struct Namespace*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_set_local_namespaces(struct soap*);

@@ -1,3 +1,8 @@
+Modules for gSOAP
+
+The modules are released under the gSOAP open source public license, see
+license.pdf in the gSOAP root dir of the package.
+
 gsoap_win			IIS and WinInet support
 mod_gsoap-x.y			mod_gsoap for Apache 1.3 and 2.0
 

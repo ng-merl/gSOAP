@@ -160,6 +160,7 @@ COMMAND LINE OPTIONS
 -x      don't generate _XML any/anyAttribute extensibility elements
 -y      generate typedef synonyms for structs and enums
 -z      generate pointer-based arrays for backward compatibility < gSOAP 2.7.6e 
+-_      don't generate _USCORE (replace with UNICODE _x005f)
 infile.wsdl infile.xsd http://www... list of input sources (if none use stdin)
 
 DOCUMENTATION

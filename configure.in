@@ -183,7 +183,7 @@ AC_CONFIG_FILES([ Makefile \
     soapcpp2/samples/dime/Makefile \
     soapcpp2/samples/mtom/Makefile \
     soapcpp2/samples/mtom-stream/Makefile \
-    soapcpp2/samples/localtime/Makefile soapcpp2/samples/listing/Makefile \
+    soapcpp2/samples/listing/Makefile \
     soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile \
     soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile \
     soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile \

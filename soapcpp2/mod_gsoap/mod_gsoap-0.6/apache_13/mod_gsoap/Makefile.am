@@ -1,7 +1,7 @@
 #input for automake to generate mod_gsoap Makefile
 
 AM_CPPFLAGS= $(CXXDEBUGDEFINES)
-INCLUDES=-I$(top_builddir)
+INCLUDES=-I$(top_builddir) -$(includedir)
 
 noinst_SCRIPTS=mod_gsoap.so
 

@@ -103,14 +103,14 @@ SOAPHEADER = mtom-stream-test.h
 
 AM_CFLAGS = -D$(platform)
 AM_CXXFLAGS = -D$(platform)
-INCLUDES = -I$(top_builddir)/soapcpp2
-SOAP = $(top_builddir)/soapcpp2/src/soapcpp2
+INCLUDES = -I$(top_srcdir)/soapcpp2
+SOAP = $(top_srcdir)/soapcpp2/src/soapcpp2
 
 SOAP_NS_DEF = ns.nsmap ns.wsdl
 
 SOAP_H_FILES = soapH.h soapStub.h 
 
-SOAP_FLAGS = -I$(top_builddir)/soapcpp2/import
+SOAP_FLAGS = -I$(top_srcdir)/soapcpp2/import
 
 SOAP_C_CLIENT = soapClient.c soapC.c
 SOAP_C_SERVER = soapServer.c soapC.c

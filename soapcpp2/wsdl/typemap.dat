@@ -75,8 +75,8 @@
 
 #	For WhiteMesa interoperability testing round 2:
 
-i	= "http://www.soapinterop.org/"
-s	= "http://www.soapinterop.org/xsd"
+i	= "http://soapinterop.org/"
+s	= "http://soapinterop.org/xsd"
 
 #	Amazon Web Services:
 
@@ -87,15 +87,23 @@ aws	= "urn:PI/DevCentral/SoapService"
 mpt	= "http://s.mappoint.net/mappoint-30/"
 
 #	MTOM xop and xmime are imported from xop.h, xmime.h, and xmlmime.h:
+#	Note: changed xmlmime to xmime to avoid other MTOM tools from
+#	complaining that 'xml' is reserved.
 
 xop	= <http://www.w3.org/2004/08/xop/include>
 xmime	= <http://www.w3.org/2004/06/xmlmime>
-xmlmime	= <http://www.w3.org/2004/11/xmlmime>
+xmime4	= <http://www.w3.org/2004/11/xmlmime>
+xmime5  = <http://www.w3.org/2005/05/xmlmime>
 
-#	xmime/xmlmime:contentType attribute is juts a string:
+#	xop:Include is imported from xop.h and redefined as _xop__Include:
+
+xop__Include		= #import "xop.h" | _xop__Include
+
+#	xmime/xmlmime:contentType attribute is a string:
 
 _xmime__contentType	= | char* | char*
-_xmlmime__contentType	= | char* | char*
+_xmime4__contentType	= | char* | char*
+_xmime5__contentType	= | char* | char*
 
 #	WS-Addressing (2003, 2004, and 2005 schemas)
 #	See import/wsa.h, import/wsa3.h etc for definitions and code examples

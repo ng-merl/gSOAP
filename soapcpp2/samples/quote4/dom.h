@@ -69,32 +69,35 @@ file, import the dom.h file into your header file:
     #import "dom.h"
 @endcode
 
-By importing dom.h a special data type @ref xsd__anyType is available that
-represents a hierarchical DOM node set. The DOM node set data structure can be
-used within structs, classes, STL containers, and as arguments of service
-operations. For example:
+By importing dom.h two special data types @ref xsd__anyType and @ref
+xsd__anyAttribute are available representing a hierarchical DOM node set of
+elements and attributes, respectively. The DOM node element and attribute data
+structures can be used within structs, classes, STL containers, and as
+arguments of service operations. For example:
 
 @code
     #import "dom.h"
     #import "wsu.h"
     class ns__myProduct
     { public:
-	@char*            wsu__Id;
-	_wsu__Timestamp*  wsu__Timestamp;
-        char*             name;
-	int               SKU;
-	double            price;
-	xsd__anyType*	  any;
-                          ns__myProduct();
-                          ~ns__myProduct();
+	@char*               wsu__Id;
+	@xsd__anyAttribute   atts;
+	_wsu__Timestamp*     wsu__Timestamp;
+        char*                name;
+	int                  SKU;
+	double               price;
+	xsd__anyType*	     elts;
+                             ns__myProduct();
+                             ~ns__myProduct();
     };
 @endcode
 
 It is important to declare the @ref xsd__anyType at the end of the struct or
-class, since the DOM parser consumes any XML element (the field name, 'any' in
+class, since the DOM parser consumes any XML element (the field name, 'elts' in
 this case, is irrelavant).  Thus, the other fields must be defined first to
 ensure they are populated first before the DOM node set is populated with any
-non-previously matched XML element.
+non-previously matched XML element. Likewise, the @ref xsd__anyAttribute member
+should be placed after the other attributes.
 
 Note that we also imported wsu.h as an example to show how to add a wsu:Id
 attribute to a struct or class if we want to digitally sign instances, and how
@@ -625,6 +628,9 @@ The @ref soap_dom_attribute constructors:
 
 */
 
-/// @brief The custom serializer for DOM nodes is represented by xsd__anyType.
+/// @brief The custom serializer for DOM element nodes is represented by xsd__anyType.
 extern typedef struct soap_dom_element xsd__anyType;
+
+/// @brief The custom serializer for DOM attribute nodes is represented by xsd__anyAttribute.
+extern typedef struct soap_dom_attribute xsd__anyAttribute;
 
