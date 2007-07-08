@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.c[pp] 2.7.9h
+stdsoap2.c[pp] 2.7.9i
 
 gSOAP runtime
 
@@ -77,10 +77,10 @@ when locally allocated data exceeds 64K.
 #endif
 
 #ifdef __cplusplus
-SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.9h 2007-06-25 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.9i 2007-07-07 07:07:07 GMT")
 extern "C" {
 #else
-SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9h 2007-06-25 12:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9i 2007-07-07 07:07:07 GMT")
 #endif
 
 /* 8bit character representing unknown/nonrepresentable character data (e.g. not supported by current locale with multibyte support enabled) */

@@ -3242,9 +3242,9 @@ gen_proxy_code(FILE *fd, Table *table, Symbol *ns, char *name, char *URL, char *
   fprintf(fd, "\n\nvoid %s::%s_init(soap_mode imode, soap_mode omode)\n{\tsoap_imode(this, imode);\n\tsoap_omode(this, omode);\n\tsoap_endpoint = NULL;\n\tstatic const struct Namespace namespaces[] =\n", name, name);
   gen_nsmap(fd, ns, URI);
   if (nflag)
-    fprintf(fd, "\tthis->namespaces = namespaces;\n};");
+    fprintf(fd, "\tthis->namespaces = namespaces;\n}");
   else
-    fprintf(fd, "\tif (!this->namespaces)\n\t\tthis->namespaces = namespaces;\n};");
+    fprintf(fd, "\tif (!this->namespaces)\n\t\tthis->namespaces = namespaces;\n}");
   fprintf(fd, "\n\n%s::~%s()\n{ }", name, name);
   fprintf(fd, "\n\nvoid %s::soap_noheader()\n{\theader = NULL;\n}", name);
   t = entry(classtable, lookup("SOAP_ENV__Header"))->info.typ->ref;
@@ -6873,9 +6873,9 @@ out_defs(Table *table)
         else if(p->type == Tclass && !is_external(p) && !is_volatile(p) && !is_typedef(p))
           fprintf(fout,"\n\tcase %s:\n\t\treturn ((%s)ptr)->soap_out(soap, \"%s\", id, NULL);", soap_type(p), c_type_id(p, "*"),s);
         else if (is_string(p))
-          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_string(soap, \"%s\", id, (char**)&ptr, NULL);", soap_type(p),s);
+          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_string(soap, \"%s\", id, (char*const*)&ptr, NULL);", soap_type(p),s);
         else if (is_wstring(p))
-          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_wstring(soap, \"%s\", id, (wchar_t**)&ptr, NULL);", soap_type(p),s);
+          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_wstring(soap, \"%s\", id, (wchar_t*const*)&ptr, NULL);", soap_type(p),s);
         else if (p->type == Tpointer)
           fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_%s(soap, \"%s\", id, (%s)ptr, NULL);", soap_type(p),c_ident(p),s,c_type_id(p, "const*"));
         else if(p->type != Tnone && p->type != Ttemplate && p->type != Twchar && !is_void(p) && p->type != Tfun && p->type != Treference && p->type != Tunion)
@@ -6892,9 +6892,9 @@ out_defs(Table *table)
         else if(p->type == Tclass && !is_external(p) && !is_volatile(p) && !is_typedef(p))
           fprintf(fout,"\n\tcase %s:\n\t\treturn ((%s)ptr)->soap_out(soap, tag, id, \"%s\");", soap_type(p), c_type_id(p, "*"), s);
         else if (is_string(p))
-          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_string(soap, tag, id, (char**)&ptr, \"%s\");", soap_type(p), s);
+          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_string(soap, tag, id, (char*const*)&ptr, \"%s\");", soap_type(p), s);
         else if (is_wstring(p))
-          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_wstring(soap, tag, id, (wchar_t**)&ptr, \"%s\");", soap_type(p), s);
+          fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_wstring(soap, tag, id, (wchar_t*const*)&ptr, \"%s\");", soap_type(p), s);
         else if (p->type == Tpointer)
           fprintf(fout,"\n\tcase %s:\n\t\treturn soap_out_%s(soap, tag, id, (%s)ptr, \"%s\");", soap_type(p), c_ident(p),c_type_id(p, "const*"), s);
         else if(p->type != Tnone && p->type != Ttemplate && p->type != Twchar && !is_void(p) && p->type != Tfun && p->type != Treference && p->type != Tunion)
@@ -6917,9 +6917,9 @@ mark_defs(Table *table)
       else if(p->type == Tclass && !is_external(p) && !is_volatile(p) && !is_typedef(p))
         fprintf(fout,"\n\tcase %s:\n\t\t((%s)ptr)->soap_serialize(soap);\n\t\tbreak;", soap_type(p), c_type_id(p, "*"));
       else if (is_string(p))
-        fprintf(fout,"\n\tcase %s:\n\t\tsoap_serialize_string(soap, (char**)&ptr);\n\t\tbreak;", soap_type(p));
+        fprintf(fout,"\n\tcase %s:\n\t\tsoap_serialize_string(soap, (char*const*)&ptr);\n\t\tbreak;", soap_type(p));
       else if (is_wstring(p))
-        fprintf(fout,"\n\tcase %s:\n\t\tsoap_serialize_wstring(soap, (wchar_t**)&ptr);\n\t\tbreak;", soap_type(p));
+        fprintf(fout,"\n\tcase %s:\n\t\tsoap_serialize_wstring(soap, (wchar_t*const*)&ptr);\n\t\tbreak;", soap_type(p));
       else if (p->type == Tpointer)
         fprintf(fout,"\n\tcase %s:\n\t\tsoap_serialize_%s(soap, (%s)ptr);\n\t\tbreak;", soap_type(p), c_ident(p),c_type_id(p, "const*"));
       else if(p->type == Ttemplate && p->ref)

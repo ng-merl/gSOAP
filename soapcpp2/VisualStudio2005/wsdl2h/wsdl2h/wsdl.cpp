@@ -248,7 +248,7 @@ int wsdl__definitions::read(const char *cwd, const char *loc)
   if (vflag)
     fprintf(stderr, "Done reading '%s'\n", loc);
   soap_end_recv(soap);
-  if (soap->recvfd >= 0)
+  if (soap->recvfd > 2)
   { close(soap->recvfd);
     soap->recvfd = -1;
   }

@@ -579,8 +579,10 @@ void Definitions::compile(const wsdl__definitions& definitions)
         else
 	  fprintf(stream, "\n/// Built-in type \"%s\".\n", *i);
 	if (mflag)
-          fprintf(stream, "//  (declaration removed by option -m) ");
+          fprintf(stream, "/*  (declaration removed by option -m)\n");
         types.format(s);
+	if (mflag)
+          fprintf(stream, "\n*/\n");
       }
       s = types.usetypemap[t];
       if (s && *s)
@@ -631,8 +633,10 @@ void Definitions::compile(const wsdl__definitions& definitions)
         else
 	  fprintf(stream, "\n/// Built-in element \"%s\".\n", *j);
 	if (mflag)
-          fprintf(stream, "//  (declaration removed by option -m) ");
+          fprintf(stream, "/*  (declaration removed by option -m)\n");
         types.format(s);
+	if (mflag)
+          fprintf(stream, "\n*/\n");
       }
       s = types.usetypemap[t];
       if (s && *s)
@@ -672,8 +676,10 @@ void Definitions::compile(const wsdl__definitions& definitions)
         else
 	  fprintf(stream, "\n/// Built-in attribute \"%s\".\n", *k);
 	if (mflag)
-          fprintf(stream, "//  (declaration removed by option -m) ");
+          fprintf(stream, "/*  (declaration removed by option -m)\n");
         types.format(s);
+	if (mflag)
+          fprintf(stream, "\n*/\n");
       }
       s = types.usetypemap[t];
       if (s && *s)

@@ -41,7 +41,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #endif
 
 #undef VERSION
-#define VERSION "1.2.9h"
+#define VERSION "1.2.9i"
 
 #include <utility>
 #include <iterator>

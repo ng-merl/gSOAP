@@ -381,7 +381,7 @@ int xs__schema::read(const char *cwd, const char *loc)
     exit(1);
   }
   soap_end_recv(soap);
-  if (soap->recvfd >= 0)
+  if (soap->recvfd > 2)
   { close(soap->recvfd);
     soap->recvfd = -1;
   }
