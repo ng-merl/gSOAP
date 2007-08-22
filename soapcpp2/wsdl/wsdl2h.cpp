@@ -72,9 +72,11 @@ int _flag = 0,
 int infiles = 0;
 char *infile[MAXINFILES],
      *outfile = NULL,
+     *proxy_host = NULL;
+extern const char
      *mapfile = "typemap.dat",
-     *proxy_host = NULL,
      *import_path = NULL,
+     *cwd_path = NULL,
      *cppnamespace = NULL;
 
 int proxy_port = 8080;

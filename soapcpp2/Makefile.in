@@ -623,19 +623,19 @@ uninstall-info: uninstall-info-recursive
 
 
 stdsoap2_ck.c: stdsoap2.cpp
-	$(LN_S) stdsoap2.cpp stdsoap2_ck.c
+	$(LN_S) $(srcdir)/stdsoap2.cpp stdsoap2_ck.c
 
 stdsoap2_cpp.cpp: stdsoap2.cpp
-	$(LN_S) stdsoap2.cpp stdsoap2_cpp.cpp
+	$(LN_S) $(srcdir)/stdsoap2.cpp stdsoap2_cpp.cpp
 
 stdsoap2_ck_cpp.cpp: stdsoap2.cpp
-	$(LN_S) stdsoap2.cpp stdsoap2_ck_cpp.cpp
+	$(LN_S) $(srcdir)/stdsoap2.cpp stdsoap2_ck_cpp.cpp
 
 stdsoap2_ssl.c: stdsoap2.cpp
-	$(LN_S) stdsoap2.cpp stdsoap2_ssl.c
+	$(LN_S) $(srcdir)/stdsoap2.cpp stdsoap2_ssl.c
 
 stdsoap2_ssl_cpp.cpp: stdsoap2.cpp
-	$(LN_S) stdsoap2.cpp stdsoap2_ssl_cpp.cpp
+	$(LN_S) $(srcdir)/stdsoap2.cpp stdsoap2_ssl_cpp.cpp
 
 install-data-hook:
 	$(LN_S) $(top_builddir)/soapcpp2/src/soapcpp2 $(top_builddir)/soapcpp2/soapcpp2 || echo "ok, link already exists".

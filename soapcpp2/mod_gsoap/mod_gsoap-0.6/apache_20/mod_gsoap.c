@@ -5,6 +5,7 @@
  * ported to 2.0 Mick Wall (mick@mickandwendy.com)
  * updated by Robert van Engelen (engelen@acm.org)
  * updated by David Viner (dviner@apache.org)
+ * updated by Ryan Troll (patch removed)
  *
  * Contributed to the gSOAP package under the terms and conditions of the gSOAP
  * open source public license.
@@ -1158,20 +1159,27 @@ getRequestConfiguration(struct soap *soap)
 /*
  * Patch from Ryan Troll
  *
- * Implmement these as weak symbols, allowing symbol checking during
+ * Implement these as weak symbols, allowing symbol checking during
  * compilation to succeed, even when another object is actually
  * providing these symbols at runtime.
  */
+
+/*
+ * This patch may not work properly on some systems. The patch is commented
+ * out in case someone is interested in using it (at your own risk).
+ */
+
+/*
 SOAP_NMAC struct Namespace namespaces[] __attribute__ ((weak));
 SOAP_NMAC struct Namespace namespaces[] = {
     {"SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/",
-     "http://www.w3.org/*/soap-envelope"},
+     "http://www.w3.org/*\//soap-envelope"},
     {"SOAP-ENC", "http://schemas.xmlsoap.org/soap/encoding/",
-     "http://www.w3.org/*/soap-encoding"},
+     "http://www.w3.org/*\/soap-encoding"},
     {"xsi", "http://www.w3.org/2001/XMLSchema-instance",
-     "http://www.w3.org/*/XMLSchema-instance"},
+     "http://www.w3.org/*\//XMLSchema-instance"},
     {"xsd", "http://www.w3.org/2001/XMLSchema",
-     "http://www.w3.org/*/XMLSchema"},
+     "http://www.w3.org/*\//XMLSchema"},
     {NULL, NULL}
 };
 
@@ -1274,14 +1282,6 @@ soap_faultdetail(struct soap *soap)
     return pRqConf->pIntf->soap_faultdetail(soap);
 }
 
-/*
- * Patch from Ryan Troll
- *
- * These may never be used within a server context.  However,
- * gsoap-2.7.0e requires these functions to be defined.  Thus,
- * we need to define them here.
- *
- */
 SOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap *soap, const void *a,
                                             int b) __attribute__ ((weak));
 SOAP_FMAC3 void SOAP_FMAC4
@@ -1312,3 +1312,5 @@ soap_getelement(struct soap *soap, int *a)
 
     return pRqConf->pIntf->soap_getelement(soap, a);
 }
+
+*/

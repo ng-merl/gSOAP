@@ -58,7 +58,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include <time.h>
 
-volatile struct tm
+extern typedef volatile struct tm
 {	int	tm_sec;		// seconds (0 - 60)
 	int	tm_min;		// minutes (0 - 59)
 	int	tm_hour;	// hours (0 - 23)
@@ -69,6 +69,7 @@ volatile struct tm
 	int	tm_yday;	// day of year (0 - 365)
 	int	tm_isdst;	// is summer time in effect?
 	char*	tm_zone;	// abbreviation of timezone
-};
+} xsd__dateTime;
 
-extern typedef struct tm xsd__dateTime;
+extern const char *soap_xsd__dateTime2s(struct soap*, const xsd__dateTime);
+extern int soap_s2xsd__dateTime(struct soap*, const char*, xsd__dateTime*);

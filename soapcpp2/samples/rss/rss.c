@@ -1,6 +1,6 @@
 /*
 
-RSS 0.91 and 2.0
+RSS 0.91, 0.92, and 2.0
 
 Retrieve RSS feeds.
 
@@ -58,7 +58,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 #include "soapH.h"
 
-#define STR(s) (s?s:"")
+#define STR(s) ((s)?(s):"")
 
 /* Maximum number of HTTP redirects */
 #define MAX_REDIRECTS 10
@@ -145,16 +145,16 @@ int main(int argc, char **argv)
       docwrite0(soap, "<table cellpadding='2' width='100%' class='rss_table'>");
       if (rss->channel.title)
       { if (rss->channel.link)
-	  docwrite2(soap, "<tr><th class='rss_title'><a href='", rss->channel.link, "'>", rss->channel.title, "</a></th></tr>");
+	  docwrite2(soap, "<tr><th class='rss_title'><a href='", rss->channel.link, "' target='_blank'>", rss->channel.title, "</a></th></tr>");
         else
 	  docwrite1(soap, "<tr><th class='rss_title'>", rss->channel.title, "</th></tr>");
       }
       if (rss->channel.image && rss->channel.image->url)
       { struct image *image = rss->channel.image;
         if (image->link)
-          docwrite2(soap, "<tr><th class='rss_image'><a href='", image->link, "'><img src='", image->url, "' alt='Channel Image' border='0'</a></th></tr>");
+          docwrite2(soap, "<tr><th class='rss_image'><a href='", image->link, "' target='_blank'><img src='", image->url, "' alt='Channel Image' border='0'/></a></th></tr>");
 	else if (rss->channel.link)
-          docwrite2(soap, "<tr><th class='rss_image'><a href='", rss->channel.link, "'><img src='", image->url, "' alt='Channel Image' border='0'</a></th></tr>");
+          docwrite2(soap, "<tr><th class='rss_image'><a href='", rss->channel.link, "' target='_blank'><img src='", image->url, "' alt='Channel Image' border='0'/></a></th></tr>");
         else
           docwrite1(soap, "<tr><th class='rss_image'><img src='", image->url, "' alt='Channel Image' border='0'</th></tr>");
 	if (!rss->channel.title && image->title)
@@ -173,7 +173,7 @@ int main(int argc, char **argv)
         docwrite0(soap, "<tr><td class='rss_bar' bgcolor='#bbbbbb'></td></tr>");
 	if (item->title)
         { if (item->link)
-	    docwrite2(soap, "<tr><td class='rss_item' bgcolor='#dddddd'><a href='", item->link, "'>", item->title, "</a></td></tr>");
+	    docwrite2(soap, "<tr><td class='rss_item' bgcolor='#dddddd'><a href='", item->link, "' target='_blank'>", item->title, "</a></td></tr>");
 	  else
 	    docwrite1(soap, "<tr><td class='rss_item' bgcolor='#dddddd'>", item->title, "</td></tr>");
 	  if (show_date && item->pubDate)

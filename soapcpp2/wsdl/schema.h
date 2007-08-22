@@ -6,7 +6,7 @@ XSD binding schema interface
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------

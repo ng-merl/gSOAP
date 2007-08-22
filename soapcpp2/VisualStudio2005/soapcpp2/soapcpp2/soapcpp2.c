@@ -50,6 +50,8 @@ extern void init();
 extern int yyparse();
 extern FILE *yyin;
 
+extern char *ns_cname(char*, char*);
+
 FILE *fmsg;		/* fd to flush compiler messages */
 
 int vflag = 0;		/* SOAP version, 0=not set, 1=1.1, 2=1.2 */
@@ -207,9 +209,9 @@ infile	header file to parse (or stdin)\n\
 						a++;
 						g = 0;
 						if (*a)
-							prefix = a;
+							prefix = ns_cname(a, NULL);
 						else if (i < argc && argv[++i])
-							prefix = argv[i];
+							prefix = ns_cname(argv[i], NULL);
 						else
 							execerror("Option -p requires an output file name prefix");
 						break;

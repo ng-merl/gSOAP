@@ -6,7 +6,7 @@ XSD binding schema implementation
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This software is released under one of the following two licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ int xs__schema::insert(xs__schema& schema)
     if (!found)
       import.push_back(*im);
   }
-  // insert attributes, but only add attributes with new name
+  // insert attributes, but only add attributes with new name (limited conflict check)
   for (vector<xs__attribute>::const_iterator at = schema.attribute.begin(); at != schema.attribute.end(); ++at)
   { found = false;
     if ((*at).name)
@@ -160,7 +160,7 @@ int xs__schema::insert(xs__schema& schema)
       attribute.back().schemaPtr(this);
     }
   }
-  // insert elements, but only add elements with new name
+  // insert elements, but only add elements with new name (limited conflict check)
   for (vector<xs__element>::const_iterator el = schema.element.begin(); el != schema.element.end(); ++el)
   { found = false;
     if ((*el).name)
@@ -178,7 +178,7 @@ int xs__schema::insert(xs__schema& schema)
       element.back().schemaPtr(this);
     }
   }
-  // insert groups, but only add groups with new name
+  // insert groups, but only add groups with new name (no conflict check)
   for (vector<xs__group>::const_iterator gp = schema.group.begin(); gp != schema.group.end(); ++gp)
   { found = false;
     if ((*gp).name)
@@ -194,7 +194,7 @@ int xs__schema::insert(xs__schema& schema)
       group.back().schemaPtr(this);
     }
   }
-  // insert attributeGroups, but only add attributeGroups with new name
+  // insert attributeGroups, but only add attributeGroups with new name (no conflict check)
   for (vector<xs__attributeGroup>::const_iterator ag = schema.attributeGroup.begin(); ag != schema.attributeGroup.end(); ++ag)
   { found = false;
     if ((*ag).name)
@@ -210,7 +210,7 @@ int xs__schema::insert(xs__schema& schema)
       attributeGroup.back().schemaPtr(this);
     }
   }
-  // insert simpleTypes, but only add simpleTypes with new name
+  // insert simpleTypes, but only add simpleTypes with new name (no conflict check)
   for (vector<xs__simpleType>::const_iterator st = schema.simpleType.begin(); st != schema.simpleType.end(); ++st)
   { found = false;
     if ((*st).name)
@@ -226,7 +226,7 @@ int xs__schema::insert(xs__schema& schema)
       simpleType.back().schemaPtr(this);
     }
   }
-  // insert complexTypes, but only add complexTypes with new name
+  // insert complexTypes, but only add complexTypes with new name (no conflict check)
   for (vector<xs__complexType>::const_iterator ct = schema.complexType.begin(); ct != schema.complexType.end(); ++ct)
   { found = false;
     if ((*ct).name)
@@ -294,7 +294,10 @@ int xs__schema::traverse()
 }
 
 int xs__schema::read(const char *cwd, const char *loc)
-{ if (vflag)
+{ const char *cwd_temp;
+  if (!cwd)
+    cwd = cwd_path;
+  if (vflag)
     fprintf(stderr, "Opening schema '%s' from '%s'\n", loc?loc:"", cwd?cwd:"");
   if (loc)
   {
@@ -344,7 +347,7 @@ int xs__schema::read(const char *cwd, const char *loc)
           strcat(location, "/");
           strcat(location, loc);
           soap->recvfd = open(location, O_RDONLY, 0);
-	}
+        }
         if (soap->recvfd < 0 && import_path)
         { location = (char*)soap_malloc(soap, strlen(import_path) + strlen(loc) + 2);
           strcpy(location, import_path);
@@ -362,6 +365,8 @@ int xs__schema::read(const char *cwd, const char *loc)
       fprintf(stderr, "Reading schema file '%s'\n", location);
     }
   }
+  cwd_temp = cwd_path;
+  cwd_path = location;
   if (!soap_begin_recv(soap))
     this->soap_in(soap, "xs:schema", NULL);
   if ((soap->error >= 301 && soap->error <= 303) || soap->error == 307) // HTTP redirect, socket was closed
@@ -387,6 +392,7 @@ int xs__schema::read(const char *cwd, const char *loc)
   }
   else
     soap_closesock(soap);
+  cwd_path = cwd_temp;
   return SOAP_OK;
 }
 
@@ -438,7 +444,7 @@ xs__include::xs__include()
 
 int xs__include::preprocess(xs__schema &schema)
 { if (vflag)
-    cerr << "Preprocessing schema include " << (schemaLocation?schemaLocation:"") << endl;
+    cerr << "Preprocessing schema include " << (schemaLocation?schemaLocation:"?") << endl;
   if (!schemaRef)
     if (schemaLocation)
       schemaRef = new xs__schema(schema.soap, schema.sourceLocation(), schemaLocation);
@@ -722,7 +728,7 @@ int xs__element::traverse(xs__schema &schema)
                 cerr << "Found element " << (name?name:"") << " ref " << (token?token:"") << endl;
               break;
             }
-	  }
+          }
           break;
         }
       }
@@ -757,7 +763,7 @@ int xs__element::traverse(xs__schema &schema)
                   cerr << "Found element " << (name?name:"") << " simpleType " << (token?token:"") << endl;
                 break;
               }
-	    }
+            }
             break;
           }
         }
@@ -793,7 +799,7 @@ int xs__element::traverse(xs__schema &schema)
                   cerr << "Found element " << (name?name:"") << " complexType " << (token?token:"") << endl;
                 break;
               }
-	    }
+            }
             break;
           }
         }

@@ -608,7 +608,7 @@ soap_lookup_ns_prefix(struct soap *soap, const char *nstr)
 
 static struct soap_ilist *
 soap_enter_ns_prefix(struct soap *soap, const char *prefix, const char *nstr)
-{ int h;
+{ size_t h;
   register struct soap_ilist *ip;
   for (ip = soap->iht[soap_hash(nstr)]; ip; ip = ip->next)
   { if (!strcmp((char*)ip->ptr, nstr) && !ip->level)

@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.9i
+stdsoap2.h 2.7.9k
 
 gSOAP runtime
 
@@ -526,6 +526,39 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # endif
 #endif
 
+#ifdef WIN32
+# ifndef UNDER_CE
+#  include <io.h>
+#  include <fcntl.h>
+# endif
+# ifdef WITH_IPV6
+#  include <winsock2.h> /* Visual Studio 2005 users: you must install the Platform SDK (R2) */
+#  include <ws2tcpip.h>
+#  include <wspiapi.h>
+#  define SOAP_GAI_STRERROR gai_strerrorA
+# else
+#  include <winsock.h> /* Visual Studio 2005 users: you must install the Platform SDK (R2) */
+/* # include <winsock2.h> */ /* Alternative: use winsock2 (not available with eVC) */
+# endif
+#else
+# ifdef VXWORKS
+#  include <hostLib.h>
+#  include <ioctl.h>
+#  include <ioLib.h>
+# endif
+# ifndef WITH_NOIO
+#  ifndef PALM
+#   include <netdb.h>
+#   include <netinet/in.h>
+#   include <unistd.h>
+#   include <fcntl.h>
+#   ifdef _AIX41
+#    include <sys/select.h>
+#   endif
+#  endif
+# endif
+#endif
+
 #ifdef WITH_FASTCGI
 # include <fcgi_stdio.h>
 #endif
@@ -572,36 +605,6 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 extern "C" {
 #endif
 
-#ifdef WIN32
-# ifndef UNDER_CE
-#  include <io.h>
-#  include <fcntl.h>
-# endif
-# include <winsock.h> /* Visual Studio 2005 users: you must install the Platform SDK (R2) */
-/* # include <winsock2.h> */ /* Alternative: use winsock2 (not available with eVC) */
-# ifdef WITH_IPV6
-#  include <ws2tcpip.h>
-#  include <wspiapi.h>
-# endif
-#else
-# ifdef VXWORKS
-#  include <hostLib.h>
-#  include <ioctl.h>
-#  include <ioLib.h>
-# endif
-# ifndef WITH_NOIO
-#  ifndef PALM
-#   include <netdb.h>
-#   include <netinet/in.h>
-#   include <unistd.h>
-#   include <fcntl.h>
-#   ifdef _AIX41
-#    include <sys/select.h>
-#   endif
-#  endif
-# endif
-#endif
-
 /* Portability: define SOAP_SOCKLEN_T */
 #if defined(_AIX)
 # if defined(_AIX43)
@@ -620,16 +623,21 @@ extern "C" {
 #endif
 
 #ifndef SOAP_SOCKET
-# define SOAP_SOCKET int
 # ifdef WIN32
+#  define SOAP_SOCKET SOCKET
 #  define soap_closesocket(n) closesocket(n)
 # else
+#  define SOAP_SOCKET int
 #  define soap_closesocket(n) close(n)
 # endif
 #endif
 
 #define SOAP_INVALID_SOCKET (-1)
 #define soap_valid_socket(n) ((n) != SOAP_INVALID_SOCKET)
+
+#ifndef SOAP_GAI_STRERROR
+# define SOAP_GAI_STRERROR gai_strerror
+#endif
 
 #ifndef FD_SETSIZE
 # define FD_SETSIZE (1024)
@@ -1544,8 +1552,8 @@ struct SOAP_STD_API soap
   int (*fdisconnect)(struct soap*);
   int (*fclosesocket)(struct soap*, SOAP_SOCKET);
   int (*fshutdownsocket)(struct soap*, SOAP_SOCKET, int);
-  int (*fopen)(struct soap*, const char*, const char*, int);
-  int (*faccept)(struct soap*, int, struct sockaddr*, int *n);
+  SOAP_SOCKET (*fopen)(struct soap*, const char*, const char*, int);
+  SOAP_SOCKET (*faccept)(struct soap*, SOAP_SOCKET, struct sockaddr*, int *n);
   int (*fclose)(struct soap*);
   int (*fsend)(struct soap*, const char*, size_t);
   size_t (*frecv)(struct soap*, char*, size_t);
@@ -1573,8 +1581,8 @@ struct SOAP_STD_API soap
   size_t (*fmimeread)(struct soap*, void*, char*, size_t);
   int (*fmimewrite)(struct soap*, void*, const char*, size_t);
 #endif
-  int master;
-  int socket;
+  SOAP_SOCKET master;
+  SOAP_SOCKET socket;
 #if defined(__cplusplus) && !defined(WITH_LEAN)
   std::ostream *os;
   std::istream *is;
@@ -1617,7 +1625,6 @@ struct SOAP_STD_API soap
   struct soap_attribute *attributes;	/* attribute list */
   short encoding;	/* when set, output encodingStyle */
   short mustUnderstand;	/* a mustUnderstand element was parsed or is output */
-  short keep_alive;	/* connection should be kept open */
   short null;		/* parsed XML is xsi:nil */
   short ns;		/* when not set, output full xmlns bindings */
   short part;		/* parsing state */
@@ -1633,12 +1640,18 @@ struct SOAP_STD_API soap
   char *prolog;			/* XML declaration prolog */
   unsigned long ip;		/* IP number */
   int port;			/* port number */
-  unsigned int max_keep_alive;
+  short keep_alive;		/* connection should be kept open */
+  short tcp_keep_alive;		/* enable SO_KEEPALIVE */
+  unsigned int tcp_keep_idle; 	/* set TCP_KEEPIDLE */
+  unsigned int tcp_keep_intvl; 	/* set TCP_KEEPINTVL */
+  unsigned int tcp_keep_cnt; 	/* set TCP_KEEPCNT */
+  unsigned int max_keep_alive;  /* maximum keep-alive session (default=100) */
   const char *proxy_http_version;/* HTTP version of proxy "1.0" or "1.1" */
   const char *proxy_host;	/* Proxy Server host name */
   int proxy_port;		/* Proxy Server port (default = 8080) */
   const char *proxy_userid;	/* Proxy Authorization user name */
   const char *proxy_passwd;	/* Proxy Authorization password */
+  const char *proxy_from;	/* X-Forwarding-For header returned by proxy */
   int status;			/* -1 when request, else error code to be returned by server */
   int error;
   int errmode;
@@ -1820,6 +1833,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_rand(void);
 # define soap_markelement(s, p, n) (0)
 #endif
 
+SOAP_FMAC1 void SOAP_FMAC2 soap_header(struct soap*);
 SOAP_FMAC1 void SOAP_FMAC2 soap_fault(struct soap*);
 SOAP_FMAC1 const char** SOAP_FMAC2 soap_faultcode(struct soap*);
 SOAP_FMAC1 const char** SOAP_FMAC2 soap_faultsubcode(struct soap*);
@@ -1836,8 +1850,8 @@ SOAP_FMAC1 void SOAP_FMAC2 soap_ssl_init(void);
 SOAP_FMAC1 int SOAP_FMAC2 soap_poll(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect_command(struct soap*, int, const char*, const char*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_connect(struct soap*, const char*, const char*);
-SOAP_FMAC1 int SOAP_FMAC2 soap_bind(struct soap*, const char*, int, int);
-SOAP_FMAC1 int SOAP_FMAC2 soap_accept(struct soap*);
+SOAP_FMAC1 SOAP_SOCKET SOAP_FMAC2 soap_bind(struct soap*, const char*, int, int);
+SOAP_FMAC1 SOAP_SOCKET SOAP_FMAC2 soap_accept(struct soap*);
 SOAP_FMAC1 int SOAP_FMAC2 soap_ssl_accept(struct soap*);
 SOAP_FMAC1 const char * SOAP_FMAC2 soap_ssl_error(struct soap*, int);
 
@@ -2061,6 +2075,7 @@ SOAP_FMAC1 int SOAP_FMAC2 soap_recv_fault(struct soap*);
 
 #ifndef WITH_NOSTDLIB
 SOAP_FMAC1 void SOAP_FMAC2 soap_print_fault(struct soap*, FILE*);
+SOAP_FMAC1 char* SOAP_FMAC2 soap_sprint_fault(struct soap*, char*, size_t);
 SOAP_FMAC1 void SOAP_FMAC2 soap_print_fault_location(struct soap*, FILE*);
 #endif
 
@@ -2125,6 +2140,7 @@ SOAP_FMAC1 char** SOAP_FMAC2 soap_inliteral(struct soap*, const char *tag, char 
 
 #ifndef WITH_LEAN
 SOAP_FMAC1 time_t* SOAP_FMAC2 soap_indateTime(struct soap*, const char *tag, time_t *p, const char *, int);
+SOAP_FMAC1 time_t SOAP_FMAC2 soap_timegm(struct tm*);
 #endif
 
 #ifndef WITH_LEANER

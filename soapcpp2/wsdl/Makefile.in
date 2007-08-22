@@ -99,11 +99,11 @@ platform = @platform@
 
 AUTOMAKE_OPTIONS = foreign 1.4
 
-INCLUDES = -I$(top_builddir)/soapcpp2
-LDFLAGS = $(INCLUDES)
+INCLUDES = -I$(top_srcdir)/soapcpp2
+LDFLAGS = $(INCLUDES) -L$(srcdir)
 SOAP = $(top_builddir)/soapcpp2/src/soapcpp2
 SOAP_CPP_LIB = $(top_builddir)/soapcpp2/libgsoap++.a
-SOAP_CPP_SRC = $(srcdir)/wsdlC.cpp
+SOAP_CPP_SRC = wsdlC.cpp
 SOAPHEADER = $(srcdir)/wsdl.h
 SOAP_FLAGS = -SC -pwsdl -I$(srcdir)
 BUILT_SOURCES = $(SOAP_CPP_SRC)
@@ -128,8 +128,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_wsdl2h_OBJECTS = wsdl2h.$(OBJEXT) wsdl.$(OBJEXT) schema.$(OBJEXT) \
 	types.$(OBJEXT) service.$(OBJEXT) soap.$(OBJEXT) mime.$(OBJEXT)
 wsdl2h_OBJECTS = $(am_wsdl2h_OBJECTS)
-wsdl2h_DEPENDENCIES = $(srcdir)/wsdlC.cpp \
-	$(top_builddir)/soapcpp2/libgsoap++.a
+wsdl2h_DEPENDENCIES = wsdlC.cpp $(top_builddir)/soapcpp2/libgsoap++.a
 wsdl2h_LDFLAGS =
 
 DEFS = @DEFS@

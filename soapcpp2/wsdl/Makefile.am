@@ -5,11 +5,11 @@
 ## you have all needed files, that a GNU package needs
 AUTOMAKE_OPTIONS = foreign 1.4
 
-INCLUDES=-I$(top_builddir)/soapcpp2
-LDFLAGS=$(INCLUDES)
+INCLUDES=-I$(top_srcdir)/soapcpp2
+LDFLAGS=$(INCLUDES) -L$(srcdir)
 SOAP=$(top_builddir)/soapcpp2/src/soapcpp2
 SOAP_CPP_LIB=$(top_builddir)/soapcpp2/libgsoap++.a
-SOAP_CPP_SRC=$(srcdir)/wsdlC.cpp
+SOAP_CPP_SRC=wsdlC.cpp
 SOAPHEADER=$(srcdir)/wsdl.h
 SOAP_FLAGS=-SC -pwsdl -I$(srcdir)
 BUILT_SOURCES=$(SOAP_CPP_SRC)

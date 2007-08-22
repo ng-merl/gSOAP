@@ -176,7 +176,7 @@ int save_options(const char *file, const char *name, struct option *options)
   soap.namespaces = NULL;
   soap.encodingStyle = NULL;
   if (file)
-  { soap.sendfd = open(file, O_CREAT | O_WRONLY);
+  { soap.sendfd = open(file, O_CREAT | O_RDWR, 0644);
     if (soap.sendfd < 0)
     { soap_done(&soap);
       return EOF;

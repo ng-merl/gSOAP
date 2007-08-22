@@ -5,7 +5,7 @@ wsaapi.c
 WS-Addressing plugin for stand-alone services.
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -623,8 +623,7 @@ soap_wsa_reply(struct soap *soap, const char *id, const char *action)
     return soap_send_empty_response(soap, SOAP_OK);
   header = (struct SOAP_ENV__Header*)soap_malloc(soap, sizeof(struct SOAP_ENV__Header));
   soap_default_SOAP_ENV__Header(soap, header);
-  soap_wsa_alloc_header(soap);
-  if (soap->header->SOAP_WSA(MessageID))
+  if (soap->header && soap->header->SOAP_WSA(MessageID))
   { header->SOAP_WSA(RelatesTo) = (SOAP_WSA_(,RelatesTo)*)soap_malloc(soap, sizeof(SOAP_WSA_(,RelatesTo)));
     SOAP_WSA_(soap_default_,RelatesTo)(soap, header->SOAP_WSA(RelatesTo));
     header->SOAP_WSA(RelatesTo)->__item = soap->header->SOAP_WSA(MessageID);
@@ -635,33 +634,36 @@ soap_wsa_reply(struct soap *soap, const char *id, const char *action)
   { header->SOAP_WSA(To) = soap->header->SOAP_WSA(ReplyTo)->Address;
     /* (re)connect to fault endpoint if From != ReplyTo */
     if (!soap->header->SOAP_WSA(From) || !soap->header->SOAP_WSA(From)->Address || strcmp(soap->header->SOAP_WSA(From)->Address, soap->header->SOAP_WSA(ReplyTo)->Address))
-    { struct soap reply_soap;
-      soap_init2(&reply_soap, soap->imode, soap->omode);
-      if (soap_connect(&reply_soap, header->SOAP_WSA(To), header->SOAP_WSA(Action)))
-      { soap_end(&reply_soap);
-        soap_done(&reply_soap);
+    { struct soap *reply_soap = soap_copy(soap);
+      if (reply_soap)
+      { soap_copy_stream(reply_soap, soap);
+        soap_clr_omode(reply_soap, SOAP_ENC_MIME | SOAP_ENC_DIME | SOAP_ENC_MTOM);
+        soap->socket = SOAP_INVALID_SOCKET; /* prevents close */
+        if (soap_connect(soap, header->SOAP_WSA(To), header->SOAP_WSA(Action)))
+        { int err; 
+          soap_copy_stream(soap, reply_soap);
 #if defined(SOAP_WSA_2005)
-        return soap_wsa_error(soap, SOAP_WSA(DestinationUnreachable), header->SOAP_WSA(To));
+          err = soap_wsa_error(soap, SOAP_WSA(DestinationUnreachable), header->SOAP_WSA(To));
 #elif defined(SOAP_WSA_2003)
-        return soap_wsa_error(soap, "WS-Addessing destination unreachable");
+          err = soap_wsa_error(soap, "WS-Addessing destination unreachable");
 #else
-        return soap_wsa_error(soap, SOAP_WSA(DestinationUnreachable));
+          err = soap_wsa_error(soap, SOAP_WSA(DestinationUnreachable));
 #endif
+	  reply_soap->socket = SOAP_INVALID_SOCKET;
+          soap_end(reply_soap);
+          soap_free(reply_soap);
+	  return err;
+        }
+        soap_send_empty_response(reply_soap, SOAP_OK);	/* HTTP ACCEPTED */
+        soap_closesock(reply_soap);
+        soap_end(reply_soap);
+        soap_free(reply_soap);
+        data->fresponse = soap->fresponse;
+        soap->fresponse = soap_wsa_response;	/* response will be a POST */
       }
-      soap->keep_alive = 0;
-      soap_send_empty_response(soap, SOAP_OK);	/* HTTP ACCEPTED */
-      soap_closesock(soap);
-      soap_copy_stream(soap, &reply_soap);
-      soap_set_endpoint(soap, header->SOAP_WSA(To));
-      soap->action = header->SOAP_WSA(Action);
-      data->fresponse = soap->fresponse;
-      soap->fresponse = soap_wsa_response;	/* response will be a POST */
-      reply_soap.socket = SOAP_INVALID_SOCKET;	/* prevents close */
-      soap_end(&reply_soap);
-      soap_done(&reply_soap);
     }
   }
-  else if (soap->header->SOAP_WSA(From))
+  else if (soap->header && soap->header->SOAP_WSA(From))
     header->SOAP_WSA(To) = soap->header->SOAP_WSA(From)->Address;
   else
     header->SOAP_WSA(To) = (char*)soap_wsa_anonymousURI;
@@ -694,7 +696,7 @@ soap_wsa_fault_subcode(struct soap *soap, int flag, const char *faultsubcode, co
     return SOAP_PLUGIN_ERROR;
   soap_default_SOAP_ENV__Header(soap, header);
   soap_wsa_alloc_header(soap);
-  if (soap->header->SOAP_WSA(MessageID))
+  if (soap->header && soap->header->SOAP_WSA(MessageID))
   { header->SOAP_WSA(RelatesTo) = (SOAP_WSA_(,RelatesTo)*)soap_malloc(soap, sizeof(SOAP_WSA_(,RelatesTo)));
     SOAP_WSA_(soap_default_,RelatesTo)(soap, header->SOAP_WSA(RelatesTo));
     header->SOAP_WSA(RelatesTo)->__item = soap->header->SOAP_WSA(MessageID);
@@ -715,7 +717,7 @@ soap_wsa_fault_subcode(struct soap *soap, int flag, const char *faultsubcode, co
       soap->fresponse = soap_wsa_response;	/* response will be a POST */
     }
   }
-  else if (soap->header->SOAP_WSA(From))
+  else if (soap->header && soap->header->SOAP_WSA(From))
     header->SOAP_WSA(To) = soap->header->SOAP_WSA(From)->Address;
   else
     header->SOAP_WSA(To) = (char*)soap_wsa_anonymousURI;
@@ -1147,7 +1149,6 @@ soap_wsa_response(struct soap *soap, int status, size_t count)
 */
 static int
 soap_wsa_alloc_header(struct soap *soap)
-{ if (!soap->header)
-    soap->header = (struct SOAP_ENV__Header*)soap_malloc(soap, sizeof(struct SOAP_ENV__Header));
+{ soap_header(soap);
   return SOAP_OK;
 }

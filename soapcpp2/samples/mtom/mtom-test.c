@@ -121,7 +121,7 @@ int run_tests(int argc, char **argv)
     data.choice.xop__Include.id = NULL;
     data.choice.xop__Include.type = "text/xml";
     data.choice.xop__Include.options = NULL;
-    data.xmlmime__contentType = "text/xml";
+    data.xmime4__contentType = "text/xml";
     if (soap_call_m__EchoTestSingle(soap, argv[1], NULL, &data, &single))
       soap_print_fault(soap, stderr);
     else
@@ -141,7 +141,7 @@ int run_tests(int argc, char **argv)
           wrap.Data[i].__union = SOAP_UNION_x__data_base64;
           wrap.Data[i].choice.base64.__ptr = (unsigned char*)argv[i + 2];
           wrap.Data[i].choice.base64.__size = (int)strlen(argv[i + 2]) + 1;
-          wrap.Data[i].xmlmime__contentType = "text/xml";
+          wrap.Data[i].xmime4__contentType = "text/xml";
         }
         if (soap_call_m__EchoTestMultiple(soap, argv[1], NULL, &wrap, &multiple))
           soap_print_fault(soap, stderr);
@@ -171,7 +171,7 @@ int run_tests(int argc, char **argv)
               wrap.Data[i].choice.xop__Include.id = NULL;
               wrap.Data[i].choice.xop__Include.type = "text/xml";
               wrap.Data[i].choice.xop__Include.options = NULL;
-              wrap.Data[i].xmlmime__contentType = "text/xml";
+              wrap.Data[i].xmime4__contentType = "text/xml";
             }
             if (soap_call_m__EchoTestMultiple(soap, argv[1], NULL, &wrap, &multiple))
               soap_print_fault(soap, stderr);
@@ -207,7 +207,10 @@ int run_tests(int argc, char **argv)
 
 int m__EchoTestSingle(struct soap *soap, struct x__DataType *data, struct m__EchoTestSingleResponse *response)
 { if (!data)
+  { /* To return a fault in an MTOM attachment:
+       soap_set_mode(soap, SOAP_ENC_MTOM | SOAP_ENC_MIME); */
     return soap_sender_fault(soap, "No data", NULL);
+  }
   /* allocate response */
   response->x__Data = (struct x__DataType*)soap_malloc(soap, sizeof(struct x__DataType));
   if (!response->x__Data)
@@ -219,7 +222,7 @@ int m__EchoTestSingle(struct soap *soap, struct x__DataType *data, struct m__Ech
       response->x__Data->__union = SOAP_UNION_x__data_base64;
       response->x__Data->choice.base64.__ptr = data->choice.xop__Include.__ptr;
       response->x__Data->choice.base64.__size = data->choice.xop__Include.__size;
-      response->x__Data->xmlmime__contentType = data->choice.xop__Include.type;
+      response->x__Data->xmime4__contentType = data->choice.xop__Include.type;
       break;
     case SOAP_UNION_x__data_base64:
       /* convert base64Binary to MTOM attachment */
@@ -227,9 +230,9 @@ int m__EchoTestSingle(struct soap *soap, struct x__DataType *data, struct m__Ech
       response->x__Data->choice.xop__Include.__ptr = data->choice.base64.__ptr;
       response->x__Data->choice.xop__Include.__size = data->choice.base64.__size;
       response->x__Data->choice.xop__Include.id = NULL;
-      response->x__Data->choice.xop__Include.type = data->xmlmime__contentType;
+      response->x__Data->choice.xop__Include.type = data->xmime4__contentType;
       response->x__Data->choice.xop__Include.options = NULL;
-      response->x__Data->xmlmime__contentType = data->xmlmime__contentType;
+      response->x__Data->xmime4__contentType = data->xmime4__contentType;
       break;
     default:
       return soap_sender_fault(soap, "Wrong data format", NULL);
@@ -257,7 +260,7 @@ int m__EchoTestMultiple(struct soap *soap, struct x__WrapperType *x__EchoTest, s
         response->x__EchoTest->Data[i].__union = SOAP_UNION_x__data_base64;
         response->x__EchoTest->Data[i].choice.base64.__ptr = x__EchoTest->Data[i].choice.xop__Include.__ptr;
         response->x__EchoTest->Data[i].choice.base64.__size = x__EchoTest->Data[i].choice.xop__Include.__size;
-        response->x__EchoTest->Data[i].xmlmime__contentType = x__EchoTest->Data[i].choice.xop__Include.type;
+        response->x__EchoTest->Data[i].xmime4__contentType = x__EchoTest->Data[i].choice.xop__Include.type;
         break;
       case SOAP_UNION_x__data_base64:
         /* convert base64Binary to MTOM attachment */
@@ -265,9 +268,9 @@ int m__EchoTestMultiple(struct soap *soap, struct x__WrapperType *x__EchoTest, s
         response->x__EchoTest->Data[i].choice.xop__Include.__ptr = x__EchoTest->Data[i].choice.base64.__ptr;
         response->x__EchoTest->Data[i].choice.xop__Include.__size = x__EchoTest->Data[i].choice.base64.__size;
         response->x__EchoTest->Data[i].choice.xop__Include.id = NULL;
-        response->x__EchoTest->Data[i].choice.xop__Include.type = x__EchoTest->Data[i].xmlmime__contentType;
+        response->x__EchoTest->Data[i].choice.xop__Include.type = x__EchoTest->Data[i].xmime4__contentType;
         response->x__EchoTest->Data[i].choice.xop__Include.options = NULL;
-        response->x__EchoTest->Data[i].xmlmime__contentType = x__EchoTest->Data[i].xmlmime__contentType;
+        response->x__EchoTest->Data[i].xmime4__contentType = x__EchoTest->Data[i].xmime4__contentType;
         break;
       default:
         return soap_sender_fault(soap, "Wrong data format", NULL);

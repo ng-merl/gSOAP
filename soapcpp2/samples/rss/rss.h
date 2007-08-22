@@ -37,14 +37,14 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 typedef char *XML;	// mixed content
 
 struct channel
-{ char *title;
-  char *link;
+{ char *title;          // channel title
+  char *link;           // channel link
   char *language;
   char *copyright;
   XML description;	// description may contain XHTML that we want to preserve
-  struct image *image;
-  int __size;
-  struct item *item;
+  struct image *image;  // optional image
+  int __size;           // an array of items of size __size
+  struct item *item;    // an array of items
   time_t *dc__date;	// RSS 2.0 dc schema element
 };
 

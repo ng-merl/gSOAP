@@ -787,10 +787,7 @@ struct _wsse__Security*
 soap_wsse_add_Security(struct soap *soap)
 { DBGFUN("soap_wsse_add_Security");
   /* if we don't have a SOAP Header, create one */
-  if (!soap->header)
-  { soap->header = (struct SOAP_ENV__Header*)soap_malloc(soap, sizeof(struct SOAP_ENV__Header));
-    soap_default_SOAP_ENV__Header(soap, soap->header); 
-  }
+  soap_header(soap);
   /* if we don't have a wsse:Security element in the SOAP Header, create one */
   if (!soap->header->wsse__Security)
   { soap->header->wsse__Security = (_wsse__Security*)soap_malloc(soap, sizeof(_wsse__Security));

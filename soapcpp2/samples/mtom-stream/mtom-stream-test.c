@@ -351,9 +351,9 @@ int open_data(struct soap *soap, const char *file, struct x__Data *data)
     size = 0;
   }
   data->xop__Include.__size = size;
-  data->xmlmime__contentType = file_type(file);
+  data->xmime4__contentType = file_type(file);
   data->xop__Include.id = NULL;
-  data->xop__Include.type = data->xmlmime__contentType;
+  data->xop__Include.type = data->xmime4__contentType;
   data->xop__Include.options = NULL;
   return SOAP_OK;
 }

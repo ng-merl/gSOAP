@@ -378,7 +378,10 @@ static void directive()
 		else if (!strncmp(yytext+i, "transport:", 10))
 			sp->transport = s;
 		else if (!strncmp(yytext+i, "location:", 9) || !strncmp(yytext+i, "port:", 5))
-			sp->URL = s;
+		{	sp->URL = s;
+			if (!service)
+				sp->import = s;
+		}
 		else if (!strncmp(yytext+i, "executable:", 11))
 			sp->executable = s;
 		else if (!strncmp(yytext+i, "namespace:", 10))
@@ -811,14 +814,14 @@ static void module(const char *name, const char *fullname)
       (*pp)->pragma = s;
       (*pp)->next = NULL;
     }
-    imported = (char*)emalloc(sizeof(strlen(fullname))+1);
+    imported = (char*)emalloc(strlen(fullname)+1);
     strcpy(imported, fullname);
     fprintf(stderr, "Importing module '%s'\n\n", fullname);
   }
   else
   { lflag = 1;
     typeNO = magic(name);
-    prefix = emalloc(strlen(fullname)+1);
+    prefix = (char*)emalloc(strlen(fullname)+1);
     strcpy(prefix, fullname);
     fprintf(stderr, "Compiling module '%s' (magic number = %d)\n\n", fullname, typeNO);
   }
@@ -852,7 +855,7 @@ static void import(const char *file)
     if (!strcmp(p->name, file))
       return;
   if (imports >= MAX_IMPORT_DEPTH)
-    execerror("Imports nested too deeply");
+    execerror("Imports nested too deep");
   instk[imports] = YY_CURRENT_BUFFER;
   strcpy(fnstk[imports], filename);
   lnstk[imports] = yylineno;
@@ -866,7 +869,9 @@ static void import(const char *file)
       do
       { t = strstr(s, SOAP_PATHSEP);
         if (t)
-        { strncpy(buf, s, t - s);
+        { if (t - s >= sizeof(buf))
+	    t = s + sizeof(buf) - 1;
+	  strncpy(buf, s, t - s);
 	  buf[t - s] = '\0';
 	  s = t + sizeof(SOAP_PATHSEP) - 1;
 	}
@@ -885,7 +890,7 @@ static void import(const char *file)
       execerror(errbuf);
     }
   }
-  p = (struct importlist*)malloc(sizeof(struct importlist) + strlen(file));
+  p = (struct importlist*)malloc(sizeof(struct importlist) + strlen(file)); /* has already + 1 byte size */
   strcpy(p->name, file);
   p->next = importlist;
   importlist = p;

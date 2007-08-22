@@ -10,6 +10,10 @@ For example:
 
 $ wsdl2h -o XMethodsQuery.h http://www.xmethods.net/wsdl/query.wsdl
 
+Note: if an error occurs when running wsdl2h, please try again later. The
+XMethods site is very popular and suffers under load. It may also be the case
+that XMethods removed certain services. In that case, try another on-line WSDL.
+
 This generates the XMethodsQuery.h header file with Web service operations
 and C++ data types. This header file is intended to be processed with soapcpp2
 to generate the stub and/or skeleton code.

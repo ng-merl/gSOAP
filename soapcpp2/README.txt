@@ -71,8 +71,9 @@ $ wsdl2h -s -o XMethodsQuery.h http://www.xmethods.net/wsdl/query.wsdl
 
 $ soapcpp2 XMethodsQuery.h
 
-Note: if an error occurs when running wsdl2h, please try again. The XMethods
-site is very popular.
+Note: if an error occurs when running wsdl2h, please try again later. The
+XMethods site is very popular and suffers under load. It may also be the case
+that XMethods removed certain services. In that case, try another on-line WSDL.
 
 The XMethodsQuery.h header file contains a translation of the services and XML
 schemas to C/C++ and other useful information copied from the WSDL related to
