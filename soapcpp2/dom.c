@@ -90,6 +90,9 @@ SOAP_FMAC1 void *SOAP_FMAC2 soap_getelement(struct soap*, int*);
 static struct soap_ilist *soap_lookup_ns_prefix(struct soap*, const char*);
 static struct soap_ilist *soap_enter_ns_prefix(struct soap*, const char*, const char*);
 
+static int out_element(struct soap *soap, const struct soap_dom_element *node, const char *prefix, const char *name, const char *nstr);
+static int out_attribute(struct soap *soap, const char *prefix, const char *name, const char *data, const wchar_t *wide, int flag);
+
 /******************************************************************************\
  *
  *	DOM custom (de)serializers
@@ -199,11 +202,17 @@ out_element(struct soap *soap, const struct soap_dom_element *node, const char *
 /******************************************************************************/
 
 static int
-out_attribute(struct soap *soap, const char *prefix, const char *name, const char *data)
+out_attribute(struct soap *soap, const char *prefix, const char *name, const char *data, const wchar_t *wide, int flag)
 { char *s;
   const char *t;
+  int err;
+  if (wide)
+    data = soap_wchar2s(soap, wide);
   if (!prefix)
+  { if (flag)
+      return soap_set_attr(soap, name, data);
     return soap_attribute(soap, name, data);
+  }
   t = strchr(name, ':');
   if (t)
     t++;
@@ -217,10 +226,13 @@ out_attribute(struct soap *soap, const char *prefix, const char *name, const cha
       return soap->error = SOAP_EOM;
   } 
   sprintf(s, "%s:%s", prefix, t);
-  soap_attribute(soap, s, data);
+  if (flag)
+    err = soap_set_attr(soap, s, data);
+  else
+    err = soap_attribute(soap, s, data);
   if (s != soap->msgbuf)
     SOAP_FREE(soap, s);
-  return soap->error;
+  return err;
 }
 
 /******************************************************************************/
@@ -236,7 +248,11 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
     if (!(soap->mode & SOAP_DOM_ASIS))
     { struct soap_dom_attribute *att;
       for (att = node->atts; att; att = att->next)
-      { if (att->name && att->nstr)
+      { if (att->name && att->data && !strncmp(att->name, "xmlns:", 6))
+	{ if (!(soap_enter_ns_prefix(soap, att->name + 6, att->data)))
+            return soap->error = SOAP_EOM;
+	}
+        else if (att->name && att->nstr)
         { if ((prefix = strchr(att->name, ':')))
           { colon = prefix - att->name + 1;
             if (colon > sizeof(soap->tag))
@@ -314,11 +330,11 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
         { if (att->nstr && !(soap->mode & SOAP_DOM_ASIS))
           { register struct soap_ilist *q;
             if ((att->nstr == node->nstr || (node->nstr && !strcmp(att->nstr, node->nstr))) && prefix)
-	    { if (out_attribute(soap, prefix, att->name, att->data))
+	    { if (out_attribute(soap, prefix, att->name, att->data, att->wide, 0))
 	        return soap->error;
 	    }
 	    else if ((q = soap_lookup_ns_prefix(soap, att->nstr)))
-	    { if (out_attribute(soap, q->id, att->name, att->data))
+	    { if (out_attribute(soap, q->id, att->name, att->data, att->wide, 0))
 	        return soap->error;
 	    }
 	    else
@@ -326,7 +342,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
 	      for (ns = soap->local_namespaces; ns && ns->id; ns++)
               { if (ns->ns == att->nstr || !strcmp(ns->ns, att->nstr))
 	        { /* don't prefix attributes that start with 'xml' */
-		  if (out_attribute(soap, strncmp(att->name, "xml", 3) ? ns->id : NULL, att->name, att->data))
+		  if (out_attribute(soap, strncmp(att->name, "xml", 3) ? ns->id : NULL, att->name, att->data, att->wide, 0))
 	            return soap->error;
 	          break;
 	        }
@@ -337,12 +353,12 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
 	          return soap->error;
 	        strcat(soap->msgbuf, ":");
 	        strcat(soap->msgbuf, att->name);
-	        if (soap_attribute(soap, soap->msgbuf + 6, att->data))
+	        if (soap_attribute(soap, soap->msgbuf + 6, att->wide ? soap_wchar2s(soap, att->wide) : att->data))
 	          return soap->error;
               }
             }
           }
-	  else if (soap_attribute(soap, att->name, att->data))
+	  else if (soap_attribute(soap, att->name, att->wide ? soap_wchar2s(soap, att->wide) : att->data))
             return soap->error;
         }
       }
@@ -396,13 +412,59 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_out_xsd__anyAttribute(struct soap *soap, const char *tag, int id, const struct soap_dom_attribute *node, const char *type)
-{   // TODO
+{ if (!(soap->mode & SOAP_DOM_ASIS))
+  { const struct soap_dom_attribute *att;
+    for (att = node; att; att = att->next)
+    { if (att->name && att->data && !strncmp(att->name, "xmlns:", 6))
+      { if (!(soap_enter_ns_prefix(soap, att->name + 6, att->data)))
+          return soap->error = SOAP_EOM;
+      }
+      else if (att->name && att->nstr)
+      { const char *prefix;
+        if ((prefix = strchr(att->name, ':')))
+        { size_t colon = prefix - att->name + 1;
+          if (colon > sizeof(soap->tag))
+            colon = sizeof(soap->tag);
+          strncpy(soap->tag, att->name, colon - 1);
+          soap->tag[colon - 1] = '\0';
+          if (!(soap_enter_ns_prefix(soap, soap->tag, att->nstr)))
+            return soap->error = SOAP_EOM;
+        }
+      }
+    }
+  }
   while (node)
   { if (node->name)
-    { if (node->wide)
-        soap_set_attr(soap, node->name, soap_wchar2s(soap, node->wide));
+    { if (node->nstr && !(soap->mode & SOAP_DOM_ASIS) && !strchr(node->name, ':'))
+      { struct soap_ilist *q;
+        if ((q = soap_lookup_ns_prefix(soap, node->nstr)))
+        { if (out_attribute(soap, q->id, node->name, node->data, node->wide, 1))
+            return soap->error;
+        }
+        else
+        { struct Namespace *ns;
+          for (ns = soap->local_namespaces; ns && ns->id; ns++)
+          { if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
+            { /* don't prefix attributes that start with 'xml' */
+    	      if (out_attribute(soap, strncmp(node->name, "xml", 3) ? ns->id : NULL, node->name, node->data, node->wide, 1))
+                return soap->error;
+              break;
+            }
+          }
+          if (!ns || !ns->id)
+          { sprintf(soap->msgbuf, "xmlns:"SOAP_DOMID_FORMAT, soap->idnum++);
+            if (soap_set_attr(soap, soap->msgbuf, node->nstr))
+              return soap->error;
+            strcat(soap->msgbuf, ":");
+            strcat(soap->msgbuf, node->name);
+            if (out_attribute(soap, NULL, soap->msgbuf + 6, node->data, node->wide, 1))
+              return soap->error;
+          }
+        }
+      }
       else
-        soap_set_attr(soap, node->name, node->data);
+      { out_attribute(soap, NULL, node->name, node->data, node->wide, 1);
+      }
     }
     node = node->next;
   }
@@ -458,13 +520,13 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
       }
       (*att)->next = NULL;
       (*att)->nstr = soap_current_namespace(soap, tp->name);
-      if ((soap->mode & SOAP_DOM_ASIS))
+      if ((soap->mode & SOAP_DOM_ASIS) || !strncmp(tp->name, "xml", 3))
         (*att)->name = soap_strdup(soap, tp->name);
       else
       { char *s = strchr(tp->name, ':');
         if (s)
           (*att)->name = soap_strdup(soap, s+1);
-	else
+        else
           (*att)->name = soap_strdup(soap, tp->name);
       }
       if (tp->visible == 2)
@@ -478,7 +540,7 @@ soap_in_xsd__anyType(struct soap *soap, const char *tag, struct soap_dom_element
     }
   }
   soap_element_begin_in(soap, NULL, 1, NULL);
-  DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' accepted\n", node->name));
+  DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s' pulled\n", node->name));
   if (soap->body)
   { if (!soap_peek_element(soap))
     { struct soap_dom_element **elt;
@@ -540,7 +602,7 @@ soap_in_xsd__anyAttribute(struct soap *soap, const char *tag, struct soap_dom_at
       }
       att->next = NULL;
       att->nstr = soap_current_namespace(soap, tp->name);
-      if ((soap->mode & SOAP_DOM_ASIS))
+      if ((soap->mode & SOAP_DOM_ASIS) || !strncmp(tp->name, "xml", 3))
         att->name = soap_strdup(soap, tp->name);
       else
       { char *s = strchr(tp->name, ':');

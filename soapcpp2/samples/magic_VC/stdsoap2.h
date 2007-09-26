@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.h 2.7.9k
+stdsoap2.h 2.7.9l
 
 gSOAP runtime
 

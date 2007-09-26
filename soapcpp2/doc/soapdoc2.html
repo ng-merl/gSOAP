@@ -23,7 +23,7 @@
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Aug 21, 2007
+<h3 align="center">Sep 26, 2007
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -5608,9 +5608,9 @@ SOAP payload.
 <div class="p"><!----></div>
 Many built-in primitive and derived XSD types such as <tt>xsd:anyURI</tt>,
 <tt>positiveInteger</tt>, and <tt>decimal</tt> can be stored by standard primitive
-data structures in C++ as well such as strings, integers, floats, and doubles.
+data structures in C++, such as strings, integers, floats, and doubles.
 To serialize strings, integers, floats, and doubles as built-in primitive and
-derived XSD types. To this end, a <i><b>typedef</b></i> declaration can be used
+derived XSD types, a <i><b>typedef</b></i> declaration can be used
 to declare an XSD type.
 
 <div class="p"><!----></div>
@@ -11104,7 +11104,15 @@ and <i>soap.keep_alive</i> <font face="symbol">¹</font
 > 0 (indicating that the other party supports keep alive).
 Should return SOAP_OK, or a gSOAP error code.
 Built-in gSOAP function: <i>tcp_disconnect</i>
-</td></tr>
+</td></tr></table>
+
+</td></tr></table><br></span>
+
+<div class="p"><!----></div>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
+
+<table>
+<tr><td width="602"><font color="#FF0000"><b>Callback (function pointer)</b></font> </td></tr>
 <tr><td width="602"><i><b>int</b>&nbsp;(*soap.fsend)(<b>struct</b>&nbsp;soap *soap, <b>const</b>&nbsp;<b>char</b>&nbsp;*s, size_t n)</i> </td></tr>
 <tr><td width="602">Called for all send operations to emit contents of <i>s</i> of length <i>n</i>.
 Should return SOAP_OK, or a gSOAP error code.
@@ -13615,5 +13623,5 @@ included in the package.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.72.<br />On 21 Aug 2007, 22:05.</small>
+version 3.72.<br />On 26 Sep 2007, 09:26.</small>
 </html>

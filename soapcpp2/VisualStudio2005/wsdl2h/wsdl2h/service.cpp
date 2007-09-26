@@ -6,7 +6,7 @@ Service structures.
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
-Copyright (C) 2001-2006, Robert van Engelen, Genivia Inc. All Rights Reserved.
+Copyright (C) 2001-2007, Robert van Engelen, Genivia Inc. All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -383,6 +383,8 @@ void Definitions::analyze(const wsdl__definitions &definitions)
     	          f->encodingStyle = (*ext_fault).soap__fault_->encodingStyle;
     	          f->URI = (*ext_fault).soap__fault_->namespace_;
     	          f->use = (*ext_fault).soap__fault_->use;
+		  if (f->use == literal && !f->URI)
+		    f->URI = s->URI; // must have a unique URI
         	  f->multipartRelated = NULL;
         	  f->content = NULL;
         	  f->layout = NULL;
@@ -1039,6 +1041,19 @@ void Definitions::generate()
     banner("SOAP Fault Detail");
     fprintf(stream, "/**\n\nThe SOAP Fault is part of the gSOAP context and its content is accessed\nthrough the soap.fault->detail variable (SOAP 1.1) or the\nsoap.fault->SOAP_ENV__Detail variable (SOAP 1.2).\nUse option -j to omit.\n\n*/\n");
     fprintf(stream, "struct SOAP_ENV__Detail\n{\n");
+    types.modify("SOAP_ENV__Detail");
+    fprintf(stream, elementformat, "int", "__type");
+    fprintf(stream, ";\t///< set to SOAP_TYPE_X for a serializable type X\n");
+    fprintf(stream, pointerformat, "void", "fault");
+    fprintf(stream, ";\t///< points to serializable object X or NULL\n");
+    if (dflag)
+    { fprintf(stream, pointerformat, "xsd__anyType", "__any");
+      fprintf(stream, ";\t///< Catch any element content in DOM.\n");
+    }
+    else
+    { fprintf(stream, elementformat, "_XML", "__any");
+      fprintf(stream, ";\t///< Catch any element content in XML string.\n");
+    }
     for (MapOfStringToMessage::const_iterator fault = faults.begin(); fault != faults.end(); ++fault)
     { if ((*fault).second->URI && !types.uris[(*fault).second->URI])
         fprintf(stream, schemaformat, types.nsprefix(NULL, (*fault).second->URI), "namespace", (*fault).second->URI);
@@ -1073,19 +1088,6 @@ void Definitions::generate()
       { fprintf(stream, pointerformat, (*fault).first, types.aname(NULL, (*fault).second->URI, (*fault).second->message->name));
         fprintf(stream, ";\t///< SOAP Fault detail message \"%s\":%s\n", (*fault).second->URI, (*fault).second->message->name);
       }
-    }
-    types.modify("SOAP_ENV__Detail");
-    fprintf(stream, elementformat, "int", "__type");
-    fprintf(stream, ";\t///< set to SOAP_TYPE_X for a serializable type X\n");
-    fprintf(stream, pointerformat, "void", "fault");
-    fprintf(stream, ";\t///< points to serializable object X or NULL\n");
-    if (dflag)
-    { fprintf(stream, pointerformat, "xsd__anyType", "__any");
-      fprintf(stream, ";\t///< Catch any element content in DOM.\n");
-    }
-    else
-    { fprintf(stream, elementformat, "_XML", "__any");
-      fprintf(stream, ";\t///< Catch any element content in XML string.\n");
     }
     fprintf(stream, "};\n");
   }
@@ -1641,7 +1643,7 @@ static void ident()
   }
   else
     fprintf(stream, "(stdin) ");
-  fprintf(stream, "and %s\n   %s\n   Copyright (C) 2001-2006 Robert van Engelen, Genivia Inc. All Rights Reserved.\n   This part of the software is released under one of the following licenses:\n   GPL or Genivia's license for commercial use.\n*/\n\n", mapfile, tmp);
+  fprintf(stream, "and %s\n   %s\n   Copyright (C) 2001-2007 Robert van Engelen, Genivia Inc. All Rights Reserved.\n   This part of the software is released under one of the following licenses:\n   GPL or Genivia's license for commercial use.\n*/\n\n", mapfile, tmp);
 }
 
 static void text(const char *text)

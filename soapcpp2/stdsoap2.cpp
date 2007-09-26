@@ -1,6 +1,6 @@
 /*
 
-stdsoap2.c[pp] 2.7.9k
+stdsoap2.c[pp] 2.7.9l
 
 gSOAP runtime
 
@@ -81,10 +81,10 @@ when locally allocated data exceeds 64K.
 #endif
 
 #ifdef __cplusplus
-SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.9k 2007-08-21 00:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.cpp ver 2.7.9l 2007-09-26 00:00:00 GMT")
 extern "C" {
 #else
-SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9k 2007-08-21 00:00:00 GMT")
+SOAP_SOURCE_STAMP("@(#) stdsoap2.c ver 2.7.9l 2007-09-26 00:00:00 GMT")
 #endif
 
 /* 8bit character representing unknown/nonrepresentable character data (e.g. not supported by current locale with multibyte support enabled) */
@@ -464,6 +464,7 @@ fsend(struct soap *soap, const char *s, size_t n)
   { soap->os->write(s, (std::streamsize)n);
     if (soap->os->good())
       return SOAP_OK;
+    soap->errnum = 0;
     return SOAP_EOF;
   }
 #endif
@@ -566,11 +567,13 @@ fsend(struct soap *soap, const char *s, size_t n)
 #endif
       if (nwritten <= 0)
       { register int r = 0;
+        err = soap_socket_errno(soap->socket);
 #ifdef WITH_OPENSSL
         if (soap->ssl && (r = SSL_get_error(soap->ssl, nwritten)) != SSL_ERROR_NONE && r != SSL_ERROR_WANT_READ && r != SSL_ERROR_WANT_WRITE)
-          return SOAP_EOF;
+        { soap->errnum = err;
+	  return SOAP_EOF;
+        }
 #endif
-        err = soap_socket_errno(soap->socket);
         if (err == SOAP_EWOULDBLOCK || err == SOAP_EAGAIN)
 	{
 #ifndef WITH_LEAN
@@ -2010,12 +2013,15 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_dime_forward(struct soap *soap, unsigned char **ptr, int *size, char **id, char **type, char **options)
-{ struct soap_xlist *xp = (struct soap_xlist*)SOAP_MALLOC(soap, sizeof(struct soap_xlist));
+{ struct soap_xlist *xp;
   *ptr = NULL;
   *size = 0;
-  *id = soap_strdup(soap, soap->href);
   *type = NULL;
   *options = NULL;
+  *id = soap_strdup(soap, soap->href);
+  if (!*id)
+    return SOAP_OK;
+  xp = (struct soap_xlist*)SOAP_MALLOC(soap, sizeof(struct soap_xlist));
   if (!xp)
     return soap->error = SOAP_EOM;
   xp->next = soap->xlist;
@@ -8025,9 +8031,7 @@ soap_peek_element(struct soap *soap)
 #endif
     if (!strncmp(soap->tmpbuf, "xmlns", 5))
     { if (soap->tmpbuf[5] == ':')
-      { soap->tmpbuf[5] = '\0';
         t = soap->tmpbuf + 6;
-      }
       else if (soap->tmpbuf[5])
         t = NULL;
       else
@@ -8047,7 +8051,7 @@ soap_peek_element(struct soap *soap)
       strcpy(tp->name, soap->tmpbuf);
       tp->value = NULL;
       tp->size = 0;
-      /* if attribute name is qualified, append it to the list */
+      /* if attribute name is qualified, append it to the end of the list */
       if (tq && strchr(soap->tmpbuf, ':'))
       { tq->next = tp;
         tp->next = NULL;
@@ -8145,7 +8149,6 @@ soap_peek_element(struct soap *soap)
     if (t && tp->value)
     { if (soap_push_namespace(soap, t, tp->value))
         return soap->error;
-      tp->visible = 0;
     }
   }
 #ifdef WITH_DOM
@@ -10113,50 +10116,74 @@ SOAP_FMAC1
 int
 SOAP_FMAC2
 soap_s2QName(struct soap *soap, const char *s, char **t)
-{ if (s)
-  { struct soap_nlist *np = soap->nlist;
-    const char *p;
-    /* if there is no namespace stack, or prefix is "xml" then pass string */
-    if (!np || !strncmp(s, "xml:", 4))
-    { *t = soap_strdup(soap, s);
-      return SOAP_OK;
-    }
-    /* else we normalize the QName by replacing its prefix */
-    p = strchr(s, ':');
-    if (p)
-    { register size_t n = p - s;
-      while (np && (strncmp(np->id, s, n) || np->id[n]))
-        np = np->next;
-      p++;
-    }
-    else
-    { while (np && *np->id)
-        np = np->next;
-      p = s;
-    }
-    if (np)
-    { if (np->index >= 0 && soap->local_namespaces)
-      { register const char *q = soap->local_namespaces[np->index].id;
-        if (q)
-        { if ((*t = (char*)soap_malloc(soap, strlen(p) + strlen(q) + 2)))
-            sprintf(*t, "%s:%s", q, p);
-          return SOAP_OK;
+{ *t = NULL;
+  if (s)
+  { soap->labidx = 0;
+    DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Normalized namespace(s) of QNames '%s'", s));
+    /* convert (by prefix normalize prefix) all QNames in s */
+    for (;;)
+    { size_t n;
+      struct soap_nlist *np;
+      register const char *p;
+      /* skip blanks */
+      while (*s && soap_blank(*s))
+        s++;
+      if (!*s)
+        break;
+      /* find next QName */
+      n = 1;
+      while (s[n] && !soap_blank(s[n]))
+        n++;
+      np = soap->nlist;
+      /* if there is no namespace stack, or prefix is "xml" then copy string */
+      if (!np || !strncmp(s, "xml:", 4))
+      { soap_append_lab(soap, s, n);
+      }
+      else /* we normalize the QName by replacing its prefix */
+      { p = strchr(s, ':');
+        if (p)
+        { size_t k = p - s;
+          while (np && (strncmp(np->id, s, k) || np->id[k]))
+            np = np->next;
+          p++;
         }
+        else
+        { while (np && *np->id)
+            np = np->next;
+          p = s;
+        }
+	/* replace prefix */
+        if (np)
+        { if (np->index >= 0 && soap->local_namespaces)
+          { const char *q = soap->local_namespaces[np->index].id;
+            if (q)
+              soap_append_lab(soap, q, strlen(q));
+          }
+          else if (np->ns)
+          { soap_append_lab(soap, "\"", 1);
+            soap_append_lab(soap, np->ns, strlen(np->ns));
+            soap_append_lab(soap, "\"", 1);
+          }
+          else
+          { DBGLOG(TEST, SOAP_MESSAGE(fdebug, "\nNamespace prefix of '%s' not defined (index=%d, URI=%s)\n", s, np->index, np->ns?np->ns:""));
+            return soap->error = SOAP_NAMESPACE; 
+          }
+        }
+        else /* no namespace: assume default "" namespace */
+        { soap_append_lab(soap, "\"\"", 2);
+        } 
+        soap_append_lab(soap, ":", 1);
+        soap_append_lab(soap, p, n - (p-s));
       }
-      if (np->ns)
-      { if ((*t = (char*)soap_malloc(soap, strlen(p) + strlen(np->ns) + 4)))
-          sprintf(*t, "\"%s\":%s", np->ns, p);
-        return SOAP_OK;
-      }
-      DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Namespace prefix of '%s' not defined (index=%d, URI=%s)\n", s, np->index, np->ns?np->ns:""));
-      return soap->error = SOAP_NAMESPACE; 
+      /* advance to next and add spacing */
+      s += n;
+      if (*s)
+        soap_append_lab(soap, " ", 1);
     }
-    DBGLOG(TEST, SOAP_MESSAGE(fdebug, "Namespace prefix of '%s' not defined, assuming empty namespace\n", s));
-    if ((*t = (char*)soap_malloc(soap, strlen(p) + 4)))
-      sprintf(*t, "\"\":%s", p);
+    soap_append_lab(soap, SOAP_STR_EOS, 1);
+    *t = soap_strdup(soap, soap->labbuf);
+    DBGLOG(TEST, SOAP_MESSAGE(fdebug, " into '%s'\n", *t));
   }
-  else
-    *t = NULL;
   return soap->error;
 }
 #endif
@@ -10167,54 +10194,68 @@ SOAP_FMAC1
 const char*
 SOAP_FMAC2
 soap_QName2s(struct soap *soap, const char *s)
-{ register struct Namespace *p;
-  register char *t;
-  register size_t n;
-  if (!s || *s != '"')
-  {
-#ifndef WITH_LEAN
-    if (s && (soap->mode & SOAP_XML_CANONICAL))
-    { t = (char*)strchr(s, ':');
-      if (t)
-        soap_utilize_ns(soap, s, t - s);
-    }
-#endif
-    return s;
-  }
-  s++;
-  if ((p = soap->local_namespaces))
-  { for (; p->id; p++)
-    { if (p->ns)
-        if (!soap_tag_cmp(s, p->ns))
-          break;
-      if (p->in)
-        if (!soap_tag_cmp(s, p->in))
-          break;
-    }
-    if (p && p->id)
-    { s = strchr(s, '"');
-      if (s)
-      { t = (char*)soap_malloc(soap, strlen(p->id) + strlen(s));
-        strcpy(t, p->id);
-        strcat(t, s + 1);
-        return t;
-      }
-    }
-  }
-  t = (char*)strchr(s, '"');
-  if (t)
-    n = t - s;
-  else
-    n = 0;
-  t = soap_strdup(soap, s);
-  t[n] = '\0';
-  sprintf(soap->tmpbuf, "xmlns:_%d", soap->idnum++);
-  soap_set_attr(soap, soap->tmpbuf, t);
-  s = strchr(s, '"');
+{ const char *t = NULL;
   if (s)
-  { t = (char*)soap_malloc(soap, strlen(soap->tmpbuf) + strlen(s) - 6);
-    strcpy(t, soap->tmpbuf + 6);
-    strcat(t, s + 1);
+  { soap->labidx = 0;
+    for (;;)
+    { size_t n;
+      /* skip blanks */
+      while (*s && soap_blank(*s))
+        s++;
+      if (!*s)
+        break;
+      /* find next QName */
+      n = 1;
+      while (s[n] && !soap_blank(s[n]))
+        n++;
+      /* normal prefix: pass string as is */
+      if (*s != '"')
+      { soap_append_lab(soap, s, n);
+#ifndef WITH_LEAN
+        if ((soap->mode & SOAP_XML_CANONICAL))
+        { const char *r = strchr(s, ':');
+          if (r)
+            soap_utilize_ns(soap, s, r - s);
+        }
+#endif
+      }
+      else /* URL-based string prefix */
+      { const char *q;
+        s++;
+	q = strchr(s, '"');
+	if (q)
+	{ struct Namespace *p = soap->local_namespaces;
+          if (p)
+          { for (; p->id; p++)
+            { if (p->ns)
+                if (!soap_tag_cmp(s, p->ns))
+                  break;
+              if (p->in)
+                if (!soap_tag_cmp(s, p->in))
+                  break;
+            }
+          }
+	  /* URL is in the namespace table? */
+          if (p && p->id)
+          { soap_append_lab(soap, p->id, strlen(p->id));
+          }
+	  else /* not in namespace table: create xmlns binding */
+	  { char *r = soap_strdup(soap, s);
+            r[q-s] = '\0';
+            sprintf(soap->tmpbuf, "xmlns:_%d", soap->idnum++);
+            soap_set_attr(soap, soap->tmpbuf, r);
+	    soap_append_lab(soap, soap->tmpbuf + 6, strlen(soap->tmpbuf + 6));
+          }
+	  soap_append_lab(soap, q + 1, n - (q-s) - 1);
+        }
+      }
+      /* advance to next and add spacing */
+      s += n;
+      if (*s)
+        soap_append_lab(soap, " ", 1);
+    }
+    soap_append_lab(soap, SOAP_STR_EOS, 1);
+    t = soap_strdup(soap, soap->labbuf);
   }
   return t;
 }
@@ -13136,7 +13177,7 @@ soap_decode(char *buf, size_t len, const char *val, const char *sep)
       *t++ = *s++;
   }
   else
-  { while (soap_notblank(*s) && !strchr(sep, *s) && --len)
+  { while (*s && !soap_blank(*s) && !strchr(sep, *s) && --len)
     { if (*s == '%')
       { *t++ = ((s[1] >= 'A' ? (s[1] & 0x7) + 9 : s[1] - '0') << 4)
               + (s[2] >= 'A' ? (s[2] & 0x7) + 9 : s[2] - '0');

@@ -110,7 +110,9 @@ void ISAPI_HttpRequest::ReadCustomHeaders(EXTENSION_CONTROL_BLOCK& ecb) {
                 }
                 replace(strName.begin(), strName.end(), '_', '-');
                 ::OutputDebugString((strName + ":" + (pOpts + 1) + "\r\n").c_str());
-                m_ContentHeaders[strName] = pOpts + 1;
+                // don't let gsoap see TRANSFER ENCODING, since this is handled by IIS
+                if ("TRANSFER-ENCODING" != strName)
+                    m_ContentHeaders[strName] = pOpts + 1;
                 pChar = pEnd + 1;
             }
         }
