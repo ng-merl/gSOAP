@@ -87,9 +87,11 @@ RANLIB = @RANLIB@
 SAMPLE_DIRS = @SAMPLE_DIRS@
 SAMPLE_EXTRA_LIBS = @SAMPLE_EXTRA_LIBS@
 SOAPCPP2_DEBUG = @SOAPCPP2_DEBUG@
+SOAPCPP2_IMPORTPATH = @SOAPCPP2_IMPORTPATH@
 SOAPCPP2_NONAMESPACES = @SOAPCPP2_NONAMESPACES@
 STRIP = @STRIP@
 VERSION = @VERSION@
+WSDL2H_IMPORTPATH = @WSDL2H_IMPORTPATH@
 YACC = @YACC@
 YACC_LIB = @YACC_LIB@
 am__include = @am__include@
@@ -97,7 +99,7 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 platform = @platform@
 
-SUBDIRS = soapcpp2
+SUBDIRS = gsoap
 CLEANFILES = *~
 VERYVERYCLEANFILES = *~ configure Makefile.in compile config.guess config.sub config.log autoscan.log \
 depcomp install-sh missing mkinstalldirs stamp-h.in config.h.in \

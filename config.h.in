@@ -67,8 +67,14 @@
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
+/* Define to 1 if you have the `sprintf_l' function. */
+#undef HAVE_SPRINTF_L
+
 /* Define to 1 if you have the `sscanf' function. */
 #undef HAVE_SSCANF
+
+/* Define to 1 if you have the `sscanf_l' function. */
+#undef HAVE_SSCANF_L
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -97,11 +103,26 @@
 /* Define to 1 if you have the `strstr' function. */
 #undef HAVE_STRSTR
 
+/* Define to 1 if you have the `strtod' function. */
+#undef HAVE_STRTOD
+
+/* Define to 1 if you have the `strtod_l' function. */
+#undef HAVE_STRTOD_L
+
+/* Define to 1 if you have the `strtof' function. */
+#undef HAVE_STRTOF
+
+/* Define to 1 if you have the `strtof_l' function. */
+#undef HAVE_STRTOF_L
+
 /* Define to 1 if you have the `strtol' function. */
 #undef HAVE_STRTOL
 
 /* Define to 1 if you have the `strtold' function. */
 #undef HAVE_STRTOLD
+
+/* Define to 1 if you have the `strtold_l' function. */
+#undef HAVE_STRTOLD_L
 
 /* Define to 1 if you have the `strtoll' function. */
 #undef HAVE_STRTOLL
@@ -135,6 +156,12 @@
 
 /* Define to 1 if you have the `wctomb' function. */
 #undef HAVE_WCTOMB
+
+/* Define to 1 if you have the <xlocale.h> header file. */
+#undef HAVE_XLOCALE_H
+
+/* Define to 1 if you have the <zlib.h> header file. */
+#undef HAVE_ZLIB_H
 
 /* Name of package */
 #undef PACKAGE

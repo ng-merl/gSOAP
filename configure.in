@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(soapcpp2, 2.7)
-AM_INIT_AUTOMAKE(soapcpp2, 2.7)
-AC_CONFIG_SRCDIR([soapcpp2/stdsoap2.cpp])
+AC_INIT(gsoap, 2.7)
+AM_INIT_AUTOMAKE(gsoap, 2.7)
+AC_CONFIG_SRCDIR([gsoap/stdsoap2.cpp])
 AC_CANONICAL_HOST
 
 dnl AC_CONFIG_HEADER([config.h])
@@ -76,7 +76,7 @@ AC_SUBST(platform)
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([arpa/inet.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h openssl/ssl.h])
+AC_CHECK_HEADERS([arpa/inet.h xlocale.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h openssl/ssl.h zlib.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -89,7 +89,7 @@ AC_FUNC_MKTIME
 AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull strtold sscanf wctomb mbtowc])
+AC_CHECK_FUNCS([random gettimeofday ftime localtime_r timegm gmtime gmtime_r memset select socket strchr strerror strrchr strstr strtol strtoul strtoll strtoull strtold strtod strtof strtold_l strtod_l strtof_l sscanf sscanf_l sprintf_l wctomb mbtowc])
 
 dnl Function test depending on platform
 dnl AIX Has incompatible gethostbyname_r
@@ -114,6 +114,16 @@ else
 fi			
 AC_SUBST(SOAPCPP2_DEBUG)
 
+dnl set the default soapcpp2 import path
+# SOAPCPP2_IMPORTPATH="-DSOAPCPP_IMPORT_PATH=\"\\\"${datadir}/gsoap/import\\\"\""
+SOAPCPP2_IMPORTPATH="-DSOAPCPP2_IMPORT_PATH=\"\\\"`pwd`/gsoap/import\\\"\""
+AC_SUBST(SOAPCPP2_IMPORTPATH)
+
+dnl set the default wsdl2h import path
+# WSDL2H_IMPORTPATH="-DWSDL_IMPORT_PATH=\"\\\"${datadir}/gsoap/WS\\\"\""
+WSDL2H_IMPORTPATH="-DWSDL2H_IMPORT_PATH=\"\\\"`pwd`/gsoap/WS\\\"\""
+AC_SUBST(WSDL2H_IMPORTPATH)
+
 dnl the disable-namespaces option adds the -DWITH_NONAMESPACES to the
 dnl library compilation thus disabling namespaces
 AC_ARG_ENABLE(namespaces,
@@ -127,7 +137,7 @@ if test "x$with_namespaces" = "xyes"; then
   AC_MSG_RESULT(no)
 else
   AC_MSG_RESULT(yes)
-  SOAPCPP2_NONAMESPACES="-DWITH_NONAMESPACES" ##define DEBUG for debugging
+  SOAPCPP2_NONAMESPACES="-DWITH_NONAMESPACES" ##define to remove nsmap link dependence
 fi
 AC_SUBST(SOAPCPP2_NONAMESPACES)
 
@@ -173,23 +183,37 @@ AC_SUBST(YACC_LIB)
 
 AC_CONFIG_FILES([ Makefile \
     gsoap.pc gsoap++.pc gsoapck.pc gsoapck++.pc gsoapssl.pc gsoapssl++.pc \
-    soapcpp2/Makefile soapcpp2/src/Makefile soapcpp2/wsdl/Makefile \
-    soapcpp2/samples/Makefile \
-    soapcpp2/samples/quote/Makefile  soapcpp2/samples/quote2/Makefile \
-    soapcpp2/samples/quote3/Makefile soapcpp2/samples/quote4/Makefile \
-    soapcpp2/samples/quotex/Makefile \
-    soapcpp2/samples/calc/Makefile \
-    soapcpp2/samples/factory/Makefile soapcpp2/samples/factorytest/Makefile \
-    soapcpp2/samples/dime/Makefile \
-    soapcpp2/samples/mtom/Makefile \
-    soapcpp2/samples/mtom-stream/Makefile \
-    soapcpp2/samples/listing/Makefile \
-    soapcpp2/samples/magic/Makefile soapcpp2/samples/lu/Makefile soapcpp2/samples/ck/Makefile \
-    soapcpp2/samples/googleapi/Makefile soapcpp2/samples/varparam/Makefile \
-    soapcpp2/samples/rss/Makefile soapcpp2/samples/xml-rpc/Makefile \
-    soapcpp2/samples/ssl/Makefile soapcpp2/samples/router/Makefile \
-    soapcpp2/samples/events/Makefile \
-    soapcpp2/samples/polytest/Makefile \
-    soapcpp2/samples/udp/Makefile
+    gsoap/Makefile \
+    gsoap/src/Makefile \
+    gsoap/wsdl/Makefile \
+    gsoap/samples/Makefile \
+    gsoap/samples/calc/Makefile \
+    gsoap/samples/calc++/Makefile \
+    gsoap/samples/dime/Makefile \
+    gsoap/samples/dom/Makefile \
+    gsoap/samples/events/Makefile \
+    gsoap/samples/events++/Makefile \
+    gsoap/samples/factory/Makefile \
+    gsoap/samples/factorytest/Makefile \
+    gsoap/samples/gmt/Makefile \
+    gsoap/samples/googleapi/Makefile \
+    gsoap/samples/hello/Makefile \
+    gsoap/samples/httpcookies/Makefile \
+    gsoap/samples/lu/Makefile \
+    gsoap/samples/magic/Makefile \
+    gsoap/samples/mashup/Makefile \
+    gsoap/samples/mashup++/Makefile \
+    gsoap/samples/mtom/Makefile \
+    gsoap/samples/mtom-stream/Makefile \
+    gsoap/samples/polytest/Makefile \
+    gsoap/samples/roll/Makefile \
+    gsoap/samples/router/Makefile \
+    gsoap/samples/rss/Makefile \
+    gsoap/samples/ssl/Makefile \
+    gsoap/samples/udp/Makefile \
+    gsoap/samples/varparam/Makefile \
+    gsoap/samples/wsa/Makefile \
+    gsoap/samples/wsse/Makefile \
+    gsoap/samples/xml-rpc/Makefile
 ])
 AC_OUTPUT
