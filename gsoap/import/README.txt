@@ -14,8 +14,12 @@ wsa.h		WS-Addressing 2004/08 (see plugin/wsaapi.c)
 wsa3.h		WS-Addressing 2003/03 (see plugin/wsaapi.c)
 wsa4.h		WS-Addressing 2004/03 (see plugin/wsaapi.c)
 wsa5.h		WS-Addressing 2005/03 (see plugin/wsaapi.c)
+wsrm4.h		WS-ReliableMessaging (2004, deprecated)
+wsrm.h		WS-ReliableMessaging schema definiions
+wsrx.h		WS-ReliableMessaging (see plugin/wsrmapi.c)
 wsse.h		WS-Security (see plugin/wsseapi.c)
 wsu.h		Utility
+xlink.h		Xlink bindings
 xmlmime.h	XML MIME bindings
 xop.h		XOP MTOM attachments
 

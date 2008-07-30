@@ -153,20 +153,19 @@ static int
 out_element(struct soap *soap, const struct soap_dom_element *node, const char *prefix, const char *name, const char *nstr)
 { if (node->head && soap_send(soap, node->head))
     return soap->error;
-  if (!prefix)
-  { if (node->type && node->node)
-      return soap_putelement(soap, node->node, name, 0, node->type);
-    return soap_element(soap, name, 0, NULL); /* element() */
-  }
   if (node->type && node->node)
-  { char *s = (char*)SOAP_MALLOC(soap, strlen(prefix) + strlen(name) + 2);
-    if (!s)
-      return soap->error = SOAP_EOM;
-    sprintf(s, "%s:%s", prefix, name);
-    soap_putelement(soap, node->node, s, 0, node->type);
-    SOAP_FREE(soap, s);
+  { if (prefix)
+    { char *s = (char*)SOAP_MALLOC(soap, strlen(prefix) + strlen(name) + 2);
+      if (!s)
+        return soap->error = SOAP_EOM;
+      sprintf(s, "%s:%s", prefix, name);
+      soap_putelement(soap, node->node, s, 0, node->type);
+      SOAP_FREE(soap, s);
+    }
+    else
+      return soap_putelement(soap, node->node, name, 0, node->type);
   }
-  else
+  else if (prefix)
   { char *s;
     if (strlen(prefix) + strlen(name) < sizeof(soap->msgbuf))
       s = soap->msgbuf;
@@ -185,6 +184,8 @@ out_element(struct soap *soap, const struct soap_dom_element *node, const char *
     if (s != soap->msgbuf)
       SOAP_FREE(soap, s);
   }
+  else
+    return soap_element(soap, name, 0, NULL); /* element() */
   return soap->error;
 }
 
@@ -267,7 +268,7 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
       colon = 0;
     DBGLOG(TEST, SOAP_MESSAGE(fdebug, "DOM node '%s'\n", tag));
     prefix = NULL;
-    if (node->nstr && !(soap->mode & SOAP_DOM_ASIS))
+    if (node->nstr && *node->nstr && !(soap->mode & SOAP_DOM_ASIS))
     { if (colon)
       { strncpy(soap->tag, tag, colon - 1);
         soap->tag[colon - 1] = '\0';
@@ -278,32 +279,43 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
           return soap->error;
       }
       else
-      { struct Namespace *ns;
+      { /* This code removed to remove assumption that nstable was emitted in the root
+        struct Namespace *ns;
         for (ns = soap->local_namespaces; ns && ns->id; ns++)
         { if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
-          { /* if (soap->encodingStyle || ns == soap->local_namespaces) */
-              prefix = ns->id;
+          { prefix = ns->id;
             if (out_element(soap, node, ns->id, tag + colon, NULL))
               return soap->error;
             break;
           }
 	}
         if (!ns || !ns->id)
-        { if ((p = soap_lookup_ns_prefix(soap, node->nstr)))
-          { prefix = p->id;
-            p = NULL;
-            if (out_element(soap, node, prefix, tag + colon, NULL))
-              return soap->error;
-          }
-	  else
-          { sprintf(soap->tag, SOAP_DOMID_FORMAT, soap->idnum++);
-            if (!(p = soap_enter_ns_prefix(soap, soap->tag, node->nstr)))
-              return soap->error = SOAP_EOM;
-            prefix = p->id;
-            if (out_element(soap, node, prefix, tag + colon, node->nstr))
-              return soap->error;
-	  }
+	{
+	*/
+        if ((p = soap_lookup_ns_prefix(soap, node->nstr)))
+        { prefix = p->id;
+          p = NULL;
+          if (out_element(soap, node, prefix, tag + colon, NULL))
+            return soap->error;
         }
+        else
+        { struct Namespace *ns;
+          for (ns = soap->local_namespaces; ns && ns->id; ns++)
+          { if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
+            { prefix = ns->id;
+              break;
+            }
+          }
+          if (!prefix)
+          { sprintf(soap->tag, SOAP_DOMID_FORMAT, soap->idnum++);
+            prefix = soap->tag;
+          }
+          if (!(p = soap_enter_ns_prefix(soap, prefix, node->nstr)))
+            return soap->error = SOAP_EOM;
+          if (out_element(soap, node, prefix, tag + colon, node->nstr))
+            return soap->error;
+        }
+        /* } */
       }
     }
     else
@@ -327,24 +339,34 @@ soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct s
 	        return soap->error;
 	    }
 	    else
-            { struct Namespace *ns;
+            { /* This code removed to remove assumption that nstable was emitted in the root
+	      struct Namespace *ns;
 	      for (ns = soap->local_namespaces; ns && ns->id; ns++)
               { if (ns->ns == att->nstr || !strcmp(ns->ns, att->nstr))
-	        { /* don't prefix attributes that start with 'xml' */
-		  if (out_attribute(soap, strncmp(att->name, "xml", 3) ? ns->id : NULL, att->name, att->data, att->wide, 0))
+	        { if (out_attribute(soap, strncmp(att->name, "xml", 3) ? ns->id : NULL, att->name, att->data, att->wide, 0))
 	            return soap->error;
 	          break;
 	        }
 	      }
 	      if (!ns || !ns->id)
+	      {
+	      */
+	      if (!strncmp(att->name, "xml", 3))
+	      { if (out_attribute(soap, NULL, att->name, att->data, att->wide, 0))
+                  return soap->error;
+	      }
+	      else
               { sprintf(soap->msgbuf, "xmlns:"SOAP_DOMID_FORMAT, soap->idnum++);
 	        if (soap_attribute(soap, soap->msgbuf, att->nstr))
 	          return soap->error;
+	        if (!(soap_enter_ns_prefix(soap, soap->msgbuf + 6, att->nstr)))
+                  return soap->error = SOAP_EOM;
 	        strcat(soap->msgbuf, ":");
 	        strcat(soap->msgbuf, att->name);
 	        if (soap_attribute(soap, soap->msgbuf + 6, att->wide ? soap_wchar2s(soap, att->wide) : att->data))
 	          return soap->error;
               }
+	    /* } */
             }
           }
 	  else if (soap_attribute(soap, att->name, att->wide ? soap_wchar2s(soap, att->wide) : att->data))
@@ -434,20 +456,41 @@ soap_out_xsd__anyAttribute(struct soap *soap, const char *tag, int id, const str
         { struct Namespace *ns;
           for (ns = soap->local_namespaces; ns && ns->id; ns++)
           { if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
-            { /* don't prefix attributes that start with 'xml' */
-    	      if (out_attribute(soap, strncmp(node->name, "xml", 3) ? ns->id : NULL, node->name, node->data, node->wide, 1))
+            { if (out_attribute(soap, strncmp(node->name, "xml", 3) ? ns->id : NULL, node->name, node->data, node->wide, 1))
                 return soap->error;
               break;
             }
           }
           if (!ns || !ns->id)
-          { sprintf(soap->msgbuf, "xmlns:"SOAP_DOMID_FORMAT, soap->idnum++);
-            if (soap_set_attr(soap, soap->msgbuf, node->nstr))
-              return soap->error;
-            strcat(soap->msgbuf, ":");
-            strcat(soap->msgbuf, node->name);
-            if (out_attribute(soap, NULL, soap->msgbuf + 6, node->data, node->wide, 1))
-              return soap->error;
+	  { if (!strncmp(node->name, "xml", 3))
+            { if (node->name && node->data && !strncmp(node->name, "xmlns:", 6))
+	      { if (!(soap_enter_ns_prefix(soap, node->name + 6, node->data)))
+                  return soap->error = SOAP_EOM;
+	      }
+              if (out_attribute(soap, NULL, node->name, node->data, node->wide, 1))
+                  return soap->error;
+	    }
+	    else
+            { struct Namespace *ns;
+              for (ns = soap->local_namespaces; ns && ns->id; ns++)
+              { if (ns->ns == node->nstr || !strcmp(ns->ns, node->nstr))
+                { if (out_attribute(soap, ns->id, node->name, node->data, node->wide, 1))
+                    return soap->error;
+                  break;
+                }
+	      }
+	      if (!ns || !ns->id)
+              { sprintf(soap->msgbuf, "xmlns:"SOAP_DOMID_FORMAT, soap->idnum++);
+                if (soap_set_attr(soap, soap->msgbuf, node->nstr))
+                  return soap->error;
+	        if (!(soap_enter_ns_prefix(soap, soap->msgbuf + 6, node->nstr)))
+                  return soap->error = SOAP_EOM;
+                strcat(soap->msgbuf, ":");
+                strcat(soap->msgbuf, node->name);
+                if (out_attribute(soap, NULL, soap->msgbuf + 6, node->data, node->wide, 1))
+                  return soap->error;
+	      }
+            }
           }
         }
       }
@@ -1084,6 +1127,7 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
     soap_init2(&soap, SOAP_IO_DEFAULT, SOAP_XML_GRAPH);
     soap_serialize_xsd__anyType(&soap, &e);
     soap_begin_send(&soap);
+    soap.ns = 2; /* do not dump namespace table */
     soap_out_xsd__anyType(&soap, NULL, 0, &e, NULL);
     soap_end_send(&soap);
     soap_end(&soap);
@@ -1092,10 +1136,11 @@ std::ostream &operator<<(std::ostream &o, const struct soap_dom_element &e)
   else
   { std::ostream *os = e.soap->os;
     e.soap->os = &o;
-    short omode = e.soap->omode;
+    soap_mode omode = e.soap->omode;
     soap_set_omode(e.soap, SOAP_XML_GRAPH);
     soap_serialize_xsd__anyType(e.soap, &e);
     soap_begin_send(e.soap);
+    e.soap->ns = 2; /* do not dump namespace table */
     soap_out_xsd__anyType(e.soap, NULL, 0, &e, NULL);
     soap_end_send(e.soap);
     e.soap->os = os;

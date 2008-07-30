@@ -1,14 +1,20 @@
 /*
+	logging.h
 
-logging.h
+	Message logging plugin and stat collector for webserver.
 
-Message logging plugin.
+	Register the plugin with:
+		soap_register_plugin(soap, logging);
 
-This plugin flushes messages to stderr, but you can easily change it to send
-data elsewhere.
+	Change logging destinations:
+		soap_set_logging_inbound(struct soap*, FILE*);
+		soap_set_logging_outbound(struct soap*, FILE*);
+
+	Obtain stats (sent and recv octet count):
+		soap_get_logging_stats(soap, size_t *sent, size_t *recv);
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -23,7 +29,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -59,7 +65,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 extern "C" {
 #endif
 
-#define LOGGING_ID "LOGGING-1.2"
+#define LOGGING_ID "LOGGING-1.3"
 
 extern const char logging_id[];
 
@@ -74,6 +80,9 @@ struct logging_data
 };
 
 int logging(struct soap *soap, struct soap_plugin *plugin, void *arg);
+void soap_set_logging_inbound(struct soap *soap, FILE *fd);
+void soap_set_logging_outbound(struct soap *soap, FILE *fd);
+void soap_get_logging_stats(struct soap *soap, size_t *sent, size_t *recv);
 
 #ifdef __cplusplus
 }

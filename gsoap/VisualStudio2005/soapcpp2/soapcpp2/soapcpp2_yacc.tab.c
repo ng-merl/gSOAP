@@ -148,7 +148,7 @@ static void	mkscope(Table*, int), enterscope(Table*, int), exitscope();
 static int	integer(Tnode*), real(Tnode*), numeric(Tnode*);
 static void	add_soap(), add_XML(), add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
 extern char	*c_storage(Storage), *c_type(Tnode*), *c_ident(Tnode*);
-extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*), is_binary(Tnode*), is_external(Tnode*);
+extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*), is_binary(Tnode*), is_external(Tnode*), is_mutable(Tnode*);
 
 /* Temporaries used in semantic rules */
 int	i;
@@ -339,18 +339,18 @@ static const short yyrline[] = { 0,
    589,   668,   675,   690,   692,   695,   699,   709,   756,   762,
    766,   776,   823,   824,   825,   826,   827,   828,   829,   830,
    831,   832,   833,   834,   835,   836,   837,   838,   846,   868,
-   879,   898,   901,   914,   936,   950,   965,   980,  1003,  1023,
-  1038,  1053,  1075,  1094,  1113,  1121,  1129,  1147,  1157,  1172,
-  1189,  1206,  1207,  1209,  1210,  1211,  1212,  1219,  1221,  1228,
-  1236,  1242,  1243,  1245,  1253,  1254,  1255,  1256,  1257,  1258,
-  1259,  1260,  1261,  1262,  1263,  1264,  1265,  1269,  1271,  1272,
-  1274,  1275,  1277,  1278,  1280,  1281,  1288,  1293,  1295,  1308,
-  1312,  1320,  1321,  1332,  1337,  1342,  1347,  1352,  1358,  1359,
-  1361,  1362,  1363,  1372,  1373,  1376,  1381,  1384,  1387,  1390,
-  1392,  1395,  1398,  1400,  1403,  1404,  1405,  1406,  1407,  1408,
-  1409,  1410,  1411,  1412,  1413,  1414,  1415,  1416,  1417,  1418,
-  1419,  1422,  1427,  1432,  1442,  1443,  1450,  1454,  1459,  1462,
-  1463,  1470,  1474,  1478,  1482,  1486,  1490,  1494
+   879,   898,   901,   914,   936,   955,   970,   985,  1008,  1028,
+  1043,  1058,  1080,  1099,  1118,  1126,  1134,  1152,  1162,  1179,
+  1198,  1215,  1216,  1218,  1219,  1220,  1221,  1228,  1230,  1237,
+  1245,  1251,  1252,  1254,  1262,  1263,  1264,  1265,  1266,  1267,
+  1268,  1269,  1270,  1271,  1272,  1273,  1274,  1278,  1280,  1281,
+  1283,  1284,  1286,  1287,  1289,  1290,  1297,  1302,  1304,  1317,
+  1321,  1329,  1330,  1341,  1346,  1351,  1356,  1361,  1367,  1368,
+  1370,  1371,  1372,  1381,  1382,  1385,  1390,  1393,  1396,  1399,
+  1401,  1404,  1407,  1409,  1412,  1413,  1414,  1415,  1416,  1417,
+  1418,  1419,  1420,  1421,  1422,  1423,  1424,  1425,  1426,  1427,
+  1428,  1431,  1436,  1441,  1451,  1452,  1459,  1463,  1468,  1471,
+  1472,  1479,  1483,  1487,  1491,  1495,  1499,  1503
 };
 #endif
 
@@ -2291,8 +2291,13 @@ case 114:
 case 115:
 #line 937 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[-4].e->sym)) && p->info.typ->ref)
-			  {	sprintf(errbuf, "struct '%s' already declared at line %d", yyvsp[-4].e->sym->name, p->lineno);
-				semerror(errbuf);
+			  {	if (is_mutable(p->info.typ))
+			  	{	if (merge((Table*)p->info.typ->ref, sp->table))
+					{	sprintf(errbuf, "member name clash in struct '%s' declared at line %d", yyvsp[-4].e->sym->name, p->lineno);
+						semerror(errbuf);
+					}
+			  		p->info.typ->width += sp->offset;
+				}
 			  }
 			  else
 			  {	p = reenter(classtable, yyvsp[-4].e->sym);
@@ -2305,7 +2310,7 @@ case 115:
 			;
     break;}
 case 116:
-#line 950 "soapcpp2_yacc.y"
+#line 955 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->type == Tstruct)
 			  		yyval.typ = p->info.typ;
@@ -2323,7 +2328,7 @@ case 116:
 			;
     break;}
 case 117:
-#line 965 "soapcpp2_yacc.y"
+#line 970 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->type == Tstruct)
 					yyval.typ = p->info.typ;
@@ -2341,7 +2346,7 @@ case 117:
 			;
     break;}
 case 118:
-#line 981 "soapcpp2_yacc.y"
+#line 986 "soapcpp2_yacc.y"
 { sym = gensym("_Union");
 			  sprintf(errbuf, "anonymous union will be named '%s'", sym->name);
 			  semwarn(errbuf);
@@ -2366,7 +2371,7 @@ case 118:
 			;
     break;}
 case 119:
-#line 1004 "soapcpp2_yacc.y"
+#line 1009 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[-4].sym)))
 			  {	if (p->info.typ->ref || p->info.typ->type != Tunion)
 			  	{	sprintf(errbuf, "union '%s' already declared at line %d", yyvsp[-4].sym->name, p->lineno);
@@ -2388,7 +2393,7 @@ case 119:
 			;
     break;}
 case 120:
-#line 1023 "soapcpp2_yacc.y"
+#line 1028 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->type == Tunion)
 					yyval.typ = p->info.typ;
@@ -2406,7 +2411,7 @@ case 120:
 			;
     break;}
 case 121:
-#line 1038 "soapcpp2_yacc.y"
+#line 1043 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->type == Tunion)
 					yyval.typ = p->info.typ;
@@ -2424,7 +2429,7 @@ case 121:
 			;
     break;}
 case 122:
-#line 1054 "soapcpp2_yacc.y"
+#line 1059 "soapcpp2_yacc.y"
 { sym = gensym("_Enum");
 			  sprintf(errbuf, "anonymous enum will be named '%s'", sym->name);
 			  semwarn(errbuf);
@@ -2448,7 +2453,7 @@ case 122:
 			;
     break;}
 case 123:
-#line 1076 "soapcpp2_yacc.y"
+#line 1081 "soapcpp2_yacc.y"
 { if ((p = entry(enumtable, yyvsp[-5].e->sym)))
 			  {	if ((Table*) p->info.typ->ref)
 				{	sprintf(errbuf, "enum '%s' already declared at line %d", yyvsp[-5].e->sym->name, p->lineno);
@@ -2469,7 +2474,7 @@ case 123:
 			;
     break;}
 case 124:
-#line 1095 "soapcpp2_yacc.y"
+#line 1100 "soapcpp2_yacc.y"
 { if ((p = entry(enumtable, yyvsp[-5].sym)))
 			  {	if (p->info.typ->ref)
 				{	sprintf(errbuf, "enum '%s' already declared at line %d", yyvsp[-5].sym->name, p->lineno);
@@ -2490,7 +2495,7 @@ case 124:
 			;
     break;}
 case 125:
-#line 1113 "soapcpp2_yacc.y"
+#line 1118 "soapcpp2_yacc.y"
 { if ((p = entry(enumtable, yyvsp[0].sym)))
 			  	yyval.typ = p->info.typ;
 			  else
@@ -2501,7 +2506,7 @@ case 125:
 			;
     break;}
 case 126:
-#line 1121 "soapcpp2_yacc.y"
+#line 1126 "soapcpp2_yacc.y"
 { if ((p = entry(enumtable, yyvsp[0].sym)))
 				yyval.typ = p->info.typ;
 			  else
@@ -2512,7 +2517,7 @@ case 126:
 			;
     break;}
 case 127:
-#line 1129 "soapcpp2_yacc.y"
+#line 1134 "soapcpp2_yacc.y"
 { if ((p = entry(typetable, yyvsp[0].sym)))
 				yyval.typ = p->info.typ;
 			  else if ((p = entry(classtable, yyvsp[0].sym)))
@@ -2533,7 +2538,7 @@ case 127:
 			;
     break;}
 case 128:
-#line 1148 "soapcpp2_yacc.y"
+#line 1153 "soapcpp2_yacc.y"
 { if ((p = entry(templatetable, yyvsp[-3].sym)))
 				yyval.typ = mktemplate(yyvsp[-1].rec.typ, yyvsp[-3].sym);
 			  else
@@ -2544,11 +2549,13 @@ case 128:
 			;
     break;}
 case 129:
-#line 1157 "soapcpp2_yacc.y"
+#line 1162 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "struct '%s' already declared at line %d", yyvsp[0].sym->name, p->lineno);
-					semerror(errbuf);
+			   	{	if (!is_mutable(p->info.typ))
+					{	sprintf(errbuf, "struct '%s' already declared at line %d", yyvsp[0].sym->name, p->lineno);
+						semerror(errbuf);
+					}
 				}
 				else
 					p = reenter(classtable, yyvsp[0].sym);
@@ -2561,11 +2568,13 @@ case 129:
 			;
     break;}
 case 130:
-#line 1172 "soapcpp2_yacc.y"
+#line 1179 "soapcpp2_yacc.y"
 { if ((p = entry(classtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "class '%s' already declared at line %d", yyvsp[0].sym->name, p->lineno);
-					semerror(errbuf);
+			   	{	if (!is_mutable(p->info.typ))
+					{	sprintf(errbuf, "class '%s' already declared at line %d", yyvsp[0].sym->name, p->lineno);
+						semerror(errbuf);
+					}
 				}
 				else
 					p = reenter(classtable, yyvsp[0].sym);
@@ -2580,7 +2589,7 @@ case 130:
 			;
     break;}
 case 131:
-#line 1189 "soapcpp2_yacc.y"
+#line 1198 "soapcpp2_yacc.y"
 { if ((p = entry(enumtable, yyvsp[0].sym)))
 			  {	if (p->info.typ->ref)
 				{	sprintf(errbuf, "enum '%s' already declared at line %d", yyvsp[0].sym->name, p->lineno);
@@ -2599,27 +2608,27 @@ case 131:
 			;
     break;}
 case 132:
-#line 1206 "soapcpp2_yacc.y"
+#line 1215 "soapcpp2_yacc.y"
 { ;
     break;}
 case 133:
-#line 1207 "soapcpp2_yacc.y"
+#line 1216 "soapcpp2_yacc.y"
 { ;
     break;}
 case 134:
-#line 1209 "soapcpp2_yacc.y"
+#line 1218 "soapcpp2_yacc.y"
 { yyval.e = yyvsp[0].e; ;
     break;}
 case 135:
-#line 1210 "soapcpp2_yacc.y"
+#line 1219 "soapcpp2_yacc.y"
 { yyval.e = yyvsp[0].e; ;
     break;}
 case 136:
-#line 1211 "soapcpp2_yacc.y"
+#line 1220 "soapcpp2_yacc.y"
 { yyval.e = yyvsp[0].e; ;
     break;}
 case 137:
-#line 1212 "soapcpp2_yacc.y"
+#line 1221 "soapcpp2_yacc.y"
 { yyval.e = entry(classtable, yyvsp[0].sym);
 			  if (!yyval.e)
 			  {	p = entry(typetable, yyvsp[0].sym);
@@ -2629,11 +2638,11 @@ case 137:
 			;
     break;}
 case 138:
-#line 1219 "soapcpp2_yacc.y"
+#line 1228 "soapcpp2_yacc.y"
 { yyval.e = entry(classtable, yyvsp[0].sym); ;
     break;}
 case 139:
-#line 1221 "soapcpp2_yacc.y"
+#line 1230 "soapcpp2_yacc.y"
 { if (transient == -2)
 			  	transient = 0;
 			  permission = 0;
@@ -2642,7 +2651,7 @@ case 139:
 			;
     break;}
 case 140:
-#line 1228 "soapcpp2_yacc.y"
+#line 1237 "soapcpp2_yacc.y"
 { if (transient == -2)
 			  	transient = 0;
 			  permission = 0;
@@ -2652,7 +2661,7 @@ case 140:
 			;
     break;}
 case 141:
-#line 1236 "soapcpp2_yacc.y"
+#line 1245 "soapcpp2_yacc.y"
 { enterscope(mktable(NULL), 0);
 			  sp->entry = NULL;
 			  sp->mask = True;
@@ -2660,15 +2669,15 @@ case 141:
 			;
     break;}
 case 142:
-#line 1242 "soapcpp2_yacc.y"
+#line 1251 "soapcpp2_yacc.y"
 { ;
     break;}
 case 143:
-#line 1243 "soapcpp2_yacc.y"
+#line 1252 "soapcpp2_yacc.y"
 { ;
     break;}
 case 144:
-#line 1245 "soapcpp2_yacc.y"
+#line 1254 "soapcpp2_yacc.y"
 { if (sp->table->level == INTERNAL)
 			  	transient |= 1;
 			  permission = 0;
@@ -2678,94 +2687,94 @@ case 144:
 			;
     break;}
 case 145:
-#line 1253 "soapcpp2_yacc.y"
+#line 1262 "soapcpp2_yacc.y"
 { yyval.sto = Sauto; ;
     break;}
 case 146:
-#line 1254 "soapcpp2_yacc.y"
+#line 1263 "soapcpp2_yacc.y"
 { yyval.sto = Sregister; ;
     break;}
 case 147:
-#line 1255 "soapcpp2_yacc.y"
+#line 1264 "soapcpp2_yacc.y"
 { yyval.sto = Sstatic; ;
     break;}
 case 148:
-#line 1256 "soapcpp2_yacc.y"
+#line 1265 "soapcpp2_yacc.y"
 { yyval.sto = Sexplicit; ;
     break;}
 case 149:
-#line 1257 "soapcpp2_yacc.y"
+#line 1266 "soapcpp2_yacc.y"
 { yyval.sto = Sextern; transient = 1; ;
     break;}
 case 150:
-#line 1258 "soapcpp2_yacc.y"
+#line 1267 "soapcpp2_yacc.y"
 { yyval.sto = Stypedef; ;
     break;}
 case 151:
-#line 1259 "soapcpp2_yacc.y"
+#line 1268 "soapcpp2_yacc.y"
 { yyval.sto = Svirtual; ;
     break;}
 case 152:
-#line 1260 "soapcpp2_yacc.y"
+#line 1269 "soapcpp2_yacc.y"
 { yyval.sto = Sconst; ;
     break;}
 case 153:
-#line 1261 "soapcpp2_yacc.y"
+#line 1270 "soapcpp2_yacc.y"
 { yyval.sto = Sfriend; ;
     break;}
 case 154:
-#line 1262 "soapcpp2_yacc.y"
+#line 1271 "soapcpp2_yacc.y"
 { yyval.sto = Sinline; ;
     break;}
 case 155:
-#line 1263 "soapcpp2_yacc.y"
+#line 1272 "soapcpp2_yacc.y"
 { yyval.sto = SmustUnderstand; ;
     break;}
 case 156:
-#line 1264 "soapcpp2_yacc.y"
+#line 1273 "soapcpp2_yacc.y"
 { yyval.sto = Sreturn; ;
     break;}
 case 157:
-#line 1265 "soapcpp2_yacc.y"
+#line 1274 "soapcpp2_yacc.y"
 { yyval.sto = Sattribute;
 			  if (eflag)
 			   	semwarn("SOAP RPC encoding does not support XML attributes");
 			;
     break;}
 case 158:
-#line 1269 "soapcpp2_yacc.y"
+#line 1278 "soapcpp2_yacc.y"
 { yyval.sto = Sextern; transient = -2; ;
     break;}
 case 159:
-#line 1271 "soapcpp2_yacc.y"
+#line 1280 "soapcpp2_yacc.y"
 { yyval.sto = Snone; ;
     break;}
 case 160:
-#line 1272 "soapcpp2_yacc.y"
+#line 1281 "soapcpp2_yacc.y"
 { yyval.sto = Sconstobj; ;
     break;}
 case 161:
-#line 1274 "soapcpp2_yacc.y"
+#line 1283 "soapcpp2_yacc.y"
 { yyval.sto = Snone; ;
     break;}
 case 162:
-#line 1275 "soapcpp2_yacc.y"
+#line 1284 "soapcpp2_yacc.y"
 { yyval.sto = Sabstract; ;
     break;}
 case 163:
-#line 1277 "soapcpp2_yacc.y"
+#line 1286 "soapcpp2_yacc.y"
 { yyval.sto = Snone; ;
     break;}
 case 164:
-#line 1278 "soapcpp2_yacc.y"
+#line 1287 "soapcpp2_yacc.y"
 { yyval.sto = Svirtual; ;
     break;}
 case 165:
-#line 1280 "soapcpp2_yacc.y"
+#line 1289 "soapcpp2_yacc.y"
 { yyval.rec = tmp = sp->node; ;
     break;}
 case 166:
-#line 1281 "soapcpp2_yacc.y"
+#line 1290 "soapcpp2_yacc.y"
 { /* handle const pointers, such as const char* */
 			  if (/*tmp.typ->type == Tchar &&*/ (tmp.sto & Sconst))
 			  	tmp.sto = (tmp.sto & ~Sconst) | Sconstptr;
@@ -2775,19 +2784,19 @@ case 166:
 			;
     break;}
 case 167:
-#line 1288 "soapcpp2_yacc.y"
+#line 1297 "soapcpp2_yacc.y"
 { tmp.typ = mkreference(tmp.typ);
 			  tmp.typ->transient = transient;
 			  yyval.rec = tmp;
 			;
     break;}
 case 168:
-#line 1293 "soapcpp2_yacc.y"
+#line 1302 "soapcpp2_yacc.y"
 { yyval.rec = tmp;	/* tmp is inherited */
 			;
     break;}
 case 169:
-#line 1296 "soapcpp2_yacc.y"
+#line 1305 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.typ->type == Tchar)
 			  {	sprintf(errbuf, "char["SOAP_LONG_FORMAT"] will be encoded as an array of "SOAP_LONG_FORMAT" bytes: use char* for strings", yyvsp[-2].rec.val.i, yyvsp[-2].rec.val.i);
 			  	semwarn(errbuf);
@@ -2802,13 +2811,13 @@ case 169:
 			;
     break;}
 case 170:
-#line 1308 "soapcpp2_yacc.y"
+#line 1317 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkpointer(yyvsp[0].rec.typ); /* zero size array = pointer */
 			  yyval.rec.sto = yyvsp[0].rec.sto;
 			;
     break;}
 case 171:
-#line 1312 "soapcpp2_yacc.y"
+#line 1321 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.typ->type == Tstruct || yyvsp[0].rec.typ->type == Tclass)
 				if (!yyvsp[0].rec.typ->ref && !yyvsp[0].rec.typ->transient && !(yyvsp[0].rec.sto & Stypedef))
 			   	{	sprintf(errbuf, "struct/class '%s' has incomplete type", yyvsp[0].rec.typ->id->name);
@@ -2818,11 +2827,11 @@ case 171:
 			;
     break;}
 case 172:
-#line 1320 "soapcpp2_yacc.y"
+#line 1329 "soapcpp2_yacc.y"
 { yyval.rec.hasval = False; ;
     break;}
 case 173:
-#line 1321 "soapcpp2_yacc.y"
+#line 1330 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.hasval)
 			  {	yyval.rec.typ = yyvsp[0].rec.typ;
 				yyval.rec.hasval = True;
@@ -2835,177 +2844,177 @@ case 173:
 			;
     break;}
 case 174:
-#line 1333 "soapcpp2_yacc.y"
+#line 1342 "soapcpp2_yacc.y"
 { yyval.rec.minOccurs = -1;
 			  yyval.rec.maxOccurs = 1;
 			  yyval.rec.pattern = yyvsp[0].s;
 			;
     break;}
 case 175:
-#line 1338 "soapcpp2_yacc.y"
+#line 1347 "soapcpp2_yacc.y"
 { yyval.rec.minOccurs = (long)yyvsp[0].i;
 			  yyval.rec.maxOccurs = 1;
 			  yyval.rec.pattern = yyvsp[-1].s;
 			;
     break;}
 case 176:
-#line 1343 "soapcpp2_yacc.y"
+#line 1352 "soapcpp2_yacc.y"
 { yyval.rec.minOccurs = (long)yyvsp[-1].i;
 			  yyval.rec.maxOccurs = 1;
 			  yyval.rec.pattern = yyvsp[-2].s;
 			;
     break;}
 case 177:
-#line 1348 "soapcpp2_yacc.y"
+#line 1357 "soapcpp2_yacc.y"
 { yyval.rec.minOccurs = (long)yyvsp[-2].i;
 			  yyval.rec.maxOccurs = (long)yyvsp[0].i;
 			  yyval.rec.pattern = yyvsp[-3].s;
 			;
     break;}
 case 178:
-#line 1353 "soapcpp2_yacc.y"
+#line 1362 "soapcpp2_yacc.y"
 { yyval.rec.minOccurs = -1;
 			  yyval.rec.maxOccurs = (long)yyvsp[0].i;
 			  yyval.rec.pattern = yyvsp[-2].s;
 			;
     break;}
 case 179:
-#line 1358 "soapcpp2_yacc.y"
+#line 1367 "soapcpp2_yacc.y"
 { yyval.s = NULL; ;
     break;}
 case 180:
-#line 1359 "soapcpp2_yacc.y"
+#line 1368 "soapcpp2_yacc.y"
 { yyval.s = yyvsp[0].s; ;
     break;}
 case 181:
-#line 1361 "soapcpp2_yacc.y"
+#line 1370 "soapcpp2_yacc.y"
 { yyval.i = yyvsp[0].i; ;
     break;}
 case 182:
-#line 1362 "soapcpp2_yacc.y"
+#line 1371 "soapcpp2_yacc.y"
 { yyval.i = yyvsp[0].i; ;
     break;}
 case 183:
-#line 1363 "soapcpp2_yacc.y"
+#line 1372 "soapcpp2_yacc.y"
 { yyval.i = -yyvsp[0].i; ;
     break;}
 case 184:
-#line 1372 "soapcpp2_yacc.y"
+#line 1381 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 185:
-#line 1373 "soapcpp2_yacc.y"
+#line 1382 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 186:
-#line 1377 "soapcpp2_yacc.y"
+#line 1386 "soapcpp2_yacc.y"
 { yyval.rec.typ = yyvsp[-2].rec.typ;
 			  yyval.rec.sto = Snone;
 			  yyval.rec.hasval = False;
 			;
     break;}
 case 188:
-#line 1384 "soapcpp2_yacc.y"
+#line 1393 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 189:
-#line 1387 "soapcpp2_yacc.y"
+#line 1396 "soapcpp2_yacc.y"
 { yyval.rec.hasval = False;
 			  yyval.rec.typ = mkint();
 			;
     break;}
 case 190:
-#line 1390 "soapcpp2_yacc.y"
+#line 1399 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 191:
-#line 1392 "soapcpp2_yacc.y"
+#line 1401 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 192:
-#line 1395 "soapcpp2_yacc.y"
+#line 1404 "soapcpp2_yacc.y"
 { yyval.rec.hasval = False;
 			  yyval.rec.typ = mkint();
 			;
     break;}
 case 193:
-#line 1398 "soapcpp2_yacc.y"
+#line 1407 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 194:
-#line 1400 "soapcpp2_yacc.y"
+#line 1409 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 195:
-#line 1403 "soapcpp2_yacc.y"
+#line 1412 "soapcpp2_yacc.y"
 { yyval.rec = iop("|", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 196:
-#line 1404 "soapcpp2_yacc.y"
+#line 1413 "soapcpp2_yacc.y"
 { yyval.rec = iop("^", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 197:
-#line 1405 "soapcpp2_yacc.y"
+#line 1414 "soapcpp2_yacc.y"
 { yyval.rec = iop("&", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 198:
-#line 1406 "soapcpp2_yacc.y"
+#line 1415 "soapcpp2_yacc.y"
 { yyval.rec = relop("==", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 199:
-#line 1407 "soapcpp2_yacc.y"
+#line 1416 "soapcpp2_yacc.y"
 { yyval.rec = relop("!=", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 200:
-#line 1408 "soapcpp2_yacc.y"
+#line 1417 "soapcpp2_yacc.y"
 { yyval.rec = relop("<", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 201:
-#line 1409 "soapcpp2_yacc.y"
+#line 1418 "soapcpp2_yacc.y"
 { yyval.rec = relop("<=", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 202:
-#line 1410 "soapcpp2_yacc.y"
+#line 1419 "soapcpp2_yacc.y"
 { yyval.rec = relop(">", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 203:
-#line 1411 "soapcpp2_yacc.y"
+#line 1420 "soapcpp2_yacc.y"
 { yyval.rec = relop(">=", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 204:
-#line 1412 "soapcpp2_yacc.y"
+#line 1421 "soapcpp2_yacc.y"
 { yyval.rec = iop("<<", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 205:
-#line 1413 "soapcpp2_yacc.y"
+#line 1422 "soapcpp2_yacc.y"
 { yyval.rec = iop(">>", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 206:
-#line 1414 "soapcpp2_yacc.y"
+#line 1423 "soapcpp2_yacc.y"
 { yyval.rec = op("+", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 207:
-#line 1415 "soapcpp2_yacc.y"
+#line 1424 "soapcpp2_yacc.y"
 { yyval.rec = op("-", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 208:
-#line 1416 "soapcpp2_yacc.y"
+#line 1425 "soapcpp2_yacc.y"
 { yyval.rec = op("*", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 209:
-#line 1417 "soapcpp2_yacc.y"
+#line 1426 "soapcpp2_yacc.y"
 { yyval.rec = op("/", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 210:
-#line 1418 "soapcpp2_yacc.y"
+#line 1427 "soapcpp2_yacc.y"
 { yyval.rec = iop("%", yyvsp[-2].rec, yyvsp[0].rec); ;
     break;}
 case 211:
-#line 1419 "soapcpp2_yacc.y"
+#line 1428 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 212:
-#line 1422 "soapcpp2_yacc.y"
+#line 1431 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.hasval)
 				yyval.rec.val.i = !yyvsp[0].rec.val.i;
 			  yyval.rec.typ = yyvsp[0].rec.typ;
@@ -3013,7 +3022,7 @@ case 212:
 			;
     break;}
 case 213:
-#line 1427 "soapcpp2_yacc.y"
+#line 1436 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.hasval)
 				yyval.rec.val.i = ~yyvsp[0].rec.val.i;
 			  yyval.rec.typ = yyvsp[0].rec.typ;
@@ -3021,7 +3030,7 @@ case 213:
 			;
     break;}
 case 214:
-#line 1432 "soapcpp2_yacc.y"
+#line 1441 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.hasval) {
 				if (integer(yyvsp[0].rec.typ))
 					yyval.rec.val.i = -yyvsp[0].rec.val.i;
@@ -3034,11 +3043,11 @@ case 214:
 			;
     break;}
 case 215:
-#line 1442 "soapcpp2_yacc.y"
+#line 1451 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 216:
-#line 1443 "soapcpp2_yacc.y"
+#line 1452 "soapcpp2_yacc.y"
 { if (yyvsp[0].rec.typ->type == Tpointer) {
 			  	yyval.rec.typ = (Tnode*) yyvsp[0].rec.typ->ref;
 			  } else
@@ -3048,29 +3057,29 @@ case 216:
 			;
     break;}
 case 217:
-#line 1450 "soapcpp2_yacc.y"
+#line 1459 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkpointer(yyvsp[0].rec.typ);
 			  yyval.rec.sto = Snone;
 			  yyval.rec.hasval = False;
 			;
     break;}
 case 218:
-#line 1455 "soapcpp2_yacc.y"
+#line 1464 "soapcpp2_yacc.y"
 { yyval.rec.hasval = True;
 			  yyval.rec.typ = mkint();
 			  yyval.rec.val.i = yyvsp[-1].rec.typ->width;
 			;
     break;}
 case 219:
-#line 1459 "soapcpp2_yacc.y"
+#line 1468 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[0].rec; ;
     break;}
 case 220:
-#line 1462 "soapcpp2_yacc.y"
+#line 1471 "soapcpp2_yacc.y"
 { yyval.rec = yyvsp[-1].rec; ;
     break;}
 case 221:
-#line 1463 "soapcpp2_yacc.y"
+#line 1472 "soapcpp2_yacc.y"
 { if ((p = enumentry(yyvsp[0].sym)) == (Entry*) 0)
 				p = undefined(yyvsp[0].sym);
 			  else
@@ -3080,49 +3089,49 @@ case 221:
 			;
     break;}
 case 222:
-#line 1470 "soapcpp2_yacc.y"
+#line 1479 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkint();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.i = yyvsp[0].i;
 			;
     break;}
 case 223:
-#line 1474 "soapcpp2_yacc.y"
+#line 1483 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkint();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.i = 0;
 			;
     break;}
 case 224:
-#line 1478 "soapcpp2_yacc.y"
+#line 1487 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkfloat();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.r = yyvsp[0].r;
 			;
     break;}
 case 225:
-#line 1482 "soapcpp2_yacc.y"
+#line 1491 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkchar();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.i = yyvsp[0].c;
 			;
     break;}
 case 226:
-#line 1486 "soapcpp2_yacc.y"
+#line 1495 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkstring();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.s = yyvsp[0].s;
 			;
     break;}
 case 227:
-#line 1490 "soapcpp2_yacc.y"
+#line 1499 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkbool();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.i = 0;
 			;
     break;}
 case 228:
-#line 1494 "soapcpp2_yacc.y"
+#line 1503 "soapcpp2_yacc.y"
 { yyval.rec.typ = mkbool();
 			  yyval.rec.hasval = True;
 			  yyval.rec.val.i = 1;
@@ -3350,7 +3359,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 1500 "soapcpp2_yacc.y"
+#line 1509 "soapcpp2_yacc.y"
 
 
 /*
@@ -3593,9 +3602,12 @@ add_fault(Table *gt)
   if (!p3 || !p3->info.typ->ref)
   { t = mktable(NULL);
     if (!p3)
-      p3 = enter(classtable, s3);
-    p3->info.typ = mkstruct(t, 9*4);
-    p3->info.typ->id = s3;
+    { p3 = enter(classtable, s3);
+      p3->info.typ = mkstruct(t, 9*4);
+      p3->info.typ->id = s3;
+    }
+    else
+      p3->info.typ->ref = t;
     p3 = enter(t, lookup("faultcode"));
     p3->info.typ = qname;
     p3->info.minOccurs = 0;

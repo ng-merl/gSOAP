@@ -60,6 +60,8 @@ s server
 t use plain-text passwords
 b don't sign the SOAP body
 x use plain XML (no HTTP header), client only
+y buffered sends (experimental)
+z compressed sends/recv (experimental)
 
 For example, to generate a request message and store it in file 'wssedemo.xml':
 
@@ -118,6 +120,8 @@ int main(int argc, char **argv)
   if (argc >= 2)
   { if (strchr(argv[1], 'c'))
       soap_set_omode(soap, SOAP_IO_CHUNK);
+    else if (strchr(argv[1], 'y'))
+      soap_set_omode(soap, SOAP_IO_STORE);
     if (strchr(argv[1], 'i'))
       soap_set_omode(soap, SOAP_XML_INDENT);
     if (strchr(argv[1], 'n'))
@@ -306,6 +310,10 @@ int ns1__add(struct soap *soap, double a, double b, double *result)
   { soap_wsse_delete_Security(soap);
     return soap->error;
   }
+  if (soap_wsse_verify_element(soap, "http://www.genivia.com/schemas/wssetest.xsd", "add") == 0)
+  { soap_wsse_delete_Security(soap);
+    return soap_sender_fault(soap, "Service operation not signed", NULL);
+  }
   soap_wsse_delete_Security(soap);
   soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
   soap_wsse_add_UsernameTokenDigest(soap, "User", "server", "serverPass");
@@ -332,6 +340,10 @@ int ns1__sub(struct soap *soap, double a, double b, double *result)
    || soap_wsse_verify_Password(soap, "userPass"))
   { soap_wsse_delete_Security(soap);
     return soap->error;
+  }
+  if (soap_wsse_verify_element(soap, "http://www.genivia.com/schemas/wssetest.xsd", "sub") == 0)
+  { soap_wsse_delete_Security(soap);
+    return soap_sender_fault(soap, "Service operation not signed", NULL);
   }
   soap_wsse_delete_Security(soap);
   /* In this case we leave out the timestamp, which is the sender's
@@ -361,6 +373,10 @@ int ns1__mul(struct soap *soap, double a, double b, double *result)
   { soap_wsse_delete_Security(soap);
     return soap->error;
   }
+  if (soap_wsse_verify_element(soap, "http://www.genivia.com/schemas/wssetest.xsd", "mul") == 0)
+  { soap_wsse_delete_Security(soap);
+    return soap_sender_fault(soap, "Service operation not signed", NULL);
+  }
   soap_wsse_delete_Security(soap);
   soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */
   /* In this case we leave out the server name and password. Because the
@@ -389,6 +405,10 @@ int ns1__div(struct soap *soap, double a, double b, double *result)
    || soap_wsse_verify_Password(soap, "userPass"))
   { soap_wsse_delete_Security(soap);
     return soap->error;
+  }
+  if (soap_wsse_verify_element(soap, "http://www.genivia.com/schemas/wssetest.xsd", "div") == 0)
+  { soap_wsse_delete_Security(soap);
+    return soap_sender_fault(soap, "Service operation not signed", NULL);
   }
   soap_wsse_delete_Security(soap);
   soap_wsse_add_Timestamp(soap, "Time", 10);	/* lifetime of 10 seconds */

@@ -42,7 +42,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #endif
 
 #undef VERSION
-#define VERSION "1.2.10"
+#define VERSION "1.2.11"
 
 #include <utility>
 #include <iterator>
@@ -88,6 +88,7 @@ extern int _flag,
 	   gflag,
 	   iflag,
 	   jflag,
+	   kflag,
 	   lflag,
 	   mflag,
 	   pflag,
@@ -106,7 +107,7 @@ extern SetOfString exturis;
 #define MAXINFILES (1000)
 
 extern int infiles;
-extern char *infile[MAXINFILES], *outfile, *proxy_host;
+extern char *infile[MAXINFILES], *outfile, *proxy_host, *proxy_userid, *proxy_passwd;
 extern const char *mapfile, *import_path, *cwd_path, *cppnamespace;
 
 extern int proxy_port;

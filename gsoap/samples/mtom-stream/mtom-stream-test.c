@@ -541,7 +541,7 @@ void *mime_client_write_open(struct soap *soap, void *unused_handle, const char 
   fprintf(stderr, "Opening streaming inbound MIME channel for id=%s type=%s\n", id, type);
   /* soap->user points to array of keys (strings) that are file names */
   file = *(char**)soap->user;
-  soap->user = (void*)(((char**)soap->user)++);
+  soap->user = (void*)(((char**)soap->user)+1);
   fd = fopen(file, "wb");
   if (!fd)
     soap->error = soap_receiver_fault(soap, "Cannot save data to file", file);

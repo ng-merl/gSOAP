@@ -2066,7 +2066,7 @@ check_id(const char *s)
 	if ((s[0] == 'x' || s[0] == 'X')
 	 && (s[1] == 'm' || s[1] == 'M')
 	 && (s[2] == 'l' || s[2] == 'L'))
-	{	sprintf(errbuf, "identifier contains prohibited '%3.3s' sequence: %s", s, yytext);
+	{	sprintf(errbuf, "identifier '%s' starts with or embeds illegal '%3.3s' character sequence (only permitted for enum constants)", yytext, s);
 		semwarn(errbuf);
 	}
 }
@@ -2397,6 +2397,26 @@ static void directive()
 		{	m = (Method*)emalloc(sizeof(Method));
 			m->name = s;
 			m->mess = ACTION;
+			m->part = NULL;
+			m->next = sp->list;
+			sp->list = m;
+			for (j = k; yytext[j]; j++)
+				if (yytext[j] > 32)
+					break;
+			for (k = j; yytext[k]; k++)
+				if (yytext[k] <= 32)
+					break;
+			if (j == k)
+				return;
+			s = (char*)emalloc(k-j+1);
+			strncpy(s, yytext+j, k-j);
+			s[k-j] = '\0';
+			m->part = s;
+		}
+		else if (!strncmp(yytext+i, "method-response-action:", 23))
+		{	m = (Method*)emalloc(sizeof(Method));
+			m->name = s;
+			m->mess = RESPONSE_ACTION;
 			m->part = NULL;
 			m->next = sp->list;
 			sp->list = m;

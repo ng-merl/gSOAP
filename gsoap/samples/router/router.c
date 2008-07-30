@@ -718,7 +718,7 @@ buffer_body(struct soap *sender)
   if (soap_new_block(sender))
     return sender->error;
   for (;;)
-  { if (!(s = (char*)soap_push_block(sender, sender->buflen - sender->bufidx)))
+  { if (!(s = (char*)soap_push_block(sender, NULL, sender->buflen - sender->bufidx)))
       return SOAP_EOM;
     memcpy(s, sender->buf + sender->bufidx, sender->buflen - sender->bufidx);
     if (soap_recv_raw(sender))
@@ -734,9 +734,9 @@ int
 copy_body(struct soap *sender, struct soap *receiver)
 { if (sender->blist)
   { char *p;
-    for (p = soap_first_block(sender); p; p = soap_next_block(sender))
-      soap_send_raw(receiver, p, soap_block_size(sender));
-    soap_end_block(sender);
+    for (p = soap_first_block(sender, NULL); p; p = soap_next_block(sender, NULL))
+      soap_send_raw(receiver, p, soap_block_size(sender, NULL));
+    soap_end_block(sender, NULL);
   }
   else
   { if ((sender->mode & SOAP_IO) == SOAP_IO_CHUNK)

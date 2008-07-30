@@ -56,7 +56,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #include "error2.h"
 
 #ifndef VERSION
-#define VERSION "2.7.10" /* Current version */
+#define VERSION "2.7.11" /* Current version */
 #endif
 
 #ifdef WIN32
@@ -288,16 +288,17 @@ typedef	struct Node {
 	char	*pattern;
 } Node;
 
-#define ACTION 0
-#define HDRIN 1	
-#define HDROUT 2
-#define MIMEIN 4
-#define MIMEOUT 8
-#define COMMENT 16
-#define ENCODING 32
-#define RESPONSE_ENCODING 64
-#define STYLE 128
-#define FAULT 256
+#define ACTION		0
+#define RESPONSE_ACTION	1
+#define HDRIN		2	
+#define HDROUT		4
+#define MIMEIN		8
+#define MIMEOUT		16
+#define COMMENT		32
+#define ENCODING	64
+#define RESPONSE_ENCODING 128
+#define STYLE		256
+#define FAULT		512
 
 typedef struct Data
 {	struct Data *next;
@@ -341,6 +342,8 @@ typedef struct Pragma
 } Pragma;
 
 extern Entry *enter(Table*, Symbol*), *entry(Table*, Symbol*), *reenter(Table*, Symbol*), *enumentry(Symbol*);
+
+extern int merge(Table*, Table*);
 
 extern Table *mktable(Table*);
 

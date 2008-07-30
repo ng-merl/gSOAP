@@ -45,6 +45,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #import "dime.h"
 #import "http.h"
 #import "gwsdl.h"
+#import "wsam.h"
 
 class wsdl__definitions;		// forward declaration
 
@@ -105,6 +106,7 @@ class wsdl__input
 { public:
 	@xsd__NMTOKEN			name;
 	@xsd__QName			message;
+	@xsd__anyURI			wsam__Action;
 	xsd__string			documentation;		// <wsdl:documentation>?
   private:
   	wsdl__message			*messageRef;		// traverse() finds message
@@ -119,6 +121,7 @@ class wsdl__output
 { public:
 	@xsd__NMTOKEN			name;
 	@xsd__QName			message;
+	@xsd__anyURI			wsam__Action;
 	xsd__string			documentation;		// <wsdl:documentation>?
   private:
   	wsdl__message			*messageRef;		// traverse() finds message
@@ -133,6 +136,7 @@ class wsdl__fault
 { public:
 	@xsd__NMTOKEN			name;
 	@xsd__QName			message;
+	@xsd__anyURI			wsam__Action;
 	xsd__string			documentation;		// <wsdl:documentation>?
   private:
   	wsdl__message			*messageRef;		// traverse() finds message

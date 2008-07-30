@@ -54,6 +54,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # define ssize_t int
 # include <io.h>
 # include <sys/types.h>
+# include <process.h>
+# include <windows.h>
 #endif
 
 #ifdef _POSIX_THREADS
@@ -69,7 +71,7 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 #if defined(WIN32)
 # define THREAD_TYPE		HANDLE
 # define THREAD_ID		GetCurrentThreadId()
-# define THREAD_CREATE(x,y,z)	*(x) = _beginthread((y), 8*4096, (z))
+# define THREAD_CREATE(x,y,z)	*(x) = (HANDLE)_beginthread((y), 8*4096, (z))
 # define THREAD_DETACH(x)	
 # define THREAD_JOIN(x)		WaitForSingleObject((x), INFINITE)
 # define THREAD_EXIT		_endthread()
@@ -80,8 +82,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 # define MUTEX_UNLOCK(x)	ReleaseMutex(x)
 # define COND_SETUP(x)		emulate_pthread_cond_init(&(x))
 # define COND_CLEANUP(x)	emulate_pthread_cond_destroy(&(x))
-# define COND_SIGNAL(x)		emulate_pthread_signal(&(x))
-# define COND_WAIT(x,y)		emulate_pthread_wait(&(x), &(y))
+# define COND_SIGNAL(x)		emulate_pthread_cond_signal(&(x))
+# define COND_WAIT(x,y)		emulate_pthread_cond_wait(&(x), &(y))
 typedef struct
 { u_int waiters_count_;
   CRITICAL_SECTION waiters_count_lock_;
@@ -92,8 +94,8 @@ extern "C" {
 #endif
 int emulate_pthread_cond_init(COND_TYPE*);
 int emulate_pthread_cond_destroy(COND_TYPE*);
-int emulate_pthread_signal(COND_TYPE*);
-int emulate_pthread_wait(COND_TYPE*, MUTEX_TYPE*);
+int emulate_pthread_cond_signal(COND_TYPE*);
+int emulate_pthread_cond_wait(COND_TYPE*, MUTEX_TYPE*);
 #ifdef __cplusplus
 }
 #endif

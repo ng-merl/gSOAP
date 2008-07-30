@@ -2,7 +2,7 @@
 #
 #-------------------------------------------------------------------------------
 #gSOAP XML Web services tools
-#Copyright (C) 2004-2005, Robert van Engelen, Genivia Inc. All Rights Reserved.
+#Copyright (C) 2004-2008, Robert van Engelen, Genivia Inc. All Rights Reserved.
 #This software is released under one of the following two licenses:
 #GPL or Genivia's license for commercial use.
 #-------------------------------------------------------------------------------
@@ -32,6 +32,8 @@
 wsrp	= "http://schemas.xmlsoap.org/rp/"
 wsen	= "http://schemas.xmlsoap.org/ws/2004/09/enumeration"
 wsp	= "http://schemas.xmlsoap.org/ws/2004/09/policy"
+
+#	wsa bindings
 
 wsa	= <http://schemas.xmlsoap.org/ws/2004/08/addressing>
 wsa3	= <http://schemas.xmlsoap.org/ws/2003/03/addressing>
@@ -75,6 +77,19 @@ ds	= <http://www.w3.org/2000/09/xmldsig#>
 xenc	= <http://www.w3.org/2001/04/xmlenc#>
 
 wsse2	= <http://schemas.xmlsoap.org/ws/2002/12/secext>
+
+#	wsrm bindings
+
+wsrm	= <http://docs.oasis-open.org/ws-rx/wsrm/200702>
+wsrm4	= <http://docs.oasis-open.org/wsrm/2004/06/ws-reliability-1.1.xsd>
+ref     = <http://docs.oasis-open.org/wsrm/2004/06/reference-1.1.xsd>
+
+wsrm__MessageNumberType		= | ULONG64
+wsrm__DetailType		= | struct SOAP_ENV__Detail
+_wsrm__UnsupportedElement	= | _QName | _QName
+_wsrm__Identifier		= | char* /*URI*/
+_wsrm__Address			= | char* /*URI*/
+_wsrm__Expires			= | char* /*duration*/
 
 ################################################################################
 #
@@ -292,6 +307,10 @@ xsd__NCName		= | char* /*NCName*/
 #	Use regular char* strings for anyURI
 
 xsd__anyURI		= | char* /*URI*/
+
+#	Use regular char* strings for xsd:duration
+
+xsd__duration		= | char* /*duration*/
 
 #	Use built-in gSOAP _QName
 

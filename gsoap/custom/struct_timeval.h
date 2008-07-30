@@ -1,20 +1,19 @@
 /*
+	struct_timeval.h
 
-struct_timeval.h
+	Custom serializer for struct timeval
 
-Custom serializer for struct timeval
+	#import this file into your gSOAP .h file to enable struct timeval
+	serialization and use the serializable xsd__dateTime type.
 
-#import this file into your gSOAP .h file to enable struct timeval
-serialization and use the serializable xsd__dateTime type.
+	To automate the wsdl2h-mapping of xsd:dateTime to struct timeval, add
+	this line to the typemap.dat file:
 
-To automate the wsdl2h-mapping of xsd:dateTime to struct timeval, add this line
-to the typemap.dat file:
+	xsd__dateTime = #import "custom/struct_timeval.h" | xsd__dateTime
 
-xsd__dateTime = #import "custom/struct_timeval.h" | xsd__dateTime
+	The typemap.dat file is used by wsdl2h to map types (wsdl2h option -t).
 
-The typemap.dat file is used by wsdl2h to map types (use wsdl2h option -t).
-
-Link your code with struct_timeval.c
+	Link your code with struct_timeval.c
 
 gSOAP XML Web services tools
 Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.

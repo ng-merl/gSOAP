@@ -122,6 +122,8 @@ wsa3	= <http://schemas.xmlsoap.org/ws/2003/03/addressing>
 wsa4	= <http://schemas.xmlsoap.org/ws/2004/03/addressing>
 wsa5	= <http://www.w3.org/2005/08/addressing>
 
+#	The types below should not use pointers, so we add a 3rd column:
+
 _wsa__Action    = | | _wsa__Action
 _wsa__MessageID = | | _wsa__MessageID
 _wsa__To        = | | _wsa__To
@@ -138,11 +140,16 @@ _wsa5__Action    = | | _wsa5__Action
 _wsa5__MessageID = | | _wsa5__MessageID
 _wsa5__To        = | | _wsa5__To
 
+#	WS-ReliableMessaging (WS-Reliability 2004)
+
+wsrm	= <http://docs.oasis-open.org/ws-rx/wsrm/200702>
+wsrm4	= <http://docs.oasis-open.org/wsrm/2004/06/ws-reliability-1.1.xsd>
+
 #	WS-Policy
 
 wsp	= <http://schemas.xmlsoap.org/ws/2004/09/policy>
 
-#	wsse 2004 and old wsse 2002 schema
+#	WS-Security wsse 2004 and old wsse 2002 schema
 
 wsse	= <http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd>
 wsse2	= <http://schemas.xmlsoap.org/ws/2002/12/secext>
@@ -178,25 +185,20 @@ _xlink__to		= | char*
 _xlink__title		= | char*
 _xlink__type		= | char*
 
-#	wsrp
+#	wsrp routing protocol (deprecated)
 
 wsrp	= <http://schemas.xmlsoap.org/rp/>
 
-#	Remember: type bindings are given on a single line.
-#	Example XML schema and C/C++ type bindings:
+#	Remember: type bindings are given on a single line (use \ when needed).
+#	Here is an example binding for the XSD int type:
 
-xsd__int	= | int
-
-#	With SOAP encoded arrays, the SOAP-ENC:arrayType attribute is defined
-#	but we really don't need it because we never use it
-
-SOAP_ENC__arrayType	= | char* | char*
+# xsd__int	= | int
 
 #	To use regular char* strings instead of std::string, use:
 
 # xsd__string	= | char* | char*
 
-#	To use regular char* strings serialized with xsi:type attributes, use:
+#	For char* serialized with xsi:type when using soapcpp2 option -t, use:
 
 # xsd__string	= typedef char *xsd__string; | xsd__string | xsd__string
 

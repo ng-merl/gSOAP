@@ -12,7 +12,7 @@ The following serializers are available:
 
 long_double.*		Serializes long double (extended double) type
 struct_tm.*		Serializes <time.h> struct tm
-struct_timeval.*	Serializes struct timeval (greater precision)
+struct_timeval.*	Serializes struct timeval (precision in usec)
 
 USAGE
 
@@ -30,7 +30,7 @@ struct ns__example
 
 Then compile with soapcpp2 and cc and link struct_tm.c
 
-MODIFYING TYPEMAP.DAT TO AUTOMATE THE MAPPING TO A CUSTOM TYPE WITH WSDL2H
+HOW TO MODIFY TYPEMAP.DAT TO AUTOMATE THE MAPPING TO A CUSTOM TYPE WITH WSDL2H
 
 The mapping is specified in typemap.dat as follows:
 

@@ -621,10 +621,31 @@ security token, use:
       ... // an error occurred
 @endcode
 
-All locally referenced elements in the signed message will be verified.
-Elements referenced with absolute URIs are not automatically verified. The
-received message is stored in a DOM accessible with soap->dom. This enables
-further analysis of the message content.
+All locally referenced and signed elements in the signed message will be
+verified. Elements that are not signed cannot be verified. Also elements
+referenced with absolute URIs that are not part of the message are not
+automatically verified. The received message is stored in a DOM accessible with
+soap->dom. This enables further analysis of the message content.
+
+For a post-parsing check to verify if an XML element was signed in an inbound
+message, use:
+@code
+soap_wsse_verify_auto(soap, SOAP_SMD_NONE, NULL, 0);
+... // client call
+if (soap_wsse_verify_element(soap, "namespaceURI", "tag") > 0)
+  ... // at least one element with matching tag and namespace is signed
+@endcode
+The signed element nesting rules are obeyed, so if the matching element is a
+descendent of a signed element, it is signed as well.
+
+Because it is a post check, a client should invoke @ref soap_wsse_verify_element
+after the call completed. A service should invoke this function within the
+service operation routine, i.e. when the message request is accepted and about
+to be processed.
+
+For example, to check whether the wsu:Timestamp element was signed (assuming it is present and message expiration checked with @ref soap_wsse_verify_Timestamp), use @ref soap_wsse_verify_element(soap, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Timestamp").
+
+To check the SOAP Body (either using SOAP 1.1 or 1.2), use the shorthand @ref soap_wsse_verify_body(soap). 
 
 The @ref soap_wsse_verify_auto function keeps processing signed (and unsigned)
 messages as they arrive. For unsigned messages this can be expensive and the
@@ -780,6 +801,8 @@ static int soap_wsse_preparesend(struct soap *soap, const char *buf, size_t len)
 static int soap_wsse_preparefinal(struct soap *soap);
 static void soap_wsse_preparecleanup(struct soap *soap, struct soap_wsse_data *data);
 static int soap_wsse_disconnect(struct soap *soap);
+
+static size_t soap_wsse_verify_nested(struct soap *soap, struct soap_dom_element *dom, const char *URI, const char *tag);
 
 /******************************************************************************\
  *
@@ -2507,8 +2530,10 @@ soap_wsse_sign(struct soap *soap, int alg, const void *key, int keylen)
   { soap->fpreparesend = soap_wsse_preparesend;
     soap->fpreparefinal = soap_wsse_preparefinal;
   }
-  /* this mode with the above callbacks does not support compression */
+  /* does not support compression */
   soap->omode &= ~SOAP_ENC_ZLIB;
+  if ((soap->omode & SOAP_IO) == SOAP_IO_STORE)
+    soap->omode = (soap->omode & ~SOAP_IO) | SOAP_IO_BUFFER;
   /* cleanup the digest data */
   for (digest = data->digest; digest; digest = next)
   { next = digest->next;
@@ -2607,6 +2632,142 @@ soap_wsse_verify_done(struct soap *soap)
   if (soap->fdisconnect == soap_wsse_disconnect)
     soap->fdisconnect = data->fdisconnect;
   return SOAP_OK;
+}
+
+/**
+@fn size_t soap_wsse_verify_element(struct soap *soap, const char *URI, const char *tag)
+@brief Post-checks the presence of signed element(s). Does not verify the
+signature of these elements, which is done with @ref soap_wee_verify_auto.
+@param soap context
+@param URI namespace of element(s)
+@param tag name of element(s)
+@return number of matching elements signed.
+
+This function does not actually verify the signature of each element, but
+checks whether the elements are signed and thus their integrity is preserved.
+Signed element nesting rules are obeyed, so if the matching element is a
+descendent of a signed element, it is signed as well.  Thus, the verification
+process follows nesting rules.
+
+Client should call this function after invocation. Services should call this
+function inside a service operation. This function traverses the entire DOM, so
+performance is determined by the size of a message.
+
+To check the SOAP Body (either using SOAP 1.1 or 1.2), @ref soap_wsse_verify_element(soap, namespaces[0].ns, "Body"). To check whether the Timestamp was signed (assuming it is present and message expiration checked with @ref soap_wsse_verify_Timestamp), use @ref soap_wsse_verify_element(soap, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Timestamp").
+
+Note: for future releases XPath queries (or forms of these) will be considered.
+*/
+size_t
+soap_wsse_verify_element(struct soap *soap, const char *URI, const char *tag)
+{ ds__SignedInfoType *signedInfo = soap_wsse_SignedInfo(soap);
+  size_t count = 0;
+  DBGFUN("soap_wsse_verify_element");
+  if (signedInfo && soap->dom)
+  { struct soap_dom_element *elt;
+    /* traverse the DOM */
+    elt = soap->dom;
+    while (elt)
+    { /* find wsu:Id or ds:Id and check for Id in signedInfo */
+      int ok = 0;
+      struct soap_dom_attribute *att;
+      for (att = elt->atts; att; att = att->next)
+      { if (att->name
+         && att->nstr
+         && (!strcmp(att->nstr, wsu_URI) || !strcmp(att->nstr, ds_URI))
+         && (!strcmp(att->name, "Id") || !soap_tag_cmp(att->name, "*:Id")))
+        { /* Id attribute found, search Id value in ds:Reference/@URI */
+          int i;
+          for (i = 0; i < signedInfo->__sizeReference; i++)
+          { ds__ReferenceType *reference = signedInfo->Reference[i];
+            if (reference->URI && *reference->URI == '#' && !strcmp(reference->URI + 1, att->data))
+            { ok = 1;
+              break;
+            }
+          }
+	  if (ok)
+            break;
+        }
+      }
+      /* the current element is signed, count this and the matching nested */
+      if (ok)
+      { count += soap_wsse_verify_nested(soap, elt, URI, tag);
+	/* go to next sibling or back up */
+        if (elt->next)
+	  elt = elt->next;
+	else
+	{ do elt = elt->prnt;
+	  while (elt && !elt->next);
+	  if (elt)
+	    elt = elt->next;
+	}
+      }
+      else
+        elt = soap_dom_next_element(elt);
+    }
+  }
+  return count;
+}
+
+/**
+@fn size_t soap_wsse_verify_nested(struct soap *soap, struct soap_dom_element *dom, const char *URI, const char *tag)
+@brief Counts signed matching elements from the dom node and down
+@param soap context
+@param dom node to check and down
+@param URI namespace of element(s)
+@param tag name of element(s)
+@return number of matching elements.
+*/
+static size_t
+soap_wsse_verify_nested(struct soap *soap, struct soap_dom_element *dom, const char *URI, const char *tag)
+{ size_t count;
+  /* search the DOM node and descendants for matching elements */
+  struct soap_dom_element *elt = dom;
+  for (elt = dom; elt && elt != dom->next && elt != dom->prnt; elt = soap_dom_next_element(elt))
+  { if ((!elt->nstr && !URI) || (elt->nstr && URI && !strcmp(elt->nstr, URI)))
+    { if (elt->name)
+      { const char *s = strchr(elt->name, ':');
+        if (s)
+          s++;
+        else
+          s = elt->name;
+        /* found element? */
+        if (!strcmp(s, tag))
+	  count++;
+      }
+    }
+  }
+  return count;
+}
+
+/**
+@fn int soap_wsse_verify_body(struct soap *soap)
+@brief Post-checks the presence of signed SOAP Body. Does not verify the
+signature of the Body, which is done with @ref soap_wee_verify_auto.
+@param soap context
+@return SOAP_OK (signed) or SOAP_ERR
+
+This function does not actually verify the signature of the Body. It checks
+whether the Body is signed and thus its integrity is preserved. Clients should
+call this function after invocation. Services should call this function inside
+a service operation. This function traverses the entire DOM, so performance is
+determined by the size of a message.
+*/
+int
+soap_wsse_verify_body(struct soap *soap)
+{ const char *ns = NULL;
+  /* Are we using SOAP 1.1 or 1.2? Check first row of namespace table */
+  if (soap->local_namespaces)
+  { if (soap->local_namespaces->out)
+      ns = soap->local_namespaces->out;
+    else if (soap->local_namespaces->ns)
+      ns = soap->local_namespaces->ns;
+  }
+  /* We don't know if we're using SOAP 1.1 or 1.2, so assume it is 1.2 */
+  if (!ns)
+    ns = "http://www.w3.org/2003/05/soap-envelope";
+  if (soap_wsse_verify_element(soap, ns, "Body") > 0)
+    return SOAP_OK;
+  return SOAP_ERR;
 }
 
 /******************************************************************************\

@@ -114,7 +114,7 @@ static void	mkscope(Table*, int), enterscope(Table*, int), exitscope();
 static int	integer(Tnode*), real(Tnode*), numeric(Tnode*);
 static void	add_soap(), add_XML(), add_qname(), add_header(Table*), add_fault(Table*), add_response(Entry*, Entry*), add_result(Tnode*);
 extern char	*c_storage(Storage), *c_type(Tnode*), *c_ident(Tnode*);
-extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*), is_binary(Tnode*), is_external(Tnode*);
+extern int	is_primitive_or_string(Tnode*), is_stdstr(Tnode*), is_binary(Tnode*), is_external(Tnode*), is_mutable(Tnode*);
 
 /* Temporaries used in semantic rules */
 int	i;
@@ -935,8 +935,13 @@ type	: VOID		{ $$ = mkvoid(); }
 			}
 	| struct '{' s2 decls '}'
 			{ if ((p = entry(classtable, $1->sym)) && p->info.typ->ref)
-			  {	sprintf(errbuf, "struct '%s' already declared at line %d", $1->sym->name, p->lineno);
-				semerror(errbuf);
+			  {	if (is_mutable(p->info.typ))
+			  	{	if (merge((Table*)p->info.typ->ref, sp->table))
+					{	sprintf(errbuf, "member name clash in struct '%s' declared at line %d", $1->sym->name, p->lineno);
+						semerror(errbuf);
+					}
+			  		p->info.typ->width += sp->offset;
+				}
 			  }
 			  else
 			  {	p = reenter(classtable, $1->sym);
@@ -1156,8 +1161,10 @@ type	: VOID		{ $$ = mkvoid(); }
 	;
 struct	: STRUCT id	{ if ((p = entry(classtable, $2)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "struct '%s' already declared at line %d", $2->name, p->lineno);
-					semerror(errbuf);
+			   	{	if (!is_mutable(p->info.typ))
+					{	sprintf(errbuf, "struct '%s' already declared at line %d", $2->name, p->lineno);
+						semerror(errbuf);
+					}
 				}
 				else
 					p = reenter(classtable, $2);
@@ -1171,8 +1178,10 @@ struct	: STRUCT id	{ if ((p = entry(classtable, $2)))
 	;
 class	: CLASS id	{ if ((p = entry(classtable, $2)))
 			  {	if (p->info.typ->ref)
-				{	sprintf(errbuf, "class '%s' already declared at line %d", $2->name, p->lineno);
-					semerror(errbuf);
+			   	{	if (!is_mutable(p->info.typ))
+					{	sprintf(errbuf, "class '%s' already declared at line %d", $2->name, p->lineno);
+						semerror(errbuf);
+					}
 				}
 				else
 					p = reenter(classtable, $2);
@@ -1739,9 +1748,12 @@ add_fault(Table *gt)
   if (!p3 || !p3->info.typ->ref)
   { t = mktable(NULL);
     if (!p3)
-      p3 = enter(classtable, s3);
-    p3->info.typ = mkstruct(t, 9*4);
-    p3->info.typ->id = s3;
+    { p3 = enter(classtable, s3);
+      p3->info.typ = mkstruct(t, 9*4);
+      p3->info.typ->id = s3;
+    }
+    else
+      p3->info.typ->ref = t;
     p3 = enter(t, lookup("faultcode"));
     p3->info.typ = qname;
     p3->info.minOccurs = 0;

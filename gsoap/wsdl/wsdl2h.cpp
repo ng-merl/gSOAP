@@ -65,6 +65,7 @@ int _flag = 0,
     gflag = 0,
     iflag = 0,
     jflag = 0,
+    kflag = 0,
     lflag = 0,
     mflag = 0,
     pflag = 0,
@@ -79,7 +80,9 @@ int _flag = 0,
 int infiles = 0;
 char *infile[MAXINFILES],
      *outfile = NULL,
-     *proxy_host = NULL;
+     *proxy_host = NULL,
+     *proxy_userid = NULL,
+     *proxy_passwd = NULL;
 extern const char
      *mapfile = WSDL_TYPEMAP_FILE,
      *import_path = WSDL2H_IMPORT_PATH,
@@ -233,6 +236,9 @@ static void options(int argc, char **argv)
 	  case 'j':
 	    jflag = 1;
 	    break;
+	  case 'k':
+	    kflag = 1;
+	    break;
           case 'I':
             a++;
             g = 0;
@@ -309,8 +315,17 @@ static void options(int argc, char **argv)
 	      proxy_host = s;
 	      s = strchr(proxy_host, ':');
 	      if (s)
-	      { proxy_port = soap_strtol(s + 1, NULL, 10);
-	        *s = '\0';
+	      { *s = '\0';
+	        proxy_port = soap_strtol(s + 1, &s, 10);
+		if (s && *s == ':')
+	        { *s = '\0';
+		  proxy_userid = s + 1;
+		  s = strchr(proxy_userid, ':');
+		  if (s && *s == ':')
+		  { *s = '\0';
+		    proxy_passwd = s + 1;
+		  }
+		}
 	      }
 	    }
 	    break;
@@ -347,7 +362,7 @@ static void options(int argc, char **argv)
 	    break;
           case '?':
           case 'h':
-            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-j] [-l] [-m] [-n name] [-N name] [-p] [-q name] [-r proxyhost:port] [-s] [-t typemapfile] [-u] [-v] [-w] [-x] [-y] [-z] [-_] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
+            fprintf(stderr, "Usage: wsdl2h [-a] [-c] [-d] [-e] [-f] [-g] [-h] [-I path] [-j] [-k] [-l] [-m] [-n name] [-N name] [-p] [-q name] [-r proxyhost[:port[:uid:pwd]]] [-s] [-t typemapfile] [-u] [-v] [-w] [-x] [-y] [-z] [-_] [-o outfile.h] infile.wsdl infile.xsd http://www... ...\n\n");
             fprintf(stderr, "\
 -a      generate indexed struct names for local elements with anonymous types\n\
 -c      generate C source code\n\
@@ -358,6 +373,7 @@ static void options(int argc, char **argv)
 -h      display help info\n\
 -Ipath  use path to find files\n\
 -j	don't generate SOAP_ENV__Header and SOAP_ENV__Detail definitions\n\
+-k	don't generate SOAP_ENV__Header mustUnderstand qualifiers\n\
 -l      include license information in output\n\
 -m      use xsd.h module to import primitive types\n\
 -nname  use name as the base namespace prefix instead of 'ns'\n\
@@ -365,8 +381,8 @@ static void options(int argc, char **argv)
 -ofile  output to file\n\
 -p      create polymorphic types with C++ inheritance with base xsd__anyType\n\
 -qname	use name for the C++ namespace of all declarations\n\
--rhost:port\n\
-        connect via proxy host and port\n\
+-rhost[:port[:uid:pwd]]\n\
+        connect via proxy host, port, and proxy credentials\n\
 -s      don't generate STL code (no std::string and no std::vector)\n\
 -tfile  use type map file instead of the default file typemap.dat\n\
 -u      don't generate unions\n\

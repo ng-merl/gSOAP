@@ -148,6 +148,7 @@ COMMAND LINE OPTIONS
 -h      display help info
 -Ipath  use path to find files
 -j	don't generate SOAP_ENV__Header and SOAP_ENV__Detail definitions
+-k	don't generate SOAP_ENV__Header mustUnderstand qualifiers
 -l      include license information in output
 -m      use xsd.h module to import primitive types
 -nname  use name as the base namespace prefix instead of 'ns'
@@ -155,8 +156,8 @@ COMMAND LINE OPTIONS
 -ofile  output to file
 -p      create polymorphic types with C++ inheritance with base xsd__anyType
 -qname  use name for the C++ namespace for all service declarations
--rhost:port
-        connect via proxy host and port
+-rhost[:port[:uid:pwd]]
+        connect via proxy host, port, and proxy credentials
 -s      don't generate STL code (no std::string and no std::vector)
 -tfile  use type map file instead of the default file typemap.dat
 -u      don't generate unions

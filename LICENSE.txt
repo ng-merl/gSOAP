@@ -17,6 +17,9 @@ is offered under GPL conditions to enable the software to be used with open
 source GPL projects, educational use, and so on. We do not accept third-party
 GPL contributions to avoid having to fork the code base in GPL and non-GPL.
 
+This program is released under the GPL with the additional exemption that
+compiling, linking, and/or using OpenSSL is allowed.
+
 IMPORTANT NOTE: the wsdl2h parser, UDDI code, and sample applications such as
 the stand-alone web server are distributed ONLY under the GPL or the
 proprietary license. This means that commercial use of wsdl2h to generate code

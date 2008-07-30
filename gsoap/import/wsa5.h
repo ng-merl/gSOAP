@@ -16,6 +16,7 @@ Modified by Robert van Engelen:
   This ensures that the WS-Addressing schemas are not copied into the generated
   WSDL by soapcpp2 but are referenced with schema import in the generated WSDL.
 - Added #define SOAP_WSA_2005
+- Added SOAP_ENV__Header struct
 
 */
 
@@ -245,5 +246,17 @@ typedef struct wsa5__ProblemActionType _wsa5__ProblemAction;
 /// Attribute "http://www.w3.org/2005/08/addressing":IsReferenceParameter of simpleType xs:boolean.
 /// Imported attribute _wsa5__IsReferenceParameter from typemap WS/WS-typemap.dat.
 typedef enum _wsa5__IsReferenceParameter { wsa5__false, wsa5__true } _wsa5__IsReferenceParameter;
+
+/// Added
+struct SOAP_ENV__Header
+{
+                 _wsa5__MessageID  wsa5__MessageID 0;
+                 _wsa5__RelatesTo *wsa5__RelatesTo 0;
+                 _wsa5__From      *wsa5__From      0;
+  mustUnderstand _wsa5__ReplyTo   *wsa5__ReplyTo   0;
+  mustUnderstand _wsa5__FaultTo   *wsa5__FaultTo   0;
+  mustUnderstand _wsa5__To         wsa5__To        0;
+  mustUnderstand _wsa5__Action     wsa5__Action    0;
+};
 
 /* End of wsa5.h */

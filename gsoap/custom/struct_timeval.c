@@ -1,13 +1,15 @@
 /*
+	struct_timeval.c
 
-struct_timeval.c
+	Custom serializer for struct timeval
 
-Custom serializer for struct timeval
+	Compile this file and link it with your code.
 
-Compile this file and link it with your code.
+	Changes:
+	Feb 8, 2008: fixed local time to internal GMT conversion
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under ONE of the following licenses:
 GPL, the gSOAP public license, OR Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -22,7 +24,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2007, Robert van Engelen, Genivia, Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia, Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -101,7 +103,6 @@ struct timeval *soap_in_xsd__dateTime(struct soap *soap, const char *tag, struct
 
 int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct timeval *a)
 { memset((void*)a, 0, sizeof(struct timeval));
-  // TODO
   if (s)
   { char rest[32];
     const char *t;
@@ -114,7 +115,8 @@ int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct timeval *a)
       t = "%4d%2d%2dT%d:%d:%d%31s";
     else /* parse non-XSD-standard alternative ISO 8601 format */
       t = "%4d%2d%2dT%2d%2d%2d%31s";
-    sscanf(s, t, &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec, rest);
+    if (sscanf(s, t, &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec, rest) < 6)
+      return soap->error = SOAP_TYPE;
     tm.tm_wday = -1;
     tm.tm_yday = -1;
     if (tm.tm_year == 1)
@@ -122,6 +124,7 @@ int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct timeval *a)
     else
       tm.tm_year -= 1900;
     tm.tm_mon--;
+    tm.tm_isdst = 0;
     if (*rest)
     { if (*rest == '.')
       { for (s = rest + 1; *s; s++)
@@ -133,28 +136,38 @@ int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct timeval *a)
       { s = rest;
         a->tv_usec = 0;
       }
-      if (*s == '+' || *s == '-')
+    }
+    if (*s)
+    { if (*s == '+' || *s == '-')
       { int h = 0, m = 0;
         if (s[3] == ':')
-        { sscanf(s, "%d:%d", &h, &m);
+        { /* +hh:mm */
+	  sscanf(s, "%d:%d", &h, &m);
           if (h < 0)
             m = -m;
         }
-        else
+        else /* +hhmm */
         { m = (int)atol(s);
           h = m / 100;
           m = m % 100;
         }
         tm.tm_hour -= h;
         tm.tm_min -= m;
+	/* put hour and min in range */
+        tm.tm_hour += tm.tm_min / 60;
+        tm.tm_min %= 60;
+        if (tm.tm_min < 0)
+          tm.tm_min += 60;
+        tm.tm_mday += tm.tm_hour / 24;
+        tm.tm_hour %= 24;
+        if (tm.tm_hour < 0)
+          tm.tm_hour += 24;
+	/* note: day of the month may be out of range, timegm() handles it */
       }
-      tm.tm_isdst = 0;
       a->tv_sec = soap_timegm(&tm);
     }
     else
-    { tm.tm_isdst = -1;
       a->tv_sec = mktime(&tm);
-    }
   }
   return soap->error;
 }

@@ -1,11 +1,11 @@
 /*
+	httpda.c
 
-httpda.c
-
-gSOAP HTTP Digest Authentication plugin.
-Supports both Basic and Digest authentication.
+	gSOAP HTTP Digest Authentication plugin.
+	Supports both Basic and Digest authentication.
 
 Usage (client side, see httpdatest.h/.c for example):
+
 soap_register_plugin(&soap, http_da);
 if (soap_call_ns__method(&soap, ...) != SOAP_OK)
 { if (soap.error == 401) // HTTP authentication is required
@@ -22,6 +22,7 @@ if (soap_call_ns__method(&soap, ...) != SOAP_OK)
         http_da_release(&soap, &info); // remove userid and passwd
 
 Usage (server side, see httpdatest.h/.c for example):
+
 soap_register_plugin(&soap, http_da);
 ...
 soap_serve(&soap);

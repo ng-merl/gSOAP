@@ -55,14 +55,14 @@ The Id value is optional. When non-NULL the user name token is included in the d
 To add a user name token with clear text password, use:<p>
 <div class="fragment"><pre>    <a class="code" href="wsseapi_8h.html#a24">soap_wsse_add_UsernameTokenText</a>(soap, <span class="stringliteral">"Id"</span>, <span class="stringliteral">"username"</span>, <span class="stringliteral">"password"</span>);
 </pre></div><p>
-It is strongly recommended to use <a class="el" href="wsseapi_8c.html#a41">soap_wsse_add_UsernameTokenText</a> only in combination with HTTPS encrypted transmission or not at all. A better alternative is to use password digests. With password digest authentication, the digest value of a password (with message creation time and a random nonce) is compared on both sides, thus eliminating the need to exchange a password over the wire.<p>
+It is strongly recommended to use <a class="el" href="wsseapi_8c.html#a42">soap_wsse_add_UsernameTokenText</a> only in combination with HTTPS encrypted transmission or not at all. A better alternative is to use password digests. With password digest authentication, the digest value of a password (with message creation time and a random nonce) is compared on both sides, thus eliminating the need to exchange a password over the wire.<p>
 To add a user name token with password digest, use:<p>
 <div class="fragment"><pre>    <a class="code" href="wsseapi_8h.html#a25">soap_wsse_add_UsernameTokenDigest</a>(soap, <span class="stringliteral">"Id"</span>, <span class="stringliteral">"username"</span>, <span class="stringliteral">"password"</span>);
 </pre></div><p>
 Although the password string is passed to this function, it is not rendered in XML or stored in a message log. It has been argued that this approach adopted by the WS-Security protocol is still vulnerable since the application retrieves the password in text form requiring a database to store passwords in clear text. However, a digest algorithm can be used to hash the passwords and store their digests instead, which eliminates the need to store clear-text passwords. Note that this is a common approach adopted by Unix for decades.<p>
 By setting the Id value to a unique string, the user name token is also digitally signed by the signature engine further preventing tampering with its value.<p>
-You must use <a class="el" href="wsseapi_8c.html#a42">soap_wsse_add_UsernameTokenDigest</a> for each message exchange to refresh the password digest even when the user name and password are not changed. Otherwise, the receiver might flag the message as a replay attack.<p>
-Clear-text passwords and password digests are verified with <a class="el" href="wsseapi_8c.html#a45">soap_wsse_verify_Password</a>. To verify a password at the receiving side to authorize a request (e.g. within a Web service operation), use:<p>
+You must use <a class="el" href="wsseapi_8c.html#a43">soap_wsse_add_UsernameTokenDigest</a> for each message exchange to refresh the password digest even when the user name and password are not changed. Otherwise, the receiver might flag the message as a replay attack.<p>
+Clear-text passwords and password digests are verified with <a class="el" href="wsseapi_8c.html#a46">soap_wsse_verify_Password</a>. To verify a password at the receiving side to authorize a request (e.g. within a Web service operation), use:<p>
 <div class="fragment"><pre>    <span class="keywordtype">int</span> ns__myMethod(<span class="keyword">struct</span> soap *soap, ...)
     { <span class="keyword">const</span> <span class="keywordtype">char</span> *username = <a class="code" href="wsseapi_8h.html#a27">soap_wsse_get_Username</a>(soap);
       <span class="keyword">const</span> <span class="keywordtype">char</span> *password;
@@ -75,7 +75,7 @@ Clear-text passwords and password digests are verified with <a class="el" href="
       <span class="keywordflow">return</span> SOAP_OK;
     }
 </pre></div><p>
-Note that the <a class="el" href="wsseapi_8c.html#a44">soap_wsse_get_Username</a> functions sets the wsse:FailedAuthentication fault. It is common for the wsse plugin functions to return SOAP_OK or a wsse fault that should be passed to the sender by returning soap-&gt;error from service operations. The fault is displayed with the soap_print_fault function.<p>
+Note that the <a class="el" href="wsseapi_8c.html#a45">soap_wsse_get_Username</a> functions sets the wsse:FailedAuthentication fault. It is common for the wsse plugin functions to return SOAP_OK or a wsse fault that should be passed to the sender by returning soap-&gt;error from service operations. The fault is displayed with the soap_print_fault function.<p>
 Password digest authentication prevents message replay attacks. The wsse plugin keeps a database of password digests to thwart replay attacks. This is the only part in the plugin code that requires mutex provided by threads.h. Of course, this only works correctly if the server is persistent, such as a stand-alone service. Note that CGI-based services do not keep state. Machine clocks must be synchronized and clock skew should not exceed <a class="el" href="wsseapi_8c.html#a1">SOAP_WSSE_CLKSKEW</a> at the server side.<h3><a class="anchor" name="wsse_6_3">
 Binary Security Tokens</a></h3>
 X509 certificates are commonly included in Security header blocks as binary security tokens. A certificate is used to verify the digital signature of a digitally signed message using the public key embedded within the certificate. The certificate itself is signed by a certificate authority (CA) that vouches for the authenticity of the certificate, i.e. to prove the identify of the message originator. This verification process is important, because digital signatures are useless without verification: an attacker could simply replace the message, sign it, and replace the certificate.<p>
@@ -84,7 +84,7 @@ Certificates are automatically verified by the wsse plugin signature engine when
     soap-&gt;capath = <span class="stringliteral">"dir/to/certs"</span>; <span class="comment">// and/or point to CA certs</span>
     soap-&gt;crlfile = <span class="stringliteral">"revoked.pem"</span>; <span class="comment">// use CRL (optional)</span>
 </pre></div><p>
-The <a class="el" href="wsseapi_8c.html#a52">soap_wsse_verify_X509</a> function checks the validity of a certificate. The check is automatically performed. The check is also performed when retrieving the certificate from a Security header block, either automatically by the wsse plugin's signature verification engine or manually as follows:<p>
+The <a class="el" href="wsseapi_8c.html#a53">soap_wsse_verify_X509</a> function checks the validity of a certificate. The check is automatically performed. The check is also performed when retrieving the certificate from a Security header block, either automatically by the wsse plugin's signature verification engine or manually as follows:<p>
 <div class="fragment"><pre>    X509 *cert = <a class="code" href="wsseapi_8h.html#a34">soap_wsse_get_BinarySecurityTokenX509</a>(soap, <span class="stringliteral">"Id"</span>);
 </pre></div><p>
 where Id is the identification string of the binary security token or NULL.<p>
@@ -167,8 +167,7 @@ If you prefer XML indentation, use:<p>
 <div class="fragment"><pre>    <span class="keyword">struct </span>soap *soap = soap_new1(SOAP_XML_CANONICAL | SOAP_XML_INDENT);
     soap_register_plugin(soap, soap_wsse);
 </pre></div><p>
-Currently compression is not supported for outbound message signing and
-compression is disabled when signed messages are send. However, this may change in future releases.<p>
+Currently compression is not supported for outbound message signing and compression is disabled when signed messages are send. However, this may change in future releases.<p>
 Next, we decide which signature algorithm is appropriate to use:<ul>
 <li>HMAC-SHA1 uses a secret key (also known as a shared key in symmetric cryptography) to sign the SHA1 digest of the SignedInfo element.</li><li>DSA-SHA1 uses a DSA private key to sign the SHA1 digest of the SignedInfo element.</li><li>RSA-SHA1 uses a RSA private key to sign the SHA1 digest of the SignedInfo element.</li></ul>
 <p>
@@ -203,7 +202,7 @@ An optional callback function can be passed to the plugin that is responsible fo
 }
 </pre></div><h3><a class="anchor" name="wsse_8_2a">
 Signing Messages</a></h3>
-After the plugin is registered and a signature algorithm selected, the <a class="el" href="wsseapi_8c.html#a78">soap_wsse_sign</a> function or the <a class="el" href="wsseapi_8c.html#a79">soap_wsse_sign_body</a> function is used to initiate the signature engine to automatically sign outbound messages.<p>
+After the plugin is registered and a signature algorithm selected, the <a class="el" href="wsseapi_8c.html#a79">soap_wsse_sign</a> function or the <a class="el" href="wsseapi_8c.html#a80">soap_wsse_sign_body</a> function is used to initiate the signature engine to automatically sign outbound messages.<p>
 The code to sign the SOAP Body of a message using HMAC-SHA1 is:<p>
 <div class="fragment"><pre>    <span class="keyword">static</span> <span class="keywordtype">char</span> hmac_key[16] =
     { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
@@ -238,10 +237,10 @@ To sign the body of an outbound SOAP message using RSA-SHA1 (DSA-SHA1 is similar
 </pre></div><p>
 The private key and its certificate are often placed in the same file, see e.g. server.pem in the package.<p>
 To summarize the signing process:<ol>
-<li>Register the wsse plugin.</li><li>Obtain an HMAC secret key or a DSA or RSA private key.</li><li>For DSA or RSA, obtain the X509 certificate with the public key signed by a certificate authority.</li><li>Add the X509 certificate as a BinarySecurityToken to the header.</li><li>Add a KeyInfo BinarySecurityTokenReference.</li><li>Invoke <a class="el" href="wsseapi_8c.html#a78">soap_wsse_sign</a> or <a class="el" href="wsseapi_8c.html#a79">soap_wsse_sign_body</a> to sign the message.</li><li>Always check the function return values for errors. You don't want to produce and accept messages with an invalid Security headers.</li></ol>
+<li>Register the wsse plugin.</li><li>Obtain an HMAC secret key or a DSA or RSA private key.</li><li>For DSA or RSA, obtain the X509 certificate with the public key signed by a certificate authority.</li><li>Add the X509 certificate as a BinarySecurityToken to the header.</li><li>Add a KeyInfo BinarySecurityTokenReference.</li><li>Invoke <a class="el" href="wsseapi_8c.html#a79">soap_wsse_sign</a> or <a class="el" href="wsseapi_8c.html#a80">soap_wsse_sign_body</a> to sign the message.</li><li>Always check the function return values for errors. You don't want to produce and accept messages with an invalid Security headers.</li></ol>
 <h3><a class="anchor" name="wsse_8_2b">
 Signing Message Parts</a></h3>
-The <a class="el" href="wsseapi_8c.html#a79">soap_wsse_sign_body</a> function signs the entire SOAP body. If it is desirable to sign individual parts of a message the <a class="el" href="wsseapi_8c.html#a78">soap_wsse_sign</a> function should be used. Message parts with wsu:Id attributes are signed. These message parts should not be nested (nested elements will not be separately signed).<p>
+The <a class="el" href="wsseapi_8c.html#a80">soap_wsse_sign_body</a> function signs the entire SOAP body. If it is desirable to sign individual parts of a message the <a class="el" href="wsseapi_8c.html#a79">soap_wsse_sign</a> function should be used. Message parts with wsu:Id attributes are signed. These message parts should not be nested (nested elements will not be separately signed).<p>
 For example, consider a transaction in which we only want to sign a contract in the SOAP Body. This allows us to modify the rest of the message or extract the contract in XML and pass it on with the signature.<p>
 The gSOAP header file includes a myContract declaration:<p>
 <div class="fragment"><pre>    <span class="keyword">struct </span>ns__myContract
@@ -286,8 +285,16 @@ To automatically verify the signature of an inbound message signed with DSA or R
     <span class="keywordflow">if</span> (soap_call_ns__myMethod(soap, ...))
       ... <span class="comment">// an error occurred</span>
 </pre></div><p>
-All locally referenced elements in the signed message will be verified. Elements referenced with absolute URIs are not automatically verified. The received message is stored in a DOM accessible with soap-&gt;dom. This enables further analysis of the message content.<p>
-The <a class="el" href="wsseapi_8c.html#a81">soap_wsse_verify_auto</a> function keeps processing signed (and unsigned) messages as they arrive. For unsigned messages this can be expensive and the verification engine should be shut down using <a class="el" href="wsseapi_8c.html#a82">soap_wsse_verify_done</a>.<p>
+All locally referenced and signed elements in the signed message will be verified. Elements that are not signed cannot be verified. Also elements referenced with absolute URIs that are not part of the message are not automatically verified. The received message is stored in a DOM accessible with soap-&gt;dom. This enables further analysis of the message content.<p>
+For a post-parsing check to verify if an XML element was signed in an inbound message, use: <div class="fragment"><pre><a class="code" href="wsseapi_8h.html#a63">soap_wsse_verify_auto</a>(soap, SOAP_SMD_NONE, NULL, 0);
+... <span class="comment">// client call</span>
+<span class="keywordflow">if</span> (<a class="code" href="wsseapi_8h.html#a65">soap_wsse_verify_element</a>(soap, <span class="stringliteral">"namespaceURI"</span>, <span class="stringliteral">"tag"</span>) &gt; 0)
+  ... <span class="comment">// at least one element with matching tag and namespace is signed</span>
+</pre></div>The signed element nesting rules are obeyed, so if the matching element is a descendent of a signed element, it is signed as well.<p>
+Because it is a post check, a client should invoke <a class="el" href="wsseapi_8c.html#a84">soap_wsse_verify_element</a> after the call completed. A service should invoke this function within the service operation routine, i.e. when the message request is accepted and about to be processed.<p>
+For example, to check whether the wsu:Timestamp element was signed (assuming it is present and message expiration checked with <a class="el" href="wsseapi_8c.html#a41">soap_wsse_verify_Timestamp</a>), use <a class="el" href="wsseapi_8c.html#a84">soap_wsse_verify_element</a>(soap, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Timestamp").<p>
+To check the SOAP Body (either using SOAP 1.1 or 1.2), use the shorthand <a class="el" href="wsseapi_8c.html#a85">soap_wsse_verify_body</a>(soap).<p>
+The <a class="el" href="wsseapi_8c.html#a82">soap_wsse_verify_auto</a> function keeps processing signed (and unsigned) messages as they arrive. For unsigned messages this can be expensive and the verification engine should be shut down using <a class="el" href="wsseapi_8c.html#a83">soap_wsse_verify_done</a>.<p>
 To verify the HMAC signature of an inbound message, the HMAC key must be supplied:<p>
 <div class="fragment"><pre>    <span class="keyword">static</span> <span class="keywordtype">char</span> hmac_key[16] = <span class="comment">// the same secret key that was used to sign</span>
     { 0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88,
@@ -305,7 +312,7 @@ To verify the HMAC signature of an inbound message, the HMAC key must be supplie
       ... <span class="comment">// an error occurred</span>
 </pre></div><p>
 To summarize the signature verification process:<ol>
-<li>Register the wsse plugin.</li><li>For HMAC, obtain the HMAC secret key</li><li>Use <a class="el" href="wsseapi_8c.html#a81">soap_wsse_verify_auto</a> to verify inbound messages.</li><li>After receiving a message, the DOM in soap-&gt;dom can be traversed for further analysis.</li><li>Always check the function return values for errors. You don't want to accept a request or response message with an invalid Security header.</li><li>Use <a class="el" href="wsseapi_8c.html#a82">soap_wsse_verify_done</a> to terminate verification, e.g. to consume plain messages more efficiently.</li></ol>
+<li>Register the wsse plugin.</li><li>For HMAC, obtain the HMAC secret key</li><li>Use <a class="el" href="wsseapi_8c.html#a82">soap_wsse_verify_auto</a> to verify inbound messages.</li><li>After receiving a message, the DOM in soap-&gt;dom can be traversed for further analysis.</li><li>Always check the function return values for errors. You don't want to accept a request or response message with an invalid Security header.</li><li>Use <a class="el" href="wsseapi_8c.html#a83">soap_wsse_verify_done</a> to terminate verification, e.g. to consume plain messages more efficiently.</li></ol>
 <h2><a class="anchor" name="wsse_9">
 Encryption</a></h2>
 The material in this section relates to the WS-Security specification section 9.<p>
@@ -320,7 +327,7 @@ The lifetime of a message (in seconds) is passed as the third argument, which wi
 </pre></div><p>
 Timestamps, like other header elements, are not automatically secured with a digital signature. To secure a timestamp, we add an identifier (wsu:Id) to each element we want the WS-Security plugin to sign thereby making it impossible for someone to tamper with that part of the message. To do this for the timestamp, we simply pass a unique identification string as the second argument:<p>
 <div class="fragment"><pre>    <a class="code" href="wsseapi_8h.html#a21">soap_wsse_add_Timestamp</a>(soap, <span class="stringliteral">"Time"</span>, 10); <span class="comment">// timestamp will be signed</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sun Jan 6 11:19:26 2008 for gSOAP WS-Security by
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Fri Jul 25 16:01:12 2008 for gSOAP WS-Security by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.8 </small></address>
 </body>

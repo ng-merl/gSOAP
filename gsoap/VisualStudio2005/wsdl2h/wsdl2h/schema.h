@@ -66,6 +66,7 @@ class xs__element
 	@xsd__string			default_;
 	@xsd__QName			default__;		// also get QName value if element type is QName
 	@xsd__string			fixed;
+	@xsd__QName			fixed_;			// also get QName value if element type is QName
 	@xsd__boolean			nillable		= false;
 	@xsd__boolean			abstract		= false;
 	@xsd__QName			substitutionGroup;
@@ -104,6 +105,8 @@ class xs__attribute
 	@enum xs__attribute_use		use			= optional;
 	@xsd__string			default_;
 	@xsd__QName			default__;		// also get QName value if attribute type is QName
+	@xsd__string			fixed;
+	@xsd__QName			fixed_;			// also get QName value if attribute type is QName
 	@xsd__QName			wsdl__arrayType;	// extensibility attribute added to simplify WSDL parsing
 	xs__annotation			*annotation;
 	xs__simpleType			*simpleType;

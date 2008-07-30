@@ -33,8 +33,8 @@ The gSOAP toolkit supports streaming technologies to expedite SOAP/XML and
 MTOM/MIME attachment transfers of potentially unlimited data lengths.
 
 The gSOAP toolkit is the only toolkit that supports the serialization of native
-C and C++ data types. You can use it to export and import your application data
-in XML without having to write wrapper routines.
+C and C++ data types directly in XML. You can use it to export and import your
+application data in XML without having to write wrapper routines.
 
 The gSOAP toolkit ensures as small memory footprint. XML is a processed as a
 transient format and not buffered. Many optimizations have been applied to
@@ -104,22 +104,38 @@ INSTALLATION below) with your code. In your source code, add:
 
 This imports all soapcpp-generated definitions and the namespace mapping table.
 
-To develop a C++ client application based on proxies, use the generated
-'soapcalcProxy.h' class and 'calc.nsmap' XML namespace table to access the
-calculator Web service. Both need to be #include'd in your source. Then
-compile and link the 'soapC.cpp', 'soapClient.cpp', and 'stdsoap2.cpp' (or
-libgsoap++) to complete the build.
+To develop a C++ client application based on proxies, use 'soapcpp2' option -i:
 
-To develop a C client, use 'wsdl2h' option '-c' to generate pure C code.
+	$ wsdl2h -s -o calc.h http://www.cs.fsu.edu/~engelen/calc.wsdl
+	$ soapcpp2 -i calc.h
+
+This generates 'soapcalcProxy.h' and 'soapcalcProxy.cpp' with a calcProxy
+class you can use to invoke the service. For example:
+
+	#include "soapcalcProxy.h"
+	#include "calc.nsmap"
+	main()
+	{ calcProxy service;
+	  double result;
+	  if (service.add(1.0, 2.0, result) == SOAP_OK)
+	    std::cout << "The sum of 1.0 and 2.0 is " << result << std::endl;
+  	  else
+	    service.soap_stream_fault(std::cerr);
+	}
+
+Compile and link with 'soapC.cpp' and 'stdsoap2.cpp' (or -lgsoap++).
+
+To develop a C client, use 'wsdl2h' option -c to generate pure C code.
 
 There are many options that you can use depending on the need to develop C
 applications, C++ with or without STL, or C++ proxy and server objects. In
 addition, the XML schema type mapping is defined by 'typemap.dat', located in
 the 'WS' folder. The 'typemap.dat' file is used to customize the 'wsdl2h'
-output.
+output. It is important to use this file for larger projects that depend in
+WS-* protocols, such as WS-Addressing and WS-Security.
 
-More information about the wsdl2h and soapcpp2 tools and their options can be
-found in the gSOAP documentation and the Quick How-To page on the gSOAP Web
+More information about the 'wsdl2h' and 'soapcpp2' tools and their options can
+be found in the gSOAP documentation and the Quick How-To page on the gSOAP Web
 site, see: http://gsoap2.sourceforge.net
 
 See also the 'gsoap/wsdl/README.txt' for more details on the WSDL parser and
@@ -257,6 +273,9 @@ is offered under GPL conditions to enable the software to be used with open
 source GPL projects, educational use, and so on. We do not accept third-party
 GPL contributions to avoid having to fork the code base in GPL and non-GPL.
 
+This program is released under the GPL with the additional exemption that
+compiling, linking, and/or using OpenSSL is allowed.
+
 IMPORTANT NOTE: the wsdl2h parser, UDDI code, and sample applications such as
 the stand-alone web server are distributed ONLY under the GPL or the
 proprietary license. This means that commercial use of wsdl2h to generate code
@@ -346,7 +365,8 @@ software to run in a basic configuration. When compression and SSL encryption
 are required the Zlib and OpenSSL libraries must be installed.
 
 To build the gSOAP 'soapcpp2' compiler, you must have Bison and Flex installed
-or the older Yacc and Lex equivalents. Note that licensing differs for Flex versus Lex, and Bison versus Yacc.
+or the older Yacc and Lex equivalents. Note that licensing differs for Flex
+versus Lex, and Bison versus Yacc.
 
 Win32 builds of clients and services requires winsock.dll. To do this in
 Visual C++ 6.0, go to "Project", "settings", select the "Link" tab (the

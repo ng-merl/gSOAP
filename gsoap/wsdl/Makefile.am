@@ -6,13 +6,15 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 INCLUDES=-I$(top_srcdir)/gsoap
-LDFLAGS=$(INCLUDES) -L$(srcdir)
+AM_LDFLAGS=$(INCLUDES) -L$(srcdir)
 SOAP=$(top_builddir)/gsoap/src/soapcpp2
 SOAP_CPP_LIB_SSL=$(top_builddir)/gsoap/libgsoapssl++.a
 SOAP_CPP_SRC=wsdlC.cpp
 SOAPHEADER=$(srcdir)/wsdl.h
 SOAP_FLAGS=-SC -pwsdl -I../import
 BUILT_SOURCES=$(SOAP_CPP_SRC)
+# WSDL2H_EXTRA_FLAGS=-DWITH_OPENSSL -DWITH_GZIP # defined in configure.in
+# WSDL2H_EXTRA_LIBS=-lssl -lcrypto -lz # defined in configure.in
 
 $(SOAP_CPP_SRC) : $(SOAPHEADER)
 	$(SOAP) $(SOAP_FLAGS) $(SOAPHEADER)
@@ -23,8 +25,8 @@ bin_PROGRAMS=wsdl2h
 
 wsdl2h_CFLAGS=$(C_DEBUG_FLAGS) $(SOAPCPP2_NONAMESPACES) -D$(platform)
 wsdl2h_CPPFLAGS=$(C_DEBUG_FLAGS) $(SOAPCPP2_NONAMESPACES) -D$(platform)
-wsdl2h_CXXFLAGS=-DWITH_OPENSSL -DWITH_GZIP $(WSDL2H_IMPORTPATH)
+wsdl2h_CXXFLAGS=$(WSDL2H_EXTRA_FLAGS) $(WSDL2H_IMPORTPATH)
 wsdl2h_SOURCES=wsdl2h.cpp wsdl.cpp schema.cpp types.cpp service.cpp soap.cpp mime.cpp
-wsdl2h_LDADD=$(SOAP_CPP_SRC) $(SOAP_CPP_LIB_SSL) $(SAMPLE_EXTRA_LIBS) -lssl -lcrypto -lz
+wsdl2h_LDADD=$(SOAP_CPP_SRC) $(SOAP_CPP_LIB_SSL) $(WSDL2H_EXTRA_LIBS) $(SAMPLE_EXTRA_LIBS)
 
 CLEANFILES= *~ *C.cpp *H.h *Stub.h *.nsmap

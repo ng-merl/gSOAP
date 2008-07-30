@@ -1,20 +1,19 @@
 /*
+	struct_tm.h
 
-struct_tm.h
+	Custom serializer for <time.h> struct tm
 
-Custom serializer for <time.h> struct tm
+	#import this file into your gSOAP .h file to enable struct tm
+	serialization and use the serializable xsd__dateTime type.
 
-#import this file into your gSOAP .h file to enable struct tm serialization and
-use the serializable xsd__dateTime type.
+	To automate the wsdl2h-mapping of xsd:dateTime to struct tm, add this
+	line to the typemap.dat file:
 
-To automate the wsdl2h-mapping of xsd:dateTime to struct tm, add this line to
-the typemap.dat file:
+	xsd__dateTime = #import "custom/struct_tm.h" | xsd__dateTime
 
-xsd__dateTime = #import "custom/struct_tm.h" | xsd__dateTime
+	The typemap.dat file is used by wsdl2h to map types (wsdl2h option -t).
 
-The typemap.dat file is used by wsdl2h to map types (use wsdl2h option -t).
-
-Link your code with struct_tm.c
+	Link your code with struct_tm.c
 
 gSOAP XML Web services tools
 Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.

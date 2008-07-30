@@ -1,14 +1,14 @@
 /*
+	long_double.h
 
-long_double.h
+	Custom serializer for the long double (extended double) type as
+	xsd:decimal.
 
-Custom serializer for the long double (extended double) type as xsd:decimal.
+	#import this file into your gSOAP .h file.
 
-#import this file into your gSOAP .h file.
-
-Add this line:
-xsd__decimal = #import "custom/long_double.h" | long double
-to typemap.dat to automate the mapping with wsdl2h.
+	Add this line:
+	xsd__decimal = #import "custom/long_double.h" | long double
+	to typemap.dat to automate the mapping with wsdl2h.
 
 gSOAP XML Web services tools
 Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.

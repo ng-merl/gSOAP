@@ -1,7 +1,7 @@
 /*
 	xml-rpc-currentTime.c
 
-	XML-RPC currenTime
+	XML-RPC currenTime (C version)
 
 	Prints current time.
 
@@ -84,7 +84,6 @@ int methodCall(struct soap *soap, const char *URL, struct methodCall *m, struct 
   soap->encodingStyle = NULL;
   /* connect, send request, and receive response */
   if (soap_connect(soap, URL, NULL)
-   || soap_begin_send(soap)
    || soap_put_methodCall(soap, m, "methodCall", NULL)
    || soap_end_send(soap)
    || soap_begin_recv(soap)

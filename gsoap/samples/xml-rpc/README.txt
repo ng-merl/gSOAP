@@ -17,6 +17,13 @@ xml-rpc-io.h         C++ I/O support API for XML-RPC messages
 xml-rpc-io.cpp       C++ I/O support API for XML-RPC messages
 xml-rpc-iters.cpp    C++ iterators for structs, arrays, and parameters
 
+Two examples are provided, both using a C and C++ interface.
+xml-rpc-currentTime.c		client in C
+xml-rpc-currentTime.cpp		client in C++
+xml-rpc-currentTimeServer.cpp	server in C++
+xml-rpc-weblogs.c		client in C
+xml-rpc-weblogs.cpp		client in C++
+
 See xml-rpc.h for the C++ member functions to create XML-RPC messages and
 decode responses.
 
@@ -70,11 +77,52 @@ soap_destroy(ctx);
 soap_end(ctx);
 soap_free(ctx);
 
+A typical server sequence is:
+
+// create an allocation context
+soap *ctx = soap_new();
+// create a method object
+methodCall myobj(ctx);
+// parse it from stdin, fd, or current socket
+if (myobj.recv() != SOAP_OK)
+  soap_print_fault(ctx, stderr);
+else
+{
+  // create response
+  methodResponse myresponse(ctx);
+  // check method name
+  if (!strcmp(myobj.name(), "methodXMLTagName"))
+  { // method name matches: populate response parameters with values:
+    myresponse[0] = ...;
+    myresponse[1] = ...;
+    ...
+  }
+  else
+  { // otherwise, set fault
+    myresponse.set_fault("Wrong method");
+  }
+  // send response
+  if (myresponse.send() != SOAP_OK)
+    soap_print_fault(ctx, stderr);
+}
+// close (but keep-alive setting keeps socket open)
+soap_closesock(ctx);
+// clean up
+soap_destroy(ctx);
+soap_end(ctx);
+// free context (but we can reuse it to serve next call)
+soap_free(ctx);
+
+
+The server code above runs over CGI. Use the soap_bind() and soap_accept()
+calls to bind the server to a port and accept requests via socket, see doc and
+examples for these calls (e.g. samples/webserver.c).
+
 For C code, only the xml-rpc.h file is needed. To generate the XML-RPC bindings
 in C, use:
 
 soapcpp2 -c xml-rpc.h
 
 As a consequence, all message manipulation is done at a very low-level. See
-xml-rpc-currentTime.c for example code.
+xml-rpc-currentTime.c for example C code.
 

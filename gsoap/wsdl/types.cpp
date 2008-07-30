@@ -159,7 +159,7 @@ int Types::read(const char *file)
   { fprintf(stderr, "Cannot open file '%s'\n", buf);
     return SOAP_EOF;
   }
-  fprintf(stderr, "Reading type definitions from type map file '%s'\n\n", buf);
+  fprintf(stderr, "Reading type definitions from type map file '%s'\n", buf);
   while (getline(buf, sizeof(buf), fd))
   { s = buf;
     if (copy)
@@ -438,6 +438,11 @@ void Types::init()
   deftypemap["_SOAP_ENC__arrayType"] = "";
   deftypemap["SOAP_ENV__Header"] = "";
   usetypemap["SOAP_ENV__Header"] = "struct SOAP_ENV__Header";
+  deftypemap["_SOAP_ENV__mustUnderstand"] = "";
+  if (cflag || sflag)
+    usetypemap["_SOAP_ENV__mustUnderstand"] = "char*";
+  else
+    usetypemap["_SOAP_ENV__mustUnderstand"] = "std::string";
   deftypemap["SOAP_ENV__Fault"] = "";
   usetypemap["SOAP_ENV__Fault"] = "struct SOAP_ENV__Fault";
   deftypemap["SOAP_ENV__detail"] = "";
@@ -1848,8 +1853,17 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
       fprintf(stream, " 0");
       break;
   }
-  if (attribute.default_)
-  { if (type)
+  if (attribute.default_ || attribute.fixed)
+  { const char *value, *QName;
+    if (attribute.default_)
+    { value = attribute.default_;
+      QName = attribute.default__;
+    }
+    else
+    { value = attribute.fixed;
+      QName = attribute.fixed_;
+    }
+    if (type)
     { const char *t = tname(NULL, typeURI?typeURI:URI, type);
       if (!strncmp(t, "unsigned ", 9))
         t += 9;
@@ -1862,19 +1876,29 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
        || !strcmp(t, "LONG64")
        || !strcmp(t, "short")
        || !strcmp(t, "ULONG64"))
-        fprintf(stream, " = %s", attribute.default_);
+        fprintf(stream, " = %s", value);
       else if (!strncmp(t, "enum ", 5))
-        fprintf(stream, " = %s", ename(t + 5, attribute.default_));
+      { const char *s;
+        if (is_integer(value))
+	  fprintf(stream, " = %s", value);
+	else if (!*value)
+          fprintf(stream, " = 0");
+	else if ((s = enames[Pair(t + 5,value)]))
+	  fprintf(stream, " = %s", s);
+      }
       else if (!strcmp(t, "char*")
             || !strcmp(t, "char *")	// not elegant
             || !strcmp(t, "std::string")
             || !strcmp(t, "std::string*")
             || !strcmp(t, "std::string *"))	// not elegant
-        fprintf(stream, " = \"%s\"", cstring(attribute.default_));
-      else if (!strcmp(t, "xsd__QName") && attribute.default__)	// QName is in default__
-        fprintf(stream, " = \"%s\"", cstring(attribute.default__));
+        fprintf(stream, " = \"%s\"", cstring(value));
+      else if (!strcmp(t, "xsd__QName") && QName)	// QName
+        fprintf(stream, " = \"%s\"", cstring(QName));
     }
-    fprintf(stream, ";\t///< Default value=\"%s\".\n", attribute.default_);
+    if (attribute.default_)
+      fprintf(stream, ";\t///< Default value=\"%s\".\n", value);
+    else
+      fprintf(stream, ";\t///< Fixed value=\"%s\".\n", value);
   }
   else if (attribute.use == required)
     fprintf(stream, ";\t///< Required attribute.\n");
@@ -1887,14 +1911,8 @@ void Types::gen(const char *URI, const xs__attribute& attribute)
 void Types::gen(const char *URI, const vector<xs__attributeGroup>& attributeGroups)
 { for (vector<xs__attributeGroup>::const_iterator attributeGroup = attributeGroups.begin(); attributeGroup != attributeGroups.end(); ++attributeGroup)
   { if ((*attributeGroup).attributeGroupPtr()) // attributeGroup ref
-    { if ((*attributeGroup).schemaPtr() == (*attributeGroup).attributeGroupPtr()->schemaPtr())
-      { gen(URI, (*attributeGroup).attributeGroupPtr()->attribute);
-        gen(URI, (*attributeGroup).attributeGroupPtr()->attributeGroup);
-      }
-      else
-      { gen((*attributeGroup).attributeGroupPtr()->schemaPtr()->targetNamespace, (*attributeGroup).attributeGroupPtr()->attribute);
-        gen((*attributeGroup).attributeGroupPtr()->schemaPtr()->targetNamespace, (*attributeGroup).attributeGroupPtr()->attributeGroup);
-      }
+    { gen(URI, (*attributeGroup).attributeGroupPtr()->attribute);
+      gen(URI, (*attributeGroup).attributeGroupPtr()->attributeGroup);
       if ((*attributeGroup).attributeGroupPtr()->anyAttribute)
         gen(URI, *(*attributeGroup).attributeGroupPtr()->anyAttribute);
     }
@@ -2158,8 +2176,17 @@ void Types::gen(const char *URI, const xs__element& element)
       fprintf(stream, " %s", element.minOccurs);
     if (element.maxOccurs && strcmp(element.maxOccurs, "1") && is_integer(element.maxOccurs))
       fprintf(stream, ":%s", element.maxOccurs);
-    if (element.default_)
+    if (element.default_ || element.fixed)
     { // determine whether the element can be assigned a default value, this is dependent on the choice of mapping for primitive types
+      const char *value, *QName;
+      if (element.default_)
+      { value = element.default_;
+        QName = element.default__;
+      }
+      else
+      { value = element.fixed;
+        QName = element.fixed_;
+      }
       if (type)
       { const char *t = tname(NULL, typeURI?typeURI:URI, type);
         if (!strncmp(t, "unsigned ", 9))
@@ -2173,19 +2200,29 @@ void Types::gen(const char *URI, const xs__element& element)
          || !strcmp(t, "LONG64")
          || !strcmp(t, "short")
          || !strcmp(t, "ULONG64"))
-          fprintf(stream, " = %s", element.default_);
+          fprintf(stream, " = %s", value);
         else if (!strncmp(t, "enum ", 5))
-          fprintf(stream, " = %s", ename(t + 5, element.default_));
+        { const char *s;
+	  if (is_integer(value))
+	    fprintf(stream, " = %s", value);
+	  else if (!*value)
+            fprintf(stream, " = 0");
+	  else if ((s = enames[Pair(t + 5, value)]))
+            fprintf(stream, " = %s", s);
+	}
         else if (!strcmp(t, "char*")
               || !strcmp(t, "char *")	// not elegant
               || !strcmp(t, "std::string")
               || !strcmp(t, "std::string*")
               || !strcmp(t, "std::string *"))	// not elegant
-          fprintf(stream, " = \"%s\"", cstring(element.default_));
-        else if (!strcmp(t, "xsd__QName") && element.default__)	// QName is in value_
-          fprintf(stream, " = \"%s\"", cstring(element.default__));
+          fprintf(stream, " = \"%s\"", cstring(value));
+        else if (!strcmp(t, "xsd__QName") && QName)	// QName
+          fprintf(stream, " = \"%s\"", cstring(QName));
       }
-      fprintf(stream, ";\t///< Default value=\"%s\".\n", element.default_);
+      if (element.default_)
+        fprintf(stream, ";\t///< Default value=\"%s\".\n", value);
+      else
+        fprintf(stream, ";\t///< Fixed value=\"%s\".\n", value);
     }
     else if (element.nillable)
       fprintf(stream, ";\t///< Nullable pointer.\n");
@@ -2231,12 +2268,12 @@ void Types::gen(const char *URI, const char *name, const xs__choice& choice)
   if (!URI && choice.schemaPtr())
     URI = choice.schemaPtr()->targetNamespace;
   fprintf(stream, "/// CHOICE OF ELEMENTS FOR choice");
-  document(choice.annotation);
   if (choice.minOccurs)
     fprintf(stream, " minOccurs=\"%s\"", choice.minOccurs);
   if (choice.maxOccurs)
     fprintf(stream, " maxOccurs=\"%s\"", choice.maxOccurs);
   fprintf(stream, "\n");
+  document(choice.annotation);
   if (!choice.group.empty() || !choice.sequence.empty())
     use_union = false;
   else if (cflag || sflag)
@@ -2329,9 +2366,9 @@ void Types::gen(const char *URI, const xs__any& any)
   if (!xflag)
   { const char *t = tname(NULL, NULL, "xsd:any");
     if (any.maxOccurs && strcmp(any.maxOccurs, "1"))
-    { if (cflag || sflag)
-      { fprintf(stream, "/// Size of the dynamic array of XML or DOM nodes is %s..%s\n", any.minOccurs ? any.minOccurs : "1", any.maxOccurs);
-        fprintf(stream, sizeformat, "int", "");
+    { fprintf(stream, "/// Size of the array of XML or DOM nodes is %s..%s\n", any.minOccurs ? any.minOccurs : "1", any.maxOccurs);
+      if (cflag || sflag)
+      { fprintf(stream, sizeformat, "int", "");
         fprintf(stream, ";\n");
         fprintf(stream, pointerformat, t, "__any");
       }

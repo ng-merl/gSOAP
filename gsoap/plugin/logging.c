@@ -1,11 +1,20 @@
 /*
+	logging.c
 
-logging.c
+	Message logging plugin and stat collector for webserver.
 
-Message logging plugin for webserver.
+	Register the plugin with:
+		soap_register_plugin(soap, logging);
+
+	Change logging destinations:
+		soap_set_logging_inbound(struct soap*, FILE*);
+		soap_set_logging_outbound(struct soap*, FILE*);
+
+	Obtain stats (sent and recv octet count, independent of log dest):
+		soap_get_logging_stats(soap, size_t *sent, size_t *recv);
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under one of the following licenses:
 GPL, the gSOAP public license, or Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -20,7 +29,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2006, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -60,18 +69,47 @@ static void logging_delete(struct soap *soap, struct soap_plugin *p);
 static int logging_send(struct soap *soap, const char *buf, size_t len);
 static size_t logging_recv(struct soap *soap, char *buf, size_t len);
 
+/* plugin registry function, invoked by soap_register_plugin */
 int logging(struct soap *soap, struct soap_plugin *p, void *arg)
 { p->id = logging_id;
-  p->data = (void*)malloc(sizeof(struct logging_data));
+  /* create local plugin data */
+  p->data = (void*)SOAP_MALLOC(soap, sizeof(struct logging_data));
+  /* register the destructor */
   p->fdelete = logging_delete;
+  /* if OK then initialize */
   if (p->data)
-    if (logging_init(soap, (struct logging_data*)p->data))
-    { free(p->data); /* error: could not init */
+  { if (logging_init(soap, (struct logging_data*)p->data))
+    { SOAP_FREE(soap, p->data); /* error: could not init */
       return SOAP_EOM; /* return error */
     }
+  }
   return SOAP_OK;
 }
 
+/* set inbound logging FD, NULL to disable */
+void soap_set_logging_inbound(struct soap *soap, FILE *fd)
+{ struct logging_data *data = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
+  if (data)
+    data->inbound = fd;
+}
+
+/* set outbound logging FD, NULL to disable */
+void soap_set_logging_outbound(struct soap *soap, FILE *fd)
+{ struct logging_data *data = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
+  if (data)
+    data->outbound = fd;
+}
+
+/* get logging sent and recv octet counts */
+void soap_get_logging_stats(struct soap *soap, size_t *sent, size_t *recv)
+{ struct logging_data *data = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
+  if (data)
+  { *sent = data->stat_sent;
+    *recv = data->stat_recv;
+  }
+}
+
+/* used by plugin registry function */
 static int logging_init(struct soap *soap, struct logging_data *data)
 { data->inbound = NULL;
   data->outbound = NULL;
@@ -85,14 +123,21 @@ static int logging_init(struct soap *soap, struct logging_data *data)
 }
 
 static void logging_delete(struct soap *soap, struct soap_plugin *p)
-{ free(p->data); /* free allocated plugin data. If fcopy() is not set, then this function is not called for all copies of the plugin created with soap_copy(). In this example, the fcopy() callback is omitted and the plugin data is shared by the soap copies created with soap_copy() */
+{ 
+  /* free allocated plugin data. If fcopy() is not set, then this function is
+     not called for all copies of the plugin created with soap_copy(). In this
+     example, the fcopy() callback is omitted and the plugin data is shared by
+     the soap copies created with soap_copy() */
+  SOAP_FREE(soap, p->data);
 }
 
 static size_t logging_recv(struct soap *soap, char *buf, size_t len)
 { struct logging_data *data = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
-  size_t res = data->frecv(soap, buf, len); /* get data from old recv callback */
+  size_t res;
+  /* get data from old recv callback */
+  res = data->frecv(soap, buf, len);
+  /* update should be in mutex, but we don't mind some inaccuracy in stats */
   data->stat_recv += res;
-  /* update should be in mutex, but we don't mind some inaccuracy in the count */
   if (data->inbound)
     fwrite(buf, res, 1, data->inbound);
   return res;
@@ -100,7 +145,7 @@ static size_t logging_recv(struct soap *soap, char *buf, size_t len)
 
 static int logging_send(struct soap *soap, const char *buf, size_t len)
 { struct logging_data *data = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
-  /* update should be in mutex, but we don't mind some inaccuracy in the count */
+  /* update should be in mutex, but we don't mind some inaccuracy in stats */
   data->stat_sent += len;
   if (data->outbound)
     fwrite(buf, len, 1, data->outbound);

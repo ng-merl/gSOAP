@@ -184,6 +184,8 @@ int soap_wsse_sign_body(struct soap *soap, int alg, const void *key, int keylen)
 int soap_wsse_verify_init(struct soap *soap);
 int soap_wsse_verify_auto(struct soap *soap, int alg, const void *key, size_t keylen);
 int soap_wsse_verify_done(struct soap *soap);
+size_t soap_wsse_verify_element(struct soap *soap, const char *URI, const char *tag);
+int soap_wsse_verify_body(struct soap *soap);
 
 SOAP_FMAC1 void SOAP_FMAC2 soap_default_xsd__anyType(struct soap*, struct soap_dom_element *node);
 SOAP_FMAC1 int SOAP_FMAC2 soap_out_xsd__anyType(struct soap *soap, const char *tag, int id, const struct soap_dom_element *node, const char *type);

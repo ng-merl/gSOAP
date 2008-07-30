@@ -9,13 +9,14 @@
 
 	Example calling sequence:
 
-	// get XML-RPC serializers
+	// get XML-RPC serializers (link with soapC.cpp)
 	#include "soapH.h"
+	// get XML-RPC I/O operations (link with xml-rpc-io.cpp)
 	#include "xml-rpc-io.h"
 
 	// set up context (indent XML is optional)
 	soap *ctx = soap_new1(SOAP_XML_INDENT);
-	// define method
+	// define method call
 	methodCall myMethod(ctx, "<endpoint-URL>", "<method-name>");
 	// populate input parameters
 	myMethod[0] = ...; // first param
@@ -35,6 +36,77 @@
 	soap_destroy(ctx);
 	soap_end(ctx);
 	soap_free(ctx);
+
+	Compile with -DWITH_NONAMESPACES to omit global namespaces[] definition
+	or add to your code:
+
+	struct Namespace namespaces[] = { {NULL, NULL} };
+
+        How to use XML-RPC data types?
+
+        A value is stored in a 'struct value'. This struct has the following
+        methods to query its content:
+        bool is_array()
+        bool is_base64()
+        bool is_bool()
+        bool is_double()
+        bool is_false()
+        bool is_int()
+        bool is_string()
+        bool is_struct()
+        bool is_true()
+        bool is_dateTime()
+
+        To set a value:
+        value v(soap); // the soap struct is used for memory management
+        if (...)
+          v[0] = 1; // assign 1 to first array element
+        else if (...)
+          v = new _base64(soap, 8, (unsigned char*)"raw data");
+        else if (...)
+          v = true; // boolean
+        else if (...)
+          v = 12.3; // double
+        else if (...)
+          v = 1234; // int
+        else if (...)
+          v = "xy"; // string
+        else if (...)                                         
+          v["name"] = "Abe"; // struct member 'name' = "Abe"
+        else if (...)
+          v = clock(); // dateTime
+
+	To get a value:
+	if (v.is_array())
+	{ _array& a = v;
+	  for (_array::iterator i = a.begin(); i != a.end(); ++i)
+	    cout << (*i) << ", ";
+	}
+	else if (v.is_base64())
+	{ _base64& b = v;
+	  ... = b.size();
+	  ... = b.ptr();
+	}
+	else if (v.is_bool())
+	{ bool b = v.is_true();
+	}
+	else if (v.is_double())
+	{ double n = v;
+	}
+	else if (v.is_int())
+	{ int n = v;
+	}
+	else if (v.is_string())
+	{ char *s = v;
+	}
+	else if (v.is_struct())
+	{ _struct& s = v;
+	  for (_struct::iterator i = s.begin(); i != s.end(); ++i)
+	    cout << (*i) << ", ";
+	}
+	else if (v.is_dateTime())
+	{ time_t = v;
+	}
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
@@ -415,12 +487,26 @@ _base64::_base64(struct soap *soap)
 { soap_default__base64(soap, this);
 }
 
+_base64::_base64(struct soap *soap, int n, unsigned char *p)
+{ soap_default__base64(soap, this);
+  __size = n;
+  __ptr = p;
+}
+
 int _base64::size() const
 { return __size;
 }
 
 unsigned char* _base64::ptr()
 { return __ptr;
+}
+
+void _base64::size(int n)
+{ __size = n;
+}
+
+void _base64::ptr(unsigned char *p)
+{ __ptr = p;
 }
 
 params::params()
@@ -483,6 +569,10 @@ params_iterator params::end()
 methodCall::methodCall()
 { }
 
+methodCall::methodCall(struct soap *soap)
+{ soap_default_methodCall(soap, this);
+}
+
 methodCall::methodCall(struct soap *soap, const char *endpoint, const char *name)
 { soap_default_methodCall(soap, this);
   methodName = soap_strdup(soap, name);
@@ -495,20 +585,15 @@ struct value& methodCall::operator[](int n)
 }
 
 struct params& methodCall::operator()()
-{ /* no namespaces */
-  soap->namespaces = NULL;
-  /* no SOAP encodingStyle */
-  soap->encodingStyle = NULL;
-  /* connect, send request, and receive response */
-  if (soap_connect(soap, methodEndpoint, NULL)
-   || soap_begin_send(soap)
-   || soap_put_methodCall(soap, this, "methodCall", NULL)
-   || soap_end_send(soap)
-   || soap_begin_recv(soap)
-   || !(methodResponse = soap_get_methodResponse(soap, methodResponse, "methodResponse", NULL))
-   || soap_end_recv(soap))
+{ if (send() == SOAP_OK)
+  { if (!methodResponse)
+      methodResponse = soap_new_methodResponse(soap, -1);
+    if (methodResponse->recv() != SOAP_OK)
+      methodResponse = NULL;
+    soap_closesock(soap);
+  }
+  else
     methodResponse = NULL;
-  soap_closesock(soap);
   if (methodResponse && methodResponse->params)
     return *methodResponse->params;
   return *soap_new_params(soap, -1);
@@ -530,13 +615,45 @@ struct params& methodCall::response()
 }
 
 struct value& methodCall::fault()
-{ if (methodResponse && methodResponse->fault)
-    return methodResponse->fault->value;
+{ if (methodResponse)
+    return methodResponse->get_fault();
   return *soap_new_value(soap, -1);
+}
+
+const char* methodCall::name() const
+{ if (methodName)
+    return methodName;
+  return "";
 }
 
 int methodCall::error() const
 { return soap->error;
+}
+
+int methodCall::send()
+{ /* no namespaces */
+  soap->namespaces = NULL;
+  /* no SOAP encodingStyle */
+  soap->encodingStyle = NULL;
+  /* content length */
+  soap_begin_count(soap);
+  if (soap->mode & SOAP_IO_LENGTH)
+    soap_put_methodCall(soap, this, "methodCall", NULL);
+  soap_end_count(soap);
+  /* connect and send request */
+  if (soap_connect(soap, methodEndpoint, NULL)
+   || soap_put_methodCall(soap, this, "methodCall", NULL)
+   || soap_end_send(soap))
+    return soap->error;
+  return SOAP_OK;
+}
+
+int methodCall::recv()
+{ if (soap_begin_recv(soap)
+   || !soap_get_methodCall(soap, this, "methodCall", NULL)
+   || soap_end_recv(soap))
+    return soap->error;
+  return SOAP_OK;
 }
 
 methodResponse::methodResponse()
@@ -544,6 +661,54 @@ methodResponse::methodResponse()
 
 methodResponse::methodResponse(struct soap *soap)
 { soap_default_methodResponse(soap, this);
+}
+
+struct value& methodResponse::operator[](int n)
+{ if (!params)
+    params = soap_new_params(soap, -1);
+  return (*params)[n];
+}
+
+struct value& methodResponse::get_fault()
+{ if (!fault)
+    fault = soap_new_fault(soap, -1);
+  return fault->value;
+}
+
+struct value& methodResponse::set_fault(const char* s)
+{ struct value* v = soap_new_value(soap, -1);
+  *v = s;
+  return get_fault() = *v;
+}
+
+struct value& methodResponse::set_fault(struct value& v)
+{ return get_fault() = v;
+}
+
+int methodResponse::send()
+{ /* no namespaces */
+  soap->namespaces = NULL;
+  /* no SOAP encodingStyle */
+  soap->encodingStyle = NULL;
+  /* content length */
+  soap_begin_count(soap);
+  if (soap->mode & SOAP_IO_LENGTH)
+    soap_put_methodResponse(soap, this, "methodResponse", NULL);
+  soap_end_count(soap);
+  /* send response */
+  if (soap_response(soap, SOAP_OK)
+   || soap_put_methodResponse(soap, this, "methodResponse", NULL)
+   || soap_end_send(soap))
+    return soap->error;
+  return SOAP_OK;
+}
+
+int methodResponse::recv()
+{ if (soap_begin_recv(soap)
+   || !soap_get_methodResponse(soap, this, "methodResponse", NULL)
+   || soap_end_recv(soap))
+    return soap->error;
+  return SOAP_OK;
 }
 
 _array_iterator::_array_iterator()

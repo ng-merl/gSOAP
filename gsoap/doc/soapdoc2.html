@@ -16,13 +16,13 @@
 
 
 
-<title> gSOAP 2.7.10 User Guide</title>
+<title> gSOAP 2.7.11 User Guide</title>
     
-<h1 align="center">gSOAP 2.7.10 User Guide </h1>
+<h1 align="center">gSOAP 2.7.11 User Guide </h1>
 
 <h3 align="center">Robert van Engelen <br />Florida State University <br />and Genivia, Inc. <br />engelen@genivia.com &amp; engelen@acm.org </h3>
 
-<h3 align="center">Jan 26, 2008
+<h3 align="center">Jul 29, 2008
 <br /><a href="soapdoc2.pdf"><font color="#FF0000"><b>[This document is also available in PDF format (black and white only)]</b></font></a></h3>
  <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
 
@@ -488,7 +488,7 @@ The gSOAP packages available from SourceForge include pre-build tools in the <i>
 
 <li> The <i>soapcpp2</i> stub/skeleton compiler.<br /><br /></li>
 </ul>
-Win32 versions of these two are included in the Win32 gSOAP package only.
+Win32 binaries of these two tools are included in the gSOAP package, see the README files in the package for more details.
 If you don't have the binaries or if you want to rebuild them, you need
 
 <ul>
@@ -546,7 +546,7 @@ calculator Web service, we run the <i>wsdl2h</i> tool from the
 command line on the URL of the WSDL and use option <i>-o</i> to specify the
 output file:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
-<i>$ wsdl2h -o calc.h http://www.cs.fsu.edu/&nbsp;engelen/calc.wsdl</i>
+<i>$ wsdl2h -o calc.h http://www.cs.fsu.edu/~engelen/calc.wsdl</i>
 </td></tr></table><br></span>
 This generates the <i>calc.h</i> header file with Web service
 operation declarations and the data types of the operation parameter. This
@@ -561,11 +561,11 @@ In this example we are developing a C++ API for the calculator service. By
 default, gSOAP assumes you will use C++ with STL.  To build without STL, use option
 <i>-s</i>:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
-<i>$ wsdl2h -s -o calc.h http://www.cs.fsu.edu/&nbsp;engelen/calc.wsdl</i>
+<i>$ wsdl2h -s -o calc.h http://www.cs.fsu.edu/~engelen/calc.wsdl</i>
 </td></tr></table><br></span>
 To build a pure C application, use option <i>-c</i>:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
-<i>$ wsdl2h -c -o calc.h http://www.cs.fsu.edu/&nbsp;engelen/calc.wsdl</i>
+<i>$ wsdl2h -c -o calc.h http://www.cs.fsu.edu/~engelen/calc.wsdl</i>
 </td></tr></table><br></span>
 We have not yet generated the stubs for the C/C++ API. To do so, run the <i>soapcpp2</i> compiler:
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
@@ -588,7 +588,7 @@ service:
 #include "calc.nsmap" <br />
 main() <br />
 { <br />
-&nbsp;&nbsp;&nbsp;calc service; <br />
+&nbsp;&nbsp;&nbsp;calcProxy service; <br />
 &nbsp;&nbsp;&nbsp;<b>double</b> result; <br />
 &nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(service.add(1.0, 2.0, result) == SOAP_OK) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;std::cout <tt>&lt;&lt;</tt> "The sum of 1.0 and 2.0 is " <tt>&lt;&lt;</tt> result <tt>&lt;&lt;</tt> std::endl; <br />
@@ -2883,7 +2883,7 @@ members.
 <div class="p"><!----></div>
 Consider the following example commands (entered at the command prompt):
 <br><br><table border=0 width="100%" cellpadding="8" bgcolor="#D0D0D0"><tr><td><span class="roman">
-$ wsdl2h -o calc.h http://www.cs.fsu.edu/&nbsp;engelen/calc.wsdl <br />
+$ wsdl2h -o calc.h http://www.cs.fsu.edu/~engelen/calc.wsdl <br />
 ... <br />
 $ soapcpp2 -i -Iimport calc.h
 </td></tr></table><br></span>
@@ -2920,6 +2920,7 @@ The <i>wsdl2h</i> command-line options are:
 <tr><td><i>-h</i>      </td><td>print help information </td></tr>
 <tr><td><i>-I path</i>	</td><td>use path to find files </td></tr>
 <tr><td><i>-j</i>	</td><td>don't generate <i>SOAP_ENV__Header</i> and <i>SOAP_ENV__Detail</i> definitions </td></tr>
+<tr><td><i>-k</i>	</td><td>don't generate <i>SOAP_ENV__Header</i> <i>mustUnderstand</i> qualifiers </td></tr>
 <tr><td><i>-l</i>	</td><td>include license information in output </td></tr>
 <tr><td><i>-m</i>	</td><td>use xsd.h module to import primitive types </td></tr>
 <tr><td><i>-n name</i>	</td><td>use <i>name</i> as the base namespace prefix name instead of <i>ns</i> </td></tr>
@@ -2928,7 +2929,7 @@ The <i>wsdl2h</i> command-line options are:
 <tr><td><i>-p</i>      </td><td>create polymorphic types with C++ inheritance hierarchy with base <i>xsd__anyType</i> </td></tr>
 <tr><td></td><td>This is automatically performed when WSDL contains polymorphic definitions </td></tr>
 <tr><td><i>-q name</i>	</td><td>use <i>name</i> for the C++ namespace of all declarations </td></tr>
-<tr><td><i>-r host:port</i>      </td><td>connect via proxy host and port </td></tr>
+<tr><td><i>-r host[:port[:uid:pwd]]</i>      </td><td>connect via proxy host, port, and proxy credentials </td></tr>
 <tr><td><i>-s</i>      </td><td>don't generate STL code (no std::string and no std::vector) </td></tr>
 <tr><td><i>-t file</i>  </td><td>use type map file instead of the default file typemap.dat </td></tr>
 <tr><td><i>-u</i>	</td><td>don't generate unions </td></tr>
@@ -3041,7 +3042,7 @@ The <i>quotex.cpp</i> client/service application source is:
 &nbsp;&nbsp;&nbsp;soap_init(&amp;soap); <br />
 &nbsp;&nbsp;&nbsp;<b>if</b>&nbsp;(argc  &lt; = 2) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_serve(&amp;soap); <br />
-&nbsp;&nbsp;&nbsp;<b>else</b>&nbsp;<b>if</b>&nbsp;(soap_call_ns3__getQuote(&amp;soap, <tt>"http://www.cs.fsu.edu/~engelen/quotex.cgi"</tt>, <tt>""</tt>, argv[1], argv[2], q)) <br />
+&nbsp;&nbsp;&nbsp;<b>else</b>&nbsp;<b>if</b>&nbsp;(soap_call_ns3__getQuote(&amp;soap, <tt>"http://www.cs.fsu.edu/\symbol{126}engelen/quotex.cgi"</tt>, <tt>""</tt>, argv[1], argv[2], q)) <br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
 &nbsp;&nbsp;&nbsp;<b>else</b>&nbsp;<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf(<tt>"\nCompany %s: %f (%s)\n"</tt>, argv[1], q, argv[2]); <br />
@@ -4410,6 +4411,7 @@ The following macros (<i>#define</i>s) can be used to enable certain optional fe
 <tr><td><i>WITH_FAST</i>	</td><td>(obsolete) </td></tr>
 <tr><td><i>WITH_NOIO</i>	</td><td>eliminates need for file IO and BSD socket library, see Section&nbsp;<a href="#sec:noio">18.31</a> </td></tr>
 <tr><td><i>WITH_NOHTTP</i>	</td><td>eliminates HTTP stack to reduce code size </td></tr>
+<tr><td><i>WITH_NOZONE</i>	</td><td>silently ignores the timezone in time conversions </td></tr>
 <tr><td><i>WITH_LEAN</i>	</td><td>creates a small-footprint executable, see Section&nbsp;<a href="#sec:lean">18.30</a> </td></tr>
 <tr><td><i>WITH_LEANER</i>	</td><td>creates an even smaller footprint executable, see Section&nbsp;<a href="#sec:lean">18.30</a> </td></tr>
 <tr><td><i>WITH_NONAMESPACES</i></td><td>omit initialization of soap struct with global <i>namespaces</i> table </td></tr>
@@ -4418,6 +4420,8 @@ The following macros (<i>#define</i>s) can be used to enable certain optional fe
 <tr><td><i>WITH_NOEMPTYSTRUCT</i>	</td><td>inserts a dummy member in empty structs to enable compilation </td></tr>
 <tr><td><i>WITH_NOGLOBAL</i>	</td><td>omit SOAP Header and Fault serialization code </td></tr>
 <tr><td><i>WITH_CDATA</i>	</td><td>retain the parsed CDATA sections in literal XML strings (no conversion) </td></tr>
+<tr><td><i>WITH_C_LOCALE</i>	</td><td>use locale functions when available to ensure locale-independent </td></tr>
+<tr><td></td><td>number conversions (force the use of C locale) </td></tr>
 <tr><td><i>WITH_CASEINSENSITIVETAGS</i>	</td><td>enable case insensitive XML parsing </td></tr></table>
 
 </td></tr></table><br></span>
@@ -11743,7 +11747,7 @@ socket options. See the manual pages of <i>send</i> and <i>recv</i> for
 These <i>SO_</i> socket option flags (see <i>setsockopt</i> manual pages)
 can be bit-wise or-ed to set multiple
 socket options at once.
-The client-side flag <i>soap.connect_flags=SO_LINGER</i> is supported with values <i>l_onoff=1</i> and <i>l_linger=0</i>.
+The client-side flag <i>soap.connect_flags=SO_LINGER</i> is supported with values <i>l_onoff=1</i> and <i>l_linger=soap.linger_time</i>. The <i>soap.linger_time</i> determines the wait time (the time resolution is system dependent, though according to some experts only zero and nonzero values matter). The linger option can be used to manage the number of connections that remain in TIME_WAIT state at the server side.
 
 <div class="p"><!----></div>
 For example, to disable sigpipe signals on Unix/Linux platforms use: 
@@ -12049,6 +12053,27 @@ client, if server authentication is required. Althernatively, you can use the
 in your client code.
 
 <div class="p"><!----></div>
+Other client-side SSL options are <i>SOAP_SSL_SKIP_HOST_CHECK</i> to skip the host name verification check and <i>SOAP_SSL_ALLOW_EXPIRED_CERTIFICATE</i> to allow connecting to a host with an expired certificate. For example,
+
+<div class="p"><!----></div>
+<br><br><table border=0 width="100%" cellpadding="8" bgcolor="#B0D0B0"><tr><td><i>
+soap_ssl_init(); /* init OpenSSL (just once) */<br />
+<b>if</b>&nbsp;(soap_ssl_client_context(&amp;soap, <br />
+&nbsp;&nbsp;&nbsp;SOAP_SSL_REQUIRE_SERVER_AUTHENTICATION  <br />
+&nbsp;&nbsp;&nbsp;| SOAP_SSL_SKIP_HOST_CHECK, <br />
+&nbsp;&nbsp;&nbsp;| SOAP_SSL_ALLOW_EXPIRED_CERTIFICATE, <br />
+&nbsp;&nbsp;&nbsp;"client.pem",	/* keyfile: required only when client must authenticate to server (see SSL docs on how to obtain this file) */ <br />
+&nbsp;&nbsp;&nbsp;"password",		/* password to read the key file */ <br />
+&nbsp;&nbsp;&nbsp;"cacerts.pem", 	/* cacert file to store trusted certificates (needed to verify server) */
+&nbsp;&nbsp;&nbsp;NULL,		/* capath to direcoty with trusted certificates */ <br />
+&nbsp;&nbsp;&nbsp;NULL		/* if randfile!=NULL: use a file with random data to seed randomness */  <br />
+)) <br />
+{ <br />
+&nbsp;&nbsp;&nbsp;soap_print_fault(&amp;soap, stderr); <br />
+&nbsp;&nbsp;&nbsp;exit(1); <br />
+} <br />
+soap_call_ns__mymethod(&amp;soap, "https://domain/path/secure.cgi", "", ...);
+</td></tr></table><br></i>
 For systems based on Microsoft windows, the WinInet module can be used instead, see <i>mod_gsoap/gsoap_win/wininet</i>.
 
 <div class="p"><!----></div>
@@ -12933,7 +12958,7 @@ To compile and link a server object is very similar. For example, assume that we
 //gsoap ns service name: Service <br />
 //gsoap ns service style: rpc <br />
 //gsoap ns service encoding: encoded <br />
-//gsoap ns service location: http://www.cs.fsu.edu/&nbsp;engelen/calc.cgi <br />
+//gsoap ns service location: http://www.cs.fsu.edu/~engelen/calc.cgi <br />
 //gsoap ns schema namespace: urn:calc <br />
 <b>int</b>&nbsp;ns__add(<b>double</b>&nbsp;a, <b>double</b>&nbsp;b, <b>double</b>&nbsp;&amp;result); <br />
 <b>int</b>&nbsp;ns__sub(<b>double</b>&nbsp;a, <b>double</b>&nbsp;b, <b>double</b>&nbsp;&amp;result); <br />
@@ -13495,5 +13520,5 @@ included in the package.
 T<sub><font size="-1">E</font></sub>X
 by <a href="http://hutchinson.belmont.ma.us/tth/">
 T<sub><font size="-1">T</font></sub>H</a>,
-version 3.39.<br />On 26 Jan 2008, 12:29.</small>
+version 3.39.<br />On 29 Jul 2008, 12:03.</small>
 </html>

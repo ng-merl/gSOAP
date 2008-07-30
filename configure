@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE build build_cpu build_vendor build_os host host_cpu host_vendor host_os CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE CC CFLAGS ac_ct_CC CCDEPMODE LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP RANLIB ac_ct_RANLIB LN_S SAMPLE_EXTRA_LIBS platform EGREP LIBOBJS POW_LIB DEBUG_COMPILE_TRUE DEBUG_COMPILE_FALSE SOAPCPP2_DEBUG SOAPCPP2_IMPORTPATH WSDL2H_IMPORTPATH SOAPCPP2_NONAMESPACES ENABLE_SAMPLES_TRUE ENABLE_SAMPLES_FALSE ENABLE_SAMPLES SAMPLE_DIRS LEX_DEFINE LEX_FLAGS BISON_DEFINE YACC_LIB LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE build build_cpu build_vendor build_os host host_cpu host_vendor host_os CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE CC CFLAGS ac_ct_CC CCDEPMODE LEX LEXLIB LEX_OUTPUT_ROOT YACC CPP RANLIB ac_ct_RANLIB LN_S SAMPLE_EXTRA_LIBS platform EGREP LIBOBJS POW_LIB DEBUG_COMPILE_TRUE DEBUG_COMPILE_FALSE SOAPCPP2_DEBUG SOAPCPP2_IMPORTPATH WSDL2H_IMPORTPATH SOAPCPP2_NONAMESPACES WSDL2H_EXTRA_FLAGS WSDL2H_EXTRA_LIBS ENABLE_SAMPLES_TRUE ENABLE_SAMPLES_FALSE ENABLE_SAMPLES SAMPLE_DIRS LEX_DEFINE LEX_FLAGS BISON_DEFINE YACC_LIB LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -863,6 +863,7 @@ Optional Features:
   --enable-dependency-tracking  Do not reject slow dependency extractors
   --enable-debug	  add debug symbols for debugging
   --disable-namespaces    compile library without namespaces
+  --disable-openssl       compile wsdl2h without openssl
   --enable-samples	  enable compile for the gsoap samples
 
 Some influential environment variables:
@@ -4075,7 +4076,9 @@ case "${host}" in
 			;;
         *-*-linux*)     platform=LINUX
 			;;
-	*-*-cygwin*)	platform=CYGWIN
+	*-*-cygwin*)	platform=CYGWIN ;;
+	*-*-mingw*)	platform=MINGW
+			SAMPLE_EXTRA_LIBS="-lws2_32 -lkernel32 -luser32 -lgdi32"
 			;;
         *-*-freebsd*)   platform=FREEBSD ;;
         *-*-irix*)      platform=IRIX ;;
@@ -4096,7 +4099,9 @@ case "${host}" in
         *-*-mvs*)       platform=OS390 ;;
         *-*-os400*)     platform=OS400 ;;
         *-*-OS400*)     platform=OS400 ;;
-        *-*-osf*)	platform=TRU64 ;;
+        *-*-osf*)	platform=TRU64
+			SAMPLE_EXTRA_LIBS="-lm"
+			;;
         *-apple-*)	platform=MACOSX ;;
 	*-nto-qnx)	platform=QNX
 			SAMPLE_EXTRA_LIBS="-lsocket"
@@ -4379,7 +4384,8 @@ done
 
 
 
-for ac_header in arpa/inet.h xlocale.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h openssl/ssl.h zlib.h
+
+for ac_header in arpa/inet.h xlocale.h errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h stdint.h sys/socket.h sys/types.h sys/time.h sys/timeb.h unistd.h openssl/ssl.h zlib.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -6283,12 +6289,12 @@ else
 fi
 
 
-# SOAPCPP2_IMPORTPATH="-DSOAPCPP_IMPORT_PATH=\"\\\"${datadir}/gsoap/import\\\"\""
-SOAPCPP2_IMPORTPATH="-DSOAPCPP2_IMPORT_PATH=\"\\\"`pwd`/gsoap/import\\\"\""
+SOAPCPP2_IMPORTPATH="-DSOAPCPP_IMPORT_PATH=\"\\\"${datadir}/gsoap/import\\\"\""
+# SOAPCPP2_IMPORTPATH="-DSOAPCPP2_IMPORT_PATH=\"\\\"`pwd`/gsoap/import\\\"\""
 
 
-# WSDL2H_IMPORTPATH="-DWSDL_IMPORT_PATH=\"\\\"${datadir}/gsoap/WS\\\"\""
-WSDL2H_IMPORTPATH="-DWSDL2H_IMPORT_PATH=\"\\\"`pwd`/gsoap/WS\\\"\""
+WSDL2H_IMPORTPATH="-DWSDL_IMPORT_PATH=\"\\\"${datadir}/gsoap/WS\\\"\""
+# WSDL2H_IMPORTPATH="-DWSDL2H_IMPORT_PATH=\"\\\"`pwd`/gsoap/WS\\\"\""
 
 
 # Check whether --enable-namespaces or --disable-namespaces was given.
@@ -6309,6 +6315,30 @@ else
 echo "${ECHO_T}yes" >&6
   SOAPCPP2_NONAMESPACES="-DWITH_NONAMESPACES" ##define to remove nsmap link dependence
 fi
+
+
+# Check whether --enable-openssl or --disable-openssl was given.
+if test "${enable_openssl+set}" = set; then
+  enableval="$enable_openssl"
+  with_openssl="$enable_openssl"
+else
+  with_openssl="yes"
+fi;
+
+echo "$as_me:$LINENO: checking for disable openssl in library" >&5
+echo $ECHO_N "checking for disable openssl in library... $ECHO_C" >&6
+if test "x$with_openssl" = "xyes"; then
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+  WSDL2H_EXTRA_FLAGS="-DWITH_OPENSSL -DWITH_GZIP"
+  WSDL2H_EXTRA_LIBS="-lssl -lcrypto -lz"
+else
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+  WSDL2H_EXTRA_FLAGS=
+  WSDL2H_EXTRA_LIBS=
+fi
+
 
 
 # Check whether --enable-samples or --disable-samples was given.
@@ -7110,6 +7140,8 @@ s,@SOAPCPP2_DEBUG@,$SOAPCPP2_DEBUG,;t t
 s,@SOAPCPP2_IMPORTPATH@,$SOAPCPP2_IMPORTPATH,;t t
 s,@WSDL2H_IMPORTPATH@,$WSDL2H_IMPORTPATH,;t t
 s,@SOAPCPP2_NONAMESPACES@,$SOAPCPP2_NONAMESPACES,;t t
+s,@WSDL2H_EXTRA_FLAGS@,$WSDL2H_EXTRA_FLAGS,;t t
+s,@WSDL2H_EXTRA_LIBS@,$WSDL2H_EXTRA_LIBS,;t t
 s,@ENABLE_SAMPLES_TRUE@,$ENABLE_SAMPLES_TRUE,;t t
 s,@ENABLE_SAMPLES_FALSE@,$ENABLE_SAMPLES_FALSE,;t t
 s,@ENABLE_SAMPLES@,$ENABLE_SAMPLES,;t t

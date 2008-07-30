@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& o, const struct value& v)
   { case SOAP_TYPE__array: 
       o << "{array" << std::endl;
       for (_array::iterator i = ((struct _array)v).begin(); i != ((struct _array)v).end(); ++i)
-	  o << "[" << i.index() << "]=" << *i << std::endl;
+        o << "[" << i.index() << "]=" << (*i) << std::endl;
       o << "}";
       break;
     case SOAP_TYPE__base64: 
@@ -67,7 +67,7 @@ std::ostream& operator<<(std::ostream& o, const struct value& v)
     case SOAP_TYPE__struct: 
       o << "{struct" << std::endl;
       for (_struct::iterator i = ((struct _struct)v).begin(); i != ((struct _struct)v).end(); ++i)
-        o << "[" << i.index() << "]=" << *i << std::endl;
+        o << "[" << i.index() << "]=" << (*i) << std::endl;
       o << "}";
       break;
     default:
@@ -80,7 +80,16 @@ std::ostream& operator<<(std::ostream& o, const struct value& v)
 }
 
 std::istream& operator>>(std::istream& i, struct value& v)
-{ // TODO
+{ if (!v.soap)
+    v.soap = soap_new();
+  std::istream *is = v.soap->is;
+  v.soap->is = &i;
+  if (soap_begin_recv(v.soap)
+   || soap_get_value(v.soap, &v, "value", NULL)
+   || soap_end_recv(v.soap))
+  { /* handle error? Note: v.soap->error is set */
+  }
+  v.soap->is = is;
   return i;
 }
 

@@ -261,9 +261,10 @@ int main(int argc, char **argv)
   if (port % 2)
     secure = 1;
   if (secure)
-    fprintf(stderr, "[Note: use https://localhost:%d/test.html to test the server from browser]\n", port);
+    fprintf(stderr, "[Note: https://localhost:%d/test.html to test the server from browser]\n", port);
   else
-    fprintf(stderr, "[Note: use http://localhost:%d/test.html to test the server from browser]\n", port);
+    fprintf(stderr, "[Note: http://localhost:%d/test.html to test the server from browser]\n", port);
+  fprintf(stderr, "[Note: http://localhost:%d for settings, login: '"AUTH_USERID"' and '"AUTH_PASSWD"']\n", port);
   fprintf(stderr, "[Note: you should enable Linux/Unix SIGPIPE handlers to avoid broken pipe]\n");
 
   soap_init2(&soap, SOAP_IO_KEEPALIVE, SOAP_IO_DEFAULT);
@@ -335,9 +336,6 @@ void server_loop(struct soap *soap)
   struct soap *soap_thr[MAX_THR];
   THREAD_TYPE tid, tids[MAX_THR];
   int req;
-  struct logging_data *logdata;
-
-  logdata = (struct logging_data*)soap_lookup_plugin(soap, logging_id); /* need to access plugin's data */
 
   for (req = 1; ; req++)
   {
@@ -358,13 +356,13 @@ void server_loop(struct soap *soap)
     if (options[OPTION_s].value)
       soap->accept_timeout = atol(options[OPTION_s].value);
     if (options[OPTION_l].selected == 1 || options[OPTION_l].selected == 3)
-      logdata->inbound = stdout;
+      soap_set_logging_inbound(soap, stdout);
     else
-      logdata->inbound = NULL;
+      soap_set_logging_inbound(soap, NULL);
     if (options[OPTION_l].selected == 2 || options[OPTION_l].selected == 3)
-      logdata->outbound = stdout;
+      soap_set_logging_outbound(soap, stdout);
     else
-      logdata->outbound = NULL;
+      soap_set_logging_outbound(soap, NULL);
 
     newpoolsize = atol(options[OPTION_o].value);
 
@@ -413,6 +411,14 @@ void server_loop(struct soap *soap)
 
       poolsize = job;
     }
+
+    /* to control the close behavior and wait states, use the following:
+    soap->accept_flags |= SO_LINGER;
+    soap->linger_time = 60;
+    */
+    /* the time resolution of linger_time is system dependent, though according
+     * to some experts only zero and nonzero values matter.
+    */
 
     sock = soap_accept(soap);
     if (!soap_valid_socket(sock))
@@ -994,7 +1000,7 @@ int f__form2(struct soap *soap, struct f__formResponse *response)
 
 int info(struct soap *soap)
 { struct http_get_data *getdata;
-  struct logging_data *logdata;
+  size_t stat_sent, stat_recv;
   const char *t0, *t1, *t2, *t3, *t4, *t5, *t6, *t7;
   char buf[2048]; /* buffer large enough to hold HTML content */
   struct soap_plugin *p;
@@ -1097,20 +1103,18 @@ int info(struct soap *soap)
   if (soap_send(soap, buf))
     return soap->error;
   getdata = (struct http_get_data*)soap_lookup_plugin(soap, http_get_id);
-  logdata = (struct logging_data*)soap_lookup_plugin(soap, logging_id);
+  soap_get_logging_stats(soap, &stat_sent, &stat_recv);
   soap_send(soap, "<h2>Usage Statistics</h2>");
   if (getdata)
   { html_hbar(soap, "HTTP&nbsp;GET", 120, getdata->stat_get, 0x0000FF);
     html_hbar(soap, "HTTP&nbsp;POST", 120, getdata->stat_post, 0x00FF00);
     html_hbar(soap, "HTTP&nbsp;FAIL", 120, getdata->stat_fail, 0xFF0000);
   }
-  if (logdata)
-  { html_hbar(soap, "SENT(kB)", 120, logdata->stat_sent/1024, 0x00FFFF);
-    html_hbar(soap, "RECV(kB)", 120, logdata->stat_recv/1024, 0x00FFFF);
-    if (elapsed > 0)
-    { html_hbar(soap, "SENT(kB/s)", 120, logdata->stat_sent/elapsed/1024, 0x00FFFF);
-      html_hbar(soap, "RECV(kB/s)", 120, logdata->stat_recv/elapsed/1024, 0x00FFFF);
-    }
+  html_hbar(soap, "SENT(kB)", 120, stat_sent/1024, 0x00FFFF);
+  html_hbar(soap, "RECV(kB)", 120, stat_recv/1024, 0x00FFFF);
+  if (elapsed > 0)
+  { html_hbar(soap, "SENT(kB/s)", 120, stat_sent/elapsed/1024, 0x00FFFF);
+    html_hbar(soap, "RECV(kB/s)", 120, stat_recv/elapsed/1024, 0x00FFFF);
   }
   if (getdata)
   { struct tm T;

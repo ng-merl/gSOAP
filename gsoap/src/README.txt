@@ -25,6 +25,12 @@ export BISON_HAIRY=$QNX_HOST/usr/share/bison/bison.hairy
 WIN32
 =====
 
-Bison 1.6 can crash on Win32 systems if YYINITDEPTH is too small:
+You need to install Flex and Bison to build soapcpp2.
+
+An MSN article explains how to do this with MS VS2005:
+
+http://msdn.microsoft.com/en-us/library/aa730877(VS.80).aspx#vccustombr_topic3
+
+The older Bison v1.6 can crash on Win32 systems if YYINITDEPTH is too small:
 Compile with /DYYINITDEPTH=5000
 

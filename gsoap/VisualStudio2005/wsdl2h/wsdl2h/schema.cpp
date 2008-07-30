@@ -58,6 +58,8 @@ xs__schema::xs__schema()
   soap->encodingStyle = NULL;
   soap->proxy_host = proxy_host;
   soap->proxy_port = proxy_port;
+  soap->proxy_userid = proxy_userid;
+  soap->proxy_passwd = proxy_passwd;
   targetNamespace = NULL;
   version = NULL;
   updated = false;
@@ -297,25 +299,25 @@ int xs__schema::read(const char *cwd, const char *loc)
   if (!cwd)
     cwd = cwd_path;
   if (vflag)
-    fprintf(stderr, "Opening schema '%s' from '%s'\n", loc?loc:"", cwd?cwd:"");
+    fprintf(stderr, "\nOpening schema '%s' from '%s'\n", loc?loc:"", cwd?cwd:"");
   if (loc)
   {
 #ifdef WITH_OPENSSL
     if (!strncmp(loc, "http://", 7) || !strncmp(loc, "https://", 8))
 #else
     if (!strncmp(loc, "https://", 8))
-    { fprintf(stderr, "Cannot connect to https site: no SSL support, please rebuild with 'make secure' or download the files and rerun wsdl2h\n");
+    { fprintf(stderr, "\nCannot connect to https site: no SSL support, please rebuild with SSL (default) or download the files and rerun wsdl2h\n");
       exit(1);
     }
     else if (!strncmp(loc, "http://", 7))
 #endif
-    { fprintf(stderr, "Connecting to '%s' to retrieve schema... ", loc);
+    { fprintf(stderr, "\nConnecting to '%s' to retrieve schema... ", loc);
       location = soap_strdup(soap, loc);
       if (soap_connect_command(soap, SOAP_GET, location, NULL))
-      { fprintf(stderr, "connection failed\n");
+      { fprintf(stderr, "\nConnection failed\n");
         exit(1);
       }
-      fprintf(stderr, "connected, receiving...\n");
+      fprintf(stderr, "connected, receiving... ");
     }
     else if (cwd && (!strncmp(cwd, "http://", 7) || !strncmp(cwd, "https://", 8)))
     { char *s;
@@ -326,12 +328,12 @@ int xs__schema::read(const char *cwd, const char *loc)
         *s = '\0';
       strcat(location, "/");
       strcat(location, loc);
-      fprintf(stderr, "Connecting to '%s' to retrieve relative '%s' schema... ", location, loc);
+      fprintf(stderr, "\nConnecting to '%s' to retrieve relative '%s' schema... ", location, loc);
       if (soap_connect_command(soap, SOAP_GET, location, NULL))
-      { fprintf(stderr, "connection failed\n");
+      { fprintf(stderr, "\nConnection failed\n");
         exit(1);
       }
-      fprintf(stderr, "connected, receiving...\n");
+      fprintf(stderr, "connected, receiving... ");
     }
     else
     { soap->recvfd = open(loc, O_RDONLY, 0);
@@ -363,13 +365,13 @@ int xs__schema::read(const char *cwd, const char *loc)
           soap->recvfd = open(location, O_RDONLY, 0);
         }
         if (soap->recvfd < 0)
-        { fprintf(stderr, "Cannot open '%s' to retrieve schema\n", loc);
+        { fprintf(stderr, "\nCannot open '%s' to retrieve schema\n", loc);
           exit(1);
         }
       }
       else
         location = soap_strdup(soap, loc);
-      fprintf(stderr, "Reading schema file '%s'\n", location);
+      fprintf(stderr, "\nReading schema file '%s'... ", location);
     }
   }
   cwd_temp = cwd_path;
@@ -378,20 +380,21 @@ int xs__schema::read(const char *cwd, const char *loc)
     this->soap_in(soap, "xs:schema", NULL);
   if ((soap->error >= 301 && soap->error <= 303) || soap->error == 307) // HTTP redirect, socket was closed
   { int r = SOAP_ERR;
-    fprintf(stderr, "Redirected to '%s'\n", soap->endpoint);
+    fprintf(stderr, "redirected to '%s'... ", soap->endpoint);
     if (redirs++ < 10)
       r = read(cwd, soap->endpoint);
     else
-      fprintf(stderr, "Max redirects exceeded\n");
+      fprintf(stderr, "\nMax redirects exceeded\n");
     redirs--;
     return r;
   }
   if (soap->error)
-  { fprintf(stderr, "An error occurred while parsing schema from '%s'\n", loc?loc:"");
+  { fprintf(stderr, "\nAn error occurred while parsing schema from '%s'\n", loc?loc:"");
     soap_print_fault(soap, stderr);
     soap_print_fault_location(soap, stderr);
     exit(1);
   }
+  fprintf(stderr, "done reading '%s'\n", loc?loc:"");
   soap_end_recv(soap);
   if (soap->recvfd > 2)
   { close(soap->recvfd);

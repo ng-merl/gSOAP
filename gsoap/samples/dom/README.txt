@@ -2,6 +2,8 @@
 DOM example based on the calculator service (samples/calc). This example
 implements a DOM-message-based calculator client.
 
+See gsoap/doc/dom/html/index.html for the DOM API documentation.
+
 C and C++ types can be serialized and deserialized automatically in a DOM
 object. To do this, enable the SOAP_DOM_NODE flag and make sure that either
 xsi:types attribute values or XML element/attribute tag names match the name of
@@ -22,8 +24,6 @@ soap_dom_element::type==SOAP_TYPE_result.
 
 In C++ use the soap_dom_element::set() method to set an object in DOM and use
 the soap_dom_element::find() method to search for objects.
-
-See doc/dom/html/index.html for more details.
 
 When declaring types for elements and attributes in a gSOAP header file for
 processing with soapcpp2, it is advised to use a leading '_' to prevent them

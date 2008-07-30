@@ -184,12 +184,18 @@ This graph shows which files directly or indirectly include this file:<p><center
 <tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a64">soap_wsse_verify_done</a> (struct soap *soap)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Terminates the automatic verification of signatures.  <a href="#a64"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 void SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a65">soap_default_xsd__anyType</a> (struct soap *, struct soap_dom_element *node)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>size_t&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a65">soap_wsse_verify_element</a> (struct soap *soap, const char *URI, const char *tag)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 int SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a66">soap_out_xsd__anyType</a> (struct soap *soap, const char *tag, int id, const struct soap_dom_element *node, const char *type)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Post-checks the presence of signed element(s). Does not verify the signature of these elements, which is done with soap_wee_verify_auto.  <a href="#a65"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>int&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a66">soap_wsse_verify_body</a> (struct soap *soap)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Post-checks the presence of signed SOAP Body. Does not verify the signature of the Body, which is done with soap_wee_verify_auto.  <a href="#a66"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 void SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a67">soap_default_xsd__anyType</a> (struct soap *, struct soap_dom_element *node)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 int SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a68">soap_out_xsd__anyType</a> (struct soap *soap, const char *tag, int id, const struct soap_dom_element *node, const char *type)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>SOAP_FMAC1 struct soap_dom_element <br>
-*SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a67">soap_in_xsd__anyType</a> (struct soap *soap, const char *tag, struct soap_dom_element *node, const char *type)</td></tr>
+*SOAP_FMAC2&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a69">soap_in_xsd__anyType</a> (struct soap *soap, const char *tag, struct soap_dom_element *node, const char *type)</td></tr>
 
 <tr><td colspan=2><br><h2>Variables</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>const char&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="wsseapi_8h.html#a1">soap_wsse_id</a> []</td></tr>
@@ -244,7 +250,7 @@ plugin identification for plugin registry     </td>
   </tr>
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a65" doxytag="wsseapi.h::soap_default_xsd__anyType" ></a><p>
+<a class="anchor" name="a67" doxytag="wsseapi.h::soap_default_xsd__anyType" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -281,7 +287,7 @@ plugin identification for plugin registry     </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a67" doxytag="wsseapi.h::soap_in_xsd__anyType" ></a><p>
+<a class="anchor" name="a69" doxytag="wsseapi.h::soap_in_xsd__anyType" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -330,7 +336,7 @@ plugin identification for plugin registry     </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a66" doxytag="wsseapi.h::soap_out_xsd__anyType" ></a><p>
+<a class="anchor" name="a68" doxytag="wsseapi.h::soap_out_xsd__anyType" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1997,7 +2003,7 @@ Returns UsernameToken/username string or wsse:FailedAuthentication fault.
   </table>
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>UsernameToken/username string or NULL with wsse:FailedAuthentication fault error set </dd></dl>
-<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="wsseapi_8c.html#a45">soap_wsse_verify_Password</a></dd></dl>
+<dl compact><dt><b>See also:</b></dt><dd><a class="el" href="wsseapi_8c.html#a46">soap_wsse_verify_Password</a></dd></dl>
 The returned username should be used to lookup the user's password in a dictionary or database for server-side authentication with soap_wsse_verify_Password.     </td>
   </tr>
 </table>
@@ -2407,6 +2413,42 @@ Uses the wsse plugin to initiate the automatic verification of the signature and
 This function does not actually verify the message, but initiates the plugin's algorithm to store the message in a DOM to automatically verify the signature and digests. If the message does not contain a key to verify the signature, the alg, key, and keylen parameters are used. It is important that the X509 certificate used to verify the signature, which requires soap-&gt;cafile and/or soap-&gt;capath to be set.     </td>
   </tr>
 </table>
+<a class="anchor" name="a66" doxytag="wsseapi.h::soap_wsse_verify_body" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> int soap_wsse_verify_body           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>soap</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Post-checks the presence of signed SOAP Body. Does not verify the signature of the Body, which is done with soap_wee_verify_auto. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK (signed) or SOAP_ERR</dd></dl>
+This function does not actually verify the signature of the Body. It checks whether the Body is signed and thus its integrity is preserved. Clients should call this function after invocation. Services should call this function inside a service operation. This function traverses the entire DOM, so performance is determined by the size of a message.     </td>
+  </tr>
+</table>
 <a class="anchor" name="a44" doxytag="wsseapi.h::soap_wsse_verify_digest" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
@@ -2508,6 +2550,62 @@ Terminates the automatic verification of signatures.
 </dl>
 <dl compact><dt><b>Returns:</b></dt><dd>SOAP_OK </dd></dl>
     </td>
+  </tr>
+</table>
+<a class="anchor" name="a65" doxytag="wsseapi.h::soap_wsse_verify_element" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> size_t soap_wsse_verify_element           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">struct soap *&nbsp;</td>
+          <td class="mdname" nowrap> <em>soap</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>URI</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td></td>
+          <td class="md" nowrap>const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>tag</em></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Post-checks the presence of signed element(s). Does not verify the signature of these elements, which is done with soap_wee_verify_auto. 
+<p>
+<dl compact><dt><b>Parameters:</b></dt><dd>
+  <table border="0" cellspacing="2" cellpadding="0">
+    <tr><td></td><td valign=top><em>soap</em>&nbsp;</td><td>context </td></tr>
+    <tr><td></td><td valign=top><em>URI</em>&nbsp;</td><td>namespace of element(s) </td></tr>
+    <tr><td></td><td valign=top><em>tag</em>&nbsp;</td><td>name of element(s) </td></tr>
+  </table>
+</dl>
+<dl compact><dt><b>Returns:</b></dt><dd>number of matching elements signed.</dd></dl>
+This function does not actually verify the signature of each element, but checks whether the elements are signed and thus their integrity is preserved. Signed element nesting rules are obeyed, so if the matching element is a descendent of a signed element, it is signed as well. Thus, the verification process follows nesting rules.<p>
+Client should call this function after invocation. Services should call this function inside a service operation. This function traverses the entire DOM, so performance is determined by the size of a message.<p>
+To check the SOAP Body (either using SOAP 1.1 or 1.2), <a class="el" href="wsseapi_8c.html#a84">soap_wsse_verify_element</a>(soap, namespaces[0].ns, "Body"). To check whether the Timestamp was signed (assuming it is present and message expiration checked with <a class="el" href="wsseapi_8c.html#a41">soap_wsse_verify_Timestamp</a>), use <a class="el" href="wsseapi_8c.html#a84">soap_wsse_verify_element</a>(soap, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Timestamp").<p>
+Note: for future releases XPath queries (or forms of these) will be considered.     </td>
   </tr>
 </table>
 <a class="anchor" name="a62" doxytag="wsseapi.h::soap_wsse_verify_init" ></a><p>
@@ -3070,7 +3168,7 @@ Plugin identification for plugin registry     </td>
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Sun Jan 6 11:19:17 2008 for gSOAP WS-Security by
+<hr size="1"><address style="align: right;"><small>Generated on Fri Jul 25 16:01:12 2008 for gSOAP WS-Security by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.8 </small></address>
 </body>

@@ -2,6 +2,7 @@
 	xml-rpc.h
 
 	XML-RPC binding for C or C++
+	See xml-rpc.cpp for example API calls
 
 --------------------------------------------------------------------------------
 gSOAP XML Web services tools
@@ -69,21 +70,27 @@ typedef char*		_dateTime_DOTiso8601;	///< ISO8601 date and time formatted string
 /// <base64> binary data element
 
 struct _base64
-{ unsigned char*	__ptr;		///< pointer to raw binary data block
-  int			__size;		///< size of raw binary data block
+{
 // C++ function members, not available in C (when using stdsoap2 -c)
 public:
   			_base64();
   			_base64(struct soap*);
+  			_base64(struct soap*, int, unsigned char*);
   int			size() const;	///< byte size of data
   unsigned char*	ptr();		///< pointer to data
+  void			size(int);	///< set byte size of data
+  void			ptr(unsigned char*);///< set pointer to data
+
+// serializable content
+public:
+  unsigned char*	__ptr;		///< pointer to raw binary data block
+  int			__size;		///< size of raw binary data block
 };
 
 /// <struct> element
 
 struct _struct
-{ int			__size;		///< number of members
-  struct member*	member;		///< pointer to member array
+{
 // C++ function members, not available in C (when using stdsoap2 -c)
 public:
   typedef _struct_iterator iterator;
@@ -95,20 +102,28 @@ public:
   struct value&		operator[](const char*);///< struct accessor index
   _struct_iterator	begin();	///< struct accessor iterator begin
   _struct_iterator	end();		///< struct accessor iterator end
+
+// serializable content
+public:
+  int			__size;		///< number of members
+  struct member*	member;		///< pointer to member array
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
 /// <data> element
 
 struct data
-{ int			__size;		///< number of array elements
+{
+// serializable content
+public:
+  int			__size;		///< number of array elements
   struct value*		value;		///< pointer to array elements
 };
 
 /// <array> element
 
 struct _array
-{ struct data		data;		///< data with values
+{
 // C++ function members, not available in C (when using stdsoap2 -c)
 public:
   typedef _array_iterator iterator;
@@ -120,6 +135,10 @@ public:
   struct value&		operator[](int);///< array index
   _array_iterator	begin();	///< array iterator begin
   _array_iterator	end();		///< array iterator end
+ 
+// serializable content
+public:
+  struct data		data;		///< data with values
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
@@ -133,9 +152,7 @@ __type = SOAP_TYPE__int then *(int*)ref is an integer and when __type =
 SOAP_TYPE__string (char*)ref is a string.
 */
 struct value
-{ int			__type 0;	///< optional SOAP_TYPE_X, where X is a type name
-  void*			ref;		///< ref to data
-  char*			__any;		///< <value> string content, when present
+{
 // C++ function members, not available in C (when using stdsoap2 -c)
 public:
 			value();
@@ -179,21 +196,29 @@ public:
   extern bool		is_struct() const;	///< true if value is struct type
   extern bool		is_true() const;	///< true if value is boolean true
   extern bool		is_dateTime() const;	///< true if value is dateTime
+ 
+// serializable content
+public:
+  int			__type 0;	///< optional SOAP_TYPE_X, where X is a type name
+  void*			ref;		///< ref to data
+  char*			__any;		///< <value> string content, when present
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
 /// <member>
 
 struct member
-{ char*			name;		///< struct accessor name
+{ 
+// serializable content
+public:
+  char*			name;		///< struct accessor name
   struct value		value;		///< struct accessor value
 };
 
 /// <params>
 
 struct params
-{ int			__size;		///< number of parameters
-  struct param*		param;		///< pointer to array of parameters
+{
 // C++ function members, not available in C (when using stdsoap2 -c)
 public:
   typedef params_iterator iterator;
@@ -205,40 +230,59 @@ public:
   struct value&		operator[](int);///< parameter index
   params_iterator	begin();	///< struct accessor iterator begin
   params_iterator	end();		///< struct accessor iterator end
+
+// serializable content
+public:
+  int			__size;		///< number of parameters
+  struct param*		param;		///< pointer to array of parameters
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
 /// <param>
 
 struct param
-{ struct value		value;		///< parameter value
-// C++ function members, not available in C (when using stdsoap2 -c)
+{
+// serializable content
 public:
+  struct value		value;		///< parameter value
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
 /// <methodResponse>
  
 struct methodResponse
-{ struct params*	params;		///< response parameters
-  struct fault*		fault;		///< response fault
+{
+// C++ function members, not available in C (when using stdsoap2 -c)
 public:
   			methodResponse();
   			methodResponse(struct soap*);
+  struct value&		operator[](int);///< response parameter accessor index
+  struct value&		get_fault(void);///< get fault, if set
+  struct value&		set_fault(const char*);///< set fault
+  struct value&		set_fault(struct value&);///< set fault
+  int			recv();		///< receive response
+  int			send();		///< send response
+
+// serializable content
+public:
+  struct params*	params;		///< response parameters
+  struct fault*		fault;		///< response fault
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
   
 /// <methodCall>
 
 struct methodCall
-{ char*			methodName;	///< name of the method
-  struct params		params;		///< method request parameters
-// C++ function members, not available in C (when using stdsoap2 -c)
+{
+// private state info
 private:
   char*			methodEndpoint;	///< XML-RPC endpoint
   struct methodResponse*methodResponse; ///< holds the response after the call
+
+// C++ function members, not available in C (when using stdsoap2 -c)
 public:
   			methodCall();
+  			methodCall(struct soap*);
   			methodCall(struct soap*, const char *endpoint, const char *methodname);
 			///< instantiate with endpoint and method name
   struct value&		operator[](int);///< method parameter accessor index
@@ -246,13 +290,24 @@ public:
   struct params&	operator()(const struct params&);
   			///< method invocation with param list
   struct params&	response();	///< get last response
-  struct value&		fault();	///< fault value
+  struct value&		fault();	///< fault value of response
+  const char*		name() const;	///< get method name
   int			error() const;	///< gSOAP error code
+  int			recv();		///< receive call
+  int			send();		///< send call
+
+// serializable content
+public:
+  char*			methodName;	///< name of the method
+  struct params		params;		///< method request parameters
   struct soap*		soap;		///< ref to soap struct that manages this type
 };
 
 /// <fault>
 
 struct fault
-{ struct value		value;		///< value of the fault
+{
+// serializable content
+public:
+  struct value		value;		///< value of the fault
 };

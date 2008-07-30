@@ -42,8 +42,10 @@ class Message
 { public:
     const char *name;
     const char *URI;
+    soap__styleChoice style;
     soap__useChoice use;
     const char *encodingStyle;
+    const char *action;
     wsdl__message *message;
     const char *body_parts;
     wsdl__part *part;

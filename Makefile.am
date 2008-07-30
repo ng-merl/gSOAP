@@ -21,17 +21,15 @@ EXTRA_DIST = gsoap.pc.in gsoap++.pc.in gsoapck.pc.in gsoapck++.pc.in gsoapssl.pc
 
 install-data-hook:
 	echo "+--------------------------------------------------------+"; \
-	echo "| You now have successfully built and installed          |"; \
-	echo "| gsoap.                                                 |"; \
+	echo "| You now have successfully built and installed gsoap.   |"; \
 	echo "|                                                        |"; \
 	echo "| You can link your programs with -lgsoap++ for          |"; \
 	echo "| C++ projects created with soapcpp2 and you can link    |"; \
 	echo "| with -lgsoap for C projects generated with soapcpp2 -c |"; \
 	echo "|                                                        |"; \
-	echo "| There are also the corresponding libraries for cookie- |"; \
-	echo "| support (-lgsoapck and lgsoapck++)                     |"; \
-	echo "|                                                        |"; \
-	echo "| The include file stdsoap2.h has been installed.        |"; \
+	echo "| There are also corresponding libraries for SSL and     |"; \
+	echo "| zlib compression support (-lgsoapssl and lgsoapssl++)  |"; \
+	echo "| which require linking -lssl -lcrypto -lz               |"; \
 	echo "|                                                        |"; \
 	echo "| Thanks for using gsoap.                                |"; \
 	echo "|                                                        |"; \

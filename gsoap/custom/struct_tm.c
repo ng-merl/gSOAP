@@ -1,13 +1,15 @@
 /*
+	struct_tm.c
 
-struct_tm.c
+	Custom serializer for <time.h> struct tm
 
-Custom serializer for <time.h> struct tm
+	Compile this file and link it with your code.
 
-Compile this file and link it with your code.
+	Changes:
+	Feb 8, 2008: fixed local time to internal GMT conversion
 
 gSOAP XML Web services tools
-Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia Inc., All Rights Reserved.
 This part of the software is released under ONE of the following licenses:
 GPL, the gSOAP public license, OR Genivia's license for commercial use.
 --------------------------------------------------------------------------------
@@ -22,7 +24,7 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 for the specific language governing rights and limitations under the License.
 
 The Initial Developer of the Original Code is Robert A. van Engelen.
-Copyright (C) 2000-2007, Robert van Engelen, Genivia, Inc., All Rights Reserved.
+Copyright (C) 2000-2008, Robert van Engelen, Genivia, Inc., All Rights Reserved.
 --------------------------------------------------------------------------------
 GPL license.
 
@@ -98,14 +100,14 @@ int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct tm *a)
   if (s)
   { char zone[32];
     const char *t;
-    zone[sizeof(zone)-1] = '\0';
     if (strchr(s, '-'))
       t = "%d-%d-%dT%d:%d:%d%31s";
     else if (strchr(s, ':'))
       t = "%4d%2d%2dT%d:%d:%d%31s";
     else /* parse non-XSD-standard alternative ISO 8601 format */
       t = "%4d%2d%2dT%2d%2d%2d%31s";
-    sscanf(s, t, &a->tm_year, &a->tm_mon, &a->tm_mday, &a->tm_hour, &a->tm_min, &a->tm_sec, zone);
+    if (sscanf(s, t, &a->tm_year, &a->tm_mon, &a->tm_mday, &a->tm_hour, &a->tm_min, &a->tm_sec, zone) < 6)
+      return soap->error = SOAP_TYPE;
     a->tm_wday = -1;
     a->tm_yday = -1;
     if (a->tm_year == 1)
@@ -113,22 +115,23 @@ int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct tm *a)
     else
       a->tm_year -= 1900;
     a->tm_mon--;
-    if (*zone)
-    { if (*zone == '.')
-      { for (s = zone + 1; *s; s++)
-          if (*s < '0' || *s > '9')
-            break;
-      }
-      else
-        s = zone;
-      if (*s == '+' || *s == '-')
+    if (*zone == '.')
+    { for (s = zone + 1; *s; s++)
+        if (*s < '0' || *s > '9')
+          break;
+    }
+    else
+      s = zone;
+    if (*s)
+    { if (*s == '+' || *s == '-')
       { int h = 0, m = 0;
         if (s[3] == ':')
-        { sscanf(s, "%d:%d", &h, &m);
+        { /* +hh:mm */
+	  sscanf(s, "%d:%d", &h, &m);
           if (h < 0)
             m = -m;
         }
-        else
+        else /* +hhmm */
         { m = (int)atol(s);
           h = m / 100;
           m = m % 100;
@@ -136,10 +139,37 @@ int soap_s2xsd__dateTime(struct soap *soap, const char *s, struct tm *a)
         a->tm_hour -= h;
         a->tm_min -= m;
       }
-      a->tm_isdst = 0;
     }
-    else
-      a->tm_isdst = -1;
+    else /* if no time zone then convert to internal GMT without considering DST */
+    { int minuteswest;
+#if defined(HAVE_GETTIMEOFDAY)
+      struct timeval tv;
+      struct timezone tz;
+      gettimeofday(&tv, &tz);
+      minuteswest = tz.tz_minuteswest;
+#elif defined(HAVE_FTIME)
+      struct timeb tb;
+      memset((void*)&tb, 0, sizeof(tb));
+#ifdef __BORLAND__
+      ::ftime(&tb);
+#else
+      ftime(&tb);
+#endif
+      minuteswest = tb.timezone;
+#else
+      /* local timezone unknown */
+      minuteswest = 0;
+#endif
+      a->tm_min += minuteswest;
+    }
+    a->tm_hour += a->tm_min / 60;
+    a->tm_min %= 60;
+    if (a->tm_min < 0)
+      a->tm_min += 60;
+    a->tm_mday += a->tm_hour / 24;
+    a->tm_hour %= 24;
+    if (a->tm_hour < 0)
+      a->tm_hour += 24;
   }
   return soap->error;
 }

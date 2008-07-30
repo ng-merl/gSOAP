@@ -29,9 +29,10 @@
 	rss_box		the bounding div for the entire display 
 	rss_table	the table with title, image, and items
 	rss_title	the title of the feed and link style if displayed
-	rss_image	the image
-	rss_bar		the dividing bar
+	rss_image	the image of the feed
+	rss_bar		the dividing bar between items
 	rss_item	the title of the item
+	rss_date	the date of the item
 	rss_desc	the description of the item
 
 --------------------------------------------------------------------------------
@@ -183,9 +184,9 @@ int main(int argc, char **argv)
 	  else
 	    docwrite1(soap, "<tr><td class='rss_item' bgcolor='#dddddd'>", item->title, "</td></tr>");
 	  if (show_date && item->pubDate)
-	    docwrite1(soap, "<tr><td class='rss_date' bgcolor='#dddddd'>Posted on ", item->pubDate, "</td></tr>");
+	    docwrite1(soap, "<tr><td class='rss_date' bgcolor='#eeeeee'>Posted ", item->pubDate, "</td></tr>");
 	  else if (show_date && item->dc__date)
-	    docwrite1(soap, "<tr><td class='rss_date' bgcolor='#dddddd'>Posted on ", ctime(item->dc__date), "</td></tr>");
+	    docwrite1(soap, "<tr><td class='rss_date' bgcolor='#eeeeee'>Posted ", ctime(item->dc__date), "</td></tr>");
 	  if (item->description)
 	    docwrite1(soap, "<tr><td class='rss_desc' bgcolor='#eeeeee'>", item->description, "</td></tr>");
         }

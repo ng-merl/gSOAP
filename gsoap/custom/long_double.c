@@ -1,10 +1,10 @@
 /*
+	long_double.c
 
-long_double.c
+	Custom serializer for the long double (extended double) type as
+	xsd:decimal.
 
-Custom serializer for the long double (extended double) type as xsd:decimal.
-
-Compile this file and link it with your code.
+	Compile this file and link it with your code.
 
 gSOAP XML Web services tools
 Copyright (C) 2000-2007, Robert van Engelen, Genivia Inc., All Rights Reserved.

@@ -31,6 +31,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 --------------------------------------------------------------------------------
 */
 
+/// print a value in human-readable form
 extern std::ostream& operator<<(std::ostream&, const struct value&);
-extern std::istream& operator>>(std::istream&, struct value&);
 
+/// parse a value from XML stream
+extern std::istream& operator>>(std::istream&, struct value&);

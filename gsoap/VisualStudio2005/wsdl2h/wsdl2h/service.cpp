@@ -204,8 +204,10 @@ void Definitions::analyze(const wsdl__definitions &definitions)
               }
               else
                 o->input->URI = input_body->namespace_;
+              o->input->style = soap__operation_style;
               o->input->use = input_body->use;
               o->input->encodingStyle = input_body->encodingStyle;
+              o->input->action = input->wsam__Action;
               o->input->message = input->messagePtr();
               o->input->part = NULL;
               o->input->multipartRelated = ext_input->mime__multipartRelated_;
@@ -242,6 +244,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                   o->output->name = NULL;
                   o->output->URI = NULL;
                   o->output->encodingStyle = NULL;
+                  o->output->action = NULL;
                   o->output->body_parts = NULL;
                   o->output->part = NULL;
                   o->output->multipartRelated = NULL;
@@ -254,6 +257,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
         	else if (output_body)
                 { o->output = new Message();
                   o->output->name = (*operation).name; // RPC uses operation/@name with suffix 'Response' as set below
+                  o->output->style = soap__operation_style;
                   o->output->use = output_body->use;
                   // the code below is a hack around the RPC encoded response message element tag mismatch with Axis:
                   if (!output_body->namespace_ || output_body->use == encoded)
@@ -261,6 +265,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                   else
                     o->output->URI = output_body->namespace_;
                   o->output->encodingStyle = output_body->encodingStyle;
+                  o->output->action = output->wsam__Action;
                   o->output->message = output->messagePtr();
                   o->output->part = NULL;
                   o->output->multipartRelated = ext_output->mime__multipartRelated_;
@@ -320,15 +325,16 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                     h->name = "";
                   }
                   h->encodingStyle = (*header).encodingStyle;
+		  h->style = document;	// irrelevant
                   h->use = (*header).use;
         	  h->multipartRelated = NULL;
         	  h->content = NULL;
         	  h->layout = NULL;
                   h->ext_documentation = NULL;	// TODO: add document content
-                  h->documentation = NULL;		// TODO: add document content
+                  h->documentation = NULL;	// TODO: add document content
                   s->header[h->name] = h;
                   for (vector<soap__headerfault>::const_iterator headerfault = (*header).headerfault.begin(); headerfault != (*header).headerfault.end(); ++headerfault)
-                  { // TODO: complete headerfault processing. This is rarely used.
+                  { // TODO: headerfault processing. This is rarely used.
                   }
                 }
               }
@@ -360,6 +366,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
     	            h->name = "";
     	          }
     	          h->encodingStyle = (*header).encodingStyle;
+		  h->style = document;	// irrelevant
     	          h->use = (*header).use;
         	  h->multipartRelated = NULL;
         	  h->content = NULL;
@@ -368,7 +375,7 @@ void Definitions::analyze(const wsdl__definitions &definitions)
     	          h->documentation = NULL;	// TODO: add document content
     	          s->header[h->name] = h;
     	          for (vector<soap__headerfault>::const_iterator headerfault = (*header).headerfault.begin(); headerfault != (*header).headerfault.end(); ++headerfault)
-    	          { // TODO: complete headerfault processing. This is rarely used.
+    	          { // TODO: headerfault processing. This is rarely used.
     	          }
     	        }
     	      }
@@ -380,7 +387,9 @@ void Definitions::analyze(const wsdl__definitions &definitions)
                   f->body_parts = NULL;
     	          f->part = NULL;
     	          f->encodingStyle = (*ext_fault).soap__fault_->encodingStyle;
+		  f->action = NULL;
     	          f->URI = (*ext_fault).soap__fault_->namespace_;
+		  f->style = document;	// irrelevant
     	          f->use = (*ext_fault).soap__fault_->use;
 		  if (f->use == literal && !f->URI)
 		    f->URI = s->URI; // must have a unique URI
@@ -421,7 +430,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
   else
     defs = "Service";
   ident();
-  fprintf(stream, "/* NOTE:\n\n - Compile this file with soapcpp2 to complete the code generation process.\n - Use soapcpp2 option -I to specify paths for #import\n   To build with STL, 'stlvector.h' is imported from 'import' dir in package.\n - Use wsdl2h options -c and -s to generate pure C code or C++ code without STL.\n - Use 'WS/typemap.dat' to control namespace bindings and type mappings.\n   It is strongly recommended to customize the names of the namespace prefixes\n   generated by wsdl2h. To do so, modify the prefix bindings in the Namespaces\n   section below and add the modified lines to 'typemap.dat' to rerun wsdl2h.\n - Use Doxygen (www.doxygen.org) to browse this file.\n - Use wsdl2h option -l to view the software license terms.\n\n   DO NOT include this file directly into your project.\n   Include only the soapcpp2-generated headers and source code files.\n*/\n");
+  fprintf(stream, "/* NOTE:\n\n - Compile this file with soapcpp2 to complete the code generation process.\n - Use soapcpp2 option -I to specify paths for #import\n   To build with STL, 'stlvector.h' is imported from 'import' dir in package.\n - Use wsdl2h options -c and -s to generate pure C code or C++ code without STL.\n - Use 'typemap.dat' to control namespace bindings and type mappings.\n   It is strongly recommended to customize the names of the namespace prefixes\n   generated by wsdl2h. To do so, modify the prefix bindings in the Namespaces\n   section below and add the modified lines to 'typemap.dat' to rerun wsdl2h.\n - Use Doxygen (www.doxygen.org) to browse this file.\n - Use wsdl2h option -l to view the software license terms.\n\n   DO NOT include this file directly into your project.\n   Include only the soapcpp2-generated headers and source code files.\n*/\n");
   // gsoap compiler options: 'w' disables WSDL/schema output to avoid file collisions
   if (cflag)
     fprintf(stream, "\n//gsoapopt cw\n");
@@ -445,23 +454,14 @@ void Definitions::compile(const wsdl__definitions& definitions)
   banner("Import");
   if (dflag)
   { fprintf(stream, "\n// dom.h declares the DOM xsd__anyType object (compiler and link with dom.cpp)\n");
-    if (import_path)
-      fprintf(stream, "#import \"%s/dom.h\"\n", import_path);
-    else
-      fprintf(stream, "#import \"dom.h\"\n");
+    fprintf(stream, "#import \"dom.h\"\n");
   }
   if (!cflag && !sflag)
   { fprintf(stream, "\n// STL vector containers (use option -s to disable)\n");
-    if (import_path)
-      fprintf(stream, "#import \"%s/stlvector.h\"\n", import_path);
-    else
-      fprintf(stream, "#import \"stlvector.h\"\n");
+    fprintf(stream, "#import \"stlvector.h\"\n");
   }
   if (mflag)
-  { if (import_path)
-      fprintf(stream, "#import \"%s/", import_path);
-    else
-      fprintf(stream, "#import \"");
+  { fprintf(stream, "#import \"");
     fprintf(stream, "xsd.h\"\t// import primitive XSD types.\n");
   }
   for (SetOfString::const_iterator u = exturis.begin(); u != exturis.end(); ++u)
@@ -492,10 +492,7 @@ void Definitions::compile(const wsdl__definitions& definitions)
     if (found)
     { if (vflag)
         fprintf(stderr, "import %s\n", *u);
-      if (import_path)
-        fprintf(stream, "#import \"%s/%s.h\"\t// %s = <%s>\n", import_path, types.nsprefix(NULL, *u), types.nsprefix(NULL, *u), *u);
-      else
-        fprintf(stream, "#import \"%s.h\"\t// %s = <%s>\n", types.nsprefix(NULL, *u), types.nsprefix(NULL, *u), *u);
+      fprintf(stream, "#import \"%s.h\"\t// %s = <%s>\n", types.nsprefix(NULL, *u), types.nsprefix(NULL, *u), *u);
     }
   }
   banner("Schema Namespaces");
@@ -978,21 +975,30 @@ void Definitions::generate()
   }
   else if (!jflag && !headers.empty())
   { banner("SOAP Header");
-    fprintf(stream, "/**\n\nThe SOAP Header is part of the gSOAP context and its content is accessed\nthrough the soap.header variable. You may have to set the soap.actor variable\nto serialize SOAP Headers with SOAP-ENV:actor or SOAP-ENV:role attributes.\nUse option -j to omit.\n\n*/\n");
+    fprintf(stream, "/**\n\nThe SOAP Header is part of the gSOAP context and its content is accessed\nthrough the soap.header variable. You may have to set the soap.actor variable\nto serialize SOAP Headers with SOAP-ENV:actor or SOAP-ENV:role attributes.\nUse option -j to remove entire SOAP Header definition.\nUse option -k to remove the mustUnderstand qualifiers.\n\n*/\n");
     fprintf(stream, "struct SOAP_ENV__Header\n{\n");
     for (MapOfStringToMessage::const_iterator header = headers.begin(); header != headers.end(); ++header)
     { if ((*header).second->URI && !types.uris[(*header).second->URI])
         fprintf(stream, schemaformat, types.nsprefix(NULL, (*header).second->URI), "namespace", (*header).second->URI);
       comment("Header", (*header).first, "WSDL", (*header).second->ext_documentation);
       comment("Header", (*header).first, "SOAP", (*header).second->documentation);
-      fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
-      fprintf(stream, "\n");
+      if (!kflag)
+      { fprintf(stream, elementformat, "mustUnderstand", "// must be understood by receiver");
+        fprintf(stream, "\n");
+      }
       if ((*header).second->part && (*header).second->part->elementPtr())
       { fprintf(stream, "/// \"%s\" SOAP Header part element\n", (*header).second->part->name);
-        types.gen(NULL, *(*header).second->part->elementPtr());
+	if ((*header).second->part->elementPtr()->type && (*header).second->part->element)
+          fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->elementPtr()->type), types.aname(NULL, NULL, (*header).second->part->element));
+	else if ((*header).second->part->element)
+          fprintf(stream, elementformat, types.pname(true, "_", NULL, (*header).second->part->element), types.aname(NULL, NULL, (*header).second->part->element));
+	else
+          fprintf(stream, elementformat, types.pname(true, "_", NULL, (*header).second->part->elementPtr()->name), (*header).first);
+        fprintf(stream, ";\n");
       }
       else if ((*header).second->part && (*header).second->part->type)
-      { fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), types.aname(NULL, (*header).second->URI, (*header).second->part->name));
+      { fprintf(stream, "/// \"%s\" SOAP Header part type\n", (*header).second->part->type);
+        fprintf(stream, elementformat, types.pname(true, NULL, NULL, (*header).second->part->type), types.aname(NULL, (*header).second->URI, (*header).second->part->name));
         fprintf(stream, ";\n");
       }
       else
@@ -1223,6 +1229,14 @@ void Service::generate(Types& types)
       { if (*(*op2)->soapAction)
           fprintf(stream, "  - SOAP action=\"%s\"\n", (*op2)->soapAction);
       }
+      if ((*op2)->input)
+      { if ((*op2)->input->action)
+          fprintf(stream, "  - Addressing action=\"%s\"\n", (*op2)->input->action);
+      }
+      if ((*op2)->output)
+      { if ((*op2)->output->action)
+          fprintf(stream, "  - Addressing response action=\"%s\"\n", (*op2)->output->action);
+      }
       for (vector<Message*>::const_iterator message = (*op2)->fault.begin(); message != (*op2)->fault.end(); ++message)
       { if ((*message)->use == literal)
         { for (vector<wsdl__part>::const_iterator part = (*message)->message->part.begin(); part != (*message)->message->part.end(); ++part)
@@ -1414,6 +1428,10 @@ void Operation::generate(Types &types)
     else
       fprintf(stream, serviceformat, prefix, "method-action", method_name, "\"\"");
   }
+  else if (input && input->action)
+    fprintf(stream, serviceformat, prefix, "method-action", method_name, input->action);
+  else if (output && output->action)
+    fprintf(stream, serviceformat, prefix, "method-response-action", method_name, output->action);
   for (vector<Message*>::const_iterator message = fault.begin(); message != fault.end(); ++message)
   { if ((*message)->use == literal)
     { for (vector<wsdl__part>::const_iterator part = (*message)->message->part.begin(); part != (*message)->message->part.end(); ++part)
@@ -1530,15 +1548,18 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
         if ((*part).element)
         { if ((*part).elementPtr())
           { const char *name, *type, *URI, *prefix = NULL;
-            name = (*part).elementPtr()->name;
+            if (style == rpc)
+	      name = (*part).name;
+	    else
+	      name = (*part).elementPtr()->name;
             /* comment out to use a type that refers to an element defined with typedef */
             if ((*part).elementPtr()->type)
               type = (*part).elementPtr()->type;
             else
-            { type = name;
+            { type = (*part).elementPtr()->name;
               prefix = "_";
             }
-            if ((*part).elementPtr()->schemaPtr())
+            if (style == document && (*part).elementPtr()->schemaPtr())
               URI = (*part).elementPtr()->schemaPtr()->targetNamespace;
             else
               URI = NULL;
@@ -1562,9 +1583,7 @@ void Message::generate(Types &types, const char *sep, bool anonymous, bool remar
           }
         }
         else if ((*part).type)
-        { if (use == literal)
-            fprintf(stderr, "Warning: part '%s' uses literal style and should refer to an element rather than a type\n", (*part).name);
-          if (response)
+        { if (response)
           { const char *t = types.tname(NULL, NULL, (*part).type);
             bool flag = (strchr(t, '*') && strcmp(t, "char*") && strcmp(t, "char *"));
             fprintf(stream, anonymous ? anonformat : paraformat, t, flag ? " " : cflag ? "*" : "&", types.aname(NULL, NULL, (*part).name), sep);
